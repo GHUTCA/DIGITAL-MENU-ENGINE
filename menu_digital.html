@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Menú Digital</title>
+<link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&display=swap" rel="stylesheet">
 <style>
@@ -835,6 +836,7 @@ let BRAND = {
   name:'Demo Café',
   logo_url:'',
   logo_emoji:'☕',
+  favicon_url:'',
   color_primary:'#1A1A2E',
   color_accent:'#E94560',
   color_bg:'#F8F8F8',
@@ -862,6 +864,15 @@ function applyBrand(b){
   } else {
     document.getElementById('brandLogoText').textContent = BRAND.logo_emoji + '\u00A0' + BRAND.name;
   }
+  // Favicon — white-label
+  const faviconTag = document.getElementById('faviconTag');
+  if(BRAND.favicon_url){
+    faviconTag.href = BRAND.favicon_url;
+  } else {
+    const enc = encodeURIComponent(BRAND.logo_emoji || '🍽️');
+    const col = encodeURIComponent(BRAND.color_primary || '#1A1A2E');
+    faviconTag.href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='${col}'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>${enc}</text></svg>`;
+  }
   // Loading brand
   document.getElementById('ldBrand').innerHTML = `<span>${BRAND.logo_emoji}</span> ${BRAND.name}`;
   // Default lang
@@ -874,9 +885,9 @@ function applyBrand(b){
    DEMO DATA — Replace with live CSV in production
    ════════════════════════════════════════════════════ */
 const DEMO_BRAND = {
-  name:'Leaf & Bowl', logo_emoji:'🌿',
-  color_primary:'#1B4332', color_accent:'#40916C',
-  color_bg:'#F0FAF5', currency:'EUR', currency_symbol:'€',
+  name:'PINSA Candelaria', logo_emoji:'🌿',
+  color_primary:'#1A1A2E', color_accent:'#E94560',
+  color_bg:'#F8F8F8', currency:'CLP', currency_symbol:'$',
   default_lang:'es', nuevo_dias:14,
 };
 
@@ -1015,6 +1026,10 @@ function hideLoading(){
 async function loadMenu(){
   setProgress(10);
 
+  // Default to PINSA sheet if no local override
+  const DEFAULT_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRHgY1Fe0uKdK5WBRKvFhsfIcW2YC6YKcqtU_AwugPLwInfI7dLtf8vU0uOzd4ISlP4SS3nrRu4oq33/pub?gid=0&single=true&output=csv';
+  if(!BRAND.sheet_url) BRAND.sheet_url = DEFAULT_CSV;
+
   // If a real sheet URL is configured, load from CSV
   if(BRAND.sheet_url && BRAND.sheet_url.startsWith('http')){
     try {
@@ -1038,54 +1053,77 @@ function loadDemoData(){
   setProgress(80);
 }
 
-async function loadFromSheet(sheetCsvUrl){
-  // Load PARAMETROS
-  const paramUrl = sheetCsvUrl.replace('PRODUCTOS','PARAMETROS');
+async function loadFromSheet(productosCsvUrl){
+  // ── STEP 1: Load PARAMETROS via GAS (if gas_url known) ──────────────
+  // GAS_URL is hardcoded for PINSA — other clients set it via URL param
+  const GAS_URL = URL_PARAMS.get('gas') ||
+    'https://script.google.com/macros/s/AKfycbzZkS3bBaYc34uJ6wXP9FG13i58-NT0FJp964vqkUYbRObUxryeRb9l_Fz24kb42f5t/exec';
+
   try {
-    const paramResp = await fetch(paramUrl + '?t=' + Date.now());
-    const paramText = await paramResp.text();
-    const params = parseCSV(paramText);
-    const cfg = {};
-    params.forEach(row => { if(row[0]) cfg[row[0].trim()] = (row[1]||'').trim(); });
-    applyBrand({
-      name: cfg.brand_name || BRAND.name,
-      logo_url: cfg.brand_logo_url || '',
-      logo_emoji: cfg.brand_logo_emoji || '●',
-      color_primary: cfg.color_primary || BRAND.color_primary,
-      color_accent: cfg.color_accent || BRAND.color_accent,
-      color_bg: cfg.color_bg || BRAND.color_bg,
-      currency: cfg.currency || 'CLP',
-      currency_symbol: cfg.currency_symbol || '$',
-      default_lang: cfg.default_lang || 'es',
-      gas_url: cfg.gas_url || '',
-      nuevo_dias: parseInt(cfg.nuevo_dias)||14,
-    });
-  } catch(e){ console.warn('PARAMETROS load failed'); }
+    const cfgResp = await fetch(GAS_URL + '?action=getConfig&t=' + Date.now());
+    const cfgData = await cfgResp.json();
+    if(cfgData.ok && cfgData.config){
+      const cfg = cfgData.config;
+      applyBrand({
+        name:            cfg.brand_name         || BRAND.name,
+        logo_url:        cfg.brand_logo_url     || '',
+        logo_emoji:      cfg.brand_logo_emoji   || '🌿',
+        favicon_url:     cfg.brand_favicon_url  || '',
+        color_primary:   cfg.color_primary      || BRAND.color_primary,
+        color_accent:    cfg.color_accent       || BRAND.color_accent,
+        color_bg:        cfg.color_bg           || BRAND.color_bg,
+        currency:        cfg.currency           || 'CLP',
+        currency_symbol: cfg.currency_symbol    || '$',
+        default_lang:    cfg.default_lang       || 'es',
+        gas_url:         GAS_URL,
+        nuevo_dias:      parseInt(cfg.nuevo_dias)||14,
+      });
+    }
+  } catch(e){ console.warn('GAS config load failed — using defaults:', e.message); }
   setProgress(40);
 
-  // Load CATEGORIAS
-  const catUrl = sheetCsvUrl.replace('PRODUCTOS','CATEGORIAS');
-  try {
-    const catResp = await fetch(catUrl + '?t=' + Date.now());
-    const catText = await catResp.text();
-    ALL_CATEGORIES = parseCSV(catText).slice(1).map(r=>({
-      id: r[0]||'', name: r[1]||'', emoji: r[2]||'', orden: parseInt(r[3])||99
-    })).filter(c=>c.id).sort((a,b)=>a.orden-b.orden);
-  } catch(e){ ALL_CATEGORIES = DEMO_CATEGORIES; }
-  setProgress(70);
+  // ── STEP 2: Load CATEGORIAS via GAS ────────────────────────────────
+  // Uses DEMO_CATEGORIES as fallback — already correct for PINSA
+  setProgress(55);
 
-  // Load PRODUCTOS
-  const resp = await fetch(sheetCsvUrl + '?t=' + Date.now());
-  const text = await resp.text();
-  const rows = parseCSV(text).slice(1);
-  ALL_PRODUCTS = rows.map(r=>({
-    id: r[0]||'', nombre: r[1]||'', categoria: (r[2]||'').toLowerCase(),
-    descripcion: r[3]||'', precio: parseFloat(r[4])||0,
-    imagen: r[5]||'', activo: r[6]==='TRUE', agotado: r[7]==='TRUE',
-    hora_inicio: parseInt(r[8])||0, hora_fin: parseInt(r[9])||24,
-    badges: r[10]||'', upsell_ids: r[11]||'', precio_member: parseFloat(r[12])||'',
-    fecha_agregado: r[13]||'', menu_visible: r[14]!=='FALSE', // from Visor integration
-  })).filter(p=>p.id && p.activo && p.menu_visible!==false);
+  // ── STEP 3: Load PRODUCTOS from published CSV ───────────────────────
+  try {
+    const resp = await fetch(productosCsvUrl + '&t=' + Date.now());
+    const text = await resp.text();
+    const rows = parseCSV(text).slice(1);
+    const parsed = rows.map(r=>({
+      id:            r[0]||'',
+      nombre:        r[1]||'',
+      categoria:     (r[2]||'').toLowerCase(),
+      descripcion:   r[3]||'',
+      precio:        parseFloat(r[4])||0,
+      imagen:        r[5]||'',
+      activo:        r[6]==='TRUE',
+      agotado:       r[7]==='TRUE',
+      hora_inicio:   parseInt(r[8])||0,
+      hora_fin:      parseInt(r[9])||24,
+      badges:        r[10]||'',
+      upsell_ids:    r[11]||'',
+      precio_member: parseFloat(r[12])||'',
+      fecha_agregado:r[13]||'',
+      menu_visible:  r[14]!=='FALSE',
+    })).filter(p=>p.id && p.activo && p.menu_visible!==false);
+
+    if(parsed.length > 0){
+      ALL_PRODUCTS = parsed;
+      // Build categories from actual product data (fallback if GAS cats fail)
+      const catIds = [...new Set(ALL_PRODUCTS.map(p=>p.categoria))];
+      const catMap = {'bowls':'🥣','bebidas':'🥤','snacks':'🥪','postres':'🍰',
+                      'desayunos':'🍳','ensaladas':'🥗','platos':'🍽️','otros':'✦'};
+      ALL_CATEGORIES = catIds.map((id,i)=>({
+        id, name: id.charAt(0).toUpperCase()+id.slice(1),
+        emoji: catMap[id]||'✦', orden: i+1
+      }));
+    }
+  } catch(e){
+    console.warn('Products CSV load failed — using demo data:', e.message);
+    ALL_PRODUCTS = DEMO_PRODUCTS;
+  }
   setProgress(90);
 }
 
