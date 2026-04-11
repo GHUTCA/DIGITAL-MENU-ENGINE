@@ -147,6 +147,7 @@ a{text-decoration:none;color:inherit}
   background:var(--brand-surface);
   border-bottom:1px solid var(--brand-border);
   overflow:hidden;
+  box-shadow:0 1px 0 var(--brand-border);
 }
 .faja-scroll{
   display:flex;gap:8px;padding:10px 16px;
@@ -224,8 +225,9 @@ a{text-decoration:none;color:inherit}
    ══════════════════════════════════════════ */
 .cat-sticky{
   position:sticky;top:160px;z-index:96;
-  background:var(--brand-bg);
+  background:var(--brand-surface);
   border-bottom:1px solid var(--brand-border);
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
 }
 .cat-tabs{
   display:flex;gap:4px;padding:0 16px;
@@ -598,7 +600,7 @@ a{text-decoration:none;color:inherit}
 </div>
 
 <!-- ── SEARCH ── -->
-<div id="searchBarWrap" style="position:sticky;top:104px;z-index:97;background:var(--brand-surface);border-bottom:1px solid var(--brand-border)">
+<div id="searchBarWrap" style="position:sticky;top:104px;z-index:97;background:var(--brand-surface);border-bottom:1px solid var(--brand-border);box-shadow:0 2px 4px rgba(0,0,0,0.04)">
   <div style="max-width:480px;margin:0 auto;padding:10px 16px">
     <div class="search-inner">
       <span class="search-icon">🔍</span>
@@ -982,7 +984,16 @@ let loadProgress    = 0;
 /* ════════════════════════════════════════════════════
    INIT
    ════════════════════════════════════════════════════ */
+
+const PINSA_DEFAULT = {
+  name:'PINSA Candelaria', logo_emoji:'🌿',
+  color_primary:'#1A1A2E', color_accent:'#E94560',
+  color_bg:'#F8F8F8', currency:'CLP', currency_symbol:'$',
+  default_lang:'es', nuevo_dias:14,
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
+  applyBrand(PINSA_DEFAULT); // instant brand — no wait for GAS
   showSkeletons();
   buildLangMenu();
   applyLang();
@@ -1548,6 +1559,7 @@ function setLang(code){
   applyLang();
   buildLangMenu();
   renderFajas();
+  renderCatTabs(); // re-render with new lang
   renderMenu();
   setupSearch();
 }
