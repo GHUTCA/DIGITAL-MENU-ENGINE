@@ -143,6 +143,7 @@ a{text-decoration:none;color:inherit}
    FAJA HORARIA INDICATOR
    ══════════════════════════════════════════ */
 #fajaBar{
+  position:sticky;top:54px;z-index:98;
   background:var(--brand-surface);
   border-bottom:1px solid var(--brand-border);
   overflow:hidden;
@@ -222,7 +223,7 @@ a{text-decoration:none;color:inherit}
    CATEGORY ANCHORS
    ══════════════════════════════════════════ */
 .cat-sticky{
-  position:sticky;top:54px;z-index:90;
+  position:sticky;top:160px;z-index:96;
   background:var(--brand-bg);
   border-bottom:1px solid var(--brand-border);
 }
@@ -597,7 +598,7 @@ a{text-decoration:none;color:inherit}
 </div>
 
 <!-- ── SEARCH ── -->
-<div style="background:var(--brand-surface);border-bottom:1px solid var(--brand-border)">
+<div id="searchBarWrap" style="position:sticky;top:104px;z-index:97;background:var(--brand-surface);border-bottom:1px solid var(--brand-border)">
   <div style="max-width:480px;margin:0 auto;padding:10px 16px">
     <div class="search-inner">
       <span class="search-icon">🔍</span>
@@ -682,6 +683,7 @@ const TRANSLATIONS = {
     close:'Cerrar',
     hi_member:'Hola',tokens:'tokens',
     flag:'🇨🇱',
+    cat_alimentos:'Alimentos',cat_cafe:'Café',cat_jugos:'Jugos',cat_helados:'Helados',cat_especiales:'Especiales',cat_bebidas:'Bebidas',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Postres',cat_ensaladas:'Ensaladas',cat_desayunos:'Desayunos',
   },
   en:{
     loading:'Loading menu...',
@@ -701,6 +703,7 @@ const TRANSLATIONS = {
     close:'Close',
     hi_member:'Hi',tokens:'tokens',
     flag:'🇬🇧',
+    cat_alimentos:'Food',cat_cafe:'Coffee',cat_jugos:'Juices',cat_helados:'Ice Cream',cat_especiales:'Specials',cat_bebidas:'Drinks',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Desserts',cat_ensaladas:'Salads',cat_desayunos:'Breakfast',
   },
   pt:{
     loading:'Carregando cardápio...',
@@ -720,6 +723,7 @@ const TRANSLATIONS = {
     close:'Fechar',
     hi_member:'Olá',tokens:'tokens',
     flag:'🇧🇷',
+    cat_alimentos:'Alimentos',cat_cafe:'Café',cat_jugos:'Sucos',cat_helados:'Sorvetes',cat_especiales:'Especiais',cat_bebidas:'Bebidas',cat_bowls:'Bowls',cat_snacks:'Lanches',cat_postres:'Sobremesas',cat_ensaladas:'Saladas',cat_desayunos:'Café da manhã',
   },
   it:{
     loading:'Caricamento menu...',
@@ -739,6 +743,7 @@ const TRANSLATIONS = {
     close:'Chiudi',
     hi_member:'Ciao',tokens:'token',
     flag:'🇮🇹',
+    cat_alimentos:'Cucina',cat_cafe:'Caffetteria',cat_jugos:'Succhi',cat_helados:'Gelati',cat_especiales:'Speciali',cat_bebidas:'Bevande',cat_bowls:'Bowls',cat_snacks:'Snack',cat_postres:'Dolci',cat_ensaladas:'Insalate',cat_desayunos:'Colazione',
   },
   de:{
     loading:'Menü wird geladen...',
@@ -758,6 +763,7 @@ const TRANSLATIONS = {
     close:'Schließen',
     hi_member:'Hallo',tokens:'Token',
     flag:'🇩🇪',
+    cat_alimentos:'Speisen',cat_cafe:'Kaffee',cat_jugos:'Säfte',cat_helados:'Eis',cat_especiales:'Specials',cat_bebidas:'Getränke',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Desserts',cat_ensaladas:'Salate',cat_desayunos:'Frühstück',
   },
   fr:{
     loading:'Chargement du menu...',
@@ -777,6 +783,7 @@ const TRANSLATIONS = {
     close:'Fermer',
     hi_member:'Bonjour',tokens:'tokens',
     flag:'🇫🇷',
+    cat_alimentos:'Cuisine',cat_cafe:'Café',cat_jugos:'Jus',cat_helados:'Glaces',cat_especiales:'Spéciaux',cat_bebidas:'Boissons',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Desserts',cat_ensaladas:'Salades',cat_desayunos:'Petit-déj',
   },
   zh:{
     loading:'菜单加载中...',
@@ -796,6 +803,7 @@ const TRANSLATIONS = {
     close:'关闭',
     hi_member:'你好',tokens:'积分',
     flag:'🇨🇳',
+    cat_alimentos:'餐食',cat_cafe:'咖啡',cat_jugos:'果汁',cat_helados:'冰淇淋',cat_especiales:'特色',cat_bebidas:'饮品',cat_bowls:'碗食',cat_snacks:'小食',cat_postres:'甜点',cat_ensaladas:'沙拉',cat_desayunos:'早餐',
   },
   ja:{
     loading:'メニュー読み込み中...',
@@ -815,6 +823,7 @@ const TRANSLATIONS = {
     close:'閉じる',
     hi_member:'こんにちは',tokens:'ポイント',
     flag:'🇯🇵',
+    cat_alimentos:'フード',cat_cafe:'カフェ',cat_jugos:'ジュース',cat_helados:'アイス',cat_especiales:'スペシャル',cat_bebidas:'ドリンク',cat_bowls:'ボウル',cat_snacks:'スナック',cat_postres:'デザート',cat_ensaladas:'サラダ',cat_desayunos:'朝食',
   },
 };
 
@@ -827,6 +836,12 @@ const LANG_LABELS = {
 if(!TRANSLATIONS[LANG_CODE]) LANG_CODE = 'es';
 
 function getLang(k){ return (TRANSLATIONS[LANG_CODE]||TRANSLATIONS.es)[k] || k; }
+
+function getCatName(catId){
+  const key = 'cat_' + catId.toLowerCase().replace(/[^a-z]/g,'');
+  const t = TRANSLATIONS[LANG_CODE] || TRANSLATIONS.es;
+  return t[key] || catId.charAt(0).toUpperCase() + catId.slice(1);
+}
 
 function toTitleCase(str){
   if(!str) return str;
@@ -1213,7 +1228,7 @@ function renderCatTabs(){
   const tabs = document.getElementById('catTabs');
   tabs.innerHTML = ALL_CATEGORIES.map(c=>`
     <button class="cat-tab" id="tab-${c.id}" onclick="scrollToCategory('${c.id}')">
-      <span class="cat-tab-emoji">${c.emoji}</span>${c.name}
+      <span class="cat-tab-emoji">${c.emoji}</span>${getCatName(c.id)}
     </button>
   `).join('');
 
@@ -1355,7 +1370,7 @@ function renderMenu(){
       <div class="cat-section" id="cat-${cat.id}">
         <div class="cat-header">
           <span class="cat-header-emoji">${cat.emoji}</span>
-          <span class="cat-header-name">${cat.name}</span>
+          <span class="cat-header-name">${getCatName(cat.id)}</span>
           <span class="cat-header-count">${items.length}</span>
         </div>
         <div class="product-list">
