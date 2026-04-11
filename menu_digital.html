@@ -1049,7 +1049,23 @@ function hideLoading(){
   document.getElementById('skeletonList').innerHTML = '';
   const ls = document.getElementById('loadingScreen');
   ls.classList.add('out');
-  setTimeout(()=>ls.style.display='none', 500);
+  setTimeout(()=>{ ls.style.display='none'; updateStickyTops(); }, 500);
+}
+
+function updateStickyTops(){
+  const header  = document.getElementById('header');
+  const faja    = document.getElementById('fajaBar');
+  const search  = document.getElementById('searchBarWrap');
+  const cats    = document.getElementById('catSticky');
+  if(!header||!faja||!search||!cats) return;
+
+  const h1 = header.offsetHeight;           // ~54px
+  const h2 = faja.offsetHeight;             // ~50px
+  const h3 = search.offsetHeight;           // ~56px
+
+  faja.style.top   = h1 + 'px';
+  search.style.top = (h1 + h2) + 'px';
+  cats.style.top   = (h1 + h2 + h3) + 'px';
 }
 
 /* ════════════════════════════════════════════════════
@@ -1250,8 +1266,12 @@ function renderCatTabs(){
 function scrollToCategory(id){
   const el = document.getElementById('cat-' + id);
   if(el){
-    const offset = document.getElementById('header').offsetHeight +
-                   document.getElementById('catSticky').offsetHeight + 8;
+    const header = document.getElementById('header');
+  const faja   = document.getElementById('fajaBar');
+  const search = document.getElementById('searchBarWrap');
+  const cats   = document.getElementById('catSticky');
+  const offset = (header?.offsetHeight||54) + (faja?.offsetHeight||50) +
+                 (search?.offsetHeight||56) + (cats?.offsetHeight||44) + 8;
     window.scrollTo({top: el.offsetTop - offset, behavior:'smooth'});
   }
   document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
@@ -1507,6 +1527,8 @@ document.getElementById('detailSheet').addEventListener('touchmove',e=>{
 /* ════════════════════════════════════════════════════
    SEARCH
    ════════════════════════════════════════════════════ */
+window.addEventListener('resize', updateStickyTops);
+
 function setupSearch(){
   const inp = document.getElementById('searchInput');
   inp.placeholder = getLang('search_placeholder');
