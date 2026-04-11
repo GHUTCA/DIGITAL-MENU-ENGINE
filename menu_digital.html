@@ -1060,44 +1060,57 @@ function loadDemoData(){
   setProgress(80);
 }
 
+// Fetch con timeout — evita loading infinito si GAS no responde
+async function fetchWithTimeout(url, ms=5000){
+  const ctrl = new AbortController();
+  const tid  = setTimeout(()=>ctrl.abort(), ms);
+  try {
+    const r = await fetch(url, {signal: ctrl.signal});
+    clearTimeout(tid);
+    return r;
+  } catch(e) {
+    clearTimeout(tid);
+    throw e;
+  }
+}
+
 async function loadFromSheet(productosCsvUrl){
-  // ── STEP 1: Load PARAMETROS via GAS (if gas_url known) ──────────────
-  // GAS_URL is hardcoded for PINSA — other clients set it via URL param
   const GAS_URL = URL_PARAMS.get('gas') ||
     'https://script.google.com/macros/s/AKfycbzZkS3bBaYc34uJ6wXP9FG13i58-NT0FJp964vqkUYbRObUxryeRb9l_Fz24kb42f5t/exec';
 
-  try {
-    const cfgResp = await fetch(GAS_URL + '?action=getConfig&t=' + Date.now());
-    const cfgData = await cfgResp.json();
-    if(cfgData.ok && cfgData.config){
-      const cfg = cfgData.config;
-      applyBrand({
-        name:            cfg.brand_name         || BRAND.name,
-        logo_url:        cfg.brand_logo_url     || '',
-        logo_emoji:      cfg.brand_logo_emoji   || '🌿',
-        favicon_url:     cfg.brand_favicon_url  || '',
-        color_primary:   cfg.color_primary      || BRAND.color_primary,
-        color_accent:    cfg.color_accent       || BRAND.color_accent,
-        color_bg:        cfg.color_bg           || BRAND.color_bg,
-        currency:        cfg.currency           || 'CLP',
-        currency_symbol: cfg.currency_symbol    || '$',
-        default_lang:    cfg.default_lang       || 'es',
-        gas_url:         GAS_URL,
-        nuevo_dias:      parseInt(cfg.nuevo_dias)||14,
-      });
-    }
-  } catch(e){ console.warn('GAS config load failed — using defaults:', e.message); }
-  setProgress(40);
+  // ── PARALLEL: config + productos al mismo tiempo ─────────────────────
+  const [cfgResult, csvResult] = await Promise.allSettled([
+    fetchWithTimeout(GAS_URL + '?action=getConfig&t=' + Date.now(), 4000).then(r=>r.json()),
+    fetchWithTimeout(productosCsvUrl + '&t=' + Date.now(), 8000).then(r=>r.text()),
+  ]);
+  setProgress(70);
 
-  // ── STEP 2: Load CATEGORIAS via GAS ────────────────────────────────
-  // Uses DEMO_CATEGORIES as fallback — already correct for PINSA
-  setProgress(55);
+  // Aplica config si llegó
+  if(cfgResult.status === 'fulfilled' && cfgResult.value?.ok){
+    const cfg = cfgResult.value.config;
+    applyBrand({
+      name:            cfg.brand_name         || BRAND.name,
+      logo_url:        cfg.brand_logo_url     || '',
+      logo_emoji:      cfg.brand_logo_emoji   || '🌿',
+      favicon_url:     cfg.brand_favicon_url  || '',
+      color_primary:   cfg.color_primary      || BRAND.color_primary,
+      color_accent:    cfg.color_accent       || BRAND.color_accent,
+      color_bg:        cfg.color_bg           || BRAND.color_bg,
+      currency:        cfg.currency           || 'CLP',
+      currency_symbol: cfg.currency_symbol    || '$',
+      default_lang:    cfg.default_lang       || 'es',
+      gas_url:         GAS_URL,
+      nuevo_dias:      parseInt(cfg.nuevo_dias)||14,
+    });
+  } else { console.warn('GAS config load failed — using defaults'); }
 
-  // ── STEP 3: Load PRODUCTOS from published CSV ───────────────────────
+  // ── PRODUCTOS from CSV ───────────────────────────────────────────────
   try {
-    const resp = await fetch(productosCsvUrl + '&t=' + Date.now());
-    const text = await resp.text();
-    const rows = parseCSV(text).slice(1);
+    const text = csvResult.status === 'fulfilled' ? csvResult.value : null;
+    if(!text) throw new Error('CSV fetch failed');
+    const resp = { text: async () => text }; // wrap for compatibility
+    const textData = await resp.text();
+    const rows = parseCSV(textData || text).slice(1);
     const parsed = rows.map(r=>({
       id:            r[0]||'',
       nombre:        r[1]||'',
@@ -1121,7 +1134,8 @@ async function loadFromSheet(productosCsvUrl){
       // Build categories from actual product data (fallback if GAS cats fail)
       const catIds = [...new Set(ALL_PRODUCTS.map(p=>p.categoria))];
       const catMap = {'bowls':'🥣','bebidas':'🥤','snacks':'🥪','postres':'🍰',
-                      'desayunos':'🍳','ensaladas':'🥗','platos':'🍽️','otros':'✦'};
+                      'desayunos':'🍳','ensaladas':'🥗','platos':'🍽️','otros':'✦',
+                      'alimentos':'🥪','cafe':'☕','jugos':'🥤','helados':'🍦','especiales':'✨'};
       ALL_CATEGORIES = catIds.map((id,i)=>({
         id, name: id.charAt(0).toUpperCase()+id.slice(1),
         emoji: catMap[id]||'✦', orden: i+1
