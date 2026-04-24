@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Menú Digital</title>
-<!-- menu_digital.html · v1.4.1 · 24-apr-2026 · splash neutro + parsePrice tollerante -->
+<!-- menu_digital.html · v1.5 · 24-apr-2026 · macro-groups V3 + emoji cats + prettify + theme dark BKS -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&display=swap" rel="stylesheet">
@@ -14,6 +14,8 @@
    Overridden at runtime by PARAMETROS sheet
    ══════════════════════════════════════════ */
 :root {
+ /* v1.5: Light mode (default). Dark mode override via body.theme-dark */
+:root {
   --brand-primary: #1A1A2E;
   --brand-accent: #E94560;
   --brand-bg: #F8F8F8;
@@ -21,6 +23,13 @@
   --brand-text: #2C2C2C;
   --brand-text-muted: #888;
   --brand-border: rgba(0,0,0,0.09);
+  --rhythm-bg: #FFFFFF;
+  --rhythm-label: #888;
+  --rhythm-chip-bg: #F8F8F8;
+  --rhythm-chip-text: #888;
+  --group-bg: #FFFFFF;
+  --group-inactive-bg: #F5F5F5;
+  --group-inactive-text: #888;
   --brand-name: "Menú Digital";
   --brand-font: 'Outfit', sans-serif;
 
@@ -37,6 +46,21 @@
   --transition: 0.2s ease;
 }
 
+body.theme-dark {
+  --brand-bg: #0D0D1A;
+  --brand-surface: #15152A;
+  --brand-text: #F5F5F5;
+  --brand-text-muted: rgba(255,255,255,0.55);
+  --brand-border: rgba(255,255,255,0.09);
+  --rhythm-bg: #0D0D1A;
+  --rhythm-label: rgba(255,255,255,0.4);
+  --rhythm-chip-bg: rgba(255,255,255,0.06);
+  --rhythm-chip-text: rgba(255,255,255,0.5);
+  --group-bg: #15152A;
+  --group-inactive-bg: rgba(255,255,255,0.06);
+  --group-inactive-text: rgba(255,255,255,0.55);
+}
+   
 /* ══════════════════════════════════════════
    RESET & BASE
    ══════════════════════════════════════════ */
@@ -145,11 +169,33 @@ a{text-decoration:none;color:inherit}
    ══════════════════════════════════════════ */
 #fajaBar{
   position:sticky;top:54px;z-index:98;
-  background:var(--brand-surface);
+  background:var(--rhythm-bg);
   border-bottom:1px solid var(--brand-border);
   overflow:hidden;
   box-shadow:0 1px 0 var(--brand-border);
 }
+.rhythm-label{
+  font-size:9px;color:var(--rhythm-label);
+  letter-spacing:2px;text-transform:uppercase;
+  padding:8px 16px 0;max-width:480px;margin:0 auto;
+  display:none;
+}
+body.theme-dark .rhythm-label{display:block}
+.rhythm-waveform{
+  display:none;
+  align-items:flex-end;gap:2px;height:10px;
+  padding:6px 16px 8px;max-width:480px;margin:0 auto;
+}
+body.theme-dark .rhythm-waveform{display:flex}
+.wf-bar{flex:1;background:var(--brand-accent);border-radius:1px;animation:pulse 2s ease-in-out infinite}
+.wf-bar:nth-child(2){animation-delay:0.1s}
+.wf-bar:nth-child(3){animation-delay:0.2s}
+.wf-bar:nth-child(4){animation-delay:0.3s}
+.wf-bar:nth-child(5){animation-delay:0.4s}
+.wf-bar:nth-child(6){animation-delay:0.5s}
+.wf-bar:nth-child(7){animation-delay:0.6s}
+.wf-bar:nth-child(8){animation-delay:0.7s}
+@keyframes pulse{0%,100%{transform:scaleY(0.6)}50%{transform:scaleY(1)}}
 .faja-scroll{
   display:flex;gap:8px;padding:10px 16px;
   overflow-x:auto;scrollbar-width:none;
@@ -160,9 +206,9 @@ a{text-decoration:none;color:inherit}
   flex-shrink:0;
   padding:5px 14px;border-radius:20px;
   font-size:11px;font-weight:600;letter-spacing:0.3px;
-  background:var(--brand-bg);
+  background:var(--rhythm-chip-bg);
   border:1.5px solid var(--brand-border);
-  color:var(--brand-text-muted);
+  color:var(--rhythm-chip-text);
   transition:all var(--transition);cursor:pointer;
 }
 .faja-chip.active{
@@ -213,6 +259,39 @@ a{text-decoration:none;color:inherit}
 #searchClear.show{display:block}
 #searchClear:active{opacity:0.8}
 
+/* ══════════════════════════════════════════
+   MACRO-GROUPS (V3) — BKS e locali con category_groups
+   ══════════════════════════════════════════ */
+#groupBar{
+  display:none;
+  background:var(--group-bg);
+  border-bottom:1px solid var(--brand-border);
+  padding:12px 16px;
+  max-width:480px;margin:0 auto;
+}
+#groupBar.show{display:block}
+.group-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+}
+.group-grid.g-2{grid-template-columns:repeat(2,1fr)}
+.group-grid.g-4{grid-template-columns:repeat(4,1fr)}
+.group-chip{
+  padding:10px 6px;border-radius:10px;
+  background:var(--group-inactive-bg);
+  color:var(--group-inactive-text);
+  text-align:center;cursor:pointer;
+  transition:all var(--transition);
+  border:none;font-family:inherit;
+}
+.group-chip:active{transform:scale(0.96)}
+.group-chip.active{
+  background:var(--brand-primary);
+  color:#fff;
+}
+.group-chip-emoji{font-size:16px;display:block;margin-bottom:2px}
+.group-chip-name{font-size:10px;font-weight:600;display:block}
+.group-chip-count{font-size:8px;opacity:0.6;display:block;margin-top:1px}
+   
 /* ══════════════════════════════════════════
    MAIN CONTENT
    ══════════════════════════════════════════ */
@@ -595,9 +674,25 @@ a{text-decoration:none;color:inherit}
   <div id="memberBanner"></div>
 </div>
 
-<!-- ── FAJA HORARIA ── -->
+<!-- ── RHYTHM / FAJA HORARIA ── -->
 <div id="fajaBar">
+  <div class="rhythm-label">♪ BKS RHYTHM</div>
   <div class="faja-scroll" id="fajaScroll"></div>
+  <div class="rhythm-waveform">
+    <div class="wf-bar" style="height:40%"></div>
+    <div class="wf-bar" style="height:65%"></div>
+    <div class="wf-bar" style="height:50%"></div>
+    <div class="wf-bar" style="height:80%"></div>
+    <div class="wf-bar" style="height:55%"></div>
+    <div class="wf-bar" style="height:70%"></div>
+    <div class="wf-bar" style="height:60%"></div>
+    <div class="wf-bar" style="height:45%"></div>
+  </div>
+</div>
+
+<!-- ── MACRO-GROUPS (V3) ── -->
+<div id="groupBar">
+  <div class="group-grid" id="groupGrid"></div>
 </div>
 
 <!-- ── SEARCH ── -->
@@ -840,10 +935,25 @@ if(!TRANSLATIONS[LANG_CODE]) LANG_CODE = 'es';
 
 function getLang(k){ return (TRANSLATIONS[LANG_CODE]||TRANSLATIONS.es)[k] || k; }
 
+// v1.5: traduzione + prettify naming (snake_case → "Title & Title", accenti, ecc)
 function getCatName(catId){
   const key = 'cat_' + catId.toLowerCase().replace(/[^a-z]/g,'');
   const t = TRANSLATIONS[LANG_CODE] || TRANSLATIONS.es;
-  return t[key] || catId.charAt(0).toUpperCase() + catId.slice(1);
+  if(t[key]) return t[key];
+  return prettifyCategoryName(catId);
+}
+
+function prettifyCategoryName(id){
+  if(!id) return '';
+  // Fix accenti comuni mancanti (data entry BKS)
+  const accentFix = {
+    'nino':'Niño','anos':'Años','cafe':'Café','jugos':'Jugos',
+    'acompanamientos':'Acompañamientos','espana':'España',
+  };
+  const low = id.toLowerCase();
+  if(accentFix[low]) return accentFix[low];
+  // snake_case con "_" → " & " (es: pizzas_burger → Pizzas & Burger)
+  return id.split('_').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' & ');
 }
 
 function toTitleCase(str){
@@ -974,13 +1084,16 @@ const DEMO_PRODUCTS = [
 /* ════════════════════════════════════════════════════
    STATE
    ════════════════════════════════════════════════════ */
-let ALL_PRODUCTS    = [];
-let ALL_CATEGORIES  = [];
-let FILTERED        = [];
-let CURRENT_FAJA    = 'all';
-let SEARCH_QUERY    = '';
-let ACTIVE_MEMBER   = null;
-let loadProgress    = 0;
+let ALL_PRODUCTS     = [];
+let ALL_CATEGORIES   = [];
+let FILTERED         = [];
+let CURRENT_FAJA     = 'all';
+let SEARCH_QUERY     = '';
+let ACTIVE_MEMBER    = null;
+let loadProgress     = 0;
+// v1.5: macro-groups
+let CATEGORY_GROUPS  = null;   // { "Comida":{emoji,cats:[...]}, ... } o null se disattivato
+let CURRENT_GROUP    = null;   // "Comida" | "Barra" | "Dolci" | null (= mostra tutto)
 
 /* ════════════════════════════════════════════════════
    INIT
@@ -1058,16 +1171,19 @@ function updateStickyTops(){
   const header  = document.getElementById('header');
   const faja    = document.getElementById('fajaBar');
   const search  = document.getElementById('searchBarWrap');
+  const groups  = document.getElementById('groupBar');
   const cats    = document.getElementById('catSticky');
   if(!header||!faja||!search||!cats) return;
 
-  const h1 = header.offsetHeight;           // ~54px
-  const h2 = faja.offsetHeight;             // ~50px
-  const h3 = search.offsetHeight;           // ~56px
+  const h1 = header.offsetHeight;
+  const h2 = faja.offsetHeight;
+  const h3 = search.offsetHeight;
+  const h4 = (groups && groups.classList.contains('show')) ? groups.offsetHeight : 0;
 
   faja.style.top   = h1 + 'px';
   search.style.top = (h1 + h2) + 'px';
-  cats.style.top   = (h1 + h2 + h3) + 'px';
+  if(groups) groups.style.top = (h1 + h2 + h3) + 'px';
+  cats.style.top   = (h1 + h2 + h3 + h4) + 'px';
 }
 
 /* ════════════════════════════════════════════════════
@@ -1145,6 +1261,23 @@ async function loadFromSheet(){
     nuevo_dias:      parseInt(cfg.nuevo_dias) || 14,
   });
 
+  // v1.5: theme mode (dark/light) — applica classe al body
+  const theme = (cfg.theme_mode || 'light').toLowerCase();
+  document.body.classList.toggle('theme-dark', theme === 'dark');
+
+  // v1.5: category_groups — parsing robusto con fallback
+  CATEGORY_GROUPS = null;
+  if(cfg.category_groups){
+    try {
+      const parsed = JSON.parse(cfg.category_groups);
+      if(parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0){
+        CATEGORY_GROUPS = parsed;
+      }
+    } catch(e){
+      console.warn('category_groups JSON malformato, fallback flat tabs:', e.message);
+    }
+  }
+
   // ── STEP 2: Determina URL CSV prodotti (da getConfig) ──────────────
   // Priorità: sheet_csv_url_seed se data_source=seed, else sheet_csv_url_visor,
   // else sheet_csv_url generico (retrocompat Candelaria).
@@ -1194,12 +1327,19 @@ async function loadFromSheet(){
 
   // ── STEP 5: Build categorías desde productos ───────────────────────
   const catIds = [...new Set(ALL_PRODUCTS.map(p=>p.categoria))];
-  const catMap = {
-    'bowls':'🥣','bebidas':'🥤','snacks':'🥪','postres':'🍰',
-    'desayunos':'🍳','ensaladas':'🥗','platos':'🍽️','otros':'✦',
-    'alimentos':'🥪','cafe':'☕','jugos':'🥤','helados':'🍦','especiales':'✨',
-    'solidos':'🍽️',
-  };
+  // v1.5: mappa estesa PINSA + BKS + EXO future
+    const catMap = {
+      // PINSA
+      'alimentos':'🥪','cafe':'☕','jugos':'🥤','helados':'🍦','especiales':'✨',
+      // BKS
+      'entradas':'🦐','pastas':'🍝','fondos':'🥩','pizzas_burger':'🍕','sushi':'🍣',
+      'acompanamientos':'🥗','nino':'👶','desserts':'🍰','almuerzo':'🍱',
+      'bar':'🍸','sour':'🍹','mojitos':'🍃','spritz':'🥂','cervezas':'🍺',
+      'vinos':'🍷','jarras':'🍶','destilados':'🥃',
+      // Generiche / fallback
+      'bowls':'🥣','bebidas':'🥤','snacks':'🥪','postres':'🍰',
+      'desayunos':'🍳','ensaladas':'🥗','platos':'🍽️','otros':'✦','solidos':'🍽️',
+    };
   ALL_CATEGORIES = catIds.filter(Boolean).map((id,i)=>({
     id, name: id.charAt(0).toUpperCase()+id.slice(1),
     emoji: catMap[id]||'✦', orden: i+1
@@ -1253,6 +1393,7 @@ function renderFajas(){
 function setFaja(id){
   CURRENT_FAJA = id;
   renderFajas();
+  renderGroups();  // v1.5: ricalcola conteggi per gruppo
   renderMenu();
   window.scrollTo({top:0});
 }
@@ -1270,15 +1411,69 @@ function productInFaja(p){
    CATEGORY TABS
    ════════════════════════════════════════════════════ */
 function renderCatTabs(){
+  // v1.5: se category_groups attivo, mostra solo le cats del gruppo attivo
+  const visibleCats = getVisibleCategories();
   const tabs = document.getElementById('catTabs');
-  tabs.innerHTML = ALL_CATEGORIES.map(c=>`
+  tabs.innerHTML = visibleCats.map(c=>`
     <button class="cat-tab" id="tab-${c.id}" onclick="scrollToCategory('${c.id}')">
       <span class="cat-tab-emoji">${c.emoji}</span>${getCatName(c.id)}
     </button>
   `).join('');
-
-  // IntersectionObserver to highlight active tab
   setTimeout(setupCatObserver, 200);
+}
+
+// v1.5: se CATEGORY_GROUPS è definito + CURRENT_GROUP selezionato, filtra.
+// Altrimenti ritorna tutte le categorie (fallback PINSA).
+function getVisibleCategories(){
+  if(!CATEGORY_GROUPS || !CURRENT_GROUP) return ALL_CATEGORIES;
+  const group = CATEGORY_GROUPS[CURRENT_GROUP];
+  if(!group || !group.cats) return ALL_CATEGORIES;
+  return ALL_CATEGORIES.filter(c => group.cats.includes(c.id));
+}
+
+// v1.5: Rendering dei macro-groups (V3)
+function renderGroups(){
+  const wrap = document.getElementById('groupBar');
+  const grid = document.getElementById('groupGrid');
+  if(!CATEGORY_GROUPS){
+    wrap.classList.remove('show');
+    return;
+  }
+  const groupKeys = Object.keys(CATEGORY_GROUPS);
+  if(groupKeys.length < 2){
+    // Un solo gruppo = non ha senso mostrarli, mostra tutto flat
+    wrap.classList.remove('show');
+    return;
+  }
+  // Calcola conteggio prodotti per gruppo (considerando faja attiva ma non search)
+  const countByGroup = {};
+  groupKeys.forEach(gk => {
+    const cats = CATEGORY_GROUPS[gk].cats || [];
+    countByGroup[gk] = ALL_PRODUCTS.filter(p =>
+      cats.includes(p.categoria) && productInFaja(p)
+    ).length;
+  });
+  grid.className = 'group-grid g-' + groupKeys.length;
+  grid.innerHTML = groupKeys.map(gk=>{
+    const g = CATEGORY_GROUPS[gk];
+    const isActive = CURRENT_GROUP === gk;
+    const count = countByGroup[gk] || 0;
+    return `
+      <button class="group-chip${isActive?' active':''}" onclick="setGroup('${gk}')">
+        <span class="group-chip-emoji">${g.emoji||'✦'}</span>
+        <span class="group-chip-name">${gk}</span>
+        <span class="group-chip-count">${count}</span>
+      </button>`;
+  }).join('');
+  wrap.classList.add('show');
+}
+
+function setGroup(gk){
+  CURRENT_GROUP = (CURRENT_GROUP === gk) ? null : gk; // tap ripetuto = deseleziona
+  renderGroups();
+  renderCatTabs();
+  renderMenu();
+  window.scrollTo({top:0});
 }
 
 function scrollToCategory(id){
@@ -1288,8 +1483,10 @@ function scrollToCategory(id){
   const faja   = document.getElementById('fajaBar');
   const search = document.getElementById('searchBarWrap');
   const cats   = document.getElementById('catSticky');
+  const groups = document.getElementById('groupBar');
+  const groupsH = (groups && groups.classList.contains('show')) ? groups.offsetHeight : 0;
   const offset = (header?.offsetHeight||54) + (faja?.offsetHeight||50) +
-                 (search?.offsetHeight||56) + (cats?.offsetHeight||44) + 8;
+                 (search?.offsetHeight||56) + groupsH + (cats?.offsetHeight||44) + 8;
     window.scrollTo({top: el.offsetTop - offset, behavior:'smooth'});
   }
   document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
@@ -1407,13 +1604,17 @@ function renderMenu(){
   const wrap = document.getElementById('menuContent');
   const now  = new Date().getHours();
 
+  // v1.5: filtro macro-group (solo se CATEGORY_GROUPS attivo + gruppo selezionato)
+  const visibleCatIds = getVisibleCategories().map(c => c.id);
+
   FILTERED = ALL_PRODUCTS.filter(p=>{
     const inFaja = productInFaja(p);
+    const inGroup = visibleCatIds.includes(p.categoria);
     const inSearch = !SEARCH_QUERY ||
       p.nombre.toLowerCase().includes(SEARCH_QUERY) ||
       p.descripcion.toLowerCase().includes(SEARCH_QUERY) ||
       (p.badges||'').toLowerCase().includes(SEARCH_QUERY);
-    return inFaja && inSearch;
+    return inFaja && inGroup && inSearch;
   });
 
   if(FILTERED.length === 0){
@@ -1431,15 +1632,17 @@ function renderMenu(){
   document.getElementById('catSticky').style.display = '';
 
   // Group by category
+  // v1.5: renderizza solo le categorie visibili (filtrate per gruppo)
+  const visibleCats = getVisibleCategories();
   const byCat = {};
-  ALL_CATEGORIES.forEach(c=>{ byCat[c.id] = []; });
+  visibleCats.forEach(c=>{ byCat[c.id] = []; });
   FILTERED.forEach(p=>{
     if(!byCat[p.categoria]) byCat[p.categoria] = [];
     byCat[p.categoria].push(p);
   });
 
   let html = '';
-  ALL_CATEGORIES.forEach(cat=>{
+  visibleCats.forEach(cat=>{
     const items = byCat[cat.id];
     if(!items || items.length === 0) return;
     html += `
@@ -1625,8 +1828,9 @@ function setLang(code){
   document.documentElement.lang = code;
   applyLang();
   buildLangMenu();
-  renderFajas();
-  renderCatTabs(); // re-render with new lang
+ renderFajas();
+  renderGroups();     // v1.5
+  renderCatTabs();
   renderMenu();
   setupSearch();
 }
