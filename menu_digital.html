@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Menú Digital</title>
-<!-- menu_digital.html · v1.4 · 24-apr-2026 · multi-local via getConfig(local) -->
+<!-- menu_digital.html · v1.4.1 · 24-apr-2026 · splash neutro + parsePrice tollerante -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&display=swap" rel="stylesheet">
@@ -986,19 +986,20 @@ let loadProgress    = 0;
    INIT
    ════════════════════════════════════════════════════ */
 
-const PINSA_DEFAULT = {
-  name:'PINSA Candelaria', logo_emoji:'🌿',
+// v1.4.1: Splash neutro — evita "PINSA Candelaria" flashato prima del brand reale
+const SPLASH_DEFAULT = {
+  name:'Menú', logo_emoji:'✦',
   color_primary:'#1A1A2E', color_accent:'#E94560',
   color_bg:'#F8F8F8', currency:'CLP', currency_symbol:'$',
   default_lang:'es', nuevo_dias:14,
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-  applyBrand(PINSA_DEFAULT); // instant brand — no wait for GAS
+  applyBrand(SPLASH_DEFAULT); // Brand neutro hasta que el GAS responda con el local correcto
   showSkeletons();
   buildLangMenu();
   applyLang();
-
+   
   // Simulate loading from CSV / PARAMETROS
   await loadMenu();
 
@@ -1172,7 +1173,7 @@ async function loadFromSheet(){
     nombre:        r[1]||'',
     categoria:     (r[2]||'').toLowerCase(),
     descripcion:   r[3]||'',
-    precio:        parseFloat(r[4])||0,
+    precio:        parsePrice(r[4]),
     imagen:        r[5]||'',
     activo:        r[6]==='TRUE',
     agotado:       r[7]==='TRUE',
@@ -1180,7 +1181,7 @@ async function loadFromSheet(){
     hora_fin:      parseInt(r[9])||24,
     badges:        r[10]||'',
     upsell_ids:    r[11]||'',
-    precio_member: parseFloat(r[12])||'',
+    precio_member: parsePrice(r[12]) || '',
     fecha_agregado:r[13]||'',
     menu_visible:  r[14]!=='FALSE',
   })).filter(p=>p.id && p.activo && p.menu_visible!==false);
@@ -1348,9 +1349,36 @@ function buildBadges(p, forSheet=false){
 /* ════════════════════════════════════════════════════
    PRICE FORMATTING
    ════════════════════════════════════════════════════ */
+// v1.4.1: Parser de precio tolerante a formatos variados del CSV.
+// Acepta: 10000, "$10,000", "$10.000", "10.50", "$1.234,56", "" (→ 0).
+function parsePrice(v){
+  if(typeof v === 'number') return v;
+  if(!v) return 0;
+  let s = String(v).replace(/[^\d.,\-]/g,'');
+  if(!s) return 0;
+  if(s.includes('.') && s.includes(',')){
+    const lastDot = s.lastIndexOf('.');
+    const lastComma = s.lastIndexOf(',');
+    if(lastComma > lastDot){
+      s = s.replace(/\./g,'').replace(',','.');      // europeo: 1.234,56
+    } else {
+      s = s.replace(/,/g,'');                        // US: 1,234.56
+    }
+  } else if(s.includes(',')){
+    const parts = s.split(',');
+    if(parts.length === 2 && parts[1].length === 2) s = s.replace(',','.');
+    else s = s.replace(/,/g,'');
+  } else if(s.includes('.')){
+    const parts = s.split('.');
+    if(!(parts.length === 2 && parts[1].length === 2)) s = s.replace(/\./g,'');
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
 function formatPrice(n){
   const s = BRAND.currency_symbol || '$';
-  const num = parseFloat(n)||0;
+  const num = parsePrice(n);
   if(BRAND.currency === 'CLP' || num >= 1000)
     return s + num.toLocaleString('es-CL');
   return s + num.toFixed(2);
