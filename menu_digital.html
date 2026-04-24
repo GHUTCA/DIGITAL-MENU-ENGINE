@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Menú Digital</title>
+<!-- menu_digital.html · v1.4 · 24-apr-2026 · multi-local via getConfig(local) -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&display=swap" rel="stylesheet">
@@ -1075,21 +1076,15 @@ function updateStickyTops(){
 async function loadMenu(){
   setProgress(10);
 
-  // Default to PINSA sheet if no local override
-  const DEFAULT_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRHgY1Fe0uKdK5WBRKvFhsfIcW2YC6YKcqtU_AwugPLwInfI7dLtf8vU0uOzd4ISlP4SS3nrRu4oq33/pub?gid=0&single=true&output=csv';
-  if(!BRAND.sheet_url) BRAND.sheet_url = DEFAULT_CSV;
-
-  // If a real sheet URL is configured, load from CSV
-  if(BRAND.sheet_url && BRAND.sheet_url.startsWith('http')){
-    try {
-      await loadFromSheet(BRAND.sheet_url);
-    } catch(e){
-      console.warn('Sheet load failed, using demo data:', e);
-      loadDemoData();
-    }
-  } else {
-    // Use demo data with simulated delay
-    await new Promise(r=>setTimeout(r,600));
+  // v1.4: nessun CSV hardcoded. Il flusso è:
+  //   1. Chiamiamo getConfig&local=X al GAS
+  //   2. Il GAS ritorna cfg.sheet_csv_url (dal tab PARAMETROS del Sheet giusto)
+  //   3. Fetchiamo quel CSV
+  // Se qualcosa fallisce in qualsiasi punto → demo data (fail-safe).
+  try {
+    await loadFromSheet();
+  } catch(e){
+    console.warn('loadFromSheet failed, using demo data:', e);
     loadDemoData();
   }
   setProgress(100);
@@ -1116,77 +1111,99 @@ async function fetchWithTimeout(url, ms=5000){
   }
 }
 
-async function loadFromSheet(productosCsvUrl){
+async function loadFromSheet(){
   const GAS_URL = URL_PARAMS.get('gas') ||
     'https://script.google.com/macros/s/AKfycbzZkS3bBaYc34uJ6wXP9FG13i58-NT0FJp964vqkUYbRObUxryeRb9l_Fz24kb42f5t/exec';
 
-  // ── PARALLEL: config + productos al mismo tiempo ─────────────────────
-  const [cfgResult, csvResult] = await Promise.allSettled([
-    fetchWithTimeout(GAS_URL + '?action=getConfig&t=' + Date.now(), 4000).then(r=>r.json()),
-    fetchWithTimeout(productosCsvUrl + '&t=' + Date.now(), 8000).then(r=>r.text()),
-  ]);
+  // ── STEP 1: Risolvi contesto via getConfig&local=X ──────────────────
+  // Il GAS normalizza LOCAL_ID, apre il Sheet giusto via Registry/LEGACY,
+  // e ritorna PARAMETROS (inclusi sheet_csv_url + brand + lang).
+  const cfgUrl = GAS_URL + '?action=getConfig&local=' + encodeURIComponent(LOCAL_ID) + '&t=' + Date.now();
+  const cfgResp = await fetchWithTimeout(cfgUrl, 4000).then(r=>r.json());
+
+  if(!cfgResp || !cfgResp.ok){
+    throw new Error('getConfig failed for local=' + LOCAL_ID + ': ' + (cfgResp?.error || 'no response'));
+  }
+
+  const cfg = cfgResp.config || {};
+  setProgress(40);
+
+  // Aplica brand desde config del locale risolto dal GAS
+  applyBrand({
+    name:            cfg.brand_name         || LOCAL_ID,
+    logo_url:        cfg.brand_logo_url     || '',
+    logo_emoji:      cfg.brand_logo_emoji   || '🍽️',
+    favicon_url:     cfg.brand_favicon_url  || '',
+    color_primary:   cfg.color_primary      || BRAND.color_primary,
+    color_accent:    cfg.color_accent       || BRAND.color_accent,
+    color_bg:        cfg.color_bg           || BRAND.color_bg,
+    currency:        cfg.currency           || 'CLP',
+    currency_symbol: cfg.currency_symbol    || '$',
+    default_lang:    cfg.default_lang       || 'es',
+    gas_url:         GAS_URL,
+    nuevo_dias:      parseInt(cfg.nuevo_dias) || 14,
+  });
+
+  // ── STEP 2: Determina URL CSV prodotti (da getConfig) ──────────────
+  // Priorità: sheet_csv_url_seed se data_source=seed, else sheet_csv_url_visor,
+  // else sheet_csv_url generico (retrocompat Candelaria).
+  const dataSource = cfgResp.dataSource || 'visor';
+  const csvUrl = (dataSource === 'seed' && cfg.sheet_csv_url_seed)
+    ? cfg.sheet_csv_url_seed
+    : (cfg.sheet_csv_url_visor || cfg.sheet_csv_url);
+
+  if(!csvUrl){
+    throw new Error('No sheet_csv_url in PARAMETROS for local=' + LOCAL_ID);
+  }
+
+  // ── STEP 3: Fetch CSV prodotti ─────────────────────────────────────
+  const csvResp = await fetchWithTimeout(csvUrl + (csvUrl.includes('?') ? '&' : '?') + 't=' + Date.now(), 8000);
+  const text = await csvResp.text();
   setProgress(70);
 
-  // Aplica config si llegó
-  if(cfgResult.status === 'fulfilled' && cfgResult.value?.ok){
-    const cfg = cfgResult.value.config;
-    applyBrand({
-      name:            cfg.brand_name         || BRAND.name,
-      logo_url:        cfg.brand_logo_url     || '',
-      logo_emoji:      cfg.brand_logo_emoji   || '🌿',
-      favicon_url:     cfg.brand_favicon_url  || '',
-      color_primary:   cfg.color_primary      || BRAND.color_primary,
-      color_accent:    cfg.color_accent       || BRAND.color_accent,
-      color_bg:        cfg.color_bg           || BRAND.color_bg,
-      currency:        cfg.currency           || 'CLP',
-      currency_symbol: cfg.currency_symbol    || '$',
-      default_lang:    cfg.default_lang       || 'es',
-      gas_url:         GAS_URL,
-      nuevo_dias:      parseInt(cfg.nuevo_dias)||14,
-    });
-  } else { console.warn('GAS config load failed — using defaults'); }
+  // ── STEP 4: Parse CSV → productos ──────────────────────────────────
+  // Schema PRODUCTOS (17 col, modo visor)    : A-Q (senza Precio_Almuerzo/Almuerzo_Dias)
+  // Schema PRODUCTOS_SEED (19 col, modo seed): A-S (+ R=Precio_Almuerzo, S=Almuerzo_Dias)
+  // Il frontend v1.4 legge SOLO le prime 15 colonne (A-O). R/S sono gestite
+  // dal motore prezzi P2-01 (futuro), non dal frontend.
+  const rows = parseCSV(text).slice(1);
+  const parsed = rows.map(r=>({
+    id:            r[0]||'',
+    nombre:        r[1]||'',
+    categoria:     (r[2]||'').toLowerCase(),
+    descripcion:   r[3]||'',
+    precio:        parseFloat(r[4])||0,
+    imagen:        r[5]||'',
+    activo:        r[6]==='TRUE',
+    agotado:       r[7]==='TRUE',
+    hora_inicio:   parseInt(r[8])||0,
+    hora_fin:      parseInt(r[9])||24,
+    badges:        r[10]||'',
+    upsell_ids:    r[11]||'',
+    precio_member: parseFloat(r[12])||'',
+    fecha_agregado:r[13]||'',
+    menu_visible:  r[14]!=='FALSE',
+  })).filter(p=>p.id && p.activo && p.menu_visible!==false);
 
-  // ── PRODUCTOS from CSV ───────────────────────────────────────────────
-  try {
-    const text = csvResult.status === 'fulfilled' ? csvResult.value : null;
-    if(!text) throw new Error('CSV fetch failed');
-    const resp = { text: async () => text }; // wrap for compatibility
-    const textData = await resp.text();
-    const rows = parseCSV(textData || text).slice(1);
-    const parsed = rows.map(r=>({
-      id:            r[0]||'',
-      nombre:        r[1]||'',
-      categoria:     (r[2]||'').toLowerCase(),
-      descripcion:   r[3]||'',
-      precio:        parseFloat(r[4])||0,
-      imagen:        r[5]||'',
-      activo:        r[6]==='TRUE',
-      agotado:       r[7]==='TRUE',
-      hora_inicio:   parseInt(r[8])||0,
-      hora_fin:      parseInt(r[9])||24,
-      badges:        r[10]||'',
-      upsell_ids:    r[11]||'',
-      precio_member: parseFloat(r[12])||'',
-      fecha_agregado:r[13]||'',
-      menu_visible:  r[14]!=='FALSE',
-    })).filter(p=>p.id && p.activo && p.menu_visible!==false);
-
-    if(parsed.length > 0){
-      ALL_PRODUCTS = parsed;
-      // Build categories from actual product data (fallback if GAS cats fail)
-      const catIds = [...new Set(ALL_PRODUCTS.map(p=>p.categoria))];
-      const catMap = {'bowls':'🥣','bebidas':'🥤','snacks':'🥪','postres':'🍰',
-                      'desayunos':'🍳','ensaladas':'🥗','platos':'🍽️','otros':'✦',
-                      'alimentos':'🥪','cafe':'☕','jugos':'🥤','helados':'🍦','especiales':'✨'};
-      ALL_CATEGORIES = catIds.map((id,i)=>({
-        id, name: id.charAt(0).toUpperCase()+id.slice(1),
-        emoji: catMap[id]||'✦', orden: i+1
-      }));
-    }
-  } catch(e){
-    console.warn('Products CSV load failed — using demo data:', e.message);
-    ALL_PRODUCTS = DEMO_PRODUCTS;
+  if(parsed.length === 0){
+    throw new Error('No products parsed from CSV for local=' + LOCAL_ID);
   }
+
+  ALL_PRODUCTS = parsed;
+
+  // ── STEP 5: Build categorías desde productos ───────────────────────
+  const catIds = [...new Set(ALL_PRODUCTS.map(p=>p.categoria))];
+  const catMap = {
+    'bowls':'🥣','bebidas':'🥤','snacks':'🥪','postres':'🍰',
+    'desayunos':'🍳','ensaladas':'🥗','platos':'🍽️','otros':'✦',
+    'alimentos':'🥪','cafe':'☕','jugos':'🥤','helados':'🍦','especiales':'✨',
+    'solidos':'🍽️',
+  };
+  ALL_CATEGORIES = catIds.filter(Boolean).map((id,i)=>({
+    id, name: id.charAt(0).toUpperCase()+id.slice(1),
+    emoji: catMap[id]||'✦', orden: i+1
+  }));
+
   setProgress(90);
 }
 
