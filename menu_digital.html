@@ -2437,9 +2437,10 @@ function openConfirmSheet({title, subtitle, payload, okLabel}){
   document.getElementById('confirmSubtitle').textContent = subtitle;
   const okBtn = document.getElementById('confirmOkBtn');
   okBtn.textContent = okLabel || getLang('confirm_call') || 'Sí, llamar';
-  okBtn.onclick = () => {
+ okBtn.onclick = () => {
+    const payloadCopy = CONFIRM_PAYLOAD;  // salva PRIMA che closeConfirmSheet lo metta a null
     closeConfirmSheet();
-    notifyWaiter(CONFIRM_PAYLOAD);
+    notifyWaiter(payloadCopy);
   };
   document.getElementById('confirmOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('confirmSheet').classList.add('open'), 10);
