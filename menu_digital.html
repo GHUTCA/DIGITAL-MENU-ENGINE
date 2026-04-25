@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Menú Digital</title>
-<!-- menu_digital.html · v1.5 · 24-apr-2026 · macro-groups V3 + emoji cats + prettify + theme dark BKS -->
+<!-- menu_digital.html · v1.5.1 · 25-apr-2026 · dark mode polish BKS (badges, waveform glow, prezzi, card feedback) -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&display=swap" rel="stylesheet">
@@ -60,6 +60,117 @@ body.theme-dark {
   --group-inactive-bg: rgba(255,255,255,0.06);
   --group-inactive-text: rgba(255,255,255,0.55);
 }
+
+   /* ═══ v1.5.1 · DARK MODE OVERRIDES ═══ */
+
+/* Badges leggibili in dark */
+body.theme-dark .badge-nuevo    { background:rgba(34,197,94,0.20); color:#4ade80 }
+body.theme-dark .badge-popular  { background:rgba(245,158,11,0.22); color:#fbbf24 }
+body.theme-dark .badge-vegano   { background:rgba(132,204,22,0.20); color:#a3e635 }
+body.theme-dark .badge-singluten{ background:rgba(96,165,250,0.22); color:#93c5fd }
+body.theme-dark .badge-chef     { background:rgba(249,115,22,0.22); color:#fb923c }
+body.theme-dark .badge-temporada{ background:rgba(167,139,250,0.22); color:#c4b5fd }
+body.theme-dark .badge-agotado  { background:rgba(148,163,184,0.25); color:#cbd5e1 }
+body.theme-dark .badge-member   { background:rgba(233,69,96,0.25); color:#fb7185 }
+
+/* Waveform BKS con glow */
+body.theme-dark .wf-bar {
+  background:linear-gradient(to top, var(--brand-accent), rgba(233,69,96,0.4));
+  filter: drop-shadow(0 0 3px rgba(233,69,96,0.6));
+  border-radius:2px;
+}
+
+/* Rhythm label più presente */
+body.theme-dark .rhythm-label {
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 3px;
+  font-weight: 500;
+}
+
+/* Card feedback tattile */
+body.theme-dark .product-card {
+  border-color: rgba(255,255,255,0.08);
+}
+body.theme-dark .product-card:active {
+  border-color: var(--brand-accent);
+  box-shadow: 0 0 0 1px rgba(233,69,96,0.3);
+}
+
+/* Nuevo highlight rinforzato in dark */
+body.theme-dark .product-card.nuevo-highlight {
+  border-color: #4ade80;
+  box-shadow: 0 0 0 2px rgba(74,222,128,0.25), 0 0 20px rgba(74,222,128,0.15);
+}
+
+/* Category tabs attive leggibili in dark */
+body.theme-dark .cat-tab { color: rgba(255,255,255,0.45) }
+body.theme-dark .cat-tab.active {
+  color: #fff;
+  border-bottom-color: var(--brand-accent);
+}
+body.theme-dark .cat-sticky {
+  background: var(--brand-surface);
+  border-bottom-color: rgba(255,255,255,0.06);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+/* Cat header name leggibile in dark (era nero su nero) */
+body.theme-dark .cat-header-name { color: rgba(255,255,255,0.92) }
+
+/* Prezzi con peso in dark */
+body.theme-dark .card-price {
+  color: #ff6b8a;
+  text-shadow: 0 0 8px rgba(233,69,96,0.2);
+}
+body.theme-dark .sheet-price { color: #ff6b8a }
+
+/* Bottom nav dark */
+body.theme-dark #bottomNav {
+  background: var(--brand-surface);
+  border-top-color: rgba(255,255,255,0.08);
+}
+body.theme-dark .bnav-btn { color: rgba(255,255,255,0.5) }
+body.theme-dark .bnav-btn.active { color: #ff6b8a }
+
+/* Search bar dark */
+body.theme-dark .search-inner {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+}
+body.theme-dark .search-inner:focus-within {
+  border-color: var(--brand-accent);
+  background: rgba(255,255,255,0.08);
+}
+body.theme-dark #searchInput { color: #fff }
+body.theme-dark #searchInput::placeholder { color: rgba(255,255,255,0.35) }
+
+/* Detail sheet dark */
+body.theme-dark #detailSheet {
+  background: var(--brand-surface);
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+}
+body.theme-dark .sheet-handle { background: rgba(255,255,255,0.2) }
+body.theme-dark .sheet-name { color: rgba(255,255,255,0.95) }
+body.theme-dark .sheet-desc { color: rgba(255,255,255,0.65) }
+
+/* Lang dropdown dark */
+body.theme-dark .lang-dropdown {
+  background: var(--brand-surface);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Group bar dark — chip attivo con bagliore accent */
+body.theme-dark #groupBar { border-bottom-color: rgba(255,255,255,0.08) }
+body.theme-dark .group-chip { border: 1px solid transparent; }
+body.theme-dark .group-chip.active {
+  background: var(--brand-accent);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 4px 16px rgba(233,69,96,0.35);
+}
+
+/* ═══ fine patch v1.5.1 ═══ */
+
    
 /* ══════════════════════════════════════════
    RESET & BASE
