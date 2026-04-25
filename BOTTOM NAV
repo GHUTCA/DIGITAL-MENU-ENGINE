@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Menú Digital</title>
-<!-- menu_digital.html · v1.6 · 25-apr-2026 · motore vendite BKS · ritmi BPM-aware + promos condizionali -->
+<!-- menu_digital.html · v1.7 · 25-apr-2026 · S2 · card due-zone + Llamar mesero (sticky + per-prodotto) + gancio Fase 2 -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&display=swap" rel="stylesheet">
@@ -620,6 +620,100 @@ body.theme-dark .rhythm-waveform{display:flex}
 }
 
 /* ══════════════════════════════════════════
+   v1.7 · CARD DUE-ZONE · CTA + bottone Pedir directo (gancio Fase 2)
+   ══════════════════════════════════════════ */
+/* La zona foto = tap apre detail. La zona azione (footer) = tap su bottoni
+   chiama mesero o (Fase 2) aggiunge a carrello. event.stopPropagation
+   sui bottoni assicura che il tap sul bottone non triggeri openDetail. */
+
+.card-cta-row{
+  display:flex;align-items:center;gap:6px;
+}
+.card-call-btn{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--brand-accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(233,69,96,0.25);
+  transition:transform var(--transition), box-shadow var(--transition);
+}
+.card-call-btn:active{transform:scale(0.92);box-shadow:0 1px 4px rgba(233,69,96,0.35)}
+body.theme-dark .card-call-btn{
+  box-shadow:0 2px 12px rgba(233,69,96,0.45);
+}
+
+/* Gancio Fase 2 · bottone Pedir directo (display:none controllato da BRAND.feature_pedir_directo) */
+.card-pedir-btn{
+  display:none; /* default: nascosto · Fase 1 sempre · si attiva con feature flag in PARAMETROS */
+  width:34px;height:34px;border-radius:50%;
+  background:var(--brand-primary);color:#fff;
+  align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+  transition:transform var(--transition);
+}
+.card-pedir-btn:active{transform:scale(0.92)}
+body.feature-pedir-directo .card-pedir-btn{display:flex}
+
+/* Confirm sheet · piccolo bottom sheet per "¿Llamar mesero por X?" */
+#confirmOverlay{
+  display:none;position:fixed;inset:0;z-index:400;
+  background:rgba(0,0,0,0.55);
+  opacity:0;transition:opacity 0.25s ease;
+}
+#confirmOverlay.open{display:block;opacity:1}
+#confirmSheet{
+  position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);
+  width:100%;max-width:480px;z-index:401;
+  background:var(--brand-surface);
+  border-radius:20px 20px 0 0;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+  box-shadow:0 -10px 40px rgba(0,0,0,0.25);
+  transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);
+}
+#confirmSheet.open{transform:translate(-50%,0)}
+.confirm-handle{
+  width:36px;height:4px;border-radius:2px;
+  background:var(--brand-border);
+  margin:0 auto 16px;
+}
+.confirm-icon{
+  width:56px;height:56px;border-radius:50%;
+  background:rgba(233,69,96,0.12);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;margin:0 auto 12px;
+}
+.confirm-title{
+  font-size:18px;font-weight:600;
+  color:var(--brand-text);
+  text-align:center;margin-bottom:6px;
+  line-height:1.3;
+}
+.confirm-subtitle{
+  font-size:13px;color:var(--brand-text-muted);
+  text-align:center;margin-bottom:20px;
+}
+.confirm-actions{
+  display:flex;gap:10px;
+}
+.confirm-btn{
+  flex:1;padding:14px;border-radius:12px;
+  font-family:inherit;font-size:14px;font-weight:600;
+  border:none;cursor:pointer;
+  transition:opacity var(--transition), transform var(--transition);
+}
+.confirm-btn:active{transform:scale(0.97)}
+.confirm-btn-cancel{
+  background:var(--brand-bg);color:var(--brand-text-muted);
+}
+body.theme-dark .confirm-btn-cancel{
+  background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7);
+}
+.confirm-btn-ok{
+  background:var(--brand-accent);color:#fff;
+  box-shadow:0 4px 14px rgba(233,69,96,0.3);
+}
+   
+/* ══════════════════════════════════════════
    PRODUCT DETAIL SHEET (bottom drawer)
    ══════════════════════════════════════════ */
 #detailOverlay{
@@ -893,6 +987,19 @@ body.theme-dark .rhythm-waveform{display:flex}
   <div id="sheetContent"></div>
 </div>
 
+<!-- ── CONFIRM SHEET (Llamar mesero · per-prodotto o generico) ── -->
+<div id="confirmOverlay" onclick="closeConfirmSheet()"></div>
+<div id="confirmSheet" role="dialog" aria-modal="true">
+  <div class="confirm-handle"></div>
+  <div class="confirm-icon">🔔</div>
+  <div class="confirm-title" id="confirmTitle">¿Llamar mesero?</div>
+  <div class="confirm-subtitle" id="confirmSubtitle">El mesero llegará a tu mesa en breve</div>
+  <div class="confirm-actions">
+    <button class="confirm-btn confirm-btn-cancel" onclick="closeConfirmSheet()" data-i18n="confirm_cancel">Cancelar</button>
+    <button class="confirm-btn confirm-btn-ok" id="confirmOkBtn" data-i18n="confirm_call">Sí, llamar</button>
+  </div>
+</div>
+   
 <!-- ── BOTTOM NAV ── -->
 <div id="bottomNav">
   <div class="bnav-inner">
@@ -947,6 +1054,13 @@ const TRANSLATIONS = {
     hi_member:'Hola',tokens:'tokens',
     flag:'🇨🇱',
     cat_alimentos:'Alimentos',cat_cafe:'Café',cat_jugos:'Jugos',cat_helados:'Helados',cat_especiales:'Especiales',cat_bebidas:'Bebidas',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Postres',cat_ensaladas:'Ensaladas',cat_desayunos:'Desayunos',
+  confirm_call:'Sí, llamar',
+    confirm_cancel:'Cancelar',
+    call_generic_title:'¿Llamar mesero?',
+    call_generic_subtitle:'El mesero llegará a tu mesa en breve',
+    call_subtitle:'El mesero verá lo que quieres pedir',
+    call_no_mesa:'Acércate a un mesero para ordenar',
+    call_sent:'🔔 Mesero llamado · llega pronto',
   },
   en:{
     loading:'Loading menu...',
@@ -1884,11 +1998,11 @@ function renderMenu(){
 }
 
 function renderProductCard(p){
-  const promo   = PROD_TO_PROMO[p.id] || null;       // v1.6: promo attiva su questo prodotto?
+  const promo   = PROD_TO_PROMO[p.id] || null;
   const badges  = buildBadges(p);
   const prices  = getDisplayPrice(p);
   const isNew   = isNuevo(p);
-  const cat      = ALL_CATEGORIES.find(c=>c.id===p.categoria);
+  const cat       = ALL_CATEGORIES.find(c=>c.id===p.categoria);
   const catEmoji  = cat?.emoji || '🍽️';
   const catColor  = _catColor(p.categoria);
   const phHtml    = `<div class="card-img-placeholder" style="background:${catColor};display:flex"><span style="font-size:28px;opacity:0.55">${catEmoji}</span></div>`;
@@ -1905,19 +2019,33 @@ function renderProductCard(p){
     : '';
   const promoClass = promo ? ' has-promo' : '';
 
-  // v1.6: prezzo display considera promo
   const promoPriceMain = promo ? formatPrice(promo.precio_final) : prices.main;
   const promoPriceOrig = promo ? formatPrice(p.precio) : prices.orig;
   const promoBadgesHtml = promo
     ? `<div class="card-badges">${promoBadge}${badges || ''}</div>`
     : (badges ? `<div class="card-badges">${badges}</div>` : '');
 
+  // v1.7 · CARD DUE-ZONE
+  // Zona 1 (foto): tap apre detail sheet
+  // Zona 2 (footer azioni): tap su bottoni chiama mesero per-prodotto (Fase 1)
+  //                         in Fase 2 il bottone Pedir directo si attiva via feature flag
+  const ctaHtml = !p.agotado ? `
+    <div class="card-cta-row">
+      <button class="card-pedir-btn"
+              onclick="event.stopPropagation();onPedirDirecto('${p.id}')"
+              aria-label="Pedir directo">+</button>
+      <button class="card-call-btn"
+              onclick="event.stopPropagation();onCallWaiterForProduct('${p.id}')"
+              aria-label="Llamar mesero">🔔</button>
+    </div>` : '';
+
   return `
     <div class="product-card${p.agotado?' agotado':''}${isNew?' nuevo-highlight':''}${promoClass}"
-         onclick="openDetail('${p.id}')" data-id="${p.id}">
+         data-id="${p.id}">
       <div class="card-inner">
-        <div class="card-img-wrap" style="position:relative">${imgHtml}${promoFlag}</div>
-        <div class="card-body">
+        <div class="card-img-wrap" style="position:relative;cursor:pointer"
+             onclick="openDetail('${p.id}')">${imgHtml}${promoFlag}</div>
+        <div class="card-body" onclick="openDetail('${p.id}')" style="cursor:pointer">
           ${promoBadgesHtml}
           <div class="card-name${p.agotado?' agotado-text':''}">${toTitleCase(p.nombre)}</div>
           <div class="card-desc">${p.descripcion}</div>
@@ -1926,14 +2054,14 @@ function renderProductCard(p){
               ${promoPriceOrig ? `<span class="card-price-member">${promoPriceOrig}</span>` : ''}
               <span class="card-price"${promo?' style="color:#fbbf24;text-shadow:0 0 8px rgba(251,191,36,0.3)"':''}>${promoPriceMain}</span>
             </div>
-            ${!p.agotado ? `<button class="card-add-btn" onclick="event.stopPropagation();addItem('${p.id}')">+</button>` : ''}
+            ${ctaHtml}
           </div>
         </div>
       </div>
       ${p.agotado ? `<div class="agotado-overlay"><span class="agotado-label">${getLang('agotado')}</span></div>` : ''}
     </div>`;
 }
-
+   
 /* ════════════════════════════════════════════════════
    PRODUCT DETAIL SHEET
    ════════════════════════════════════════════════════ */
@@ -2292,6 +2420,103 @@ function showToastMsg(msg){
 }
 
 function scrollToTop(){ window.scrollTo({top:0, behavior:'smooth'}); }
+/* ════════════════════════════════════════════════════
+   v1.7 · LLAMAR MESERO · per-prodotto + generico (Fase 1)
+   ════════════════════════════════════════════════════
+   Flusso: tap CTA → confirm sheet → POST notifyWaiter al GAS
+   → toast feedback. Senza MESA_ID nessuna chiamata: il sistema
+   non sa dove servire e LLAMADAS resterebbe inutile.
+   ════════════════════════════════════════════════════ */
+
+// Stato del confirm sheet (cosa stiamo per confermare)
+let CONFIRM_PAYLOAD = null;
+
+function openConfirmSheet({title, subtitle, payload, okLabel}){
+  CONFIRM_PAYLOAD = payload;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmSubtitle').textContent = subtitle;
+  const okBtn = document.getElementById('confirmOkBtn');
+  okBtn.textContent = okLabel || getLang('confirm_call') || 'Sí, llamar';
+  okBtn.onclick = () => {
+    closeConfirmSheet();
+    notifyWaiter(CONFIRM_PAYLOAD);
+  };
+  document.getElementById('confirmOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('confirmSheet').classList.add('open'), 10);
+  document.body.style.overflow = 'hidden';
+}
+
+function closeConfirmSheet(){
+  document.getElementById('confirmSheet').classList.remove('open');
+  document.getElementById('confirmOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  CONFIRM_PAYLOAD = null;
+}
+
+// Tap "🔔" sulla card (Llamar mesero PER prodotto)
+function onCallWaiterForProduct(prodId){
+  // Senza mesa non ha senso loggare la chiamata
+  if(!MESA_ID){
+    showToastMsg(getLang('call_no_mesa') || 'Acércate a un mesero para ordenar');
+    return;
+  }
+  const p = ALL_PRODUCTS.find(x=>x.id===prodId);
+  if(!p) return;
+  openConfirmSheet({
+    title:    `¿Llamar mesero por ${toTitleCase(p.nombre)}?`,
+    subtitle: `${getLang('mesa')} ${MESA_ID} · ${getLang('call_subtitle') || 'El mesero verá lo que quieres pedir'}`,
+    payload:  { tipo_chiamata:'por_producto', prod_id: prodId },
+    okLabel:  getLang('confirm_call') || 'Sí, llamar',
+  });
+}
+
+// Gancio Fase 2 · "Pedir directo" sulla card (oggi nascosto da CSS)
+function onPedirDirecto(prodId){
+  // In Fase 1 questa funzione non viene mai chiamata perché il bottone è display:none.
+  // Quando il feature flag si attiverà (Fase 2), la implementiamo come "aggiungi al carrello self".
+  console.log('[v1.7] onPedirDirecto · gancio Fase 2 · prod_id=', prodId);
+  showToastMsg('Próximamente · Pedir directo');
+}
+
+// Tap sticky "Llamar mesero" generico (lo aggiungiamo nello step 2)
+function onCallWaiterGeneric(){
+  if(!MESA_ID){
+    showToastMsg(getLang('call_no_mesa') || 'Acércate a un mesero para ordenar');
+    return;
+  }
+  openConfirmSheet({
+    title:    getLang('call_generic_title') || '¿Llamar mesero?',
+    subtitle: `${getLang('mesa')} ${MESA_ID} · ${getLang('call_generic_subtitle') || 'El mesero llegará a tu mesa en breve'}`,
+    payload:  { tipo_chiamata:'generica', prod_id: null },
+    okLabel:  getLang('confirm_call') || 'Sí, llamar',
+  });
+}
+
+// POST al GAS · azione notifyWaiter (endpoint backend creato nello step 4 di S2)
+function notifyWaiter(payload){
+  if(!BRAND.gas_url || !MESA_ID){
+    showToastMsg('⚠ No se pudo enviar la llamada');
+    return;
+  }
+  const body = {
+    action:         'notifyWaiter',
+    local:          LOCAL_ID,
+    mesa:           MESA_ID,
+    ritmo_attivo:   RITMO_ACTUAL ? RITMO_ACTUAL.id : '',
+    tipo_chiamata:  payload.tipo_chiamata || 'generica',
+    prod_id_intent: payload.prod_id || '',
+    ts:             Date.now(),
+  };
+  // sendBeacon è fire-and-forget, ideale per il pattern "tap → conferma → vai"
+  // Non blocca la UI, non dipende dalla risposta. La verifica avviene sul Sheet LLAMADAS.
+  try {
+    navigator.sendBeacon(BRAND.gas_url, JSON.stringify(body));
+    showToastMsg(getLang('call_sent') || '🔔 Mesero llamado · llega pronto');
+  } catch(e) {
+    console.warn('[v1.7] notifyWaiter failed:', e);
+    showToastMsg('⚠ Error al llamar · intenta de nuevo');
+  }
+}
 </script>
 </body>
 </html>
