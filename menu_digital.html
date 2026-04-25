@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Menú Digital</title>
-<!-- menu_digital.html · v1.5.1 · 25-apr-2026 · dark mode polish BKS (badges, waveform glow, prezzi, card feedback) -->
+<!-- menu_digital.html · v1.6 · 25-apr-2026 · motore vendite BKS · ritmi BPM-aware + promos condizionali -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&display=swap" rel="stylesheet">
@@ -1228,6 +1228,13 @@ let loadProgress     = 0;
 // v1.5: macro-groups
 let CATEGORY_GROUPS  = null;   // { "Comida":{emoji,cats:[...]}, ... } o null se disattivato
 let CURRENT_GROUP    = null;   // "Comida" | "Barra" | "Dolci" | null (= mostra tutto)
+// v1.6: motore vendite BKS — RITMOS + PROMOS
+let RITMO_ACTUAL     = null;   // {id, nombre, emoji, bpm, prod_ids[], ...} o null
+let RITMOS_DISP      = [];     // lista ritmi disponibili (solo metadati)
+let PROMOS_ACTIVAS   = [];     // [{id, nombre, tipo, precio_final, prod_ids[], ...}]
+let RITMO_FILTER_ON  = true;   // toggle ✦ All — true = filtra per ritmo, false = mostra tutto
+let RITMO_POLL_TIMER = null;   // setInterval handle
+let PROD_TO_PROMO    = {};     // mappa rapida prod_id → promo (per render badge inline)
 
 /* ════════════════════════════════════════════════════
    INIT
