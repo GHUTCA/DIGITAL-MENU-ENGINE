@@ -2521,7 +2521,7 @@ function onCallWaiterForProduct(prodId){
   openConfirmSheet({
     title:    `¿Llamar mesero por ${toTitleCase(p.nombre)}?`,
     subtitle: `${getLang('mesa')} ${MESA_ID} · ${getLang('call_subtitle') || 'El mesero verá lo que quieres pedir'}`,
-    payload:  { tipo_chiamata:'por_producto', prod_id: prodId },
+    payload:  { tipo_llamada:'por_producto', prod_id: prodId },
     okLabel:  getLang('confirm_call') || 'Sí, llamar',
   });
 }
@@ -2543,7 +2543,7 @@ function onCallWaiterGeneric(){
   openConfirmSheet({
     title:    getLang('call_generic_title') || '¿Llamar mesero?',
     subtitle: `${getLang('mesa')} ${MESA_ID} · ${getLang('call_generic_subtitle') || 'El mesero llegará a tu mesa en breve'}`,
-    payload:  { tipo_chiamata:'generica', prod_id: null },
+    payload:  { tipo_llamada :'generica', prod_id: null },
     okLabel:  getLang('confirm_call') || 'Sí, llamar',
   });
 }
@@ -2559,7 +2559,7 @@ function notifyWaiter(payload){
     local:          LOCAL_ID,
     mesa:           MESA_ID,
     ritmo_attivo:   RITMO_ACTUAL ? RITMO_ACTUAL.id : '',
-    tipo_chiamata:  payload.tipo_chiamata || 'generica',
+    tipo_llamada:  payload.tipo_llamada || 'generica',
     prod_id_intent: payload.prod_id || '',
     ts:             Date.now(),
   };
