@@ -169,6 +169,29 @@ body.theme-dark .group-chip.active {
   box-shadow: 0 4px 16px rgba(233,69,96,0.35);
 }
 
+...
+
+/* Group bar dark — chip attivo con bagliore accent */
+body.theme-dark #groupBar { border-bottom-color: rgba(255,255,255,0.08) }
+body.theme-dark .group-chip { border: 1px solid transparent; }
+body.theme-dark .group-chip.active {
+  background: var(--brand-accent);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 4px 16px rgba(233,69,96,0.35);
+}
+
+/* v1.5.1-bis · Waveform più presente in dark BKS */
+body.theme-dark .rhythm-waveform {
+  height: 22px;
+  gap: 3px;
+  padding: 8px 16px 10px;
+}
+body.theme-dark .wf-bar {
+  min-width: 3px;
+}
+
+/* ═══ fine patch v1.5.1 ═══ */
+   
 /* ═══ fine patch v1.5.1 ═══ */
 
    
