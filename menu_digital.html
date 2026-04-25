@@ -461,7 +461,7 @@ body.theme-dark .rhythm-waveform{display:flex}
    ══════════════════════════════════════════ */
 #mainContent{
   max-width:480px;margin:0 auto;
-  padding-bottom:80px;
+  padding-bottom:140px;
 }
 
 /* ══════════════════════════════════════════
@@ -838,6 +838,41 @@ body.theme-dark .confirm-btn-cancel{
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ══════════════════════════════════════════
+   v1.7 · STICKY CALL BAR (Llamar mesero generico)
+   Visibile sempre se MESA_ID presente.
+   Posizionata sopra #bottomNav.
+   ══════════════════════════════════════════ */
+#stickyCallBar{
+  display:none; /* default: nascosto · si attiva via JS se MESA_ID presente */
+  position:fixed;left:0;right:0;
+  bottom:calc(56px + env(safe-area-inset-bottom)); /* sopra al bottomNav */
+  z-index:99;
+  padding:10px 16px;
+  background:transparent;
+  pointer-events:none; /* il container non cattura tap, solo il bottone */
+}
+#stickyCallBar.show{display:block}
+.sticky-call-btn{
+  pointer-events:auto;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;max-width:480px;margin:0 auto;
+  padding:14px 20px;border-radius:28px;
+  background:var(--brand-accent);color:#fff;
+  font-family:inherit;font-size:15px;font-weight:600;letter-spacing:0.3px;
+  border:none;cursor:pointer;
+  box-shadow:0 6px 20px rgba(233,69,96,0.4), 0 2px 6px rgba(0,0,0,0.08);
+  transition:transform var(--transition), box-shadow var(--transition);
+}
+.sticky-call-btn:active{
+  transform:scale(0.97);
+  box-shadow:0 3px 12px rgba(233,69,96,0.5);
+}
+.sticky-call-btn-icon{font-size:18px}
+body.theme-dark .sticky-call-btn{
+  box-shadow:0 6px 24px rgba(233,69,96,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+}
+   
+/* ══════════════════════════════════════════
    BOTTOM NAV (future phases)
    ══════════════════════════════════════════ */
 #bottomNav{
@@ -998,6 +1033,14 @@ body.theme-dark .confirm-btn-cancel{
     <button class="confirm-btn confirm-btn-ok" id="confirmOkBtn" data-i18n="confirm_call">Sí, llamar</button>
   </div>
 </div>
+
+<!-- ── STICKY CALL BAR (Llamar mesero generico · visible se MESA_ID) ── -->
+<div id="stickyCallBar">
+  <button class="sticky-call-btn" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero">
+    <span class="sticky-call-btn-icon">🔔</span>
+    <span id="stickyCallLabel" data-i18n="call_waiter_btn">Llamar mesero</span>
+  </button>
+</div>
    
 <!-- ── BOTTOM NAV ── -->
 <div id="bottomNav">
@@ -1060,6 +1103,7 @@ const TRANSLATIONS = {
     call_subtitle:'El mesero verá lo que quieres pedir',
     call_no_mesa:'Acércate a un mesero para ordenar',
     call_sent:'🔔 Mesero llamado · llega pronto',
+    call_waiter_btn:'Llamar mesero',
   },
   en:{
     loading:'Loading menu...',
@@ -1414,6 +1458,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('mesaBadge').classList.add('show');
     document.getElementById('mesaNum').textContent = MESA_ID;
     trackView();
+   // v1.7 · attiva sticky bar Llamar mesero (solo se MESA_ID presente)
+    document.getElementById('stickyCallBar').classList.add('show');
   }
 
   // Member
