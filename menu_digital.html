@@ -190,7 +190,38 @@ body.theme-dark .wf-bar {
   min-width: 3px;
 }
 
-/* ═══ fine patch v1.5.1 ═══ */
+/* v1.6 · Macro-group chip Promos · oro pulsante condizionale */
+.group-chip-promos {
+  background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(233,69,96,0.15)) !important;
+  border: 1px solid rgba(251,191,36,0.35) !important;
+  animation: goldPulse 2.5s ease-in-out infinite;
+}
+.group-chip-promos.active {
+  background: linear-gradient(135deg, #fbbf24, #d97706) !important;
+  color: #fff !important;
+  border-color: #fbbf24 !important;
+  animation: none;
+}
+@keyframes goldPulse {
+  0%,100% { box-shadow: 0 0 0 rgba(251,191,36,0); }
+  50% { box-shadow: 0 0 14px rgba(251,191,36,0.4); }
+}
+body.theme-dark .group-chip-promos {
+  color: rgba(255,255,255,0.85);
+}
+   
+/* v1.6 · Card promo dorata */
+body.theme-dark .product-card.has-promo {
+  border-color: rgba(251,191,36,0.45);
+  box-shadow: 0 0 0 1px rgba(251,191,36,0.15), 0 4px 20px rgba(251,191,36,0.10);
+}
+body.theme-dark .product-card.has-promo:active {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251,191,36,0.4);
+}
+.product-card.has-promo .card-img-wrap {
+  background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(233,69,96,0.10));
+}
    
 /* ═══ fine patch v1.5.1 ═══ */
 
@@ -1274,7 +1305,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Member
   if(MEMBER_ID) loadMember(MEMBER_ID);
-
+   
+// v1.6: motore vendite BKS (skip per PINSA via guard interna)
+  startRhythmPolling();
+   
   hideLoading();
 });
 
@@ -1573,20 +1607,29 @@ function getVisibleCategories(){
 }
 
 // v1.5: Rendering dei macro-groups (V3)
+
 function renderGroups(){
   const wrap = document.getElementById('groupBar');
   const grid = document.getElementById('groupGrid');
-  if(!CATEGORY_GROUPS){
+
+  // v1.6: numero promos attive (per decidere se mostrare 4° gruppo)
+  const promosCount = (PROMOS_ACTIVAS || []).length;
+
+  // Caso 1: nessun category_groups + nessuna promo → niente bar (flat tabs)
+  if(!CATEGORY_GROUPS && promosCount === 0){
     wrap.classList.remove('show');
     return;
   }
-  const groupKeys = Object.keys(CATEGORY_GROUPS);
-  if(groupKeys.length < 2){
-    // Un solo gruppo = non ha senso mostrarli, mostra tutto flat
+
+  const groupKeys = CATEGORY_GROUPS ? Object.keys(CATEGORY_GROUPS) : [];
+
+  // Caso 2: 1 solo gruppo + nessuna promo → flat
+  if(groupKeys.length < 2 && promosCount === 0){
     wrap.classList.remove('show');
     return;
   }
-  // Calcola conteggio prodotti per gruppo (considerando faja attiva ma non search)
+
+  // Calcola conteggio prodotti per gruppo (considerando faja attiva)
   const countByGroup = {};
   groupKeys.forEach(gk => {
     const cats = CATEGORY_GROUPS[gk].cats || [];
@@ -1594,8 +1637,17 @@ function renderGroups(){
       cats.includes(p.categoria) && productInFaja(p)
     ).length;
   });
-  grid.className = 'group-grid g-' + groupKeys.length;
-  grid.innerHTML = groupKeys.map(gk=>{
+
+  // v1.6: numero prodotti unici toccati da almeno 1 promo
+  const promoProdsSet = new Set();
+  (PROMOS_ACTIVAS || []).forEach(p => (p.prod_ids||[]).forEach(pid => promoProdsSet.add(pid)));
+  const promoProductsCount = promoProdsSet.size;
+
+  // Layout: gruppi normali + (eventuale) gruppo Promos
+  const totalChips = groupKeys.length + (promosCount > 0 ? 1 : 0);
+  grid.className = 'group-grid g-' + totalChips;
+
+  let html = groupKeys.map(gk=>{
     const g = CATEGORY_GROUPS[gk];
     const isActive = CURRENT_GROUP === gk;
     const count = countByGroup[gk] || 0;
@@ -1606,9 +1658,22 @@ function renderGroups(){
         <span class="group-chip-count">${count}</span>
       </button>`;
   }).join('');
+
+  // v1.6: aggiungi chip Promos se ci sono promo attive
+  if(promosCount > 0){
+    const isActive = CURRENT_GROUP === '__PROMOS__';
+    html += `
+      <button class="group-chip group-chip-promos${isActive?' active':''}" onclick="setGroup('__PROMOS__')">
+        <span class="group-chip-emoji">🎁</span>
+        <span class="group-chip-name">Promos</span>
+        <span class="group-chip-count">${promoProductsCount}</span>
+      </button>`;
+  }
+
+  grid.innerHTML = html;
   wrap.classList.add('show');
 }
-
+   
 function setGroup(gk){
   CURRENT_GROUP = (CURRENT_GROUP === gk) ? null : gk; // tap ripetuto = deseleziona
   renderGroups();
@@ -1748,23 +1813,39 @@ function renderMenu(){
   // v1.5: filtro macro-group (solo se CATEGORY_GROUPS attivo + gruppo selezionato)
   const visibleCatIds = getVisibleCategories().map(c => c.id);
 
+  // v1.6: filtro Prod_IDs ritmo (se attivo + theme dark + RITMO_FILTER_ON)
+  const ritmoFilterActive = RITMO_FILTER_ON && RITMO_ACTUAL && RITMO_ACTUAL.prod_ids && RITMO_ACTUAL.prod_ids.length > 0;
+  const ritmoProdSet = ritmoFilterActive ? new Set(RITMO_ACTUAL.prod_ids) : null;
+
+  // v1.6 cont: gestione macro-group "Promos" virtuale
+  const promosGroupActive = CURRENT_GROUP === '__PROMOS__';
+
   FILTERED = ALL_PRODUCTS.filter(p=>{
     const inFaja = productInFaja(p);
-    const inGroup = visibleCatIds.includes(p.categoria);
+    const inGroup = promosGroupActive
+      ? !!PROD_TO_PROMO[p.id]                       // gruppo Promos: solo prodotti in promo attiva
+      : visibleCatIds.includes(p.categoria);
+    const inRitmo = !ritmoFilterActive || ritmoProdSet.has(p.id);
     const inSearch = !SEARCH_QUERY ||
       p.nombre.toLowerCase().includes(SEARCH_QUERY) ||
       p.descripcion.toLowerCase().includes(SEARCH_QUERY) ||
       (p.badges||'').toLowerCase().includes(SEARCH_QUERY);
-    return inFaja && inGroup && inSearch;
+    return inFaja && inGroup && inRitmo && inSearch;
   });
 
   if(FILTERED.length === 0){
     wrap.innerHTML = '';
     const empty = document.getElementById('emptyState');
     empty.classList.add('show');
-    document.getElementById('emptyText').textContent = SEARCH_QUERY
-      ? getLang('search_empty') + ' "' + SEARCH_QUERY + '"'
-      : getLang('no_products');
+    let msg;
+    if(SEARCH_QUERY){
+      msg = getLang('search_empty') + ' "' + SEARCH_QUERY + '"';
+    } else if(ritmoFilterActive){
+      msg = `🔥 ${RITMO_ACTUAL.nombre} · nessun prodotto · prova ✦ All`;
+    } else {
+      msg = getLang('no_products');
+    }
+    document.getElementById('emptyText').textContent = msg;
     document.getElementById('catSticky').style.display = 'none';
     return;
   }
@@ -1803,6 +1884,7 @@ function renderMenu(){
 }
 
 function renderProductCard(p){
+  const promo   = PROD_TO_PROMO[p.id] || null;       // v1.6: promo attiva su questo prodotto?
   const badges  = buildBadges(p);
   const prices  = getDisplayPrice(p);
   const isNew   = isNuevo(p);
@@ -1814,19 +1896,35 @@ function renderProductCard(p){
     ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">${phHtml}`
     : phHtml;
 
+  // v1.6: badge promo + flag dorato sulla foto + prezzo override
+  const promoBadge = promo
+    ? `<span class="badge" style="background:rgba(251,191,36,0.22);color:#fbbf24;font-weight:700">${promo.badge_emoji||'🎁'} ${promo.nombre}</span>`
+    : '';
+  const promoFlag = promo
+    ? `<div style="position:absolute;top:6px;left:6px;background:#fbbf24;color:#000;padding:2px 6px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:0.5px;z-index:2">🎁 ${(promo.tipo||'').toUpperCase()}</div>`
+    : '';
+  const promoClass = promo ? ' has-promo' : '';
+
+  // v1.6: prezzo display considera promo
+  const promoPriceMain = promo ? formatPrice(promo.precio_final) : prices.main;
+  const promoPriceOrig = promo ? formatPrice(p.precio) : prices.orig;
+  const promoBadgesHtml = promo
+    ? `<div class="card-badges">${promoBadge}${badges || ''}</div>`
+    : (badges ? `<div class="card-badges">${badges}</div>` : '');
+
   return `
-    <div class="product-card${p.agotado?' agotado':''}${isNew?' nuevo-highlight':''}"
+    <div class="product-card${p.agotado?' agotado':''}${isNew?' nuevo-highlight':''}${promoClass}"
          onclick="openDetail('${p.id}')" data-id="${p.id}">
       <div class="card-inner">
-        <div class="card-img-wrap">${imgHtml}</div>
+        <div class="card-img-wrap" style="position:relative">${imgHtml}${promoFlag}</div>
         <div class="card-body">
-          ${badges ? `<div class="card-badges">${badges}</div>` : ''}
+          ${promoBadgesHtml}
           <div class="card-name${p.agotado?' agotado-text':''}">${toTitleCase(p.nombre)}</div>
           <div class="card-desc">${p.descripcion}</div>
           <div class="card-footer">
             <div class="card-price-wrap">
-              ${prices.orig ? `<span class="card-price-member">${prices.orig}</span>` : ''}
-              <span class="card-price">${prices.main}</span>
+              ${promoPriceOrig ? `<span class="card-price-member">${promoPriceOrig}</span>` : ''}
+              <span class="card-price"${promo?' style="color:#fbbf24;text-shadow:0 0 8px rgba(251,191,36,0.3)"':''}>${promoPriceMain}</span>
             </div>
             ${!p.agotado ? `<button class="card-add-btn" onclick="event.stopPropagation();addItem('${p.id}')">+</button>` : ''}
           </div>
@@ -1986,6 +2084,161 @@ function applyLang(){
   });
 }
 
+/* ════════════════════════════════════════════════════
+   v1.6 · RITMOS + PROMOS (motore vendite BKS)
+   Solo per locali con theme_mode === 'dark'
+   Polling 60s · cache server-side 30s · skip totale per PINSA
+   ════════════════════════════════════════════════════ */
+
+async function loadRitmos(){
+  if(!BRAND.gas_url) return;
+  try {
+    const url = `${BRAND.gas_url}?action=getRitmos&local=${LOCAL_ID}&t=${Date.now()}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if(!data.ok) return;
+
+    const prevRitmoId = RITMO_ACTUAL ? RITMO_ACTUAL.id : null;
+    RITMO_ACTUAL = data.ritmo_actual || null;
+    RITMOS_DISP  = data.ritmos_disponibles || [];
+
+    // Se il ritmo è cambiato → re-render menu (filtro Prod_IDs cambia)
+    const newRitmoId = RITMO_ACTUAL ? RITMO_ACTUAL.id : null;
+    if(prevRitmoId !== newRitmoId){
+      console.log('[v1.6] Ritmo cambiato:', prevRitmoId, '→', newRitmoId);
+    }
+
+    renderRhythmBar();
+    renderMenu();
+  } catch(e){
+    console.warn('[v1.6] loadRitmos failed:', e.message);
+  }
+}
+
+async function loadPromos(){
+  if(!BRAND.gas_url) return;
+  try {
+    const url = `${BRAND.gas_url}?action=getPromos&local=${LOCAL_ID}&t=${Date.now()}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if(!data.ok) return;
+
+    PROMOS_ACTIVAS = data.promos_activas || [];
+
+    // Costruisci mappa prod_id → promo per render rapido badge inline
+    PROD_TO_PROMO = {};
+    PROMOS_ACTIVAS.forEach(p => {
+      (p.prod_ids || []).forEach(pid => {
+        PROD_TO_PROMO[pid] = p;
+      });
+    });
+
+    renderGroups();   // ricalcola conteggi (potrebbe apparire 4° gruppo Promos)
+    renderMenu();     // re-render per mostrare badge 🎁 inline
+  } catch(e){
+    console.warn('[v1.6] loadPromos failed:', e.message);
+  }
+}
+
+function startRhythmPolling(){
+  // Solo se siamo in tema dark (BKS) — PINSA non polla
+  if(!document.body.classList.contains('theme-dark')) return;
+  if(RITMO_POLL_TIMER) return; // già attivo
+
+  // Prima chiamata immediata
+  loadRitmos();
+  loadPromos();
+
+  // Poi ogni 60s
+  RITMO_POLL_TIMER = setInterval(() => {
+    loadRitmos();
+    loadPromos();
+  }, 60000);
+
+  console.log('[v1.6] Rhythm polling attivo (60s) per', LOCAL_ID);
+}
+
+function stopRhythmPolling(){
+  if(RITMO_POLL_TIMER){
+    clearInterval(RITMO_POLL_TIMER);
+    RITMO_POLL_TIMER = null;
+  }
+}
+
+/* ── Render Rhythm Bar (chip ritmo + waveform a BPM reale) ── */
+function renderRhythmBar(){
+  // Solo dark mode (BKS) — su PINSA il rhythm bar non si tocca
+  if(!document.body.classList.contains('theme-dark')) return;
+
+  const fajaBar = document.getElementById('fajaBar');
+  if(!fajaBar) return;
+
+  // Cerca/crea contenitore chip ritmo (lo aggiungiamo prima del waveform)
+  let chipBar = document.getElementById('rhythmChipBar');
+  if(!chipBar){
+    chipBar = document.createElement('div');
+    chipBar.id = 'rhythmChipBar';
+    chipBar.style.cssText = 'display:flex;align-items:center;gap:10px;padding:6px 16px 0;max-width:480px;margin:0 auto;flex-wrap:wrap';
+    // Inserisci PRIMA del waveform (.rhythm-waveform), DOPO la label
+    const wf = fajaBar.querySelector('.rhythm-waveform');
+    if(wf) fajaBar.insertBefore(chipBar, wf);
+    else fajaBar.appendChild(chipBar);
+  }
+
+  if(!RITMO_ACTUAL){
+    // Nessun ritmo attivo (fuori dalle finestre orarie definite)
+    chipBar.innerHTML = `
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:1px;font-weight:500">
+        ◯ Nessun ritmo attivo · esplora liberamente
+      </div>`;
+  } else {
+    const r = RITMO_ACTUAL;
+    const filterLabel = RITMO_FILTER_ON ? '✦ All' : '✦ Filtro';
+    chipBar.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--brand-accent),#c73050);color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;box-shadow:0 4px 16px rgba(233,69,96,0.35)">
+        <span style="font-size:14px">${r.emoji||'🎵'}</span>
+        <span>${r.nombre||r.id}</span>
+        <span style="font-family:'Consolas',monospace;font-weight:700;opacity:0.9">${r.bpm} BPM</span>
+        <span style="opacity:0.75;font-weight:500;margin-left:2px">${r.hora_inicio}–${r.hora_fin}</span>
+      </div>
+      <button id="rhythmToggleBtn" onclick="toggleRhythmFilter()"
+        style="background:rgba(255,255,255,${RITMO_FILTER_ON?'0.06':'0.18'});border:1px solid rgba(255,255,255,${RITMO_FILTER_ON?'0.18':'0.4'});color:${RITMO_FILTER_ON?'rgba(255,255,255,0.6)':'#fff'};padding:5px 11px;border-radius:18px;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all 0.2s">
+        ${filterLabel}
+      </button>`;
+  }
+
+  // Waveform a BPM reale: animation-duration = 60/BPM secondi
+  const wf = fajaBar.querySelector('.rhythm-waveform');
+  if(wf){
+    const bpm = RITMO_ACTUAL ? RITMO_ACTUAL.bpm : 0;
+    if(bpm > 0){
+      const dur = (60 / bpm).toFixed(3) + 's';
+      // Applica a tutte le barre con delay staggered proporzionale
+      wf.querySelectorAll('.wf-bar').forEach((bar, i) => {
+        bar.style.animationDuration = dur;
+        bar.style.animationDelay = (i * (60/bpm) / 16).toFixed(3) + 's';
+      });
+    } else {
+      // No ritmo attivo → pulse lento "respiro" 3s
+      wf.querySelectorAll('.wf-bar').forEach(bar => {
+        bar.style.animationDuration = '3s';
+        bar.style.animationDelay = '';
+      });
+    }
+  }
+
+  updateStickyTops();
+}
+
+/* ── Toggle ✦ All ── */
+function toggleRhythmFilter(){
+  RITMO_FILTER_ON = !RITMO_FILTER_ON;
+  renderRhythmBar();
+  renderMenu();
+  // Feedback toast
+  showToastMsg(RITMO_FILTER_ON ? '🔥 Filtro ritmo attivo' : '✦ Tutto il menu visibile');
+}
+   
 /* ════════════════════════════════════════════════════
    MEMBER (Fase 2)
    ════════════════════════════════════════════════════ */
