@@ -2110,12 +2110,22 @@ function openDetail(id){
       ${badges ? `<div class="sheet-badges">${badges}</div>` : ''}
       <div class="sheet-name">${toTitleCase(p.nombre)}</div>
       <div class="sheet-desc">${p.descripcion}</div>
-      <div class="sheet-price-row">
+     <div class="sheet-price-row">
         <div>
           ${prices.orig ? `<span class="sheet-price-orig">${prices.orig}</span>` : ''}
           <span class="sheet-price">${prices.main}</span>
         </div>
-        ${!p.agotado ? `<button class="card-add-btn" style="width:44px;height:44px;font-size:22px" onclick="addItem('${p.id}')">+</button>` : ''}
+        ${!p.agotado ? `
+          <button class="card-call-btn" style="width:48px;height:48px;font-size:22px"
+                  onclick="closeDetail();setTimeout(()=>onCallWaiterForProduct('${p.id}'),320)"
+                  aria-label="Llamar mesero">🔔</button>
+        ` : ''}
+      </div>
+      ${!p.agotado && MESA_ID ? `
+        <div style="text-align:center;font-size:12px;color:var(--brand-text-muted);margin:-8px 0 16px;letter-spacing:0.3px">
+          Toca 🔔 para llamar mesero por este producto
+        </div>
+      ` : ''}     
       </div>
       ${upsellHtml}
     </div>`;
