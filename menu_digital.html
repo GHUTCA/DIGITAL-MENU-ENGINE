@@ -201,9 +201,20 @@ a{text-decoration:none;color:inherit}
 .brand-logo-img{height:32px;width:auto;border-radius:4px}
 .brand-logo-text{font-family:'Fraunces',serif;font-size:20px;font-weight:300;letter-spacing:-0.5px;color:#fff;}
 .header-right{display:flex;align-items:center;gap:8px}
-.lang-btn{position:relative;display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;background:rgba(255,255,255,0.12);font-size:11px;font-weight:500;letter-spacing:0.5px;color:rgba(255,255,255,0.85);transition:background var(--transition);}
+/* v1.10 · Header chips equiparati · Mesa + Lingua come fratelli visivi
+   Stessa altezza (28px), stesso radius, stessa opacità sfondo.
+   Distinzione solo nel contenuto: numero tavolo vs bandiera+freccia. */
+.lang-btn{
+  position:relative;display:flex;align-items:center;gap:4px;
+  height:28px;padding:0 10px;border-radius:14px;
+  background:rgba(255,255,255,0.12);
+  color:rgba(255,255,255,0.9);
+  border:none;cursor:pointer;
+  transition:background var(--transition);
+}
 .lang-btn:active{background:rgba(255,255,255,0.2)}
-.lang-flag{font-size:14px}
+.lang-flag{font-size:15px;line-height:1}
+.lang-arrow{font-size:9px;opacity:0.55;line-height:1;margin-left:1px}
 .lang-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--brand-primary);border:1px solid rgba(255,255,255,0.12);border-radius:10px;overflow:hidden;min-width:140px;z-index:200;}
 .lang-dropdown.open{display:block}
 .lang-option{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;color:rgba(255,255,255,0.75);cursor:pointer;transition:background var(--transition);}
@@ -378,8 +389,15 @@ body.theme-dark .sticky-call-btn{box-shadow:0 6px 24px rgba(233,69,96,0.5), 0 0 
 .bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 16px;border-radius:8px;font-size:10px;font-weight:500;color:var(--brand-text-muted);transition:color var(--transition);}
 .bnav-btn.active{color:var(--brand-accent)}
 .bnav-icon{font-size:20px}
-#mesaBadge{display:none;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,0.15);font-size:10px;font-weight:600;letter-spacing:0.5px;color:rgba(255,255,255,0.85);}
-#mesaBadge.show{display:flex;align-items:center;gap:4px}
+#mesaBadge{
+  display:none;
+  height:28px;padding:0 10px;border-radius:14px;
+  background:rgba(255,255,255,0.12);
+  font-size:11px;font-weight:600;letter-spacing:0.5px;
+  color:rgba(255,255,255,0.9);
+}
+#mesaBadge.show{display:flex;align-items:center;gap:5px}
+.mesa-icon{font-size:13px;line-height:1}
 
 /* SKELETON */
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
@@ -423,11 +441,10 @@ body.theme-dark .sticky-call-btn{box-shadow:0 6px 24px rgba(233,69,96,0.5), 0 0 
       <div class="brand-logo-text" id="brandLogoText">●&nbsp;Menú</div>
     </div>
     <div class="header-right">
-      <div id="mesaBadge"><span>🪑</span><span id="mesaNum">–</span></div>
-      <button class="lang-btn" id="langBtn" onclick="toggleLangMenu()">
+      <div id="mesaBadge"><span class="mesa-icon">🪑</span><span id="mesaNum">–</span></div>
+      <button class="lang-btn" id="langBtn" onclick="toggleLangMenu()" aria-label="Cambia idioma">
         <span class="lang-flag" id="langFlag">🌐</span>
-        <span id="langCode">ES</span>
-        <span style="font-size:9px;opacity:0.6">▾</span>
+        <span class="lang-arrow">▾</span>
       </button>
       <div class="lang-dropdown" id="langDropdown"></div>
     </div>
@@ -1916,7 +1933,7 @@ function setLang(code){
 }
 
 function applyLang(){
-  document.getElementById('langCode').textContent = LANG_CODE.toUpperCase();
+  // v1.10 · langCode rimosso dal DOM (era ridondante con la bandiera)
   document.getElementById('langFlag').textContent = TRANSLATIONS[LANG_CODE]?.flag || '🌐';
   document.getElementById('ldText').textContent = getLang('loading');
   document.querySelectorAll('[data-i18n]').forEach(el=>{
