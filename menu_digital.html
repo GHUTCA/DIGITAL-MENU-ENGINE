@@ -350,7 +350,10 @@ body.theme-dark .faja-scroll{display:none}
    Vedi sezione "SEARCH OVERLAY" nel CSS più sotto. */
 
 /* ══════════════════════════════════════════ MACRO-GROUPS ══════════════════════════════════════════ */
-#groupBar{display:none;background:var(--group-bg);border-bottom:1px solid var(--brand-border);padding:12px 16px;max-width:480px;margin:0 auto;}
+/* v1.11 iter 2 fix · #groupBar sticky in catena · z-index 97 (sotto faja=98, sopra cat=96)
+   Senza position:sticky il groupBar scrolla via e va SOTTO la cat-sticky causando
+   sovrapposizione visiva delle card macro-group con le cat-tabs. */
+#groupBar{display:none;position:sticky;z-index:97;background:var(--group-bg);border-bottom:1px solid var(--brand-border);padding:12px 16px;max-width:480px;margin:0 auto;}
 #groupBar.show{display:block}
 .group-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .group-grid.g-2{grid-template-columns:repeat(2,1fr)}
@@ -370,8 +373,9 @@ body.theme-dark .group-chip.disabled{opacity:0.35}
 /* v1.11 · padding-bottom ridotto: il FAB ora vive DENTRO bottom-nav, non più flottante esterno.
    80px = bottom-nav reale (~70px con FAB rialzato) + 10px respiro sotto ultima card. */
 #mainContent{max-width:480px;margin:0 auto;padding-bottom:80px;}
-/* v1.11 · cat-sticky con fade-mask sopra · le card non si vedono più tagliate sotto le tab */
-.cat-sticky{position:sticky;top:160px;z-index:96;background:var(--brand-surface);border-bottom:1px solid var(--brand-border);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+/* v1.11 iter 2 fix · cat-sticky · top iniziale 104px (header 54 + faja 50 stimato)
+   poi aggiustato dinamicamente da updateStickyTops() in JS. z-index 96 (sotto groupBar=97) */
+.cat-sticky{position:sticky;top:104px;z-index:96;background:var(--brand-surface);border-bottom:1px solid var(--brand-border);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
 .cat-sticky::before{
   content:'';
   position:absolute;
@@ -385,6 +389,18 @@ body.theme-dark .group-chip.disabled{opacity:0.35}
 .cat-tab{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:10px 12px;font-size:12px;font-weight:500;color:var(--brand-text-muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all var(--transition);}
 .cat-tab.active{color:var(--brand-primary);border-bottom-color:var(--brand-accent);}
 .cat-tab-emoji{font-size:14px}
+/* v1.11 iter 2 · DARK MODE · cat-tabs distaccate dal nero del bg con surface medio + bordo top sottile */
+body.theme-dark .cat-sticky{
+  background: var(--brand-surface);
+  border-top: 1px solid var(--brand-border);
+  border-bottom: 1px solid var(--brand-border);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+body.theme-dark .cat-sticky::before{
+  background: linear-gradient(to bottom, transparent, var(--brand-bg) 30%, var(--brand-surface));
+  height: 16px;
+  top: -16px;
+}
 /* v1.10 · Cat header compatto · breadcrumb invece di titolone serif */
 .cat-header{padding:8px 16px 4px;display:flex;align-items:center;gap:6px;}
 .cat-header-emoji{font-size:11px;opacity:0.7}
