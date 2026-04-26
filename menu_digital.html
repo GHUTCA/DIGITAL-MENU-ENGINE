@@ -4,16 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Menú Digital</title>
-<!-- menu_digital.html · v1.7 · 25-apr-2026 · S2 · card due-zone + Llamar mesero (sticky + per-prodotto) + gancio Fase 2 -->
+<!-- ════════════════════════════════════════════════════════════════════
+     menu_digital.html · v1.10 · 25-apr-2026 · Sessione S3 (fix critico)
+     ════════════════════════════════════════════════════════════════════
+     CHANGELOG v1.7 → v1.10
+     - RIMOSSO: DEMO_BRAND, DEMO_CATEGORIES, DEMO_PRODUCTS, loadDemoData()
+       (placeholder "PINSA Candelaria + Açaí Bowl" che si attivava su
+        cold start GAS facendo apparire prodotti sbagliati ai clienti)
+     - AGGIUNTO: KNOWN_LOCALS = mappa minima brand di safety net
+     - AGGIUNTO: validateLocal() = blocca early se ?local= mancante/sconosciuto
+     - AGGIUNTO: pingGAS() = warm-up parallelo allo skeleton (sveglia GAS)
+     - AGGIUNTO: retry con backoff su getConfig (timeout 10s × 3 tentativi)
+     - AGGIUNTO: showErrorState() = UI errore con brand corretto + Reintentar
+     - AGGIUNTO: showInvalidLocal() = UI errore QR malformato
+     - PRESERVATO: tutto il resto (card v1.7, ritmi, promos, llamar mesero)
+     ════════════════════════════════════════════════════════════════════ -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════════
    WHITE-LABEL DESIGN TOKENS
-   Overridden at runtime by PARAMETROS sheet
    ══════════════════════════════════════════ */
- /* v1.5: Light mode (default). Dark mode override via body.theme-dark */
 :root {
   --brand-primary: #1A1A2E;
   --brand-accent: #E94560;
@@ -31,8 +43,6 @@
   --group-inactive-text: #888;
   --brand-name: "Menú Digital";
   --brand-font: 'Outfit', sans-serif;
-
-  /* Badge palette */
   --badge-nuevo: #22C55E;
   --badge-popular: #F59E0B;
   --badge-vegano: #84CC16;
@@ -40,8 +50,6 @@
   --badge-chef: #F97316;
   --badge-temporada: #A78BFA;
   --badge-agotado: #94A3B8;
-
-  /* Timing */
   --transition: 0.2s ease;
 }
 
@@ -60,9 +68,7 @@ body.theme-dark {
   --group-inactive-text: rgba(255,255,255,0.55);
 }
 
-   /* ═══ v1.5.1 · DARK MODE OVERRIDES ═══ */
-
-/* Badges leggibili in dark */
+/* Dark mode badges */
 body.theme-dark .badge-nuevo    { background:rgba(34,197,94,0.20); color:#4ade80 }
 body.theme-dark .badge-popular  { background:rgba(245,158,11,0.22); color:#fbbf24 }
 body.theme-dark .badge-vegano   { background:rgba(132,204,22,0.20); color:#a3e635 }
@@ -71,285 +77,121 @@ body.theme-dark .badge-chef     { background:rgba(249,115,22,0.22); color:#fb923
 body.theme-dark .badge-temporada{ background:rgba(167,139,250,0.22); color:#c4b5fd }
 body.theme-dark .badge-agotado  { background:rgba(148,163,184,0.25); color:#cbd5e1 }
 body.theme-dark .badge-member   { background:rgba(233,69,96,0.25); color:#fb7185 }
-
-/* Waveform BKS con glow */
-body.theme-dark .wf-bar {
-  background:linear-gradient(to top, var(--brand-accent), rgba(233,69,96,0.4));
-  filter: drop-shadow(0 0 3px rgba(233,69,96,0.6));
-  border-radius:2px;
-}
-
-/* Rhythm label più presente */
-body.theme-dark .rhythm-label {
-  color: rgba(255,255,255,0.55);
-  letter-spacing: 3px;
-  font-weight: 500;
-}
-
-/* Card feedback tattile */
-body.theme-dark .product-card {
-  border-color: rgba(255,255,255,0.08);
-}
-body.theme-dark .product-card:active {
-  border-color: var(--brand-accent);
-  box-shadow: 0 0 0 1px rgba(233,69,96,0.3);
-}
-
-/* Nuevo highlight rinforzato in dark */
-body.theme-dark .product-card.nuevo-highlight {
-  border-color: #4ade80;
-  box-shadow: 0 0 0 2px rgba(74,222,128,0.25), 0 0 20px rgba(74,222,128,0.15);
-}
-
-/* Category tabs attive leggibili in dark */
+body.theme-dark .wf-bar { background:linear-gradient(to top, var(--brand-accent), rgba(233,69,96,0.4)); filter: drop-shadow(0 0 3px rgba(233,69,96,0.6)); border-radius:2px; }
+body.theme-dark .rhythm-label { color: rgba(255,255,255,0.55); letter-spacing: 3px; font-weight: 500; }
+body.theme-dark .product-card { border-color: rgba(255,255,255,0.08); }
+body.theme-dark .product-card:active { border-color: var(--brand-accent); box-shadow: 0 0 0 1px rgba(233,69,96,0.3); }
+body.theme-dark .product-card.nuevo-highlight { border-color: #4ade80; box-shadow: 0 0 0 2px rgba(74,222,128,0.25), 0 0 20px rgba(74,222,128,0.15); }
 body.theme-dark .cat-tab { color: rgba(255,255,255,0.45) }
-body.theme-dark .cat-tab.active {
-  color: #fff;
-  border-bottom-color: var(--brand-accent);
-}
-body.theme-dark .cat-sticky {
-  background: var(--brand-surface);
-  border-bottom-color: rgba(255,255,255,0.06);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
-}
-
-/* Cat header name leggibile in dark (era nero su nero) */
+body.theme-dark .cat-tab.active { color: #fff; border-bottom-color: var(--brand-accent); }
+body.theme-dark .cat-sticky { background: var(--brand-surface); border-bottom-color: rgba(255,255,255,0.06); box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
 body.theme-dark .cat-header-name { color: rgba(255,255,255,0.92) }
-
-/* Prezzi con peso in dark */
-body.theme-dark .card-price {
-  color: #ff6b8a;
-  text-shadow: 0 0 8px rgba(233,69,96,0.2);
-}
+body.theme-dark .card-price { color: #ff6b8a; text-shadow: 0 0 8px rgba(233,69,96,0.2); }
 body.theme-dark .sheet-price { color: #ff6b8a }
-
-/* Bottom nav dark */
-body.theme-dark #bottomNav {
-  background: var(--brand-surface);
-  border-top-color: rgba(255,255,255,0.08);
-}
+body.theme-dark #bottomNav { background: var(--brand-surface); border-top-color: rgba(255,255,255,0.08); }
 body.theme-dark .bnav-btn { color: rgba(255,255,255,0.5) }
 body.theme-dark .bnav-btn.active { color: #ff6b8a }
-
-/* Search bar dark */
-body.theme-dark .search-inner {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.1);
-}
-body.theme-dark .search-inner:focus-within {
-  border-color: var(--brand-accent);
-  background: rgba(255,255,255,0.08);
-}
+body.theme-dark .search-inner { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+body.theme-dark .search-inner:focus-within { border-color: var(--brand-accent); background: rgba(255,255,255,0.08); }
 body.theme-dark #searchInput { color: #fff }
 body.theme-dark #searchInput::placeholder { color: rgba(255,255,255,0.35) }
-
-/* Detail sheet dark */
-body.theme-dark #detailSheet {
-  background: var(--brand-surface);
-  box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
-}
+body.theme-dark #detailSheet { background: var(--brand-surface); box-shadow: 0 -10px 40px rgba(0,0,0,0.6); }
 body.theme-dark .sheet-handle { background: rgba(255,255,255,0.2) }
 body.theme-dark .sheet-name { color: rgba(255,255,255,0.95) }
 body.theme-dark .sheet-desc { color: rgba(255,255,255,0.65) }
-
-/* Lang dropdown dark */
-body.theme-dark .lang-dropdown {
-  background: var(--brand-surface);
-  border-color: rgba(255,255,255,0.12);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-/* Group bar dark — chip attivo con bagliore accent */
+body.theme-dark .lang-dropdown { background: var(--brand-surface); border-color: rgba(255,255,255,0.12); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 body.theme-dark #groupBar { border-bottom-color: rgba(255,255,255,0.08) }
 body.theme-dark .group-chip { border: 1px solid transparent; }
-body.theme-dark .group-chip.active {
-  background: var(--brand-accent);
-  border-color: rgba(255,255,255,0.1);
-  box-shadow: 0 4px 16px rgba(233,69,96,0.35);
-}
+body.theme-dark .group-chip.active { background: var(--brand-accent); border-color: rgba(255,255,255,0.1); box-shadow: 0 4px 16px rgba(233,69,96,0.35); }
+body.theme-dark .rhythm-waveform { height: 22px; gap: 3px; padding: 8px 16px 10px; }
+body.theme-dark .wf-bar { min-width: 3px; }
 
-...
+.group-chip-promos { background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(233,69,96,0.15)) !important; border: 1px solid rgba(251,191,36,0.35) !important; animation: goldPulse 2.5s ease-in-out infinite; }
+.group-chip-promos.active { background: linear-gradient(135deg, #fbbf24, #d97706) !important; color: #fff !important; border-color: #fbbf24 !important; animation: none; }
+@keyframes goldPulse { 0%,100% { box-shadow: 0 0 0 rgba(251,191,36,0); } 50% { box-shadow: 0 0 14px rgba(251,191,36,0.4); } }
+body.theme-dark .group-chip-promos { color: rgba(255,255,255,0.85); }
+body.theme-dark .product-card.has-promo { border-color: rgba(251,191,36,0.45); box-shadow: 0 0 0 1px rgba(251,191,36,0.15), 0 4px 20px rgba(251,191,36,0.10); }
+body.theme-dark .product-card.has-promo:active { border-color: #fbbf24; box-shadow: 0 0 0 2px rgba(251,191,36,0.4); }
+.product-card.has-promo .card-img-wrap { background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(233,69,96,0.10)); }
 
-/* Group bar dark — chip attivo con bagliore accent */
-body.theme-dark #groupBar { border-bottom-color: rgba(255,255,255,0.08) }
-body.theme-dark .group-chip { border: 1px solid transparent; }
-body.theme-dark .group-chip.active {
-  background: var(--brand-accent);
-  border-color: rgba(255,255,255,0.1);
-  box-shadow: 0 4px 16px rgba(233,69,96,0.35);
-}
-
-/* v1.5.1-bis · Waveform più presente in dark BKS */
-body.theme-dark .rhythm-waveform {
-  height: 22px;
-  gap: 3px;
-  padding: 8px 16px 10px;
-}
-body.theme-dark .wf-bar {
-  min-width: 3px;
-}
-
-/* v1.6 · Macro-group chip Promos · oro pulsante condizionale */
-.group-chip-promos {
-  background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(233,69,96,0.15)) !important;
-  border: 1px solid rgba(251,191,36,0.35) !important;
-  animation: goldPulse 2.5s ease-in-out infinite;
-}
-.group-chip-promos.active {
-  background: linear-gradient(135deg, #fbbf24, #d97706) !important;
-  color: #fff !important;
-  border-color: #fbbf24 !important;
-  animation: none;
-}
-@keyframes goldPulse {
-  0%,100% { box-shadow: 0 0 0 rgba(251,191,36,0); }
-  50% { box-shadow: 0 0 14px rgba(251,191,36,0.4); }
-}
-body.theme-dark .group-chip-promos {
-  color: rgba(255,255,255,0.85);
-}
-   
-/* v1.6 · Card promo dorata */
-body.theme-dark .product-card.has-promo {
-  border-color: rgba(251,191,36,0.45);
-  box-shadow: 0 0 0 1px rgba(251,191,36,0.15), 0 4px 20px rgba(251,191,36,0.10);
-}
-body.theme-dark .product-card.has-promo:active {
-  border-color: #fbbf24;
-  box-shadow: 0 0 0 2px rgba(251,191,36,0.4);
-}
-.product-card.has-promo .card-img-wrap {
-  background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(233,69,96,0.10));
-}
-   
-/* ═══ fine patch v1.5.1 ═══ */
-
-   
-/* ══════════════════════════════════════════
-   RESET & BASE
-   ══════════════════════════════════════════ */
+/* ══════════════════════════════════════════ RESET & BASE ══════════════════════════════════════════ */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
-body{
-  font-family:var(--brand-font);
-  background:var(--brand-bg);
-  color:var(--brand-text);
-  min-height:100dvh;
-  -webkit-font-smoothing:antialiased;
-  overscroll-behavior:none;
-}
+body{font-family:var(--brand-font);background:var(--brand-bg);color:var(--brand-text);min-height:100dvh;-webkit-font-smoothing:antialiased;overscroll-behavior:none;}
 img{display:block;max-width:100%}
 button{cursor:pointer;font-family:inherit;border:none;background:none;padding:0}
 a{text-decoration:none;color:inherit}
 
-/* ══════════════════════════════════════════
-   LOADING SCREEN
-   ══════════════════════════════════════════ */
-#loadingScreen{
-  position:fixed;inset:0;z-index:999;
-  background:var(--brand-primary);
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  gap:20px;
-  transition:opacity 0.5s ease;
-}
+/* ══════════════════════════════════════════ LOADING ══════════════════════════════════════════ */
+#loadingScreen{position:fixed;inset:0;z-index:999;background:var(--brand-primary);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity 0.5s ease;}
 #loadingScreen.out{opacity:0;pointer-events:none}
-.ld-logo{
-  font-family:'Fraunces',serif;
-  font-size:36px;font-weight:300;
-  color:#fff;letter-spacing:-1px;
-}
+.ld-logo{font-family:'Fraunces',serif;font-size:36px;font-weight:300;color:#fff;letter-spacing:-1px;}
 .ld-logo span{color:var(--brand-accent)}
 .ld-bar-wrap{width:120px;height:1px;background:rgba(255,255,255,0.15)}
 .ld-bar{height:1px;background:var(--brand-accent);width:0%;transition:width 0.4s ease}
 .ld-text{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.35)}
 
-/* ══════════════════════════════════════════
-   STICKY HEADER
-   ══════════════════════════════════════════ */
-#header{
-  position:sticky;top:0;z-index:100;
+/* ══════════════════════════════════════════ ERROR STATE (v1.10) ══════════════════════════════════════════ */
+#errorState{
+  display:none;position:fixed;inset:0;z-index:998;
   background:var(--brand-primary);
+  flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;text-align:center;gap:16px;
   color:#fff;
 }
-.header-inner{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 16px;height:54px;
-  max-width:480px;margin:0 auto;
+#errorState.show{display:flex}
+.es-emoji{font-size:64px;opacity:0.85}
+.es-brand{
+  font-family:'Fraunces',serif;font-size:28px;font-weight:300;letter-spacing:-0.5px;
+  color:#fff;margin-bottom:4px;
 }
+.es-brand span{color:var(--brand-accent)}
+.es-title{
+  font-size:18px;font-weight:600;letter-spacing:-0.2px;
+  color:rgba(255,255,255,0.95);max-width:320px;line-height:1.3;
+}
+.es-subtitle{
+  font-size:13px;color:rgba(255,255,255,0.55);
+  max-width:300px;line-height:1.5;margin-bottom:8px;
+}
+.es-btn{
+  background:var(--brand-accent);color:#fff;
+  padding:14px 36px;border-radius:28px;
+  font-family:inherit;font-size:15px;font-weight:600;letter-spacing:0.3px;
+  border:none;cursor:pointer;
+  box-shadow:0 6px 20px rgba(233,69,96,0.4);
+  transition:transform var(--transition);
+}
+.es-btn:active{transform:scale(0.96)}
+.es-mesa{
+  font-size:11px;color:rgba(255,255,255,0.35);
+  letter-spacing:1.5px;text-transform:uppercase;
+  margin-top:12px;
+}
+
+/* ══════════════════════════════════════════ HEADER ══════════════════════════════════════════ */
+#header{position:sticky;top:0;z-index:100;background:var(--brand-primary);color:#fff;}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:54px;max-width:480px;margin:0 auto;}
 .brand-logo-wrap{display:flex;align-items:center;gap:10px}
 .brand-logo-img{height:32px;width:auto;border-radius:4px}
-.brand-logo-text{
-  font-family:'Fraunces',serif;
-  font-size:20px;font-weight:300;letter-spacing:-0.5px;
-  color:#fff;
-}
+.brand-logo-text{font-family:'Fraunces',serif;font-size:20px;font-weight:300;letter-spacing:-0.5px;color:#fff;}
 .header-right{display:flex;align-items:center;gap:8px}
-
-/* Language Switcher */
-.lang-btn{
-  position:relative;
-  display:flex;align-items:center;gap:5px;
-  padding:5px 10px;border-radius:20px;
-  background:rgba(255,255,255,0.12);
-  font-size:11px;font-weight:500;letter-spacing:0.5px;
-  color:rgba(255,255,255,0.85);
-  transition:background var(--transition);
-}
+.lang-btn{position:relative;display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;background:rgba(255,255,255,0.12);font-size:11px;font-weight:500;letter-spacing:0.5px;color:rgba(255,255,255,0.85);transition:background var(--transition);}
 .lang-btn:active{background:rgba(255,255,255,0.2)}
 .lang-flag{font-size:14px}
-.lang-dropdown{
-  display:none;position:absolute;top:calc(100% + 6px);right:0;
-  background:var(--brand-primary);
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:10px;overflow:hidden;
-  min-width:140px;z-index:200;
-}
+.lang-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--brand-primary);border:1px solid rgba(255,255,255,0.12);border-radius:10px;overflow:hidden;min-width:140px;z-index:200;}
 .lang-dropdown.open{display:block}
-.lang-option{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 14px;font-size:13px;
-  color:rgba(255,255,255,0.75);
-  cursor:pointer;transition:background var(--transition);
-}
-.lang-option:hover,.lang-option.active{
-  background:rgba(255,255,255,0.08);
-  color:#fff;
-}
+.lang-option{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;color:rgba(255,255,255,0.75);cursor:pointer;transition:background var(--transition);}
+.lang-option:hover,.lang-option.active{background:rgba(255,255,255,0.08);color:#fff;}
 .lang-option .flag{font-size:16px}
-
-/* Member banner */
-#memberBanner{
-  display:none;
-  background:linear-gradient(135deg,var(--brand-accent),#c73050);
-  padding:8px 16px;
-  text-align:center;
-  font-size:12px;color:#fff;font-weight:500;
-}
+#memberBanner{display:none;background:linear-gradient(135deg,var(--brand-accent),#c73050);padding:8px 16px;text-align:center;font-size:12px;color:#fff;font-weight:500;}
 #memberBanner.show{display:block}
 
-/* ══════════════════════════════════════════
-   FAJA HORARIA INDICATOR
-   ══════════════════════════════════════════ */
-#fajaBar{
-  position:sticky;top:54px;z-index:98;
-  background:var(--rhythm-bg);
-  border-bottom:1px solid var(--brand-border);
-  overflow:hidden;
-  box-shadow:0 1px 0 var(--brand-border);
-}
-.rhythm-label{
-  font-size:9px;color:var(--rhythm-label);
-  letter-spacing:2px;text-transform:uppercase;
-  padding:8px 16px 0;max-width:480px;margin:0 auto;
-  display:none;
-}
+/* ══════════════════════════════════════════ FAJA / RHYTHM ══════════════════════════════════════════ */
+#fajaBar{position:sticky;top:54px;z-index:98;background:var(--rhythm-bg);border-bottom:1px solid var(--brand-border);overflow:hidden;box-shadow:0 1px 0 var(--brand-border);}
+.rhythm-label{font-size:9px;color:var(--rhythm-label);letter-spacing:2px;text-transform:uppercase;padding:8px 16px 0;max-width:480px;margin:0 auto;display:none;}
 body.theme-dark .rhythm-label{display:block}
-.rhythm-waveform{
-  display:none;
-  align-items:flex-end;gap:2px;height:10px;
-  padding:6px 16px 8px;max-width:480px;margin:0 auto;
-}
+.rhythm-waveform{display:none;align-items:flex-end;gap:2px;height:10px;padding:6px 16px 8px;max-width:480px;margin:0 auto;}
 body.theme-dark .rhythm-waveform{display:flex}
 .wf-bar{flex:1;background:var(--brand-accent);border-radius:1px;animation:pulse 2s ease-in-out infinite}
 .wf-bar:nth-child(2){animation-delay:0.1s}
@@ -360,204 +202,64 @@ body.theme-dark .rhythm-waveform{display:flex}
 .wf-bar:nth-child(7){animation-delay:0.6s}
 .wf-bar:nth-child(8){animation-delay:0.7s}
 @keyframes pulse{0%,100%{transform:scaleY(0.6)}50%{transform:scaleY(1)}}
-.faja-scroll{
-  display:flex;gap:8px;padding:10px 16px;
-  overflow-x:auto;scrollbar-width:none;
-  max-width:480px;margin:0 auto;
-}
+.faja-scroll{display:flex;gap:8px;padding:10px 16px;overflow-x:auto;scrollbar-width:none;max-width:480px;margin:0 auto;}
 .faja-scroll::-webkit-scrollbar{display:none}
-.faja-chip{
-  flex-shrink:0;
-  padding:5px 14px;border-radius:20px;
-  font-size:11px;font-weight:600;letter-spacing:0.3px;
-  background:var(--rhythm-chip-bg);
-  border:1.5px solid var(--brand-border);
-  color:var(--rhythm-chip-text);
-  transition:all var(--transition);cursor:pointer;
-}
-.faja-chip.active{
-  background:var(--brand-primary);
-  border-color:var(--brand-primary);
-  color:#fff;
-}
-.faja-chip.current{
-  border-color:var(--brand-accent);
-  color:var(--brand-accent);
-}
-.faja-chip.current.active{
-  background:var(--brand-accent);
-  border-color:var(--brand-accent);
-  color:#fff;
-}
+.faja-chip{flex-shrink:0;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:0.3px;background:var(--rhythm-chip-bg);border:1.5px solid var(--brand-border);color:var(--rhythm-chip-text);transition:all var(--transition);cursor:pointer;}
+.faja-chip.active{background:var(--brand-primary);border-color:var(--brand-primary);color:#fff;}
+.faja-chip.current{border-color:var(--brand-accent);color:var(--brand-accent);}
+.faja-chip.current.active{background:var(--brand-accent);border-color:var(--brand-accent);color:#fff;}
 
-/* ══════════════════════════════════════════
-   SEARCH BAR
-   ══════════════════════════════════════════ */
-#searchBar{
-  background:var(--brand-surface);
-  border-bottom:1px solid var(--brand-border);
-  padding:10px 16px;
-  max-width:480px;margin:0 auto;
-  display:block;
-}
-.search-inner{
-  display:flex;align-items:center;gap:8px;
-  background:var(--brand-bg);
-  border:1.5px solid var(--brand-border);
-  border-radius:10px;padding:8px 12px;
-  transition:border-color var(--transition);
-}
+/* ══════════════════════════════════════════ SEARCH ══════════════════════════════════════════ */
+#searchBar{background:var(--brand-surface);border-bottom:1px solid var(--brand-border);padding:10px 16px;max-width:480px;margin:0 auto;display:block;}
+.search-inner{display:flex;align-items:center;gap:8px;background:var(--brand-bg);border:1.5px solid var(--brand-border);border-radius:10px;padding:8px 12px;transition:border-color var(--transition);}
 .search-inner:focus-within{border-color:var(--brand-primary)}
 .search-icon{font-size:14px;opacity:0.4;flex-shrink:0}
-#searchInput{
-  flex:1;border:none;background:none;
-  font-family:inherit;font-size:14px;
-  color:var(--brand-text);outline:none;
-}
+#searchInput{flex:1;border:none;background:none;font-family:inherit;font-size:14px;color:var(--brand-text);outline:none;}
 #searchInput::placeholder{color:var(--brand-text-muted)}
-#searchClear{
-  font-size:16px;opacity:0.4;
-  display:none;padding:2px;
-  transition:opacity var(--transition);
-}
+#searchClear{font-size:16px;opacity:0.4;display:none;padding:2px;transition:opacity var(--transition);}
 #searchClear.show{display:block}
 #searchClear:active{opacity:0.8}
 
-/* ══════════════════════════════════════════
-   MACRO-GROUPS (V3) — BKS e locali con category_groups
-   ══════════════════════════════════════════ */
-#groupBar{
-  display:none;
-  background:var(--group-bg);
-  border-bottom:1px solid var(--brand-border);
-  padding:12px 16px;
-  max-width:480px;margin:0 auto;
-}
+/* ══════════════════════════════════════════ MACRO-GROUPS ══════════════════════════════════════════ */
+#groupBar{display:none;background:var(--group-bg);border-bottom:1px solid var(--brand-border);padding:12px 16px;max-width:480px;margin:0 auto;}
 #groupBar.show{display:block}
-.group-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
-}
+.group-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .group-grid.g-2{grid-template-columns:repeat(2,1fr)}
 .group-grid.g-4{grid-template-columns:repeat(4,1fr)}
-.group-chip{
-  padding:10px 6px;border-radius:10px;
-  background:var(--group-inactive-bg);
-  color:var(--group-inactive-text);
-  text-align:center;cursor:pointer;
-  transition:all var(--transition);
-  border:none;font-family:inherit;
-}
+.group-chip{padding:10px 6px;border-radius:10px;background:var(--group-inactive-bg);color:var(--group-inactive-text);text-align:center;cursor:pointer;transition:all var(--transition);border:none;font-family:inherit;}
 .group-chip:active{transform:scale(0.96)}
-.group-chip.active{
-  background:var(--brand-primary);
-  color:#fff;
-}
+.group-chip.active{background:var(--brand-primary);color:#fff;}
 .group-chip-emoji{font-size:16px;display:block;margin-bottom:2px}
 .group-chip-name{font-size:10px;font-weight:600;display:block}
 .group-chip-count{font-size:8px;opacity:0.6;display:block;margin-top:1px}
-   
-/* ══════════════════════════════════════════
-   MAIN CONTENT
-   ══════════════════════════════════════════ */
-#mainContent{
-  max-width:480px;margin:0 auto;
-  padding-bottom:140px;
-}
 
-/* ══════════════════════════════════════════
-   CATEGORY ANCHORS
-   ══════════════════════════════════════════ */
-.cat-sticky{
-  position:sticky;top:160px;z-index:96;
-  background:var(--brand-surface);
-  border-bottom:1px solid var(--brand-border);
-  box-shadow:0 2px 8px rgba(0,0,0,0.06);
-}
-.cat-tabs{
-  display:flex;gap:4px;padding:0 16px;
-  overflow-x:auto;scrollbar-width:none;
-}
+/* ══════════════════════════════════════════ MAIN ══════════════════════════════════════════ */
+#mainContent{max-width:480px;margin:0 auto;padding-bottom:140px;}
+.cat-sticky{position:sticky;top:160px;z-index:96;background:var(--brand-surface);border-bottom:1px solid var(--brand-border);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.cat-tabs{display:flex;gap:4px;padding:0 16px;overflow-x:auto;scrollbar-width:none;}
 .cat-tabs::-webkit-scrollbar{display:none}
-.cat-tab{
-  flex-shrink:0;
-  display:flex;align-items:center;gap:5px;
-  padding:10px 12px;
-  font-size:12px;font-weight:500;
-  color:var(--brand-text-muted);
-  border-bottom:2px solid transparent;
-  cursor:pointer;white-space:nowrap;
-  transition:all var(--transition);
-}
-.cat-tab.active{
-  color:var(--brand-primary);
-  border-bottom-color:var(--brand-accent);
-}
+.cat-tab{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:10px 12px;font-size:12px;font-weight:500;color:var(--brand-text-muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all var(--transition);}
+.cat-tab.active{color:var(--brand-primary);border-bottom-color:var(--brand-accent);}
 .cat-tab-emoji{font-size:14px}
-
-/* ══════════════════════════════════════════
-   CATEGORY SECTION
-   ══════════════════════════════════════════ */
 .cat-section{padding:0 0 8px}
-.cat-header{
-  padding:20px 16px 12px;
-  display:flex;align-items:baseline;gap:8px;
-}
+.cat-header{padding:20px 16px 12px;display:flex;align-items:baseline;gap:8px;}
 .cat-header-emoji{font-size:20px}
-.cat-header-name{
-  font-family:'Fraunces',serif;
-  font-size:24px;font-weight:300;letter-spacing:-0.5px;
-  color:var(--brand-primary);
-}
-.cat-header-count{
-  font-size:11px;color:var(--brand-text-muted);
-  margin-left:auto;
-}
+.cat-header-name{font-family:'Fraunces',serif;font-size:24px;font-weight:300;letter-spacing:-0.5px;color:var(--brand-primary);}
+.cat-header-count{font-size:11px;color:var(--brand-text-muted);margin-left:auto;}
 
-/* ══════════════════════════════════════════
-   PRODUCT CARD
-   ══════════════════════════════════════════ */
+/* ══════════════════════════════════════════ PRODUCT CARD ══════════════════════════════════════════ */
 .product-list{padding:0 16px;display:flex;flex-direction:column;gap:12px}
-
-.product-card{
-  background:var(--brand-surface);
-  border-radius:14px;
-  border:1px solid var(--brand-border);
-  overflow:hidden;
-  position:relative;
-  transition:transform var(--transition), box-shadow var(--transition);
-  cursor:pointer;
-}
+.product-card{background:var(--brand-surface);border-radius:14px;border:1px solid var(--brand-border);overflow:hidden;position:relative;transition:transform var(--transition), box-shadow var(--transition);cursor:pointer;}
 .product-card:active{transform:scale(0.98)}
 .product-card.agotado{opacity:0.6}
-.product-card.nuevo-highlight{
-  border-color:var(--badge-nuevo);
-  box-shadow:0 0 0 2px rgba(34,197,94,0.15);
-}
-
-/* Card Layout */
+.product-card.nuevo-highlight{border-color:var(--badge-nuevo);box-shadow:0 0 0 2px rgba(34,197,94,0.15);}
 .card-inner{display:flex;gap:0}
-.card-img-wrap{
-  width:100px;flex-shrink:0;
-  background:var(--brand-bg);
-  position:relative;overflow:hidden;
-}
-.card-img-wrap img{
-  width:100%;height:100%;
-  object-fit:cover;object-position:center;
-}
-.card-img-placeholder{
-  width:100%;height:100%;min-height:100px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:32px;opacity:0.2;
-}
+.card-img-wrap{width:100px;flex-shrink:0;background:var(--brand-bg);position:relative;overflow:hidden;}
+.card-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center;}
+.card-img-placeholder{width:100%;height:100%;min-height:100px;display:flex;align-items:center;justify-content:center;font-size:32px;opacity:0.2;}
 .card-body{flex:1;padding:12px 12px 12px 14px;display:flex;flex-direction:column;gap:6px}
 .card-badges{display:flex;flex-wrap:wrap;gap:4px}
-
-.badge{
-  display:inline-flex;align-items:center;gap:3px;
-  padding:2px 8px;border-radius:20px;
-  font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;
-}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;}
 .badge-nuevo{background:rgba(34,197,94,0.12);color:#16a34a}
 .badge-popular{background:rgba(245,158,11,0.12);color:#d97706}
 .badge-vegano{background:rgba(132,204,22,0.12);color:#65a30d}
@@ -566,363 +268,101 @@ body.theme-dark .rhythm-waveform{display:flex}
 .badge-temporada{background:rgba(167,139,250,0.12);color:#7c3aed}
 .badge-agotado{background:rgba(148,163,184,0.12);color:#64748b}
 .badge-member{background:rgba(233,69,96,0.12);color:#be185d}
-
-/* NEW badge — pulsing animation */
 @keyframes newPulse{0%,100%{opacity:1}50%{opacity:0.7}}
 .badge-nuevo{animation:newPulse 2.5s infinite}
-
-.card-name{
-  font-size:15px;font-weight:600;
-  color:var(--brand-text);
-  line-height:1.3;
-}
+.card-name{font-size:15px;font-weight:600;color:var(--brand-text);line-height:1.3;}
 .card-name.agotado-text{text-decoration:line-through;color:var(--brand-text-muted)}
-.card-desc{
-  font-size:12px;color:var(--brand-text-muted);
-  line-height:1.4;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
-}
+.card-desc{font-size:12px;color:var(--brand-text-muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:4px}
-.card-price{
-  font-size:17px;font-weight:700;
-  color:var(--brand-accent);
-}
-.card-price-member{
-  font-size:12px;font-weight:500;
-  text-decoration:line-through;color:var(--brand-text-muted);
-  margin-right:4px;
-}
+.card-price{font-size:17px;font-weight:700;color:var(--brand-accent);}
+.card-price-member{font-size:12px;font-weight:500;text-decoration:line-through;color:var(--brand-text-muted);margin-right:4px;}
 .card-price-wrap{display:flex;align-items:baseline;gap:4px}
-.card-add-btn{
-  width:32px;height:32px;border-radius:50%;
-  background:var(--brand-primary);
-  color:#fff;
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;font-weight:400;
-  flex-shrink:0;
-  transition:background var(--transition), transform var(--transition);
-}
+.card-add-btn{width:32px;height:32px;border-radius:50%;background:var(--brand-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:400;flex-shrink:0;transition:background var(--transition), transform var(--transition);}
 .card-add-btn:active{background:var(--brand-accent);transform:scale(0.9)}
-
-/* Agotado overlay */
-.agotado-overlay{
-  position:absolute;inset:0;
-  display:none;align-items:center;justify-content:center;
-  background:rgba(255,255,255,0.55);
-  border-radius:14px;
-}
+.agotado-overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,0.55);border-radius:14px;}
 .product-card.agotado .agotado-overlay{display:flex}
-.agotado-label{
-  background:rgba(100,116,139,0.9);
-  color:#fff;padding:4px 14px;border-radius:20px;
-  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
-}
+.agotado-label{background:rgba(100,116,139,0.9);color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;}
 
-/* ══════════════════════════════════════════
-   v1.7 · CARD DUE-ZONE · CTA + bottone Pedir directo (gancio Fase 2)
-   ══════════════════════════════════════════ */
-/* La zona foto = tap apre detail. La zona azione (footer) = tap su bottoni
-   chiama mesero o (Fase 2) aggiunge a carrello. event.stopPropagation
-   sui bottoni assicura che il tap sul bottone non triggeri openDetail. */
-
-.card-cta-row{
-  display:flex;align-items:center;gap:6px;
-}
-.card-call-btn{
-  width:34px;height:34px;border-radius:50%;
-  background:var(--brand-accent);color:#fff;
-  display:flex;align-items:center;justify-content:center;
-  font-size:16px;flex-shrink:0;
-  box-shadow:0 2px 8px rgba(233,69,96,0.25);
-  transition:transform var(--transition), box-shadow var(--transition);
-}
+/* CARD CTA (v1.7) */
+.card-cta-row{display:flex;align-items:center;gap:6px;}
+.card-call-btn{width:34px;height:34px;border-radius:50%;background:var(--brand-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;box-shadow:0 2px 8px rgba(233,69,96,0.25);transition:transform var(--transition), box-shadow var(--transition);}
 .card-call-btn:active{transform:scale(0.92);box-shadow:0 1px 4px rgba(233,69,96,0.35)}
-body.theme-dark .card-call-btn{
-  box-shadow:0 2px 12px rgba(233,69,96,0.45);
-}
-
-/* Gancio Fase 2 · bottone Pedir directo (display:none controllato da BRAND.feature_pedir_directo) */
-.card-pedir-btn{
-  display:none; /* default: nascosto · Fase 1 sempre · si attiva con feature flag in PARAMETROS */
-  width:34px;height:34px;border-radius:50%;
-  background:var(--brand-primary);color:#fff;
-  align-items:center;justify-content:center;
-  font-size:18px;flex-shrink:0;
-  transition:transform var(--transition);
-}
+body.theme-dark .card-call-btn{box-shadow:0 2px 12px rgba(233,69,96,0.45);}
+.card-pedir-btn{display:none;width:34px;height:34px;border-radius:50%;background:var(--brand-primary);color:#fff;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:transform var(--transition);}
 .card-pedir-btn:active{transform:scale(0.92)}
 body.feature-pedir-directo .card-pedir-btn{display:flex}
 
-/* Confirm sheet · piccolo bottom sheet per "¿Llamar mesero por X?" */
-#confirmOverlay{
-  display:none;position:fixed;inset:0;z-index:400;
-  background:rgba(0,0,0,0.55);
-  opacity:0;transition:opacity 0.25s ease;
-}
+/* CONFIRM SHEET */
+#confirmOverlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.55);opacity:0;transition:opacity 0.25s ease;}
 #confirmOverlay.open{display:block;opacity:1}
-#confirmSheet{
-  position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);
-  width:100%;max-width:480px;z-index:401;
-  background:var(--brand-surface);
-  border-radius:20px 20px 0 0;
-  padding:20px 20px calc(20px + env(safe-area-inset-bottom));
-  box-shadow:0 -10px 40px rgba(0,0,0,0.25);
-  transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);
-}
+#confirmSheet{position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:480px;z-index:401;background:var(--brand-surface);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,0.25);transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);}
 #confirmSheet.open{transform:translate(-50%,0)}
-.confirm-handle{
-  width:36px;height:4px;border-radius:2px;
-  background:var(--brand-border);
-  margin:0 auto 16px;
-}
-.confirm-icon{
-  width:56px;height:56px;border-radius:50%;
-  background:rgba(233,69,96,0.12);
-  display:flex;align-items:center;justify-content:center;
-  font-size:28px;margin:0 auto 12px;
-}
-.confirm-title{
-  font-size:18px;font-weight:600;
-  color:var(--brand-text);
-  text-align:center;margin-bottom:6px;
-  line-height:1.3;
-}
-.confirm-subtitle{
-  font-size:13px;color:var(--brand-text-muted);
-  text-align:center;margin-bottom:20px;
-}
-.confirm-actions{
-  display:flex;gap:10px;
-}
-.confirm-btn{
-  flex:1;padding:14px;border-radius:12px;
-  font-family:inherit;font-size:14px;font-weight:600;
-  border:none;cursor:pointer;
-  transition:opacity var(--transition), transform var(--transition);
-}
+.confirm-handle{width:36px;height:4px;border-radius:2px;background:var(--brand-border);margin:0 auto 16px;}
+.confirm-icon{width:56px;height:56px;border-radius:50%;background:rgba(233,69,96,0.12);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px;}
+.confirm-title{font-size:18px;font-weight:600;color:var(--brand-text);text-align:center;margin-bottom:6px;line-height:1.3;}
+.confirm-subtitle{font-size:13px;color:var(--brand-text-muted);text-align:center;margin-bottom:20px;}
+.confirm-actions{display:flex;gap:10px;}
+.confirm-btn{flex:1;padding:14px;border-radius:12px;font-family:inherit;font-size:14px;font-weight:600;border:none;cursor:pointer;transition:opacity var(--transition), transform var(--transition);}
 .confirm-btn:active{transform:scale(0.97)}
-.confirm-btn-cancel{
-  background:var(--brand-bg);color:var(--brand-text-muted);
-}
-body.theme-dark .confirm-btn-cancel{
-  background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7);
-}
-.confirm-btn-ok{
-  background:var(--brand-accent);color:#fff;
-  box-shadow:0 4px 14px rgba(233,69,96,0.3);
-}
-   
-/* ══════════════════════════════════════════
-   PRODUCT DETAIL SHEET (bottom drawer)
-   ══════════════════════════════════════════ */
-#detailOverlay{
-  display:none;position:fixed;inset:0;z-index:300;
-  background:rgba(0,0,0,0.5);
-}
-#detailOverlay.open{display:block}
-#detailSheet{
-  position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);
-  width:100%;max-width:480px;z-index:301;
-  background:var(--brand-surface);
-  border-radius:20px 20px 0 0;
-  max-height:90dvh;overflow-y:auto;
-  transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);
-}
-#detailSheet.open{transform:translate(-50%,0)}
+.confirm-btn-cancel{background:var(--brand-bg);color:var(--brand-text-muted);}
+body.theme-dark .confirm-btn-cancel{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7);}
+.confirm-btn-ok{background:var(--brand-accent);color:#fff;box-shadow:0 4px 14px rgba(233,69,96,0.3);}
 
-.sheet-handle{
-  width:36px;height:4px;border-radius:2px;
-  background:var(--brand-border);
-  margin:12px auto 0;
-}
-.sheet-img{
-  width:100%;height:220px;
-  background:var(--brand-bg);
-  object-fit:cover;
-  position:relative;
-}
+/* DETAIL SHEET */
+#detailOverlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.5);}
+#detailOverlay.open{display:block}
+#detailSheet{position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:480px;z-index:301;background:var(--brand-surface);border-radius:20px 20px 0 0;max-height:90dvh;overflow-y:auto;transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);}
+#detailSheet.open{transform:translate(-50%,0)}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--brand-border);margin:12px auto 0;}
+.sheet-img{width:100%;height:220px;background:var(--brand-bg);object-fit:cover;position:relative;}
 .sheet-img img{width:100%;height:100%;object-fit:cover}
-.sheet-img-ph{
-  width:100%;height:220px;
-  display:flex;align-items:center;justify-content:center;
-  background:var(--brand-bg);font-size:64px;opacity:0.15;
-}
+.sheet-img-ph{width:100%;height:220px;display:flex;align-items:center;justify-content:center;background:var(--brand-bg);font-size:64px;opacity:0.15;}
 .sheet-body{padding:20px 20px 30px}
 .sheet-badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.sheet-name{
-  font-family:'Fraunces',serif;
-  font-size:28px;font-weight:300;letter-spacing:-0.5px;
-  color:var(--brand-primary);margin-bottom:8px;line-height:1.15;
-}
-.sheet-desc{
-  font-size:14px;line-height:1.6;
-  color:var(--brand-text-muted);margin-bottom:16px;
-}
-.sheet-price-row{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:20px;
-}
-.sheet-price{
-  font-size:28px;font-weight:700;
-  color:var(--brand-accent);
-}
-.sheet-price-orig{
-  font-size:16px;font-weight:400;
-  text-decoration:line-through;color:var(--brand-text-muted);
-  margin-right:8px;
-}
-
-/* Upsell section */
-#upsellSection{
-  display:none;
-  border-top:1px solid var(--brand-border);
-  padding-top:16px;margin-top:4px;
-}
+.sheet-name{font-family:'Fraunces',serif;font-size:28px;font-weight:300;letter-spacing:-0.5px;color:var(--brand-primary);margin-bottom:8px;line-height:1.15;}
+.sheet-desc{font-size:14px;line-height:1.6;color:var(--brand-text-muted);margin-bottom:16px;}
+.sheet-price-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.sheet-price{font-size:28px;font-weight:700;color:var(--brand-accent);}
+.sheet-price-orig{font-size:16px;font-weight:400;text-decoration:line-through;color:var(--brand-text-muted);margin-right:8px;}
+#upsellSection{display:none;border-top:1px solid var(--brand-border);padding-top:16px;margin-top:4px;}
 #upsellSection.show{display:block}
-.upsell-title{
-  font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
-  color:var(--brand-text-muted);margin-bottom:12px;
-}
-.upsell-scroll{
-  display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;
-  padding-bottom:4px;
-}
+.upsell-title{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--brand-text-muted);margin-bottom:12px;}
+.upsell-scroll{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;}
 .upsell-scroll::-webkit-scrollbar{display:none}
-.upsell-card{
-  flex-shrink:0;width:130px;
-  background:var(--brand-bg);
-  border:1px solid var(--brand-border);
-  border-radius:12px;overflow:hidden;cursor:pointer;
-  transition:border-color var(--transition);
-}
+.upsell-card{flex-shrink:0;width:130px;background:var(--brand-bg);border:1px solid var(--brand-border);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color var(--transition);}
 .upsell-card:active{border-color:var(--brand-accent)}
-.upsell-img{
-  width:100%;height:80px;
-  background:var(--brand-border);
-  object-fit:cover;
-}
+.upsell-img{width:100%;height:80px;background:var(--brand-border);object-fit:cover;}
 .upsell-img img{width:100%;height:100%;object-fit:cover}
-.upsell-img-ph{
-  width:100%;height:80px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:28px;opacity:0.2;
-}
+.upsell-img-ph{width:100%;height:80px;display:flex;align-items:center;justify-content:center;font-size:28px;opacity:0.2;}
 .upsell-info{padding:8px 10px}
 .upsell-name{font-size:12px;font-weight:500;line-height:1.3;margin-bottom:3px}
 .upsell-price{font-size:12px;font-weight:700;color:var(--brand-accent)}
 
-/* ══════════════════════════════════════════
-   EMPTY STATE
-   ══════════════════════════════════════════ */
-#emptyState{
-  display:none;
-  flex-direction:column;align-items:center;justify-content:center;
-  padding:60px 20px;gap:12px;text-align:center;
-}
+/* EMPTY / TOAST / STICKY CALL / BOTTOM NAV / MESA */
+#emptyState{display:none;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:12px;text-align:center;}
 #emptyState.show{display:flex}
 .empty-emoji{font-size:48px;opacity:0.2}
 .empty-text{font-size:14px;color:var(--brand-text-muted)}
-
-/* ══════════════════════════════════════════
-   TOAST
-   ══════════════════════════════════════════ */
-#toast{
-  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
-  background:var(--brand-primary);color:#fff;
-  padding:10px 20px;border-radius:20px;
-  font-size:13px;font-weight:500;
-  opacity:0;transition:all 0.3s ease;
-  z-index:500;white-space:nowrap;
-  pointer-events:none;
-}
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--brand-primary);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:all 0.3s ease;z-index:500;white-space:nowrap;pointer-events:none;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* ══════════════════════════════════════════
-   v1.7 · STICKY CALL BAR (Llamar mesero generico)
-   Visibile sempre se MESA_ID presente.
-   Posizionata sopra #bottomNav.
-   ══════════════════════════════════════════ */
-#stickyCallBar{
-  display:none; /* default: nascosto · si attiva via JS se MESA_ID presente */
-  position:fixed;left:0;right:0;
-  bottom:calc(56px + env(safe-area-inset-bottom)); /* sopra al bottomNav */
-  z-index:99;
-  padding:10px 16px;
-  background:transparent;
-  pointer-events:none; /* il container non cattura tap, solo il bottone */
-}
+#stickyCallBar{display:none;position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:99;padding:10px 16px;background:transparent;pointer-events:none;}
 #stickyCallBar.show{display:block}
-.sticky-call-btn{
-  pointer-events:auto;
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  width:100%;max-width:480px;margin:0 auto;
-  padding:14px 20px;border-radius:28px;
-  background:var(--brand-accent);color:#fff;
-  font-family:inherit;font-size:15px;font-weight:600;letter-spacing:0.3px;
-  border:none;cursor:pointer;
-  box-shadow:0 6px 20px rgba(233,69,96,0.4), 0 2px 6px rgba(0,0,0,0.08);
-  transition:transform var(--transition), box-shadow var(--transition);
-}
-.sticky-call-btn:active{
-  transform:scale(0.97);
-  box-shadow:0 3px 12px rgba(233,69,96,0.5);
-}
+.sticky-call-btn{pointer-events:auto;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:480px;margin:0 auto;padding:14px 20px;border-radius:28px;background:var(--brand-accent);color:#fff;font-family:inherit;font-size:15px;font-weight:600;letter-spacing:0.3px;border:none;cursor:pointer;box-shadow:0 6px 20px rgba(233,69,96,0.4), 0 2px 6px rgba(0,0,0,0.08);transition:transform var(--transition), box-shadow var(--transition);}
+.sticky-call-btn:active{transform:scale(0.97);box-shadow:0 3px 12px rgba(233,69,96,0.5);}
 .sticky-call-btn-icon{font-size:18px}
-body.theme-dark .sticky-call-btn{
-  box-shadow:0 6px 24px rgba(233,69,96,0.5), 0 0 0 1px rgba(255,255,255,0.05);
-}
-   
-/* ══════════════════════════════════════════
-   BOTTOM NAV (future phases)
-   ══════════════════════════════════════════ */
-#bottomNav{
-  position:fixed;bottom:0;left:0;right:0;
-  background:var(--brand-surface);
-  border-top:1px solid var(--brand-border);
-  padding:8px 0 calc(8px + env(safe-area-inset-bottom));
-  z-index:100;
-}
-.bnav-inner{
-  display:flex;align-items:center;justify-content:space-around;
-  max-width:480px;margin:0 auto;
-}
-.bnav-btn{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:4px 16px;border-radius:8px;
-  font-size:10px;font-weight:500;
-  color:var(--brand-text-muted);
-  transition:color var(--transition);
-}
+body.theme-dark .sticky-call-btn{box-shadow:0 6px 24px rgba(233,69,96,0.5), 0 0 0 1px rgba(255,255,255,0.05);}
+#bottomNav{position:fixed;bottom:0;left:0;right:0;background:var(--brand-surface);border-top:1px solid var(--brand-border);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:100;}
+.bnav-inner{display:flex;align-items:center;justify-content:space-around;max-width:480px;margin:0 auto;}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 16px;border-radius:8px;font-size:10px;font-weight:500;color:var(--brand-text-muted);transition:color var(--transition);}
 .bnav-btn.active{color:var(--brand-accent)}
 .bnav-icon{font-size:20px}
-
-/* ══════════════════════════════════════════
-   MESA BADGE (top right)
-   ══════════════════════════════════════════ */
-#mesaBadge{
-  display:none;
-  padding:4px 10px;border-radius:20px;
-  background:rgba(255,255,255,0.15);
-  font-size:10px;font-weight:600;letter-spacing:0.5px;
-  color:rgba(255,255,255,0.85);
-}
+#mesaBadge{display:none;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,0.15);font-size:10px;font-weight:600;letter-spacing:0.5px;color:rgba(255,255,255,0.85);}
 #mesaBadge.show{display:flex;align-items:center;gap:4px}
 
-/* ══════════════════════════════════════════
-   SKELETON LOADER
-   ══════════════════════════════════════════ */
+/* SKELETON */
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-.skeleton{
-  background:linear-gradient(90deg,var(--brand-border) 25%,rgba(0,0,0,0.04) 50%,var(--brand-border) 75%);
-  background-size:200% 100%;
-  animation:shimmer 1.5s infinite;
-  border-radius:8px;
-}
-.skel-card{
-  height:100px;background:var(--brand-surface);
-  border-radius:14px;border:1px solid var(--brand-border);
-  overflow:hidden;display:flex;gap:0;
-}
+.skeleton{background:linear-gradient(90deg,var(--brand-border) 25%,rgba(0,0,0,0.04) 50%,var(--brand-border) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;}
+.skel-card{height:100px;background:var(--brand-surface);border-radius:14px;border:1px solid var(--brand-border);overflow:hidden;display:flex;gap:0;}
 .skel-img{width:100px;flex-shrink:0}.skel-img div{width:100%;height:100%}
 .skel-body{flex:1;padding:14px;display:flex;flex-direction:column;gap:8px}
 .skel-title{height:16px;width:70%}
@@ -930,9 +370,6 @@ body.theme-dark .sticky-call-btn{
 .skel-desc2{height:12px;width:60%}
 .skel-price{height:18px;width:35%;margin-top:auto}
 
-/* ══════════════════════════════════════════
-   UTILITY
-   ══════════════════════════════════════════ */
 .hidden{display:none!important}
 .currency::before{content:attr(data-symbol)}
 </style>
@@ -944,6 +381,16 @@ body.theme-dark .sticky-call-btn{
   <div class="ld-logo" id="ldBrand"><span>●</span> Menú</div>
   <div class="ld-bar-wrap"><div class="ld-bar" id="ldBar"></div></div>
   <div class="ld-text" id="ldText">Cargando menú...</div>
+</div>
+
+<!-- ── ERROR STATE (v1.10) ── -->
+<div id="errorState">
+  <div class="es-emoji" id="esEmoji">📡</div>
+  <div class="es-brand" id="esBrand"><span>●</span> Menú</div>
+  <div class="es-title" id="esTitle">No pudimos cargar el menú</div>
+  <div class="es-subtitle" id="esSubtitle">Hubo un problema de conexión. Intenta de nuevo.</div>
+  <button class="es-btn" id="esBtn" onclick="onRetryFromError()">Reintentar</button>
+  <div class="es-mesa" id="esMesa"></div>
 </div>
 
 <!-- ── HEADER ── -->
@@ -963,30 +410,23 @@ body.theme-dark .sticky-call-btn{
       <div class="lang-dropdown" id="langDropdown"></div>
     </div>
   </div>
-  <!-- Member banner -->
   <div id="memberBanner"></div>
 </div>
 
-<!-- ── RHYTHM / FAJA HORARIA ── -->
+<!-- ── RHYTHM / FAJA ── -->
 <div id="fajaBar">
   <div class="rhythm-label">♪ BKS RHYTHM</div>
   <div class="faja-scroll" id="fajaScroll"></div>
   <div class="rhythm-waveform">
-    <div class="wf-bar" style="height:40%"></div>
-    <div class="wf-bar" style="height:65%"></div>
-    <div class="wf-bar" style="height:50%"></div>
-    <div class="wf-bar" style="height:80%"></div>
-    <div class="wf-bar" style="height:55%"></div>
-    <div class="wf-bar" style="height:70%"></div>
-    <div class="wf-bar" style="height:60%"></div>
-    <div class="wf-bar" style="height:45%"></div>
+    <div class="wf-bar" style="height:40%"></div><div class="wf-bar" style="height:65%"></div>
+    <div class="wf-bar" style="height:50%"></div><div class="wf-bar" style="height:80%"></div>
+    <div class="wf-bar" style="height:55%"></div><div class="wf-bar" style="height:70%"></div>
+    <div class="wf-bar" style="height:60%"></div><div class="wf-bar" style="height:45%"></div>
   </div>
 </div>
 
-<!-- ── MACRO-GROUPS (V3) ── -->
-<div id="groupBar">
-  <div class="group-grid" id="groupGrid"></div>
-</div>
+<!-- ── MACRO-GROUPS ── -->
+<div id="groupBar"><div class="group-grid" id="groupGrid"></div></div>
 
 <!-- ── SEARCH ── -->
 <div id="searchBarWrap" style="position:sticky;top:104px;z-index:97;background:var(--brand-surface);border-bottom:1px solid var(--brand-border);box-shadow:0 2px 4px rgba(0,0,0,0.04)">
@@ -1014,14 +454,14 @@ body.theme-dark .sticky-call-btn{
   </div>
 </div>
 
-<!-- ── PRODUCT DETAIL SHEET ── -->
+<!-- ── DETAIL SHEET ── -->
 <div id="detailOverlay" onclick="closeDetail()"></div>
 <div id="detailSheet">
   <div class="sheet-handle"></div>
   <div id="sheetContent"></div>
 </div>
 
-<!-- ── CONFIRM SHEET (Llamar mesero · per-prodotto o generico) ── -->
+<!-- ── CONFIRM SHEET ── -->
 <div id="confirmOverlay" onclick="closeConfirmSheet()"></div>
 <div id="confirmSheet" role="dialog" aria-modal="true">
   <div class="confirm-handle"></div>
@@ -1034,28 +474,25 @@ body.theme-dark .sticky-call-btn{
   </div>
 </div>
 
-<!-- ── STICKY CALL BAR (Llamar mesero generico · visible se MESA_ID) ── -->
+<!-- ── STICKY CALL BAR ── -->
 <div id="stickyCallBar">
   <button class="sticky-call-btn" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero">
     <span class="sticky-call-btn-icon">🔔</span>
     <span id="stickyCallLabel" data-i18n="call_waiter_btn">Llamar mesero</span>
   </button>
 </div>
-   
+
 <!-- ── BOTTOM NAV ── -->
 <div id="bottomNav">
   <div class="bnav-inner">
     <button class="bnav-btn active" onclick="scrollToTop()">
-      <span class="bnav-icon">🏠</span>
-      <span data-i18n="nav_menu">Menú</span>
+      <span class="bnav-icon">🏠</span><span data-i18n="nav_menu">Menú</span>
     </button>
     <button class="bnav-btn" id="btnBuscar" onclick="focusSearch()">
-      <span class="bnav-icon">🔍</span>
-      <span data-i18n="nav_search">Buscar</span>
+      <span class="bnav-icon">🔍</span><span data-i18n="nav_search">Buscar</span>
     </button>
     <button class="bnav-btn" onclick="showToastMsg(getLang('scan_member'))">
-      <span class="bnav-icon">💳</span>
-      <span data-i18n="nav_club">Club</span>
+      <span class="bnav-icon">💳</span><span data-i18n="nav_club">Club</span>
     </button>
   </div>
 </div>
@@ -1065,13 +502,45 @@ body.theme-dark .sticky-call-btn{
 
 <script>
 /* ════════════════════════════════════════════════════
-   CONFIG — White-label defaults & URL params
+   v1.10 · CONFIG · URL PARAMS + KNOWN_LOCALS (safety net)
    ════════════════════════════════════════════════════ */
 const URL_PARAMS = new URLSearchParams(location.search);
-const LOCAL_ID   = URL_PARAMS.get('local') || 'demo';
+const LOCAL_RAW  = URL_PARAMS.get('local') || '';
+const LOCAL_ID   = LOCAL_RAW.toUpperCase();   // sempre UPPERCASE per match GAS
 const MESA_ID    = URL_PARAMS.get('mesa')  || null;
 const MEMBER_ID  = URL_PARAMS.get('member')|| null;
-let   LANG_CODE  = URL_PARAMS.get('lang')  || localStorage.getItem('menu_lang') || 'es'; // default ES — browser lang ignored
+let   LANG_CODE  = URL_PARAMS.get('lang')  || localStorage.getItem('menu_lang') || 'es';
+
+// GAS endpoint — URL invariata da v1.7 (deployment esistente)
+const GAS_URL = URL_PARAMS.get('gas') ||
+  'https://script.google.com/macros/s/AKfycbzZkS3bBaYc34uJ6wXP9FG13i58-NT0FJp964vqkUYbRObUxryeRb9l_Fz24kb42f5t/exec';
+
+/* v1.10 · KNOWN_LOCALS — Safety net brand
+   ──────────────────────────────────────────────────────────────
+   Mappa minima dei locali noti, usata SOLO per:
+     1. Validare ?local= prima di chiamare il GAS
+     2. Mostrare brand corretto in showErrorState() se il GAS è giù
+   NON sostituisce mai il flusso felice (getConfig + applyBrand).
+   Aggiungere voci qui quando si attiva un nuovo locale.
+   ────────────────────────────────────────────────────────────── */
+const KNOWN_LOCALS = {
+  'CANDELARIA': {
+    name:          'PINSA Candelaria',
+    logo_emoji:    '🌿',
+    color_primary: '#1A1A2E',
+    color_accent:  '#E94560',
+    theme_mode:    'light',
+  },
+  'BKS': {
+    name:          'BKS',
+    logo_emoji:    '🎵',
+    color_primary: '#0D0D1A',
+    color_accent:  '#E94560',
+    theme_mode:    'dark',
+  },
+  // 'RIESCO':  { name:'PINSA Riesco', logo_emoji:'🌿', ... },
+  // 'EXO':     { name:'EXO',          logo_emoji:'⚡', ... },
+};
 
 /* ════════════════════════════════════════════════════
    MULTI-LANGUAGE STRINGS
@@ -1090,20 +559,22 @@ const TRANSLATIONS = {
     search_placeholder:'Buscar en el menú...',
     search_empty:'Sin resultados para',
     scan_member:'Escanea tu tarjeta Club para activar beneficios',
-    mesa:'Mesa',
-    add:'Añadir',
-    close:'Cerrar',
-    hi_member:'Hola',tokens:'tokens',
-    flag:'🇨🇱',
+    mesa:'Mesa', add:'Añadir', close:'Cerrar',
+    hi_member:'Hola',tokens:'tokens', flag:'🇨🇱',
     cat_alimentos:'Alimentos',cat_cafe:'Café',cat_jugos:'Jugos',cat_helados:'Helados',cat_especiales:'Especiales',cat_bebidas:'Bebidas',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Postres',cat_ensaladas:'Ensaladas',cat_desayunos:'Desayunos',
-  confirm_call:'Sí, llamar',
-    confirm_cancel:'Cancelar',
+    confirm_call:'Sí, llamar', confirm_cancel:'Cancelar',
     call_generic_title:'¿Llamar mesero?',
     call_generic_subtitle:'El mesero llegará a tu mesa en breve',
     call_subtitle:'El mesero verá lo que quieres pedir',
     call_no_mesa:'Acércate a un mesero para ordenar',
     call_sent:'🔔 Mesero llamado · llega pronto',
     call_waiter_btn:'Llamar mesero',
+    // v1.10 · error state
+    err_title:'No pudimos cargar el menú',
+    err_subtitle:'Hubo un problema de conexión. Intenta de nuevo.',
+    err_retry:'Reintentar',
+    err_invalid_title:'QR no válido',
+    err_invalid_subtitle:'Acércate al personal del local para ayudarte.',
   },
   en:{
     loading:'Loading menu...',
@@ -1118,12 +589,21 @@ const TRANSLATIONS = {
     search_placeholder:'Search the menu...',
     search_empty:'No results for',
     scan_member:'Scan your Club card to unlock benefits',
-    mesa:'Table',
-    add:'Add',
-    close:'Close',
-    hi_member:'Hi',tokens:'tokens',
-    flag:'🇬🇧',
+    mesa:'Table', add:'Add', close:'Close',
+    hi_member:'Hi',tokens:'tokens', flag:'🇬🇧',
     cat_alimentos:'Food',cat_cafe:'Coffee',cat_jugos:'Juices',cat_helados:'Ice Cream',cat_especiales:'Specials',cat_bebidas:'Drinks',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Desserts',cat_ensaladas:'Salads',cat_desayunos:'Breakfast',
+    confirm_call:'Yes, call', confirm_cancel:'Cancel',
+    call_generic_title:'Call the waiter?',
+    call_generic_subtitle:'The waiter will be at your table shortly',
+    call_subtitle:'The waiter will see what you want to order',
+    call_no_mesa:'Find a waiter to place your order',
+    call_sent:'🔔 Waiter called · coming soon',
+    call_waiter_btn:'Call waiter',
+    err_title:"We couldn't load the menu",
+    err_subtitle:'Connection problem. Please try again.',
+    err_retry:'Try again',
+    err_invalid_title:'Invalid QR',
+    err_invalid_subtitle:'Please ask the staff for help.',
   },
   pt:{
     loading:'Carregando cardápio...',
@@ -1138,12 +618,21 @@ const TRANSLATIONS = {
     search_placeholder:'Buscar no cardápio...',
     search_empty:'Sem resultados para',
     scan_member:'Escaneie seu cartão Clube para ativar benefícios',
-    mesa:'Mesa',
-    add:'Adicionar',
-    close:'Fechar',
-    hi_member:'Olá',tokens:'tokens',
-    flag:'🇧🇷',
+    mesa:'Mesa', add:'Adicionar', close:'Fechar',
+    hi_member:'Olá',tokens:'tokens', flag:'🇧🇷',
     cat_alimentos:'Alimentos',cat_cafe:'Café',cat_jugos:'Sucos',cat_helados:'Sorvetes',cat_especiales:'Especiais',cat_bebidas:'Bebidas',cat_bowls:'Bowls',cat_snacks:'Lanches',cat_postres:'Sobremesas',cat_ensaladas:'Saladas',cat_desayunos:'Café da manhã',
+    confirm_call:'Sim, chamar', confirm_cancel:'Cancelar',
+    call_generic_title:'Chamar garçom?',
+    call_generic_subtitle:'O garçom chegará à sua mesa em breve',
+    call_subtitle:'O garçom verá o que você quer pedir',
+    call_no_mesa:'Aproxime-se de um garçom para fazer o pedido',
+    call_sent:'🔔 Garçom chamado · chega logo',
+    call_waiter_btn:'Chamar garçom',
+    err_title:'Não foi possível carregar o cardápio',
+    err_subtitle:'Problema de conexão. Tente novamente.',
+    err_retry:'Tentar de novo',
+    err_invalid_title:'QR inválido',
+    err_invalid_subtitle:'Procure a equipe do local para ajudar.',
   },
   it:{
     loading:'Caricamento menu...',
@@ -1158,12 +647,21 @@ const TRANSLATIONS = {
     search_placeholder:'Cerca nel menu...',
     search_empty:'Nessun risultato per',
     scan_member:'Scansiona la tua tessera Club per attivare i vantaggi',
-    mesa:'Tavolo',
-    add:'Aggiungi',
-    close:'Chiudi',
-    hi_member:'Ciao',tokens:'token',
-    flag:'🇮🇹',
+    mesa:'Tavolo', add:'Aggiungi', close:'Chiudi',
+    hi_member:'Ciao',tokens:'token', flag:'🇮🇹',
     cat_alimentos:'Cucina',cat_cafe:'Caffetteria',cat_jugos:'Succhi',cat_helados:'Gelati',cat_especiales:'Speciali',cat_bebidas:'Bevande',cat_bowls:'Bowls',cat_snacks:'Snack',cat_postres:'Dolci',cat_ensaladas:'Insalate',cat_desayunos:'Colazione',
+    confirm_call:'Sì, chiama', confirm_cancel:'Annulla',
+    call_generic_title:'Chiamare il cameriere?',
+    call_generic_subtitle:'Il cameriere arriverà al tavolo a breve',
+    call_subtitle:'Il cameriere vedrà cosa vuoi ordinare',
+    call_no_mesa:'Avvicina un cameriere per ordinare',
+    call_sent:'🔔 Cameriere chiamato · arriva subito',
+    call_waiter_btn:'Chiama cameriere',
+    err_title:'Non siamo riusciti a caricare il menu',
+    err_subtitle:'Problema di connessione. Riprova.',
+    err_retry:'Riprova',
+    err_invalid_title:'QR non valido',
+    err_invalid_subtitle:"Rivolgiti al personale del locale per aiuto.",
   },
   de:{
     loading:'Menü wird geladen...',
@@ -1178,12 +676,21 @@ const TRANSLATIONS = {
     search_placeholder:'Im Menü suchen...',
     search_empty:'Keine Ergebnisse für',
     scan_member:'Scanne deine Club-Karte für Vorteile',
-    mesa:'Tisch',
-    add:'Hinzufügen',
-    close:'Schließen',
-    hi_member:'Hallo',tokens:'Token',
-    flag:'🇩🇪',
+    mesa:'Tisch', add:'Hinzufügen', close:'Schließen',
+    hi_member:'Hallo',tokens:'Token', flag:'🇩🇪',
     cat_alimentos:'Speisen',cat_cafe:'Kaffee',cat_jugos:'Säfte',cat_helados:'Eis',cat_especiales:'Specials',cat_bebidas:'Getränke',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Desserts',cat_ensaladas:'Salate',cat_desayunos:'Frühstück',
+    confirm_call:'Ja, rufen', confirm_cancel:'Abbrechen',
+    call_generic_title:'Kellner rufen?',
+    call_generic_subtitle:'Der Kellner kommt gleich an deinen Tisch',
+    call_subtitle:'Der Kellner sieht, was du bestellen möchtest',
+    call_no_mesa:'Bitte einen Kellner ansprechen',
+    call_sent:'🔔 Kellner gerufen · kommt gleich',
+    call_waiter_btn:'Kellner rufen',
+    err_title:'Menü konnte nicht geladen werden',
+    err_subtitle:'Verbindungsproblem. Bitte erneut versuchen.',
+    err_retry:'Erneut versuchen',
+    err_invalid_title:'Ungültiger QR',
+    err_invalid_subtitle:'Bitte an das Personal wenden.',
   },
   fr:{
     loading:'Chargement du menu...',
@@ -1198,12 +705,21 @@ const TRANSLATIONS = {
     search_placeholder:'Rechercher dans le menu...',
     search_empty:'Aucun résultat pour',
     scan_member:'Scannez votre carte Club pour activer vos avantages',
-    mesa:'Table',
-    add:'Ajouter',
-    close:'Fermer',
-    hi_member:'Bonjour',tokens:'tokens',
-    flag:'🇫🇷',
+    mesa:'Table', add:'Ajouter', close:'Fermer',
+    hi_member:'Bonjour',tokens:'tokens', flag:'🇫🇷',
     cat_alimentos:'Cuisine',cat_cafe:'Café',cat_jugos:'Jus',cat_helados:'Glaces',cat_especiales:'Spéciaux',cat_bebidas:'Boissons',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Desserts',cat_ensaladas:'Salades',cat_desayunos:'Petit-déj',
+    confirm_call:'Oui, appeler', confirm_cancel:'Annuler',
+    call_generic_title:'Appeler un serveur ?',
+    call_generic_subtitle:'Le serveur arrive à votre table',
+    call_subtitle:'Le serveur verra ce que vous voulez commander',
+    call_no_mesa:'Adressez-vous à un serveur pour commander',
+    call_sent:'🔔 Serveur appelé · arrive vite',
+    call_waiter_btn:'Appeler serveur',
+    err_title:"Impossible de charger le menu",
+    err_subtitle:'Problème de connexion. Réessayez.',
+    err_retry:'Réessayer',
+    err_invalid_title:'QR invalide',
+    err_invalid_subtitle:'Demandez au personnel du local.',
   },
   zh:{
     loading:'菜单加载中...',
@@ -1218,12 +734,21 @@ const TRANSLATIONS = {
     search_placeholder:'搜索菜单...',
     search_empty:'无结果',
     scan_member:'扫描会员卡以激活权益',
-    mesa:'桌',
-    add:'添加',
-    close:'关闭',
-    hi_member:'你好',tokens:'积分',
-    flag:'🇨🇳',
+    mesa:'桌', add:'添加', close:'关闭',
+    hi_member:'你好',tokens:'积分', flag:'🇨🇳',
     cat_alimentos:'餐食',cat_cafe:'咖啡',cat_jugos:'果汁',cat_helados:'冰淇淋',cat_especiales:'特色',cat_bebidas:'饮品',cat_bowls:'碗食',cat_snacks:'小食',cat_postres:'甜点',cat_ensaladas:'沙拉',cat_desayunos:'早餐',
+    confirm_call:'是，呼叫', confirm_cancel:'取消',
+    call_generic_title:'呼叫服务员？',
+    call_generic_subtitle:'服务员马上到您的桌子',
+    call_subtitle:'服务员会看到您想要点的菜',
+    call_no_mesa:'请找服务员点餐',
+    call_sent:'🔔 已呼叫 · 即将到达',
+    call_waiter_btn:'呼叫服务员',
+    err_title:'无法加载菜单',
+    err_subtitle:'连接问题，请重试。',
+    err_retry:'重试',
+    err_invalid_title:'无效二维码',
+    err_invalid_subtitle:'请向工作人员求助。',
   },
   ja:{
     loading:'メニュー読み込み中...',
@@ -1238,61 +763,53 @@ const TRANSLATIONS = {
     search_placeholder:'メニューを検索...',
     search_empty:'結果なし',
     scan_member:'クラブカードをスキャンして特典を有効化',
-    mesa:'テーブル',
-    add:'追加',
-    close:'閉じる',
-    hi_member:'こんにちは',tokens:'ポイント',
-    flag:'🇯🇵',
+    mesa:'テーブル', add:'追加', close:'閉じる',
+    hi_member:'こんにちは',tokens:'ポイント', flag:'🇯🇵',
     cat_alimentos:'フード',cat_cafe:'カフェ',cat_jugos:'ジュース',cat_helados:'アイス',cat_especiales:'スペシャル',cat_bebidas:'ドリンク',cat_bowls:'ボウル',cat_snacks:'スナック',cat_postres:'デザート',cat_ensaladas:'サラダ',cat_desayunos:'朝食',
+    confirm_call:'はい、呼ぶ', confirm_cancel:'キャンセル',
+    call_generic_title:'店員を呼ぶ?',
+    call_generic_subtitle:'店員がすぐに到着します',
+    call_subtitle:'店員が注文内容を見ます',
+    call_no_mesa:'店員にお声がけください',
+    call_sent:'🔔 店員呼び出し · まもなく',
+    call_waiter_btn:'店員を呼ぶ',
+    err_title:'メニューを読み込めませんでした',
+    err_subtitle:'接続の問題です。再試行してください。',
+    err_retry:'再試行',
+    err_invalid_title:'無効なQR',
+    err_invalid_subtitle:'スタッフにお声がけください。',
   },
 };
 
-const LANG_LABELS = {
-  es:'Español', en:'English', pt:'Português',
-  it:'Italiano', de:'Deutsch', fr:'Français',
-  zh:'中文', ja:'日本語',
-};
-
+const LANG_LABELS = { es:'Español', en:'English', pt:'Português', it:'Italiano', de:'Deutsch', fr:'Français', zh:'中文', ja:'日本語' };
 if(!TRANSLATIONS[LANG_CODE]) LANG_CODE = 'es';
-
 function getLang(k){ return (TRANSLATIONS[LANG_CODE]||TRANSLATIONS.es)[k] || k; }
 
-// v1.5: traduzione + prettify naming (snake_case → "Title & Title", accenti, ecc)
 function getCatName(catId){
   const key = 'cat_' + catId.toLowerCase().replace(/[^a-z]/g,'');
   const t = TRANSLATIONS[LANG_CODE] || TRANSLATIONS.es;
   if(t[key]) return t[key];
   return prettifyCategoryName(catId);
 }
-
 function prettifyCategoryName(id){
   if(!id) return '';
-  // Fix accenti comuni mancanti (data entry BKS)
-  const accentFix = {
-    'nino':'Niño','anos':'Años','cafe':'Café','jugos':'Jugos',
-    'acompanamientos':'Acompañamientos','espana':'España',
-  };
+  const accentFix = { 'nino':'Niño','anos':'Años','cafe':'Café','jugos':'Jugos','acompanamientos':'Acompañamientos','espana':'España' };
   const low = id.toLowerCase();
   if(accentFix[low]) return accentFix[low];
-  // snake_case con "_" → " & " (es: pizzas_burger → Pizzas & Burger)
   return id.split('_').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' & ');
 }
-
 function toTitleCase(str){
   if(!str) return str;
-  // Preserve acronyms (all caps words <= 3 chars like "X2")
-  return str.toLowerCase().replace(/(?:^|\s|-)\S/g, c => c.toUpperCase())
-    .replace(/\b([A-Z]{1,3})\b/g, m => m); // keep short caps
+  return str.toLowerCase().replace(/(?:^|\s|-)\S/g, c => c.toUpperCase()).replace(/\b([A-Z]{1,3})\b/g, m => m);
 }
 
 /* ════════════════════════════════════════════════════
-   BRAND CONFIG (white-label)
-   Loaded from PARAMETROS sheet or DEMO defaults
+   BRAND STATE
    ════════════════════════════════════════════════════ */
 let BRAND = {
-  name:'Demo Café',
+  name:'Menú',
   logo_url:'',
-  logo_emoji:'☕',
+  logo_emoji:'✦',
   favicon_url:'',
   color_primary:'#1A1A2E',
   color_accent:'#E94560',
@@ -1302,7 +819,7 @@ let BRAND = {
   default_lang:'es',
   gas_url:'',
   sheet_url:'',
-  nuevo_dias:14, // días para considerar un producto como "Nuevo"
+  nuevo_dias:14,
 };
 
 function applyBrand(b){
@@ -1312,16 +829,16 @@ function applyBrand(b){
   const r = document.documentElement.style;
   r.setProperty('--brand-primary', BRAND.color_primary);
   r.setProperty('--brand-accent',  BRAND.color_accent);
-  r.setProperty('--brand-bg',      BRAND.color_bg);
-  // Logo
+  if(BRAND.color_bg) r.setProperty('--brand-bg', BRAND.color_bg);
   if(BRAND.logo_url){
     document.getElementById('brandLogoImg').src = BRAND.logo_url;
     document.getElementById('brandLogoImg').classList.remove('hidden');
     document.getElementById('brandLogoText').classList.add('hidden');
   } else {
     document.getElementById('brandLogoText').textContent = BRAND.logo_emoji + '\u00A0' + BRAND.name;
+    document.getElementById('brandLogoText').classList.remove('hidden');
+    document.getElementById('brandLogoImg').classList.add('hidden');
   }
-  // Favicon — white-label
   const faviconTag = document.getElementById('faviconTag');
   if(BRAND.favicon_url){
     faviconTag.href = BRAND.favicon_url;
@@ -1330,78 +847,11 @@ function applyBrand(b){
     const col = encodeURIComponent(BRAND.color_primary || '#1A1A2E');
     faviconTag.href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='${col}'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>${enc}</text></svg>`;
   }
-  // Loading brand
   document.getElementById('ldBrand').innerHTML = `<span>${BRAND.logo_emoji}</span> ${BRAND.name}`;
-  // Default lang
   if(!URL_PARAMS.get('lang') && !localStorage.getItem('menu_lang')){
     LANG_CODE = BRAND.default_lang || 'es';
   }
 }
-
-/* ════════════════════════════════════════════════════
-   DEMO DATA — Replace with live CSV in production
-   ════════════════════════════════════════════════════ */
-const DEMO_BRAND = {
-  name:'PINSA Candelaria', logo_emoji:'🌿',
-  color_primary:'#1A1A2E', color_accent:'#E94560',
-  color_bg:'#F8F8F8', currency:'CLP', currency_symbol:'$',
-  default_lang:'es', nuevo_dias:14,
-};
-
-const DEMO_CATEGORIES = [
-  {id:'bowls',     name:'Bowls',       emoji:'🥣', orden:1},
-  {id:'bebidas',   name:'Bebidas',     emoji:'🥤', orden:2},
-  {id:'snacks',    name:'Snacks',      emoji:'🥪', orden:3},
-  {id:'postres',   name:'Postres',     emoji:'🍰', orden:4},
-];
-
-// fecha_agregado: YYYY-MM-DD — si < nuevo_dias días atrás → badge Nuevo automático
-const DEMO_PRODUCTS = [
-  {id:'P001', nombre:'Açaí Bowl Grande', categoria:'bowls', descripcion:'Açaí orgánico congelado, granola artesanal, frutas frescas de temporada, miel de abeja.',
-   precio:9500, activo:true, agotado:false, hora_inicio:7, hora_fin:22,
-   badges:'Popular,Vegano', upsell_ids:'P010,P011', precio_member:8100,
-   imagen:'https://images.unsplash.com/photo-1590301157890-4810ed352733?w=400&q=75', fecha_agregado:'2025-12-01'},
-  {id:'P002', nombre:'Green Power Bowl', categoria:'bowls', descripcion:'Espinacas, aguacate, quinoa, pepino, rábano y vinagreta de limón.',
-   precio:8900, activo:true, agotado:false, hora_inicio:7, hora_fin:16,
-   badges:'Vegano,SinGluten', upsell_ids:'P010', precio_member:'',
-   imagen:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=75', fecha_agregado:'2026-03-20'},
-  {id:'P003', nombre:'Protein Buddha Bowl', categoria:'bowls', descripcion:'Pollo a la plancha, arroz integral, edamame, zanahoria, salsa tahini.',
-   precio:10500, activo:true, agotado:false, hora_inicio:11, hora_fin:22,
-   badges:'Popular,Chef', upsell_ids:'P010,P012', precio_member:9200,
-   imagen:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=75', fecha_agregado:'2025-11-15'},
-  {id:'P004', nombre:'Tropical Smoothie Bowl', categoria:'bowls', descripcion:'Mango, piña, coco rallado, kiwi y semillas de chía.',
-   precio:7800, activo:true, agotado:true, hora_inicio:7, hora_fin:14,
-   badges:'Vegano', upsell_ids:'', precio_member:'',
-   imagen:'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&q=75', fecha_agregado:'2026-04-01'},
-  {id:'P010', nombre:'Jugo Verde Detox', categoria:'bebidas', descripcion:'Pepino, apio, manzana verde, jengibre y limón. Sin azúcar añadida.',
-   precio:4500, activo:true, agotado:false, hora_inicio:7, hora_fin:18,
-   badges:'Vegano,SinGluten', upsell_ids:'', precio_member:'',
-   imagen:'https://images.unsplash.com/photo-1490323914169-4b44e5f1f3e7?w=400&q=75', fecha_agregado:'2025-10-01'},
-  {id:'P011', nombre:'Golden Latte', categoria:'bebidas', descripcion:'Leche de coco, cúrcuma, jengibre, canela y pimienta negra.',
-   precio:5200, activo:true, agotado:false, hora_inicio:7, hora_fin:20,
-   badges:'Vegano', upsell_ids:'', precio_member:4500,
-   imagen:'https://images.unsplash.com/photo-1615485291395-5bdef4b84ead?w=400&q=75', fecha_agregado:'2026-04-05'},
-  {id:'P012', nombre:'Kombucha de Jengibre', categoria:'bebidas', descripcion:'Fermentada en casa, baja en azúcar, rica en probióticos.',
-   precio:4800, activo:true, agotado:false, hora_inicio:7, hora_fin:22,
-   badges:'Vegano,SinGluten,Temporada', upsell_ids:'', precio_member:'',
-   imagen:'https://images.unsplash.com/photo-1559181567-c3190ca9d04e?w=400&q=75', fecha_agregado:'2026-04-08'},
-  {id:'P020', nombre:'Energy Balls x5', categoria:'snacks', descripcion:'Dátiles, avena, mantequilla de maní, cacao y coco rallado. Sin horno.',
-   precio:3800, activo:true, agotado:false, hora_inicio:7, hora_fin:22,
-   badges:'Vegano,SinGluten,Popular', upsell_ids:'P011', precio_member:'',
-   imagen:'https://images.unsplash.com/photo-1557844352-761f2565b576?w=400&q=75', fecha_agregado:'2026-03-15'},
-  {id:'P021', nombre:'Avocado Toast', categoria:'snacks', descripcion:'Pan de masa madre, aguacate, tomate cherry, rúcula y aceite de oliva.',
-   precio:5900, activo:true, agotado:false, hora_inicio:8, hora_fin:14,
-   badges:'Vegano,Chef', upsell_ids:'P010,P011', precio_member:5200,
-   imagen:'https://images.unsplash.com/photo-1541519227354-08fa5d50c820?w=400&q=75', fecha_agregado:'2025-09-01'},
-  {id:'P030', nombre:'Raw Choco Cake', categoria:'postres', descripcion:'Base de almendras y dátiles, relleno de cacao y cashew cream. Sin hornear.',
-   precio:4200, activo:true, agotado:false, hora_inicio:11, hora_fin:22,
-   badges:'Vegano,SinGluten', upsell_ids:'P011', precio_member:'',
-   imagen:'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=75', fecha_agregado:'2026-04-09'},
-  {id:'P031', nombre:'Chia Pudding Mango', categoria:'postres', descripcion:'Semillas de chía, leche de coco, vainilla y coulis de mango.',
-   precio:3600, activo:true, agotado:false, hora_inicio:7, hora_fin:22,
-   badges:'Vegano,SinGluten,Popular', upsell_ids:'', precio_member:'',
-   imagen:'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&q=75', fecha_agregado:'2026-02-10'},
-];
 
 /* ════════════════════════════════════════════════════
    STATE
@@ -1413,22 +863,19 @@ let CURRENT_FAJA     = 'all';
 let SEARCH_QUERY     = '';
 let ACTIVE_MEMBER    = null;
 let loadProgress     = 0;
-// v1.5: macro-groups
-let CATEGORY_GROUPS  = null;   // { "Comida":{emoji,cats:[...]}, ... } o null se disattivato
-let CURRENT_GROUP    = null;   // "Comida" | "Barra" | "Dolci" | null (= mostra tutto)
-// v1.6: motore vendite BKS — RITMOS + PROMOS
-let RITMO_ACTUAL     = null;   // {id, nombre, emoji, bpm, prod_ids[], ...} o null
-let RITMOS_DISP      = [];     // lista ritmi disponibili (solo metadati)
-let PROMOS_ACTIVAS   = [];     // [{id, nombre, tipo, precio_final, prod_ids[], ...}]
-let RITMO_FILTER_ON  = true;   // toggle ✦ All — true = filtra per ritmo, false = mostra tutto
-let RITMO_POLL_TIMER = null;   // setInterval handle
-let PROD_TO_PROMO    = {};     // mappa rapida prod_id → promo (per render badge inline)
+let CATEGORY_GROUPS  = null;
+let CURRENT_GROUP    = null;
+let RITMO_ACTUAL     = null;
+let RITMOS_DISP      = [];
+let PROMOS_ACTIVAS   = [];
+let RITMO_FILTER_ON  = true;
+let RITMO_POLL_TIMER = null;
+let PROD_TO_PROMO    = {};
 
 /* ════════════════════════════════════════════════════
-   INIT
+   v1.10 · INIT — splash neutro, validate, ping, load
    ════════════════════════════════════════════════════ */
 
-// v1.4.1: Splash neutro — evita "PINSA Candelaria" flashato prima del brand reale
 const SPLASH_DEFAULT = {
   name:'Menú', logo_emoji:'✦',
   color_primary:'#1A1A2E', color_accent:'#E94560',
@@ -1437,42 +884,130 @@ const SPLASH_DEFAULT = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-  applyBrand(SPLASH_DEFAULT); // Brand neutro hasta que el GAS responda con el local correcto
+  // 1) Splash neutro IMMEDIATO (mai brand sbagliato)
+  applyBrand(SPLASH_DEFAULT);
   showSkeletons();
   buildLangMenu();
   applyLang();
-   
-  // Simulate loading from CSV / PARAMETROS
-  await loadMenu();
 
+  // 2) Validate ?local= prima di chiamare GAS
+  if(!validateLocal()){
+    showInvalidLocal();
+    return;  // stop · niente fetch
+  }
+
+  // 3) Applica brand minimo del locale corretto come ulteriore safety
+  //    (header diventa "🌿 PINSA Candelaria" o "🎵 BKS" finché getConfig non torna)
+  applyBrand(KNOWN_LOCALS[LOCAL_ID]);
+  // theme dark eventuale già da subito → coerenza visuale
+  document.body.classList.toggle('theme-dark', KNOWN_LOCALS[LOCAL_ID].theme_mode === 'dark');
+
+  // 4) Warm-up ping al GAS — fire-and-forget, parallelo allo skeleton
+  pingGAS();
+
+  // 5) Carica menu con retry
+  try {
+    await loadMenuWithRetry();
+  } catch(e){
+    console.error('[v1.10] loadMenu fatal after retries:', e);
+    showErrorState(e);
+    return;
+  }
+
+  // 6) Brand finale dal GAS (override del KNOWN_LOCALS minimo)
   applyBrand(BRAND);
-  applyLang(); // Re-apply after brand sets default_lang
+  applyLang();
 
+  // 7) Render UI normale
   renderFajas();
   renderCatTabs();
   renderMenu();
   setupSearch();
 
-  // Mesa
   if(MESA_ID){
     document.getElementById('mesaBadge').classList.add('show');
     document.getElementById('mesaNum').textContent = MESA_ID;
     trackView();
-   // v1.7 · attiva sticky bar Llamar mesero (solo se MESA_ID presente)
     document.getElementById('stickyCallBar').classList.add('show');
   }
-
-  // Member
   if(MEMBER_ID) loadMember(MEMBER_ID);
-   
-// v1.6: motore vendite BKS (skip per PINSA via guard interna)
+
   startRhythmPolling();
-   
   hideLoading();
 });
 
 /* ════════════════════════════════════════════════════
-   LOADING
+   v1.10 · validateLocal — fail-fast su QR malformato
+   ════════════════════════════════════════════════════ */
+function validateLocal(){
+  if(!LOCAL_RAW){
+    console.warn('[v1.10] ?local= mancante nell\'URL');
+    return false;
+  }
+  if(!KNOWN_LOCALS[LOCAL_ID]){
+    console.warn('[v1.10] ?local=' + LOCAL_RAW + ' sconosciuto. Conosciuti:', Object.keys(KNOWN_LOCALS));
+    return false;
+  }
+  return true;
+}
+
+/* ════════════════════════════════════════════════════
+   v1.10 · pingGAS — warm-up parallelo
+   ════════════════════════════════════════════════════ */
+function pingGAS(){
+  // Sveglia il GAS mentre il cliente vede lo skeleton.
+  // Quando arriva la chiamata vera getConfig (qualche centinaio di ms dopo),
+  // l'istanza Apps Script è già calda e risponde in <500ms.
+  const url = GAS_URL + '?action=ping&local=' + encodeURIComponent(LOCAL_ID) + '&t=' + Date.now();
+  // mode:no-cors → niente preflight CORS, niente errori se la risposta non è leggibile.
+  // Non aspettiamo la risposta, è solo per riscaldare il container Apps Script.
+  fetch(url, { mode:'no-cors', cache:'no-store' })
+    .then(()=> console.log('[v1.10] GAS warm-up ping inviato'))
+    .catch(()=> { /* silent · è solo warm-up */ });
+}
+
+/* ════════════════════════════════════════════════════
+   v1.10 · loadMenuWithRetry — 3 tentativi con backoff
+   ════════════════════════════════════════════════════ */
+async function loadMenuWithRetry(){
+  const ATTEMPTS  = 3;
+  const TIMEOUT_MS = 10000;     // 10s per tentativo (cold start GAS osservato 4-8s)
+  const BACKOFFS  = [0, 1500, 2500];  // pause prima del tentativo i
+
+  let lastError = null;
+  for(let i = 0; i < ATTEMPTS; i++){
+    if(BACKOFFS[i] > 0){
+      console.log(`[v1.10] retry ${i+1}/${ATTEMPTS} dopo ${BACKOFFS[i]}ms`);
+      await sleep(BACKOFFS[i]);
+    }
+    try {
+      await loadFromSheet(TIMEOUT_MS);
+      console.log(`[v1.10] loadFromSheet OK al tentativo ${i+1}/${ATTEMPTS}`);
+      return;  // success
+    } catch(e){
+      lastError = e;
+      const isRetriable = isRetriableError(e);
+      console.warn(`[v1.10] tentativo ${i+1}/${ATTEMPTS} fallito (retriable=${isRetriable}):`, e.message);
+      if(!isRetriable) break;  // errori "duri" → no retry
+    }
+  }
+  // Tutti i tentativi falliti
+  throw lastError || new Error('unknown error after retries');
+}
+
+function isRetriableError(e){
+  if(!e) return false;
+  // AbortError (timeout) e TypeError (network failure) sono recuperabili
+  if(e.name === 'AbortError') return true;
+  if(e.name === 'TypeError') return true;  // "Failed to fetch", DNS, ecc
+  // Errori applicativi (404, JSON malformato, "No products parsed") non sono retriable
+  return false;
+}
+
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+/* ════════════════════════════════════════════════════
+   LOADING UI
    ════════════════════════════════════════════════════ */
 function showSkeletons(){
   const wrap = document.getElementById('skeletonList');
@@ -1508,12 +1043,10 @@ function updateStickyTops(){
   const groups  = document.getElementById('groupBar');
   const cats    = document.getElementById('catSticky');
   if(!header||!faja||!search||!cats) return;
-
   const h1 = header.offsetHeight;
   const h2 = faja.offsetHeight;
   const h3 = search.offsetHeight;
   const h4 = (groups && groups.classList.contains('show')) ? groups.offsetHeight : 0;
-
   faja.style.top   = h1 + 'px';
   search.style.top = (h1 + h2) + 'px';
   if(groups) groups.style.top = (h1 + h2 + h3) + 'px';
@@ -1521,35 +1054,79 @@ function updateStickyTops(){
 }
 
 /* ════════════════════════════════════════════════════
-   DATA LOADING
-   In production: fetch CSV from published Google Sheet
+   v1.10 · ERROR STATES — mai prodotti finti
    ════════════════════════════════════════════════════ */
-async function loadMenu(){
-  setProgress(10);
 
-  // v1.4: nessun CSV hardcoded. Il flusso è:
-  //   1. Chiamiamo getConfig&local=X al GAS
-  //   2. Il GAS ritorna cfg.sheet_csv_url (dal tab PARAMETROS del Sheet giusto)
-  //   3. Fetchiamo quel CSV
-  // Se qualcosa fallisce in qualsiasi punto → demo data (fail-safe).
-  try {
-    await loadFromSheet();
-  } catch(e){
-    console.warn('loadFromSheet failed, using demo data:', e);
-    loadDemoData();
+function showErrorState(error){
+  // Brand minimo del locale corretto (KNOWN_LOCALS) — già applicato in init,
+  // ma re-applichiamo per sicurezza (qualcuno può aver chiamato applyBrand altrove)
+  const local = KNOWN_LOCALS[LOCAL_ID];
+  if(local) applyBrand(local);
+
+  document.getElementById('esBrand').innerHTML  = `<span>${BRAND.logo_emoji}</span> ${BRAND.name}`;
+  document.getElementById('esEmoji').textContent = '📡';
+  document.getElementById('esTitle').textContent = getLang('err_title');
+  document.getElementById('esSubtitle').textContent = getLang('err_subtitle');
+  document.getElementById('esBtn').textContent  = getLang('err_retry');
+
+  if(MESA_ID){
+    document.getElementById('esMesa').textContent = `${getLang('mesa')} · ${MESA_ID}`;
+  } else {
+    document.getElementById('esMesa').textContent = '';
   }
-  setProgress(100);
+
+  // Nascondi tutto il resto dell'UI
+  document.getElementById('skeletonList').innerHTML = '';
+  document.getElementById('loadingScreen').classList.add('out');
+  document.getElementById('header').style.display = 'none';
+  document.getElementById('fajaBar').style.display = 'none';
+  document.getElementById('searchBarWrap').style.display = 'none';
+  document.getElementById('catSticky').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'none';
+  document.getElementById('bottomNav').style.display = 'none';
+  document.getElementById('stickyCallBar').classList.remove('show');
+
+  setTimeout(()=>{
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('errorState').classList.add('show');
+  }, 300);
 }
 
-function loadDemoData(){
-  applyBrand(DEMO_BRAND);
-  ALL_CATEGORIES = DEMO_CATEGORIES;
-  ALL_PRODUCTS   = DEMO_PRODUCTS;
-  setProgress(80);
+function showInvalidLocal(){
+  // Brand neutro · QR malformato
+  applyBrand(SPLASH_DEFAULT);
+  document.getElementById('esBrand').innerHTML  = `<span>✦</span> Menú`;
+  document.getElementById('esEmoji').textContent = '🚫';
+  document.getElementById('esTitle').textContent = getLang('err_invalid_title');
+  document.getElementById('esSubtitle').textContent = getLang('err_invalid_subtitle');
+  document.getElementById('esBtn').style.display = 'none';  // nessun retry: il problema non è risolvibile
+  document.getElementById('esMesa').textContent = '';
+
+  document.getElementById('skeletonList').innerHTML = '';
+  document.getElementById('loadingScreen').classList.add('out');
+  document.getElementById('header').style.display = 'none';
+  document.getElementById('fajaBar').style.display = 'none';
+  document.getElementById('searchBarWrap').style.display = 'none';
+  document.getElementById('catSticky').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'none';
+  document.getElementById('bottomNav').style.display = 'none';
+
+  setTimeout(()=>{
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('errorState').classList.add('show');
+  }, 300);
 }
 
-// Fetch con timeout — evita loading infinito si GAS no responde
-async function fetchWithTimeout(url, ms=5000){
+function onRetryFromError(){
+  // Reload completo: nuovo ping warm-up + nuovo ciclo retry pulito
+  location.reload();
+}
+
+/* ════════════════════════════════════════════════════
+   DATA LOADING (v1.10 · senza demo fallback)
+   ════════════════════════════════════════════════════ */
+
+async function fetchWithTimeout(url, ms){
   const ctrl = new AbortController();
   const tid  = setTimeout(()=>ctrl.abort(), ms);
   try {
@@ -1562,28 +1139,27 @@ async function fetchWithTimeout(url, ms=5000){
   }
 }
 
-async function loadFromSheet(){
-  const GAS_URL = URL_PARAMS.get('gas') ||
-    'https://script.google.com/macros/s/AKfycbzZkS3bBaYc34uJ6wXP9FG13i58-NT0FJp964vqkUYbRObUxryeRb9l_Fz24kb42f5t/exec';
+async function loadFromSheet(timeoutMs){
+  setProgress(10);
 
-  // ── STEP 1: Risolvi contesto via getConfig&local=X ──────────────────
-  // Il GAS normalizza LOCAL_ID, apre il Sheet giusto via Registry/LEGACY,
-  // e ritorna PARAMETROS (inclusi sheet_csv_url + brand + lang).
+  // STEP 1 · getConfig
   const cfgUrl = GAS_URL + '?action=getConfig&local=' + encodeURIComponent(LOCAL_ID) + '&t=' + Date.now();
-  const cfgResp = await fetchWithTimeout(cfgUrl, 4000).then(r=>r.json());
+  const cfgResp = await fetchWithTimeout(cfgUrl, timeoutMs).then(r=>r.json());
 
   if(!cfgResp || !cfgResp.ok){
-    throw new Error('getConfig failed for local=' + LOCAL_ID + ': ' + (cfgResp?.error || 'no response'));
+    // Errore applicativo (es. local non in Registry) → non retriable
+    const err = new Error('getConfig failed for local=' + LOCAL_ID + ': ' + (cfgResp?.error || 'no response'));
+    err.name = 'AppError';
+    throw err;
   }
 
   const cfg = cfgResp.config || {};
   setProgress(40);
 
-  // Aplica brand desde config del locale risolto dal GAS
   applyBrand({
-    name:            cfg.brand_name         || LOCAL_ID,
+    name:            cfg.brand_name         || KNOWN_LOCALS[LOCAL_ID]?.name || LOCAL_ID,
     logo_url:        cfg.brand_logo_url     || '',
-    logo_emoji:      cfg.brand_logo_emoji   || '🍽️',
+    logo_emoji:      cfg.brand_logo_emoji   || KNOWN_LOCALS[LOCAL_ID]?.logo_emoji || '🍽️',
     favicon_url:     cfg.brand_favicon_url  || '',
     color_primary:   cfg.color_primary      || BRAND.color_primary,
     color_accent:    cfg.color_accent       || BRAND.color_accent,
@@ -1595,11 +1171,9 @@ async function loadFromSheet(){
     nuevo_dias:      parseInt(cfg.nuevo_dias) || 14,
   });
 
-  // v1.5: theme mode (dark/light) — applica classe al body
-  const theme = (cfg.theme_mode || 'light').toLowerCase();
+  const theme = (cfg.theme_mode || KNOWN_LOCALS[LOCAL_ID]?.theme_mode || 'light').toLowerCase();
   document.body.classList.toggle('theme-dark', theme === 'dark');
 
-  // v1.5: category_groups — parsing robusto con fallback
   CATEGORY_GROUPS = null;
   if(cfg.category_groups){
     try {
@@ -1607,33 +1181,27 @@ async function loadFromSheet(){
       if(parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0){
         CATEGORY_GROUPS = parsed;
       }
-    } catch(e){
-      console.warn('category_groups JSON malformato, fallback flat tabs:', e.message);
-    }
+    } catch(e){ console.warn('category_groups JSON malformato:', e.message); }
   }
 
-  // ── STEP 2: Determina URL CSV prodotti (da getConfig) ──────────────
-  // Priorità: sheet_csv_url_seed se data_source=seed, else sheet_csv_url_visor,
-  // else sheet_csv_url generico (retrocompat Candelaria).
+  // STEP 2 · CSV URL
   const dataSource = cfgResp.dataSource || 'visor';
   const csvUrl = (dataSource === 'seed' && cfg.sheet_csv_url_seed)
     ? cfg.sheet_csv_url_seed
     : (cfg.sheet_csv_url_visor || cfg.sheet_csv_url);
 
   if(!csvUrl){
-    throw new Error('No sheet_csv_url in PARAMETROS for local=' + LOCAL_ID);
+    const err = new Error('No sheet_csv_url in PARAMETROS for local=' + LOCAL_ID);
+    err.name = 'AppError';
+    throw err;
   }
 
-  // ── STEP 3: Fetch CSV prodotti ─────────────────────────────────────
-  const csvResp = await fetchWithTimeout(csvUrl + (csvUrl.includes('?') ? '&' : '?') + 't=' + Date.now(), 8000);
+  // STEP 3 · Fetch CSV
+  const csvResp = await fetchWithTimeout(csvUrl + (csvUrl.includes('?') ? '&' : '?') + 't=' + Date.now(), timeoutMs);
   const text = await csvResp.text();
   setProgress(70);
 
-  // ── STEP 4: Parse CSV → productos ──────────────────────────────────
-  // Schema PRODUCTOS (17 col, modo visor)    : A-Q (senza Precio_Almuerzo/Almuerzo_Dias)
-  // Schema PRODUCTOS_SEED (19 col, modo seed): A-S (+ R=Precio_Almuerzo, S=Almuerzo_Dias)
-  // Il frontend v1.4 legge SOLO le prime 15 colonne (A-O). R/S sono gestite
-  // dal motore prezzi P2-01 (futuro), non dal frontend.
+  // STEP 4 · Parse
   const rows = parseCSV(text).slice(1);
   const parsed = rows.map(r=>({
     id:            r[0]||'',
@@ -1654,32 +1222,30 @@ async function loadFromSheet(){
   })).filter(p=>p.id && p.activo && p.menu_visible!==false);
 
   if(parsed.length === 0){
-    throw new Error('No products parsed from CSV for local=' + LOCAL_ID);
+    const err = new Error('No products parsed from CSV for local=' + LOCAL_ID);
+    err.name = 'AppError';
+    throw err;
   }
 
   ALL_PRODUCTS = parsed;
 
-  // ── STEP 5: Build categorías desde productos ───────────────────────
+  // STEP 5 · Categories
   const catIds = [...new Set(ALL_PRODUCTS.map(p=>p.categoria))];
-  // v1.5: mappa estesa PINSA + BKS + EXO future
-    const catMap = {
-      // PINSA
-      'alimentos':'🥪','cafe':'☕','jugos':'🥤','helados':'🍦','especiales':'✨',
-      // BKS
-      'entradas':'🦐','pastas':'🍝','fondos':'🥩','pizzas_burger':'🍕','sushi':'🍣',
-      'acompanamientos':'🥗','nino':'👶','desserts':'🍰','almuerzo':'🍱',
-      'bar':'🍸','sour':'🍹','mojitos':'🍃','spritz':'🥂','cervezas':'🍺',
-      'vinos':'🍷','jarras':'🍶','destilados':'🥃',
-      // Generiche / fallback
-      'bowls':'🥣','bebidas':'🥤','snacks':'🥪','postres':'🍰',
-      'desayunos':'🍳','ensaladas':'🥗','platos':'🍽️','otros':'✦','solidos':'🍽️',
-    };
+  const catMap = {
+    'alimentos':'🥪','cafe':'☕','jugos':'🥤','helados':'🍦','especiales':'✨',
+    'entradas':'🦐','pastas':'🍝','fondos':'🥩','pizzas_burger':'🍕','sushi':'🍣',
+    'acompanamientos':'🥗','nino':'👶','desserts':'🍰','almuerzo':'🍱',
+    'bar':'🍸','sour':'🍹','mojitos':'🍃','spritz':'🥂','cervezas':'🍺',
+    'vinos':'🍷','jarras':'🍶','destilados':'🥃',
+    'bowls':'🥣','bebidas':'🥤','snacks':'🥪','postres':'🍰',
+    'desayunos':'🍳','ensaladas':'🥗','platos':'🍽️','otros':'✦','solidos':'🍽️',
+  };
   ALL_CATEGORIES = catIds.filter(Boolean).map((id,i)=>({
     id, name: id.charAt(0).toUpperCase()+id.slice(1),
     emoji: catMap[id]||'✦', orden: i+1
   }));
 
-  setProgress(90);
+  setProgress(100);
 }
 
 function parseCSV(text){
@@ -1697,8 +1263,9 @@ function parseCSV(text){
 }
 
 /* ════════════════════════════════════════════════════
-   FAJAS HORARIAS
+   FAJAS / CATEGORIES / RENDER (invariati v1.7)
    ════════════════════════════════════════════════════ */
+
 const FAJAS = [
   { id:'all',       label_key:'all_day',   icon:'✦', start:0,  end:24 },
   { id:'desayuno',  label_key:'breakfast', icon:'🌅', start:7,  end:12 },
@@ -1727,7 +1294,7 @@ function renderFajas(){
 function setFaja(id){
   CURRENT_FAJA = id;
   renderFajas();
-  renderGroups();  // v1.5: ricalcola conteggi per gruppo
+  renderGroups();
   renderMenu();
   window.scrollTo({top:0});
 }
@@ -1736,16 +1303,10 @@ function productInFaja(p){
   if(CURRENT_FAJA==='all') return true;
   const faja = FAJAS.find(f=>f.id===CURRENT_FAJA);
   if(!faja) return true;
-  const h = new Date().getHours();
-  // Filter by product's own hora_inicio/hora_fin AND current faja
   return p.hora_inicio <= faja.end && p.hora_fin >= faja.start;
 }
 
-/* ════════════════════════════════════════════════════
-   CATEGORY TABS
-   ════════════════════════════════════════════════════ */
 function renderCatTabs(){
-  // v1.5: se category_groups attivo, mostra solo le cats del gruppo attivo
   const visibleCats = getVisibleCategories();
   const tabs = document.getElementById('catTabs');
   tabs.innerHTML = visibleCats.map(c=>`
@@ -1756,8 +1317,6 @@ function renderCatTabs(){
   setTimeout(setupCatObserver, 200);
 }
 
-// v1.5: se CATEGORY_GROUPS è definito + CURRENT_GROUP selezionato, filtra.
-// Altrimenti ritorna tutte le categorie (fallback PINSA).
 function getVisibleCategories(){
   if(!CATEGORY_GROUPS || !CURRENT_GROUP) return ALL_CATEGORIES;
   const group = CATEGORY_GROUPS[CURRENT_GROUP];
@@ -1765,30 +1324,13 @@ function getVisibleCategories(){
   return ALL_CATEGORIES.filter(c => group.cats.includes(c.id));
 }
 
-// v1.5: Rendering dei macro-groups (V3)
-
 function renderGroups(){
   const wrap = document.getElementById('groupBar');
   const grid = document.getElementById('groupGrid');
-
-  // v1.6: numero promos attive (per decidere se mostrare 4° gruppo)
   const promosCount = (PROMOS_ACTIVAS || []).length;
-
-  // Caso 1: nessun category_groups + nessuna promo → niente bar (flat tabs)
-  if(!CATEGORY_GROUPS && promosCount === 0){
-    wrap.classList.remove('show');
-    return;
-  }
-
+  if(!CATEGORY_GROUPS && promosCount === 0){ wrap.classList.remove('show'); return; }
   const groupKeys = CATEGORY_GROUPS ? Object.keys(CATEGORY_GROUPS) : [];
-
-  // Caso 2: 1 solo gruppo + nessuna promo → flat
-  if(groupKeys.length < 2 && promosCount === 0){
-    wrap.classList.remove('show');
-    return;
-  }
-
-  // Calcola conteggio prodotti per gruppo (considerando faja attiva)
+  if(groupKeys.length < 2 && promosCount === 0){ wrap.classList.remove('show'); return; }
   const countByGroup = {};
   groupKeys.forEach(gk => {
     const cats = CATEGORY_GROUPS[gk].cats || [];
@@ -1796,16 +1338,11 @@ function renderGroups(){
       cats.includes(p.categoria) && productInFaja(p)
     ).length;
   });
-
-  // v1.6: numero prodotti unici toccati da almeno 1 promo
   const promoProdsSet = new Set();
   (PROMOS_ACTIVAS || []).forEach(p => (p.prod_ids||[]).forEach(pid => promoProdsSet.add(pid)));
   const promoProductsCount = promoProdsSet.size;
-
-  // Layout: gruppi normali + (eventuale) gruppo Promos
   const totalChips = groupKeys.length + (promosCount > 0 ? 1 : 0);
   grid.className = 'group-grid g-' + totalChips;
-
   let html = groupKeys.map(gk=>{
     const g = CATEGORY_GROUPS[gk];
     const isActive = CURRENT_GROUP === gk;
@@ -1817,8 +1354,6 @@ function renderGroups(){
         <span class="group-chip-count">${count}</span>
       </button>`;
   }).join('');
-
-  // v1.6: aggiungi chip Promos se ci sono promo attive
   if(promosCount > 0){
     const isActive = CURRENT_GROUP === '__PROMOS__';
     html += `
@@ -1828,13 +1363,12 @@ function renderGroups(){
         <span class="group-chip-count">${promoProductsCount}</span>
       </button>`;
   }
-
   grid.innerHTML = html;
   wrap.classList.add('show');
 }
-   
+
 function setGroup(gk){
-  CURRENT_GROUP = (CURRENT_GROUP === gk) ? null : gk; // tap ripetuto = deseleziona
+  CURRENT_GROUP = (CURRENT_GROUP === gk) ? null : gk;
   renderGroups();
   renderCatTabs();
   renderMenu();
@@ -1845,13 +1379,13 @@ function scrollToCategory(id){
   const el = document.getElementById('cat-' + id);
   if(el){
     const header = document.getElementById('header');
-  const faja   = document.getElementById('fajaBar');
-  const search = document.getElementById('searchBarWrap');
-  const cats   = document.getElementById('catSticky');
-  const groups = document.getElementById('groupBar');
-  const groupsH = (groups && groups.classList.contains('show')) ? groups.offsetHeight : 0;
-  const offset = (header?.offsetHeight||54) + (faja?.offsetHeight||50) +
-                 (search?.offsetHeight||56) + groupsH + (cats?.offsetHeight||44) + 8;
+    const faja   = document.getElementById('fajaBar');
+    const search = document.getElementById('searchBarWrap');
+    const cats   = document.getElementById('catSticky');
+    const groups = document.getElementById('groupBar');
+    const groupsH = (groups && groups.classList.contains('show')) ? groups.offsetHeight : 0;
+    const offset = (header?.offsetHeight||54) + (faja?.offsetHeight||50) +
+                   (search?.offsetHeight||56) + groupsH + (cats?.offsetHeight||44) + 8;
     window.scrollTo({top: el.offsetTop - offset, behavior:'smooth'});
   }
   document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
@@ -1877,9 +1411,7 @@ function setupCatObserver(){
   document.querySelectorAll('.cat-section').forEach(s=>obs.observe(s));
 }
 
-/* ════════════════════════════════════════════════════
-   BADGE LOGIC
-   ════════════════════════════════════════════════════ */
+/* BADGES */
 function isNuevo(p){
   if(!p.fecha_agregado) return false;
   const added = new Date(p.fecha_agregado);
@@ -1890,9 +1422,7 @@ function isNuevo(p){
 function buildBadges(p, forSheet=false){
   const badges = [];
   if(p.agotado){ badges.push(`<span class="badge badge-agotado">${getLang('agotado')}</span>`); return badges.join(''); }
-
   if(isNuevo(p)) badges.push(`<span class="badge badge-nuevo">✦ ${getLang('nuevo')}</span>`);
-
   const raw = (p.badges||'').split(',').map(b=>b.trim().toLowerCase().replace(/\s/g,''));
   raw.forEach(b=>{
     if(b==='popular')    badges.push(`<span class="badge badge-popular">★ ${getLang('popular')}</span>`);
@@ -1901,18 +1431,12 @@ function buildBadges(p, forSheet=false){
     if(b==='chef')       badges.push(`<span class="badge badge-chef">👨‍🍳 ${getLang('chef')}</span>`);
     if(b==='temporada')  badges.push(`<span class="badge badge-temporada">🍃 ${getLang('temporada')}</span>`);
   });
-
   if(ACTIVE_MEMBER && p.precio_member)
     badges.push(`<span class="badge badge-member">💳 ${getLang('member_price')}</span>`);
-
   return badges.join('');
 }
 
-/* ════════════════════════════════════════════════════
-   PRICE FORMATTING
-   ════════════════════════════════════════════════════ */
-// v1.4.1: Parser de precio tolerante a formatos variados del CSV.
-// Acepta: 10000, "$10,000", "$10.000", "10.50", "$1.234,56", "" (→ 0).
+/* PRICE */
 function parsePrice(v){
   if(typeof v === 'number') return v;
   if(!v) return 0;
@@ -1921,11 +1445,8 @@ function parsePrice(v){
   if(s.includes('.') && s.includes(',')){
     const lastDot = s.lastIndexOf('.');
     const lastComma = s.lastIndexOf(',');
-    if(lastComma > lastDot){
-      s = s.replace(/\./g,'').replace(',','.');      // europeo: 1.234,56
-    } else {
-      s = s.replace(/,/g,'');                        // US: 1,234.56
-    }
+    if(lastComma > lastDot){ s = s.replace(/\./g,'').replace(',','.'); }
+    else { s = s.replace(/,/g,''); }
   } else if(s.includes(',')){
     const parts = s.split(',');
     if(parts.length === 2 && parts[1].length === 2) s = s.replace(',','.');
@@ -1952,9 +1473,6 @@ function getDisplayPrice(p){
   return { main: formatPrice(p.precio), orig: null };
 }
 
-/* ════════════════════════════════════════════════════
-   RENDER MENU
-   ════════════════════════════════════════════════════ */
 function _catColor(catId){
   const colors = {
     'alimentos':'#FFF0E6','cafe':'#F5ECD7','jugos':'#E8F5E9',
@@ -1967,22 +1485,14 @@ function _catColor(catId){
 
 function renderMenu(){
   const wrap = document.getElementById('menuContent');
-  const now  = new Date().getHours();
-
-  // v1.5: filtro macro-group (solo se CATEGORY_GROUPS attivo + gruppo selezionato)
   const visibleCatIds = getVisibleCategories().map(c => c.id);
-
-  // v1.6: filtro Prod_IDs ritmo (se attivo + theme dark + RITMO_FILTER_ON)
   const ritmoFilterActive = RITMO_FILTER_ON && RITMO_ACTUAL && RITMO_ACTUAL.prod_ids && RITMO_ACTUAL.prod_ids.length > 0;
   const ritmoProdSet = ritmoFilterActive ? new Set(RITMO_ACTUAL.prod_ids) : null;
-
-  // v1.6 cont: gestione macro-group "Promos" virtuale
   const promosGroupActive = CURRENT_GROUP === '__PROMOS__';
-
   FILTERED = ALL_PRODUCTS.filter(p=>{
     const inFaja = productInFaja(p);
     const inGroup = promosGroupActive
-      ? !!PROD_TO_PROMO[p.id]                       // gruppo Promos: solo prodotti in promo attiva
+      ? !!PROD_TO_PROMO[p.id]
       : visibleCatIds.includes(p.categoria);
     const inRitmo = !ritmoFilterActive || ritmoProdSet.has(p.id);
     const inSearch = !SEARCH_QUERY ||
@@ -1991,29 +1501,20 @@ function renderMenu(){
       (p.badges||'').toLowerCase().includes(SEARCH_QUERY);
     return inFaja && inGroup && inRitmo && inSearch;
   });
-
   if(FILTERED.length === 0){
     wrap.innerHTML = '';
     const empty = document.getElementById('emptyState');
     empty.classList.add('show');
     let msg;
-    if(SEARCH_QUERY){
-      msg = getLang('search_empty') + ' "' + SEARCH_QUERY + '"';
-    } else if(ritmoFilterActive){
-      msg = `🔥 ${RITMO_ACTUAL.nombre} · nessun prodotto · prova ✦ All`;
-    } else {
-      msg = getLang('no_products');
-    }
+    if(SEARCH_QUERY){ msg = getLang('search_empty') + ' "' + SEARCH_QUERY + '"'; }
+    else if(ritmoFilterActive){ msg = `🔥 ${RITMO_ACTUAL.nombre} · nessun prodotto · prova ✦ All`; }
+    else { msg = getLang('no_products'); }
     document.getElementById('emptyText').textContent = msg;
     document.getElementById('catSticky').style.display = 'none';
     return;
   }
-
   document.getElementById('emptyState').classList.remove('show');
   document.getElementById('catSticky').style.display = '';
-
-  // Group by category
-  // v1.5: renderizza solo le categorie visibili (filtrate per gruppo)
   const visibleCats = getVisibleCategories();
   const byCat = {};
   visibleCats.forEach(c=>{ byCat[c.id] = []; });
@@ -2021,7 +1522,6 @@ function renderMenu(){
     if(!byCat[p.categoria]) byCat[p.categoria] = [];
     byCat[p.categoria].push(p);
   });
-
   let html = '';
   visibleCats.forEach(cat=>{
     const items = byCat[cat.id];
@@ -2038,7 +1538,6 @@ function renderMenu(){
         </div>
       </div>`;
   });
-
   wrap.innerHTML = html;
 }
 
@@ -2047,15 +1546,13 @@ function renderProductCard(p){
   const badges  = buildBadges(p);
   const prices  = getDisplayPrice(p);
   const isNew   = isNuevo(p);
-  const cat       = ALL_CATEGORIES.find(c=>c.id===p.categoria);
-  const catEmoji  = cat?.emoji || '🍽️';
-  const catColor  = _catColor(p.categoria);
-  const phHtml    = `<div class="card-img-placeholder" style="background:${catColor};display:flex"><span style="font-size:28px;opacity:0.55">${catEmoji}</span></div>`;
-  const imgHtml   = p.imagen
+  const cat     = ALL_CATEGORIES.find(c=>c.id===p.categoria);
+  const catEmoji = cat?.emoji || '🍽️';
+  const catColor = _catColor(p.categoria);
+  const phHtml   = `<div class="card-img-placeholder" style="background:${catColor};display:flex"><span style="font-size:28px;opacity:0.55">${catEmoji}</span></div>`;
+  const imgHtml  = p.imagen
     ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">${phHtml}`
     : phHtml;
-
-  // v1.6: badge promo + flag dorato sulla foto + prezzo override
   const promoBadge = promo
     ? `<span class="badge" style="background:rgba(251,191,36,0.22);color:#fbbf24;font-weight:700">${promo.badge_emoji||'🎁'} ${promo.nombre}</span>`
     : '';
@@ -2063,33 +1560,20 @@ function renderProductCard(p){
     ? `<div style="position:absolute;top:6px;left:6px;background:#fbbf24;color:#000;padding:2px 6px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:0.5px;z-index:2">🎁 ${(promo.tipo||'').toUpperCase()}</div>`
     : '';
   const promoClass = promo ? ' has-promo' : '';
-
   const promoPriceMain = promo ? formatPrice(promo.precio_final) : prices.main;
   const promoPriceOrig = promo ? formatPrice(p.precio) : prices.orig;
   const promoBadgesHtml = promo
     ? `<div class="card-badges">${promoBadge}${badges || ''}</div>`
     : (badges ? `<div class="card-badges">${badges}</div>` : '');
-
-  // v1.7 · CARD DUE-ZONE
-  // Zona 1 (foto): tap apre detail sheet
-  // Zona 2 (footer azioni): tap su bottoni chiama mesero per-prodotto (Fase 1)
-  //                         in Fase 2 il bottone Pedir directo si attiva via feature flag
   const ctaHtml = !p.agotado ? `
     <div class="card-cta-row">
-      <button class="card-pedir-btn"
-              onclick="event.stopPropagation();onPedirDirecto('${p.id}')"
-              aria-label="Pedir directo">+</button>
-      <button class="card-call-btn"
-              onclick="event.stopPropagation();onCallWaiterForProduct('${p.id}')"
-              aria-label="Llamar mesero">🔔</button>
+      <button class="card-pedir-btn" onclick="event.stopPropagation();onPedirDirecto('${p.id}')" aria-label="Pedir directo">+</button>
+      <button class="card-call-btn" onclick="event.stopPropagation();onCallWaiterForProduct('${p.id}')" aria-label="Llamar mesero">🔔</button>
     </div>` : '';
-
   return `
-    <div class="product-card${p.agotado?' agotado':''}${isNew?' nuevo-highlight':''}${promoClass}"
-         data-id="${p.id}">
+    <div class="product-card${p.agotado?' agotado':''}${isNew?' nuevo-highlight':''}${promoClass}" data-id="${p.id}">
       <div class="card-inner">
-        <div class="card-img-wrap" style="position:relative;cursor:pointer"
-             onclick="openDetail('${p.id}')">${imgHtml}${promoFlag}</div>
+        <div class="card-img-wrap" style="position:relative;cursor:pointer" onclick="openDetail('${p.id}')">${imgHtml}${promoFlag}</div>
         <div class="card-body" onclick="openDetail('${p.id}')" style="cursor:pointer">
           ${promoBadgesHtml}
           <div class="card-name${p.agotado?' agotado-text':''}">${toTitleCase(p.nombre)}</div>
@@ -2106,28 +1590,20 @@ function renderProductCard(p){
       ${p.agotado ? `<div class="agotado-overlay"><span class="agotado-label">${getLang('agotado')}</span></div>` : ''}
     </div>`;
 }
-   
-/* ════════════════════════════════════════════════════
-   PRODUCT DETAIL SHEET
-   ════════════════════════════════════════════════════ */
+
 function openDetail(id){
   const p = ALL_PRODUCTS.find(x=>x.id===id);
   if(!p) return;
   trackProductView(p);
-
   const prices  = getDisplayPrice(p);
   const badges  = buildBadges(p, true);
   const cat     = ALL_CATEGORIES.find(c=>c.id===p.categoria);
   const catEmoji= cat?.emoji || '🍽️';
-
   const imgHtml = p.imagen
     ? `<div class="sheet-img"><img src="${p.imagen}" alt="${p.nombre}" onerror="this.style.display='none';this.parentElement.style.background='${_catColor(p.categoria)}'"></div>`
     : `<div class="sheet-img-ph" style="background:${_catColor(p.categoria)}">${catEmoji}</div>`;
-
-  // Upsell
   const upsellIds = (p.upsell_ids||'').split(',').map(x=>x.trim()).filter(Boolean);
   const upsellProds = upsellIds.map(id=>ALL_PRODUCTS.find(x=>x.id===id)).filter(Boolean);
-
   let upsellHtml = '';
   if(upsellProds.length > 0){
     upsellHtml = `
@@ -2148,14 +1624,13 @@ function openDetail(id){
         </div>
       </div>`;
   }
-
   document.getElementById('sheetContent').innerHTML = `
     ${imgHtml}
     <div class="sheet-body">
       ${badges ? `<div class="sheet-badges">${badges}</div>` : ''}
       <div class="sheet-name">${toTitleCase(p.nombre)}</div>
       <div class="sheet-desc">${p.descripcion}</div>
-     <div class="sheet-price-row">
+      <div class="sheet-price-row">
         <div>
           ${prices.orig ? `<span class="sheet-price-orig">${prices.orig}</span>` : ''}
           <span class="sheet-price">${prices.main}</span>
@@ -2170,11 +1645,10 @@ function openDetail(id){
         <div style="text-align:center;font-size:12px;color:var(--brand-text-muted);margin:-8px 0 16px;letter-spacing:0.3px">
           Toca 🔔 para llamar mesero por este producto
         </div>
-      ` : ''}     
+      ` : ''}
       </div>
       ${upsellHtml}
     </div>`;
-
   document.getElementById('detailOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('detailSheet').classList.add('open'), 10);
   document.body.style.overflow = 'hidden';
@@ -2186,7 +1660,6 @@ function closeDetail(){
   document.body.style.overflow = '';
 }
 
-// Swipe down to close
 let touchStartY = 0;
 document.getElementById('detailSheet').addEventListener('touchstart',e=>{ touchStartY=e.touches[0].clientY; },{passive:true});
 document.getElementById('detailSheet').addEventListener('touchmove',e=>{
@@ -2194,9 +1667,7 @@ document.getElementById('detailSheet').addEventListener('touchmove',e=>{
   if(dy > 80) closeDetail();
 },{passive:true});
 
-/* ════════════════════════════════════════════════════
-   SEARCH
-   ════════════════════════════════════════════════════ */
+/* SEARCH */
 window.addEventListener('resize', updateStickyTops);
 
 function setupSearch(){
@@ -2221,9 +1692,7 @@ function focusSearch(){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
-/* ════════════════════════════════════════════════════
-   LANGUAGE
-   ════════════════════════════════════════════════════ */
+/* LANGUAGE */
 function buildLangMenu(){
   const drop = document.getElementById('langDropdown');
   drop.innerHTML = Object.entries(LANG_LABELS).map(([code,name])=>`
@@ -2250,11 +1719,20 @@ function setLang(code){
   document.documentElement.lang = code;
   applyLang();
   buildLangMenu();
- renderFajas();
-  renderGroups();     // v1.5
-  renderCatTabs();
-  renderMenu();
-  setupSearch();
+  if(typeof renderFajas === 'function' && ALL_CATEGORIES.length > 0){
+    renderFajas();
+    renderGroups();
+    renderCatTabs();
+    renderMenu();
+    setupSearch();
+  } else {
+    // Su error state, aggiorna i testi i18n dell'errore
+    if(document.getElementById('errorState').classList.contains('show')){
+      document.getElementById('esTitle').textContent = getLang('err_title');
+      document.getElementById('esSubtitle').textContent = getLang('err_subtitle');
+      document.getElementById('esBtn').textContent = getLang('err_retry');
+    }
+  }
 }
 
 function applyLang(){
@@ -2267,12 +1745,7 @@ function applyLang(){
   });
 }
 
-/* ════════════════════════════════════════════════════
-   v1.6 · RITMOS + PROMOS (motore vendite BKS)
-   Solo per locali con theme_mode === 'dark'
-   Polling 60s · cache server-side 30s · skip totale per PINSA
-   ════════════════════════════════════════════════════ */
-
+/* RITMOS + PROMOS (v1.6 invariati) */
 async function loadRitmos(){
   if(!BRAND.gas_url) return;
   try {
@@ -2280,22 +1753,16 @@ async function loadRitmos(){
     const r = await fetch(url);
     const data = await r.json();
     if(!data.ok) return;
-
     const prevRitmoId = RITMO_ACTUAL ? RITMO_ACTUAL.id : null;
     RITMO_ACTUAL = data.ritmo_actual || null;
     RITMOS_DISP  = data.ritmos_disponibles || [];
-
-    // Se il ritmo è cambiato → re-render menu (filtro Prod_IDs cambia)
     const newRitmoId = RITMO_ACTUAL ? RITMO_ACTUAL.id : null;
     if(prevRitmoId !== newRitmoId){
-      console.log('[v1.6] Ritmo cambiato:', prevRitmoId, '→', newRitmoId);
+      console.log('[v1.10] Ritmo cambiato:', prevRitmoId, '→', newRitmoId);
     }
-
     renderRhythmBar();
     renderMenu();
-  } catch(e){
-    console.warn('[v1.6] loadRitmos failed:', e.message);
-  }
+  } catch(e){ console.warn('[v1.10] loadRitmos failed:', e.message); }
 }
 
 async function loadPromos(){
@@ -2305,71 +1772,43 @@ async function loadPromos(){
     const r = await fetch(url);
     const data = await r.json();
     if(!data.ok) return;
-
     PROMOS_ACTIVAS = data.promos_activas || [];
-
-    // Costruisci mappa prod_id → promo per render rapido badge inline
     PROD_TO_PROMO = {};
     PROMOS_ACTIVAS.forEach(p => {
-      (p.prod_ids || []).forEach(pid => {
-        PROD_TO_PROMO[pid] = p;
-      });
+      (p.prod_ids || []).forEach(pid => { PROD_TO_PROMO[pid] = p; });
     });
-
-    renderGroups();   // ricalcola conteggi (potrebbe apparire 4° gruppo Promos)
-    renderMenu();     // re-render per mostrare badge 🎁 inline
-  } catch(e){
-    console.warn('[v1.6] loadPromos failed:', e.message);
-  }
+    renderGroups();
+    renderMenu();
+  } catch(e){ console.warn('[v1.10] loadPromos failed:', e.message); }
 }
 
 function startRhythmPolling(){
-  // Solo se siamo in tema dark (BKS) — PINSA non polla
   if(!document.body.classList.contains('theme-dark')) return;
-  if(RITMO_POLL_TIMER) return; // già attivo
-
-  // Prima chiamata immediata
+  if(RITMO_POLL_TIMER) return;
   loadRitmos();
   loadPromos();
-
-  // Poi ogni 60s
-  RITMO_POLL_TIMER = setInterval(() => {
-    loadRitmos();
-    loadPromos();
-  }, 60000);
-
-  console.log('[v1.6] Rhythm polling attivo (60s) per', LOCAL_ID);
+  RITMO_POLL_TIMER = setInterval(() => { loadRitmos(); loadPromos(); }, 60000);
+  console.log('[v1.10] Rhythm polling attivo (60s) per', LOCAL_ID);
 }
 
 function stopRhythmPolling(){
-  if(RITMO_POLL_TIMER){
-    clearInterval(RITMO_POLL_TIMER);
-    RITMO_POLL_TIMER = null;
-  }
+  if(RITMO_POLL_TIMER){ clearInterval(RITMO_POLL_TIMER); RITMO_POLL_TIMER = null; }
 }
 
-/* ── Render Rhythm Bar (chip ritmo + waveform a BPM reale) ── */
 function renderRhythmBar(){
-  // Solo dark mode (BKS) — su PINSA il rhythm bar non si tocca
   if(!document.body.classList.contains('theme-dark')) return;
-
   const fajaBar = document.getElementById('fajaBar');
   if(!fajaBar) return;
-
-  // Cerca/crea contenitore chip ritmo (lo aggiungiamo prima del waveform)
   let chipBar = document.getElementById('rhythmChipBar');
   if(!chipBar){
     chipBar = document.createElement('div');
     chipBar.id = 'rhythmChipBar';
     chipBar.style.cssText = 'display:flex;align-items:center;gap:10px;padding:6px 16px 0;max-width:480px;margin:0 auto;flex-wrap:wrap';
-    // Inserisci PRIMA del waveform (.rhythm-waveform), DOPO la label
     const wf = fajaBar.querySelector('.rhythm-waveform');
     if(wf) fajaBar.insertBefore(chipBar, wf);
     else fajaBar.appendChild(chipBar);
   }
-
   if(!RITMO_ACTUAL){
-    // Nessun ritmo attivo (fuori dalle finestre orarie definite)
     chipBar.innerHTML = `
       <div style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:1px;font-weight:500">
         ◯ Nessun ritmo attivo · esplora liberamente
@@ -2389,42 +1828,33 @@ function renderRhythmBar(){
         ${filterLabel}
       </button>`;
   }
-
-  // Waveform a BPM reale: animation-duration = 60/BPM secondi
   const wf = fajaBar.querySelector('.rhythm-waveform');
   if(wf){
     const bpm = RITMO_ACTUAL ? RITMO_ACTUAL.bpm : 0;
     if(bpm > 0){
       const dur = (60 / bpm).toFixed(3) + 's';
-      // Applica a tutte le barre con delay staggered proporzionale
       wf.querySelectorAll('.wf-bar').forEach((bar, i) => {
         bar.style.animationDuration = dur;
         bar.style.animationDelay = (i * (60/bpm) / 16).toFixed(3) + 's';
       });
     } else {
-      // No ritmo attivo → pulse lento "respiro" 3s
       wf.querySelectorAll('.wf-bar').forEach(bar => {
         bar.style.animationDuration = '3s';
         bar.style.animationDelay = '';
       });
     }
   }
-
   updateStickyTops();
 }
 
-/* ── Toggle ✦ All ── */
 function toggleRhythmFilter(){
   RITMO_FILTER_ON = !RITMO_FILTER_ON;
   renderRhythmBar();
   renderMenu();
-  // Feedback toast
   showToastMsg(RITMO_FILTER_ON ? '🔥 Filtro ritmo attivo' : '✦ Tutto il menu visibile');
 }
-   
-/* ════════════════════════════════════════════════════
-   MEMBER (Fase 2)
-   ════════════════════════════════════════════════════ */
+
+/* MEMBER */
 async function loadMember(memberId){
   if(!BRAND.gas_url) return;
   try {
@@ -2435,14 +1865,12 @@ async function loadMember(memberId){
       const banner = document.getElementById('memberBanner');
       banner.textContent = `${getLang('hi_member')} ${data.nombre} · ${data.nivel} · ${data.tokens} ${getLang('tokens')}`;
       banner.classList.add('show');
-      renderMenu(); // Re-render to show member prices
+      renderMenu();
     }
   } catch(e){ console.warn('Member load failed', e); }
 }
 
-/* ════════════════════════════════════════════════════
-   TRACKING (GAS)
-   ════════════════════════════════════════════════════ */
+/* TRACKING */
 function trackView(){
   if(!BRAND.gas_url || !MESA_ID) return;
   const body = { action:'trackView', local:LOCAL_ID, mesa:MESA_ID, member:MEMBER_ID, ts:Date.now() };
@@ -2455,14 +1883,11 @@ function trackProductView(p){
   navigator.sendBeacon(BRAND.gas_url, JSON.stringify(body));
 }
 
-/* ════════════════════════════════════════════════════
-   TOAST & INTERACTIONS
-   ════════════════════════════════════════════════════ */
+/* TOAST */
 function addItem(id){
   const p = ALL_PRODUCTS.find(x=>x.id===id);
   if(!p) return;
   showToastMsg(`${p.nombre} · ${getLang('add')}`);
-  // Phase 3: send to order
 }
 
 let toastTimer;
@@ -2475,15 +1900,8 @@ function showToastMsg(msg){
 }
 
 function scrollToTop(){ window.scrollTo({top:0, behavior:'smooth'}); }
-/* ════════════════════════════════════════════════════
-   v1.7 · LLAMAR MESERO · per-prodotto + generico (Fase 1)
-   ════════════════════════════════════════════════════
-   Flusso: tap CTA → confirm sheet → POST notifyWaiter al GAS
-   → toast feedback. Senza MESA_ID nessuna chiamata: il sistema
-   non sa dove servire e LLAMADAS resterebbe inutile.
-   ════════════════════════════════════════════════════ */
 
-// Stato del confirm sheet (cosa stiamo per confermare)
+/* LLAMAR MESERO (v1.7 invariato) */
 let CONFIRM_PAYLOAD = null;
 
 function openConfirmSheet({title, subtitle, payload, okLabel}){
@@ -2492,8 +1910,8 @@ function openConfirmSheet({title, subtitle, payload, okLabel}){
   document.getElementById('confirmSubtitle').textContent = subtitle;
   const okBtn = document.getElementById('confirmOkBtn');
   okBtn.textContent = okLabel || getLang('confirm_call') || 'Sí, llamar';
- okBtn.onclick = () => {
-    const payloadCopy = CONFIRM_PAYLOAD;  // salva PRIMA che closeConfirmSheet lo metta a null
+  okBtn.onclick = () => {
+    const payloadCopy = CONFIRM_PAYLOAD;
     closeConfirmSheet();
     notifyWaiter(payloadCopy);
   };
@@ -2509,9 +1927,7 @@ function closeConfirmSheet(){
   CONFIRM_PAYLOAD = null;
 }
 
-// Tap "🔔" sulla card (Llamar mesero PER prodotto)
 function onCallWaiterForProduct(prodId){
-  // Senza mesa non ha senso loggare la chiamata
   if(!MESA_ID){
     showToastMsg(getLang('call_no_mesa') || 'Acércate a un mesero para ordenar');
     return;
@@ -2526,15 +1942,11 @@ function onCallWaiterForProduct(prodId){
   });
 }
 
-// Gancio Fase 2 · "Pedir directo" sulla card (oggi nascosto da CSS)
 function onPedirDirecto(prodId){
-  // In Fase 1 questa funzione non viene mai chiamata perché il bottone è display:none.
-  // Quando il feature flag si attiverà (Fase 2), la implementiamo come "aggiungi al carrello self".
-  console.log('[v1.7] onPedirDirecto · gancio Fase 2 · prod_id=', prodId);
+  console.log('[v1.10] onPedirDirecto · gancio Fase 2 · prod_id=', prodId);
   showToastMsg('Próximamente · Pedir directo');
 }
 
-// Tap sticky "Llamar mesero" generico (lo aggiungiamo nello step 2)
 function onCallWaiterGeneric(){
   if(!MESA_ID){
     showToastMsg(getLang('call_no_mesa') || 'Acércate a un mesero para ordenar');
@@ -2548,7 +1960,6 @@ function onCallWaiterGeneric(){
   });
 }
 
-// POST al GAS · azione notifyWaiter (endpoint backend creato nello step 4 di S2)
 function notifyWaiter(payload){
   if(!BRAND.gas_url || !MESA_ID){
     showToastMsg('⚠ No se pudo enviar la llamada');
@@ -2559,17 +1970,15 @@ function notifyWaiter(payload){
     local:          LOCAL_ID,
     mesa:           MESA_ID,
     ritmo_attivo:   RITMO_ACTUAL ? RITMO_ACTUAL.id : '',
-    tipo_llamada:  payload.tipo_llamada || 'generica',
+    tipo_llamada:   payload.tipo_llamada || 'generica',
     prod_id_intent: payload.prod_id || '',
     ts:             Date.now(),
   };
-  // sendBeacon è fire-and-forget, ideale per il pattern "tap → conferma → vai"
-  // Non blocca la UI, non dipende dalla risposta. La verifica avviene sul Sheet LLAMADAS.
   try {
     navigator.sendBeacon(BRAND.gas_url, JSON.stringify(body));
     showToastMsg(getLang('call_sent') || '🔔 Mesero llamado · llega pronto');
   } catch(e) {
-    console.warn('[v1.7] notifyWaiter failed:', e);
+    console.warn('[v1.10] notifyWaiter failed:', e);
     showToastMsg('⚠ Error al llamar · intenta de nuevo');
   }
 }
