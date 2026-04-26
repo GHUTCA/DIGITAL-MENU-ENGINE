@@ -5,50 +5,46 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.11 · 26-apr-2026 · Sessione S4 (UI polish)
+     menu_digital.html · v1.11 iter 2 · 26-apr-2026 · Sessione S4
      ════════════════════════════════════════════════════════════════════
-     CHANGELOG v1.10 → v1.11 (9 fix coordinati · sessione design)
-     - SEARCH bar in alto sticky → RIMOSSA
-       Sostituita da lente ⌕ in header alto (button .header-search-btn)
-       che apre #searchOverlay full-screen. Live filter, highlight match,
-       tap risultato → openDetail(). Recuperati ~50px verticali.
-     - SEARCH non filtra più il menu sotto · vive isolata nell'overlay
-       (evita stati ambigui: chiudo overlay con query attiva → menu confuso)
-     - BOTTOM NAV ridisegnata: 3 voci (Menú · Llamar · Club) con FAB
-       campanella centrale RIALZATO 22px (stile Instagram/WhatsApp).
-       Sostituisce sia stickyCallBar (FAB flottante in basso-dx) sia
-       la voce 'Buscar' (ora in header). Risolve overlap con chevron
-       Samsung Internet che copriva 'Buscar'.
-     - CARD PRODOTTO v3 (Strada C):
-       · nome + prezzo sulla stessa riga in alto, allineati
-       · descrizione 2 righe piene (era 1 riga troncata)
-       · NUEVO ora è dot verde 14px su angolo top-right della foto
-         (pattern Uber Eats/Deliveroo) invece di badge testuale + bordo
-         verde animato pulsante (rimosso definitivamente)
-       · campanella per-prodotto rimossa dalle card list
-         (resta solo nella scheda dettaglio per intent forte)
-     - PREZZO senza simbolo $ nelle card list · peso medium 14px
-       colore neutro chiaro (era rosso 18px bold). Pricing psychology +
-       meno aggressivo visivo. Nella scheda dettaglio il $ resta
-       (formatPriceWithSymbol) per disambiguazione contestuale.
-     - CAT-TABS sticky: aggiunto fade-mask 12px gradient sopra le tab.
-       Le card non si vedono più tagliate a metà sotto le tab durante
-       lo scroll.
-     - SLOGAN ritmo libero (rhythm_none) cambiato in tutte le 8 lingue:
-       'Sin ritmo activo · explora libremente' (linguaggio sistema) →
-       'El ritmo aparece en su momento · relájate y disfruta' (tono BKS).
-       Hardcoded ora · editabile da Sheet RITMOS in S4 prossima.
-     - PADDING-BOTTOM mainContent 160px → 80px (FAB ora dentro nav,
-       non più flottante esterno).
+     CHANGELOG v1.10 → v1.11 (iter 2 · 9 fix UX + 5 polish cromatici)
 
-     CHANGELOG v1.7 → v1.10 (preservato)
-     - RIMOSSO: DEMO_BRAND, DEMO_CATEGORIES, DEMO_PRODUCTS, loadDemoData()
-     - AGGIUNTO: KNOWN_LOCALS, validateLocal(), pingGAS(), retry backoff,
-       showErrorState(), showInvalidLocal(), purgeOldLangKey()
-     - DESIGN: faja-tabs nascoste BKS, waveform 28px, microbar Comandante DJ
-     - DECISIONE: toggle ✦ All rimosso · curatela ritmo unica realtà
-     - REDESIGN ZONA PRODOTTI: card v2 compatta, FAB 52×52, macro-groups
-       sempre visibili (count=0 disabled), cat-header breadcrumb 9px
+     ITER 1 · UI POLISH (9 fix coordinati):
+     - SEARCH bar in alto sticky → RIMOSSA. Lente ⌕ in header alto apre
+       overlay full-screen. Search isolata, non filtra menu sotto.
+     - BOTTOM NAV: 3 voci (Menú · Llamar · Club) con FAB campanella
+       centrale RIALZATO (sostituisce sia stickyCallBar che voce Buscar).
+     - CARD PRODOTTO v3 Strada C: nome+prezzo top, descrizione 2 righe
+       piene, NUEVO dot verde su angolo top-right foto (era badge testo +
+       bordo verde animato · entrambi rimossi).
+     - PREZZO senza simbolo $ nelle card list, peso medium 14px neutro
+       chiaro (era rosso 18px bold). Nella scheda dettaglio il $ resta.
+     - CAT-TABS sticky con fade-mask 12px sopra · niente più card
+       tagliate sotto le tab durante scroll.
+     - SLOGAN ritmo libero rinnovato in 8 lingue: "Sin ritmo activo →
+       El ritmo aparece en su momento · relájate y disfruta". Hardcoded
+       ora · editabile da Sheet RITMOS in S4 prossima.
+     - PADDING-BOTTOM mainContent 160px → 80px (FAB ora dentro nav).
+
+     ITER 2 · POLISH CROMATICO (5 interventi · contro "buco nero piatto"):
+     - STRATIFICAZIONE 3 LIVELLI cromatici per dare profondità visiva
+       su OLED Samsung dove i neri sono spenti:
+       · bg #0D0D1A → #0A0A14 (più profondo, livello sotto)
+       · surface #15152A invariato (chrome navigazione)
+       · NUOVO surface-card #1F1F38 (card prodotto galleggiano sopra)
+     - CARD con shadow + border 0.09→0.12 alpha. Galleggiano sopra il bg
+       invece di confondersi col chrome.
+     - ACCENT ROSSE separatori di sezione · gradient sottili 1-2px:
+       · sotto #header (separa brand-area da nav-area)
+       · sotto #fajaBar (separa rhythm da macro-groups)
+       · sopra #bottomNav (sottile striscia di accento)
+     - MACRO-GROUP attivo · count come pillola accent piena con bg rosso
+       e color bianco. Border accent + glow shadow. Identità chiara.
+     - CAT-HEADER con barretta accent 3×14px a sinistra del nome.
+       Count come pillola surface medio. Ancora visivo durante scroll.
+     - RHYTHM caso libero · waveform spento sostituito da linea
+       decorativa rossa elegante + dot acceso pulsante prima del label
+       "♪ BKS Rhythm" (sembrava bug, ora sembra design).
      ════════════════════════════════════════════════════════════════════ -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -85,22 +81,31 @@
 }
 
 body.theme-dark {
-  --brand-bg: #0D0D1A;
-  --brand-surface: #15152A;
+  /* v1.11 iter 2 · STRATIFICAZIONE 3 LIVELLI cromatici contro "buco nero piatto"
+     ─ bg = livello più profondo (sotto tutto)
+     ─ surface = chrome navigazione (header, ritmo, macro-groups, bottom-nav)
+     ─ surface-card = card prodotto (galleggiano sopra il chrome)
+     Differenza percepibile su OLED Samsung dove i neri sono davvero spenti. */
+  --brand-bg: #0A0A14;          /* era #0D0D1A · più profondo */
+  --brand-surface: #15152A;      /* invariato · chrome navigazione */
+  --brand-surface-card: #1F1F38; /* NUOVO · card list, surface alto */
   --brand-text: #F5F5F5;
   --brand-text-muted: rgba(255,255,255,0.55);
-  --brand-border: rgba(255,255,255,0.09);
-  --rhythm-bg: #0D0D1A;
+  --brand-border: rgba(255,255,255,0.12);     /* era 0.09 · +33% visibile */
+  --brand-border-strong: rgba(255,255,255,0.18);
+  --brand-accent-line: rgba(233,69,96,0.35);
+  --brand-accent-line-strong: rgba(233,69,96,0.5);
+  --rhythm-bg: #15152A;          /* surface invece di bg · stacco visivo */
   --rhythm-label: rgba(255,255,255,0.4);
   --rhythm-chip-bg: rgba(255,255,255,0.06);
   --rhythm-chip-text: rgba(255,255,255,0.5);
   --group-bg: #15152A;
-  --group-inactive-bg: rgba(255,255,255,0.06);
-  --group-inactive-text: rgba(255,255,255,0.55);
+  --group-inactive-bg: #1F1F38;  /* surface-2 · contrasto vs group-bg */
+  --group-inactive-text: rgba(255,255,255,0.65);
+  --card-shadow: 0 2px 10px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
 }
 
 /* Dark mode badges */
-body.theme-dark .badge-nuevo    { background:rgba(34,197,94,0.20); color:#4ade80 }
 body.theme-dark .badge-popular  { background:rgba(245,158,11,0.22); color:#fbbf24 }
 body.theme-dark .badge-vegano   { background:rgba(132,204,22,0.20); color:#a3e635 }
 body.theme-dark .badge-singluten{ background:rgba(96,165,250,0.22); color:#93c5fd }
@@ -110,21 +115,32 @@ body.theme-dark .badge-agotado  { background:rgba(148,163,184,0.25); color:#cbd5
 body.theme-dark .badge-member   { background:rgba(233,69,96,0.25); color:#fb7185 }
 body.theme-dark .wf-bar { background:linear-gradient(to top, var(--brand-accent), rgba(233,69,96,0.4)); filter: drop-shadow(0 0 3px rgba(233,69,96,0.6)); border-radius:2px; }
 body.theme-dark .rhythm-label { color: rgba(255,255,255,0.55); letter-spacing: 3px; font-weight: 500; }
-body.theme-dark .product-card { border-color: rgba(255,255,255,0.08); }
-body.theme-dark .product-card:active { border-color: var(--brand-accent); box-shadow: 0 0 0 1px rgba(233,69,96,0.3); }
-/* v1.11 · bordo verde animato per nuevo-highlight RIMOSSO. Il "NUEVO" si vede solo dal dot. */
-body.theme-dark .product-card.nuevo-highlight { border-color: rgba(255,255,255,0.08); }
+
+/* v1.11 iter 2 · CARD prodotto su surface-card (livello alto, sopra chrome)
+   con shadow per "galleggiare" sopra il bg · OLED-friendly */
+body.theme-dark .product-card {
+  background: var(--brand-surface-card);
+  border-color: var(--brand-border);
+  box-shadow: var(--card-shadow);
+}
+body.theme-dark .product-card:active {
+  border-color: var(--brand-accent);
+  box-shadow: var(--card-shadow), 0 0 0 1px rgba(233,69,96,0.3);
+}
+body.theme-dark .product-card.nuevo-highlight { border-color: var(--brand-border); }
+body.theme-dark .card-img-wrap { background: var(--brand-surface); }
+/* dot NUEVO con border surface-card così si fonde col bg della card */
+body.theme-dark .card-nuevo-dot { border-color: var(--brand-surface-card); box-shadow: 0 0 0 1px rgba(74,222,128,0.5), 0 0 8px rgba(74,222,128,0.4); }
+
 body.theme-dark .cat-tab { color: rgba(255,255,255,0.45) }
 body.theme-dark .cat-tab.active { color: #fff; border-bottom-color: var(--brand-accent); }
-body.theme-dark .cat-sticky { background: var(--brand-surface); border-bottom-color: rgba(255,255,255,0.06); box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
-body.theme-dark .cat-header-name { color: rgba(255,255,255,0.92) }
-body.theme-dark .card-price { color: #ff6b8a; text-shadow: 0 0 8px rgba(233,69,96,0.2); }
+body.theme-dark .cat-sticky { background: var(--brand-bg); border-bottom-color: rgba(255,255,255,0.08); box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+body.theme-dark .cat-header-name { color: rgba(255,255,255,0.92); font-weight: 700; }
+body.theme-dark .card-price { color: rgba(255,255,255,0.92); }
 body.theme-dark .sheet-price { color: #ff6b8a }
-body.theme-dark #bottomNav { background: var(--brand-surface); border-top-color: rgba(255,255,255,0.08); }
+body.theme-dark #bottomNav { background: var(--brand-surface); border-top-color: var(--brand-border-strong); }
 body.theme-dark .bnav-btn { color: rgba(255,255,255,0.5) }
 body.theme-dark .bnav-btn.active { color: #ff6b8a }
-body.theme-dark .search-inner { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
-body.theme-dark .search-inner:focus-within { border-color: var(--brand-accent); background: rgba(255,255,255,0.08); }
 body.theme-dark #searchInput { color: #fff }
 body.theme-dark #searchInput::placeholder { color: rgba(255,255,255,0.35) }
 body.theme-dark #detailSheet { background: var(--brand-surface); box-shadow: 0 -10px 40px rgba(0,0,0,0.6); }
@@ -132,7 +148,60 @@ body.theme-dark .sheet-handle { background: rgba(255,255,255,0.2) }
 body.theme-dark .sheet-name { color: rgba(255,255,255,0.95) }
 body.theme-dark .sheet-desc { color: rgba(255,255,255,0.65) }
 body.theme-dark .lang-dropdown { background: var(--brand-surface); border-color: rgba(255,255,255,0.12); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-body.theme-dark #groupBar { border-bottom-color: rgba(255,255,255,0.08) }
+body.theme-dark #groupBar { border-bottom-color: var(--brand-border) }
+
+/* v1.11 iter 2 · ACCENT ROSSE separatori di sezione · "spille" gradient
+   ─ sotto header (separa brand-area da nav-area)
+   ─ sotto fajaBar (separa rhythm da macro-groups)
+   ─ sopra bottomNav (sottile striscia di accento) */
+body.theme-dark #header { position: relative; }
+body.theme-dark #header::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent 0%, var(--brand-accent-line) 25%, var(--brand-accent-line-strong) 50%, var(--brand-accent-line) 75%, transparent 100%);
+  pointer-events:none;
+}
+body.theme-dark #fajaBar { position: relative; }
+body.theme-dark #fajaBar::after {
+  content:''; position:absolute; bottom:0; left:16px; right:16px; height:1px;
+  background: linear-gradient(90deg, transparent, var(--brand-accent-line) 50%, transparent);
+  pointer-events:none;
+}
+body.theme-dark #bottomNav { position: fixed; }
+body.theme-dark #bottomNav::before {
+  content:''; position:absolute; top:-1px; left:0; right:0; height:1px;
+  background: linear-gradient(90deg, transparent, var(--brand-accent-line) 50%, transparent);
+  pointer-events:none;
+}
+
+/* v1.11 iter 2 · MACRO-GROUP attivo · count come pillola accent piena
+   ─ identità chiara del group selezionato senza ambiguità */
+body.theme-dark .group-chip { background: var(--group-inactive-bg); border: 1px solid var(--brand-border); }
+body.theme-dark .group-chip.active {
+  background: rgba(233,69,96,0.12);
+  border-color: var(--brand-accent);
+  box-shadow: 0 0 0 1px var(--brand-accent), 0 4px 12px rgba(233,69,96,0.2);
+}
+body.theme-dark .group-chip.active .group-chip-count {
+  background: var(--brand-accent);
+  color: #fff;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+body.theme-dark .group-chip-count { letter-spacing: 0.3px; }
+
+/* v1.11 iter 2 · CAT-HEADER con barretta accent · ancora visivo durante scroll */
+body.theme-dark .cat-header { padding: 6px 16px 10px; gap: 8px; align-items: center; position: relative; }
+body.theme-dark .cat-header::before {
+  content:''; width:3px; height:14px; border-radius:2px;
+  background: var(--brand-accent);
+  display: inline-block; flex-shrink: 0;
+}
+body.theme-dark .cat-header-emoji { font-size: 12px; opacity: 0.7; }
+body.theme-dark .cat-header-count {
+  font-size: 9px; padding: 2px 8px; background: var(--brand-surface);
+  border-radius: 10px; font-weight: 600; letter-spacing: 0.5px;
+}
 body.theme-dark .group-chip { border: 1px solid transparent; }
 body.theme-dark .group-chip.active { background: var(--brand-accent); border-color: rgba(255,255,255,0.1); box-shadow: 0 4px 16px rgba(233,69,96,0.35); }
 /* v1.10 · waveform unificato a 22px (variante B) — base CSS gestisce già altezza/gap/min-width */
@@ -2344,11 +2413,20 @@ function renderRhythmBar(){
 
   // v1.10 · CASO A: nessun ritmo attivo (fuori finestre orarie definite)
   if(!RITMO_ACTUAL){
+    // v1.11 iter 2 · linea decorativa rossa elegante invece di waveform spento (sembrava bug)
+    // Il waveform sotto resta nel DOM ma viene nascosto via CSS quando non c'è RITMO_ACTUAL
     chipBar.innerHTML = `
-      <div style="font-size:9px;color:rgba(255,255,255,0.45);letter-spacing:3px;text-transform:uppercase;font-weight:500;margin-bottom:6px">♪ BKS Rhythm</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.45);letter-spacing:0.3px;font-style:italic">
+      <div style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:3px;text-transform:uppercase;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--brand-accent);box-shadow:0 0 8px var(--brand-accent);display:inline-block"></span>
+        <span>♪ BKS Rhythm</span>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.55);letter-spacing:0.3px;font-style:italic;line-height:1.4">
         ${getLang('rhythm_none')}
-      </div>`;
+      </div>
+      <div style="margin-top:8px;height:1px;background:linear-gradient(90deg, transparent, var(--brand-accent-line) 30%, var(--brand-accent-line-strong) 50%, var(--brand-accent-line) 70%, transparent);opacity:0.7"></div>`;
+    // Nascondi waveform spento
+    const wf = fajaBar.querySelector('.rhythm-waveform');
+    if(wf) wf.style.display = 'none';
   } else {
     // v1.10 · CASO B microbar V1: Comandante DJ sx · slogan corsivo …puntini… centro · BPM dx
     // (NO toggle ALL · v1.10 finale: filtro ritmo è unica realtà · curatela del momento sempre attiva)
@@ -2382,6 +2460,10 @@ function renderRhythmBar(){
   // v1.10 · Waveform animazione a BPM reale · stagger ricalibrato per 20 barre
   const wf = fajaBar.querySelector('.rhythm-waveform');
   if(wf){
+    if(RITMO_ACTUAL){
+      // v1.11 iter 2 · ripristina display flex (caso A lo nasconde)
+      wf.style.display = '';
+    }
     const bpm = RITMO_ACTUAL ? RITMO_ACTUAL.bpm : 0;
     if(bpm > 0){
       const dur = (60 / bpm).toFixed(3) + 's';
