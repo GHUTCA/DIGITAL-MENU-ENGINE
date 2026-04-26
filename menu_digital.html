@@ -23,11 +23,15 @@
      - DESIGN FIX (4 in 1):
        1. Faja-tabs nascoste su BKS (theme-dark) · su PINSA invariate
        2. Waveform 10px → 22px variante B · 24 barre fitte · drop-shadow
-       3. Microbar v1 · DJ a sx con disco rotante + slogan corsivo coi
-          puntini al centro + BPM micro + toggle ✦ All a dx · slogan ES
+       3. Microbar v1 · Comandante DJ a sx con disco rotante + slogan
+          corsivo coi puntini al centro + BPM micro a dx · slogan ES
           NON traducibile (Empieza piola/Bacán acá/Acá se arma/La noche
           prende) · vende il prodotto, non se stesso
        4. Label '♪ BKS RHYTHM' ripristinata come contesto discreto
+     - DECISIONE PRODOTTO v1.10 finale:
+       Toggle ✦ All RIMOSSO definitivamente dalla UI cliente · curatela
+       del momento è unica realtà · prodotti fuori curatela accessibili
+       solo via richiesta al JL (pannello admin · S5+)
      - PRESERVATO: tutto il resto (card v1.7, ritmi, promos, llamar mesero)
      ════════════════════════════════════════════════════════════════════ -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
@@ -629,7 +633,7 @@ const TRANSLATIONS = {
     rhythm_filter_on:'🔥 Filtro de ritmo activo',
     rhythm_filter_off:'✦ Todo el menú visible',
     rhythm_none:'◯ Sin ritmo activo · explora libremente',
-    rhythm_no_products:'🔥 {nombre} · sin productos · prueba ✦ All',
+    rhythm_no_products:'🔥 {nombre} · sin productos · pídele al mesero',
     rhythm_btn_filter:'✦ Filtro',
     coming_soon:'Próximamente · Pedir directo',
     call_send_error:'⚠ No se pudo enviar la llamada',
@@ -666,7 +670,7 @@ const TRANSLATIONS = {
     rhythm_filter_on:'🔥 Rhythm filter on',
     rhythm_filter_off:'✦ Full menu visible',
     rhythm_none:'◯ No active rhythm · explore freely',
-    rhythm_no_products:'🔥 {nombre} · no products · try ✦ All',
+    rhythm_no_products:'🔥 {nombre} · no products · ask the waiter',
     rhythm_btn_filter:'✦ Filter',
     coming_soon:'Coming soon · Order directly',
     call_send_error:'⚠ Could not send the call',
@@ -703,7 +707,7 @@ const TRANSLATIONS = {
     rhythm_filter_on:'🔥 Filtro de ritmo ativo',
     rhythm_filter_off:'✦ Cardápio completo visível',
     rhythm_none:'◯ Sem ritmo ativo · explore livremente',
-    rhythm_no_products:'🔥 {nombre} · sem produtos · tente ✦ All',
+    rhythm_no_products:'🔥 {nombre} · sem produtos · pergunte ao garçom',
     rhythm_btn_filter:'✦ Filtro',
     coming_soon:'Em breve · Pedir diretamente',
     call_send_error:'⚠ Não foi possível enviar a chamada',
@@ -740,7 +744,7 @@ const TRANSLATIONS = {
     rhythm_filter_on:'🔥 Filtro ritmo attivo',
     rhythm_filter_off:'✦ Tutto il menu visibile',
     rhythm_none:'◯ Nessun ritmo attivo · esplora liberamente',
-    rhythm_no_products:'🔥 {nombre} · nessun prodotto · prova ✦ All',
+    rhythm_no_products:'🔥 {nombre} · nessun prodotto · chiedi al cameriere',
     rhythm_btn_filter:'✦ Filtro',
     coming_soon:'Prossimamente · Ordina diretto',
     call_send_error:"⚠ Impossibile inviare la chiamata",
@@ -777,7 +781,7 @@ const TRANSLATIONS = {
     rhythm_filter_on:'🔥 Rhythmus-Filter aktiv',
     rhythm_filter_off:'✦ Ganze Karte sichtbar',
     rhythm_none:'◯ Kein aktiver Rhythmus · frei erkunden',
-    rhythm_no_products:'🔥 {nombre} · keine Produkte · versuche ✦ All',
+    rhythm_no_products:'🔥 {nombre} · keine Produkte · frag den Kellner',
     rhythm_btn_filter:'✦ Filter',
     coming_soon:'Bald verfügbar · Direkt bestellen',
     call_send_error:'⚠ Anruf konnte nicht gesendet werden',
@@ -814,7 +818,7 @@ const TRANSLATIONS = {
     rhythm_filter_on:'🔥 Filtre rythme actif',
     rhythm_filter_off:'✦ Menu complet visible',
     rhythm_none:'◯ Pas de rythme actif · explorez librement',
-    rhythm_no_products:'🔥 {nombre} · pas de produits · essayez ✦ All',
+    rhythm_no_products:'🔥 {nombre} · pas de produits · demande au serveur',
     rhythm_btn_filter:'✦ Filtre',
     coming_soon:'Bientôt · Commander directement',
     call_send_error:"⚠ Impossible d'envoyer l'appel",
@@ -851,7 +855,7 @@ const TRANSLATIONS = {
     rhythm_filter_on:'🔥 节奏筛选已开',
     rhythm_filter_off:'✦ 显示全部菜单',
     rhythm_none:'◯ 无活动节奏 · 自由浏览',
-    rhythm_no_products:'🔥 {nombre} · 无产品 · 试试 ✦ All',
+    rhythm_no_products:'🔥 {nombre} · 无产品 · 询问服务员',
     rhythm_btn_filter:'✦ 筛选',
     coming_soon:'即将推出 · 直接下单',
     call_send_error:'⚠ 无法发送呼叫',
@@ -888,7 +892,7 @@ const TRANSLATIONS = {
     rhythm_filter_on:'🔥 リズムフィルター オン',
     rhythm_filter_off:'✦ メニュー全表示',
     rhythm_none:'◯ アクティブなリズムなし · 自由に探索',
-    rhythm_no_products:'🔥 {nombre} · 製品なし · ✦ All を試す',
+    rhythm_no_products:'🔥 {nombre} · 製品なし · 店員に聞く',
     rhythm_btn_filter:'✦ フィルター',
     coming_soon:'近日公開 · 直接注文',
     call_send_error:'⚠ 呼び出しを送信できません',
@@ -1994,35 +1998,31 @@ function renderRhythmBar(){
         ${getLang('rhythm_none')}
       </div>`;
   } else {
-    // v1.10 · CASO B microbar V1: DJ sx · slogan corsivo …puntini… centro · BPM+toggle dx
+    // v1.10 · CASO B microbar V1: Comandante DJ sx · slogan corsivo …puntini… centro · BPM dx
+    // (NO toggle ALL · v1.10 finale: filtro ritmo è unica realtà · curatela del momento sempre attiva)
     const r = RITMO_ACTUAL;
     const slogan = RHYTHM_SLOGANS_BKS[r.id] || r.nombre || r.id;
-    const sloganStripped = slogan.replace(/\.$/, ''); // rimuovo il punto finale per i puntini sospensivi
-    const filterLabel = RITMO_FILTER_ON ? '✦ All' : getLang('rhythm_btn_filter');
+    const sloganStripped = slogan.replace(/\.$/, ''); // rimuovo punto finale per puntini sospensivi
     const djName = (CURRENT_DJ_BKS && CURRENT_DJ_BKS.nombre) ? CURRENT_DJ_BKS.nombre : '';
 
     chipBar.innerHTML = `
       <div style="font-size:9px;color:rgba(255,255,255,0.45);letter-spacing:3px;text-transform:uppercase;font-weight:500;margin-bottom:8px">♪ BKS Rhythm</div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:nowrap">
-        <!-- Sx · DJ con disco rotante -->
+        <!-- Sx · Comandante DJ con disco rotante -->
         <div style="display:flex;align-items:center;gap:7px;flex-shrink:0;min-width:0">
           <div class="dj-disc" aria-hidden="true"></div>
           <div style="line-height:1.2;min-width:0">
-            <div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600">DJ</div>
-            <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${djName}</div>
+            <div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600">Comandante DJ</div>
+            <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">${djName}</div>
           </div>
         </div>
         <!-- Centro · slogan in corsivo coi puntini sospensivi -->
         <div style="flex:1;text-align:center;font-size:12px;color:rgba(255,255,255,0.55);font-style:italic;letter-spacing:0.2px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
           … ${sloganStripped} …
         </div>
-        <!-- Dx · BPM micro + toggle ✦ All -->
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <!-- Dx · BPM micro firma · battito vivo -->
+        <div style="flex-shrink:0">
           <span style="font-family:'Consolas',ui-monospace,monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;font-weight:500">${r.bpm} BPM</span>
-          <button id="rhythmToggleBtn" onclick="toggleRhythmFilter()"
-            style="background:rgba(255,255,255,${RITMO_FILTER_ON?'0.06':'0.2'});border:1px solid rgba(255,255,255,${RITMO_FILTER_ON?'0.18':'0.45'});color:${RITMO_FILTER_ON?'rgba(255,255,255,0.55)':'#fff'};padding:5px 10px;border-radius:14px;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all 0.2s;flex-shrink:0">
-            ${filterLabel}
-          </button>
         </div>
       </div>`;
   }
@@ -2047,12 +2047,12 @@ function renderRhythmBar(){
   updateStickyTops();
 }
 
-function toggleRhythmFilter(){
-  RITMO_FILTER_ON = !RITMO_FILTER_ON;
-  renderRhythmBar();
-  renderMenu();
-  showToastMsg(RITMO_FILTER_ON ? getLang('rhythm_filter_on') : getLang('rhythm_filter_off'));
-}
+// v1.10 · toggleRhythmFilter() RIMOSSA · decisione di prodotto: il filtro per ritmo è
+// l'unica realtà che il cliente vede. Niente bottone ALL/Filtro nel UI cliente.
+// La curatela del momento è la curatela del momento, punto.
+// Se un cliente vuole un prodotto specifico fuori dalla curatela, il JL lo abilita
+// dal pannello di amministrazione (futuro · S5+).
+// La variabile globale RITMO_FILTER_ON resta = true definitivamente.
 
 /* MEMBER */
 async function loadMember(memberId){
