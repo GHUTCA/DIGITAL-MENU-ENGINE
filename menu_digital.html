@@ -134,7 +134,9 @@ body.theme-dark .card-nuevo-dot { border-color: var(--brand-surface-card); box-s
 
 body.theme-dark .cat-tab { color: rgba(255,255,255,0.45) }
 body.theme-dark .cat-tab.active { color: #fff; border-bottom-color: var(--brand-accent); }
-body.theme-dark .cat-sticky { background: var(--brand-bg); border-bottom-color: rgba(255,255,255,0.08); box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+/* v1.11 iter 2 · regola vecchia v1.10 .cat-sticky con bg uguale a brand-bg RIMOSSA
+   (causava effetto "trasparenza" perché il bg era identico a quello dietro le card).
+   Vedi sezione "DARK MODE · cat-sticky con bg solido" sotto per la regola corrente. */
 body.theme-dark .cat-header-name { color: rgba(255,255,255,0.92); font-weight: 700; }
 body.theme-dark .card-price { color: rgba(255,255,255,0.92); }
 body.theme-dark .sheet-price { color: #ff6b8a }
@@ -154,19 +156,19 @@ body.theme-dark #groupBar { border-bottom-color: var(--brand-border) }
    ─ sotto header (separa brand-area da nav-area)
    ─ sotto fajaBar (separa rhythm da macro-groups)
    ─ sopra bottomNav (sottile striscia di accento) */
-body.theme-dark #header { position: relative; }
+/* v1.11 iter 2 · accent rossi separatori · sotto header / fajaBar / sopra bottomNav
+   IMPORTANTE: NON ridefinire position degli sticky originali (era position:sticky).
+   ::after con position:absolute funziona già col containing block sticky del parent. */
 body.theme-dark #header::after {
   content:''; position:absolute; bottom:0; left:0; right:0; height:2px;
   background: linear-gradient(90deg, transparent 0%, var(--brand-accent-line) 25%, var(--brand-accent-line-strong) 50%, var(--brand-accent-line) 75%, transparent 100%);
   pointer-events:none;
 }
-body.theme-dark #fajaBar { position: relative; }
 body.theme-dark #fajaBar::after {
   content:''; position:absolute; bottom:0; left:16px; right:16px; height:1px;
   background: linear-gradient(90deg, transparent, var(--brand-accent-line) 50%, transparent);
   pointer-events:none;
 }
-body.theme-dark #bottomNav { position: fixed; }
 body.theme-dark #bottomNav::before {
   content:''; position:absolute; top:-1px; left:0; right:0; height:1px;
   background: linear-gradient(90deg, transparent, var(--brand-accent-line) 50%, transparent);
