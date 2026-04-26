@@ -232,10 +232,11 @@ body.theme-dark .rhythm-label{display:none}
 /* v1.10 · Waveform mobile-first · 20 barre più solide · variante B+
    Su mobile (380px) le barre 2-3px sparivano per sub-pixel rendering.
    Soluzione: meno barre + più larghe + gap maggiore + meno glow.
-   Risultato: barre visibili su mobile, eleganti su desktop. */
-.rhythm-waveform{display:none;align-items:flex-end;gap:3px;height:24px;padding:8px 16px 12px;max-width:480px;margin:0 auto;}
+   Risultato: barre visibili su mobile, eleganti su desktop.
+   v1.10-final · +1mm spessore (barre 6px · altezza 28px) per più presenza. */
+.rhythm-waveform{display:none;align-items:flex-end;gap:3px;height:28px;padding:8px 16px 12px;max-width:480px;margin:0 auto;}
 body.theme-dark .rhythm-waveform{display:flex}
-.wf-bar{flex:1;min-width:4px;background:linear-gradient(to top,var(--brand-accent) 0%,var(--brand-accent) 60%,rgba(233,69,96,0.55) 100%);border-radius:2px;filter:drop-shadow(0 0 2px rgba(233,69,96,0.7));transform-origin:bottom;animation:pulse 0.6s ease-in-out infinite}
+.wf-bar{flex:1;min-width:6px;background:linear-gradient(to top,var(--brand-accent) 0%,var(--brand-accent) 60%,rgba(233,69,96,0.55) 100%);border-radius:2px;filter:drop-shadow(0 0 2px rgba(233,69,96,0.7));transform-origin:bottom;animation:pulse 0.6s ease-in-out infinite}
 @keyframes pulse{0%,100%{transform:scaleY(0.55)}50%{transform:scaleY(1)}}
 .faja-scroll{display:flex;gap:8px;padding:10px 16px;overflow-x:auto;scrollbar-width:none;max-width:480px;margin:0 auto;}
 /* v1.10 · faja-scroll nascosto su BKS (dark mode) · il Ritmo è il vero filtro temporale · su PINSA invariato */
