@@ -292,8 +292,9 @@ body.theme-dark .group-chip.disabled{opacity:0.35}
 
 /* ══════════════════════════════════════════ MAIN ══════════════════════════════════════════ */
 /* v1.10 · padding-bottom calibrato per non collidere col FAB campanella in basso-destra
-   FAB occupa l'angolo destro · 90px = bottom-nav (56px) + spazio FAB + respiro */
-#mainContent{max-width:480px;margin:0 auto;padding-bottom:130px;}
+   FAB occupa l'angolo destro · 160px = bottom-nav (56px) + FAB (52px) + spazio sicurezza
+   La card finale si ferma sempre con respiro sotto il FAB anche scrollando fino in fondo */
+#mainContent{max-width:480px;margin:0 auto;padding-bottom:160px;}
 .cat-sticky{position:sticky;top:160px;z-index:96;background:var(--brand-surface);border-bottom:1px solid var(--brand-border);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
 .cat-tabs{display:flex;gap:4px;padding:0 16px;overflow-x:auto;scrollbar-width:none;}
 .cat-tabs::-webkit-scrollbar{display:none}
