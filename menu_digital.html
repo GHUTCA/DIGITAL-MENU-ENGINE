@@ -5,49 +5,50 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.10 · 25-apr-2026 · Sessione S3 (fix critico)
+     menu_digital.html · v1.11 · 26-apr-2026 · Sessione S4 (UI polish)
      ════════════════════════════════════════════════════════════════════
-     CHANGELOG v1.7 → v1.10
+     CHANGELOG v1.10 → v1.11 (9 fix coordinati · sessione design)
+     - SEARCH bar in alto sticky → RIMOSSA
+       Sostituita da lente ⌕ in header alto (button .header-search-btn)
+       che apre #searchOverlay full-screen. Live filter, highlight match,
+       tap risultato → openDetail(). Recuperati ~50px verticali.
+     - SEARCH non filtra più il menu sotto · vive isolata nell'overlay
+       (evita stati ambigui: chiudo overlay con query attiva → menu confuso)
+     - BOTTOM NAV ridisegnata: 3 voci (Menú · Llamar · Club) con FAB
+       campanella centrale RIALZATO 22px (stile Instagram/WhatsApp).
+       Sostituisce sia stickyCallBar (FAB flottante in basso-dx) sia
+       la voce 'Buscar' (ora in header). Risolve overlap con chevron
+       Samsung Internet che copriva 'Buscar'.
+     - CARD PRODOTTO v3 (Strada C):
+       · nome + prezzo sulla stessa riga in alto, allineati
+       · descrizione 2 righe piene (era 1 riga troncata)
+       · NUEVO ora è dot verde 14px su angolo top-right della foto
+         (pattern Uber Eats/Deliveroo) invece di badge testuale + bordo
+         verde animato pulsante (rimosso definitivamente)
+       · campanella per-prodotto rimossa dalle card list
+         (resta solo nella scheda dettaglio per intent forte)
+     - PREZZO senza simbolo $ nelle card list · peso medium 14px
+       colore neutro chiaro (era rosso 18px bold). Pricing psychology +
+       meno aggressivo visivo. Nella scheda dettaglio il $ resta
+       (formatPriceWithSymbol) per disambiguazione contestuale.
+     - CAT-TABS sticky: aggiunto fade-mask 12px gradient sopra le tab.
+       Le card non si vedono più tagliate a metà sotto le tab durante
+       lo scroll.
+     - SLOGAN ritmo libero (rhythm_none) cambiato in tutte le 8 lingue:
+       'Sin ritmo activo · explora libremente' (linguaggio sistema) →
+       'El ritmo aparece en su momento · relájate y disfruta' (tono BKS).
+       Hardcoded ora · editabile da Sheet RITMOS in S4 prossima.
+     - PADDING-BOTTOM mainContent 160px → 80px (FAB ora dentro nav,
+       non più flottante esterno).
+
+     CHANGELOG v1.7 → v1.10 (preservato)
      - RIMOSSO: DEMO_BRAND, DEMO_CATEGORIES, DEMO_PRODUCTS, loadDemoData()
-       (placeholder "PINSA Candelaria + Açaí Bowl" che si attivava su
-        cold start GAS facendo apparire prodotti sbagliati ai clienti)
-     - AGGIUNTO: KNOWN_LOCALS = mappa minima brand di safety net
-     - AGGIUNTO: validateLocal() = blocca early se ?local= mancante/sconosciuto
-     - AGGIUNTO: pingGAS() = warm-up parallelo allo skeleton (sveglia GAS)
-     - AGGIUNTO: retry con backoff su getConfig (timeout 10s × 3 tentativi)
-     - AGGIUNTO: showErrorState() = UI errore con brand corretto + Reintentar
-     - AGGIUNTO: showInvalidLocal() = UI errore QR malformato
-     - AGGIUNTO: purgeOldLangKey() + chiave 'menu_lang_user_choice'
-       (lingua spagnolo SEMPRE all'avvio · localStorage solo per scelta
-        esplicita utente · brand.default_lang vince post-fetch GAS)
-     - DESIGN FIX (4 in 1):
-       1. Faja-tabs nascoste su BKS (theme-dark) · su PINSA invariate
-       2. Waveform 10px → 28px · 20 barre min-w 6px · presenza mobile reale
-       3. Microbar v1 · Comandante DJ a sx con disco rotante + slogan
-          corsivo coi puntini al centro + BPM micro a dx · slogan ES
-          NON traducibile (Empieza piola/Bacán acá/Acá se arma/La noche
-          prende) · vende il prodotto, non se stesso
-       4. Label '♪ BKS RHYTHM' ripristinata come contesto discreto
-     - DECISIONE PRODOTTO v1.10 finale:
-       Toggle ✦ All RIMOSSO definitivamente dalla UI cliente · curatela
-       del momento è unica realtà · prodotti fuori curatela accessibili
-       solo via richiesta al JL (pannello admin · S5+)
-     - REDESIGN ZONA PRODOTTI (7 fix coordinati · sessione lunga):
-       1. Card prodotto v2 compatta (220px → 80-90px alta)
-          · layout horizontale: foto 50px + corpo + prezzo/campanella
-          · descrizione 1 riga troncata · risultato: 3 prod/schermata
-       2. FAB campanella 52×52 in basso destra · sostituisce
-          sticky-call-bar full-width che divorava 80px e copriva card
-          · animazione pulse discreta · sopra bottom-nav
-       3. Macro-groups: 4 sempre visibili · count=0 → disabled grigio
-          (NON nascosto · stabilità interfaccia)
-       4. Padding-bottom mainContent 130px · no collisione card/FAB
-       5. Tab categoria: 'Pizzas/Burgers' con slash invece di '& '
-          per non troncarsi su mobile
-       6. Cat header gigante 'Fondos' (font Fraunces 24px) → breadcrumb
-          micro 9px maiuscoletto 'FONDOS · 3' (~16px alto vs 50px)
-       7. Card-name 15px → 14px · card-desc 1 riga · gap 12px → 8px
-     - PRESERVATO: tutto il resto (ritmi, promos, llamar mesero, club, sheet)
+     - AGGIUNTO: KNOWN_LOCALS, validateLocal(), pingGAS(), retry backoff,
+       showErrorState(), showInvalidLocal(), purgeOldLangKey()
+     - DESIGN: faja-tabs nascoste BKS, waveform 28px, microbar Comandante DJ
+     - DECISIONE: toggle ✦ All rimosso · curatela ritmo unica realtà
+     - REDESIGN ZONA PRODOTTI: card v2 compatta, FAB 52×52, macro-groups
+       sempre visibili (count=0 disabled), cat-header breadcrumb 9px
      ════════════════════════════════════════════════════════════════════ -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -111,7 +112,8 @@ body.theme-dark .wf-bar { background:linear-gradient(to top, var(--brand-accent)
 body.theme-dark .rhythm-label { color: rgba(255,255,255,0.55); letter-spacing: 3px; font-weight: 500; }
 body.theme-dark .product-card { border-color: rgba(255,255,255,0.08); }
 body.theme-dark .product-card:active { border-color: var(--brand-accent); box-shadow: 0 0 0 1px rgba(233,69,96,0.3); }
-body.theme-dark .product-card.nuevo-highlight { border-color: #4ade80; box-shadow: 0 0 0 2px rgba(74,222,128,0.25), 0 0 20px rgba(74,222,128,0.15); }
+/* v1.11 · bordo verde animato per nuevo-highlight RIMOSSO. Il "NUEVO" si vede solo dal dot. */
+body.theme-dark .product-card.nuevo-highlight { border-color: rgba(255,255,255,0.08); }
 body.theme-dark .cat-tab { color: rgba(255,255,255,0.45) }
 body.theme-dark .cat-tab.active { color: #fff; border-bottom-color: var(--brand-accent); }
 body.theme-dark .cat-sticky { background: var(--brand-surface); border-bottom-color: rgba(255,255,255,0.06); box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
@@ -262,16 +264,9 @@ body.theme-dark .faja-scroll{display:none}
 .faja-chip.current{border-color:var(--brand-accent);color:var(--brand-accent);}
 .faja-chip.current.active{background:var(--brand-accent);border-color:var(--brand-accent);color:#fff;}
 
-/* ══════════════════════════════════════════ SEARCH ══════════════════════════════════════════ */
-#searchBar{background:var(--brand-surface);border-bottom:1px solid var(--brand-border);padding:10px 16px;max-width:480px;margin:0 auto;display:block;}
-.search-inner{display:flex;align-items:center;gap:8px;background:var(--brand-bg);border:1.5px solid var(--brand-border);border-radius:10px;padding:8px 12px;transition:border-color var(--transition);}
-.search-inner:focus-within{border-color:var(--brand-primary)}
-.search-icon{font-size:14px;opacity:0.4;flex-shrink:0}
-#searchInput{flex:1;border:none;background:none;font-family:inherit;font-size:14px;color:var(--brand-text);outline:none;}
-#searchInput::placeholder{color:var(--brand-text-muted)}
-#searchClear{font-size:16px;opacity:0.4;display:none;padding:2px;transition:opacity var(--transition);}
-#searchClear.show{display:block}
-#searchClear:active{opacity:0.8}
+/* v1.11 · ex CSS searchBar/search-inner sticky · RIMOSSO.
+   La search vive ora in #searchOverlay full-screen, attivata da .header-search-btn.
+   Vedi sezione "SEARCH OVERLAY" nel CSS più sotto. */
 
 /* ══════════════════════════════════════════ MACRO-GROUPS ══════════════════════════════════════════ */
 #groupBar{display:none;background:var(--group-bg);border-bottom:1px solid var(--brand-border);padding:12px 16px;max-width:480px;margin:0 auto;}
@@ -291,11 +286,19 @@ body.theme-dark .group-chip.disabled{opacity:0.35}
 .group-chip-count{font-size:8px;opacity:0.6;display:block;margin-top:1px}
 
 /* ══════════════════════════════════════════ MAIN ══════════════════════════════════════════ */
-/* v1.10 · padding-bottom calibrato per non collidere col FAB campanella in basso-destra
-   FAB occupa l'angolo destro · 160px = bottom-nav (56px) + FAB (52px) + spazio sicurezza
-   La card finale si ferma sempre con respiro sotto il FAB anche scrollando fino in fondo */
-#mainContent{max-width:480px;margin:0 auto;padding-bottom:160px;}
+/* v1.11 · padding-bottom ridotto: il FAB ora vive DENTRO bottom-nav, non più flottante esterno.
+   80px = bottom-nav reale (~70px con FAB rialzato) + 10px respiro sotto ultima card. */
+#mainContent{max-width:480px;margin:0 auto;padding-bottom:80px;}
+/* v1.11 · cat-sticky con fade-mask sopra · le card non si vedono più tagliate sotto le tab */
 .cat-sticky{position:sticky;top:160px;z-index:96;background:var(--brand-surface);border-bottom:1px solid var(--brand-border);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.cat-sticky::before{
+  content:'';
+  position:absolute;
+  top:-12px;left:0;right:0;
+  height:12px;
+  background:linear-gradient(to bottom,transparent,var(--brand-surface));
+  pointer-events:none;
+}
 .cat-tabs{display:flex;gap:4px;padding:0 16px;overflow-x:auto;scrollbar-width:none;}
 .cat-tabs::-webkit-scrollbar{display:none}
 .cat-tab{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:10px 12px;font-size:12px;font-weight:500;color:var(--brand-text-muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all var(--transition);}
@@ -313,19 +316,45 @@ body.theme-dark .cat-header-count{color:rgba(255,255,255,0.4)}
 /* v1.10 · Card v2 compatta · 3 prodotti per schermata invece di 1.5
    Layout: foto piccola sx (50px) · titolo+badge+descr centro · prezzo+campanella dx
    Risultato: ~80-90px altezza vs ~220px versione v1 */
+/* v1.11 · CARD prodotto v3 (Strada C)
+   ─ nome + prezzo sulla stessa riga in alto
+   ─ descrizione 2 righe piene a 12px (no compressione)
+   ─ badge NUEVO = dot verde sull'angolo top-right della foto
+   ─ niente più campanella per card
+   ─ niente più bordo verde animato
+   ─ prezzo senza simbolo, peso medium 14px neutro chiaro */
 .product-list{padding:0 16px;display:flex;flex-direction:column;gap:8px}
-.product-card{background:var(--brand-surface);border-radius:12px;border:1px solid var(--brand-border);overflow:hidden;position:relative;transition:transform var(--transition), box-shadow var(--transition);cursor:pointer;}
-.product-card:active{transform:scale(0.98)}
+.product-card{background:var(--brand-surface);border-radius:14px;border:1px solid var(--brand-border);position:relative;transition:border-color var(--transition);cursor:pointer;padding:12px;display:flex;gap:12px;align-items:flex-start;}
+.product-card:active{border-color:rgba(233,69,96,0.4)}
 .product-card.agotado{opacity:0.55}
-.product-card.nuevo-highlight{border-color:rgba(34,197,94,0.45);box-shadow:0 0 0 1px rgba(34,197,94,0.15);}
-.card-inner{display:flex;align-items:center;gap:10px;padding:10px 12px}
-.card-img-wrap{width:50px;height:50px;flex-shrink:0;background:var(--brand-bg);position:relative;overflow:hidden;border-radius:8px;}
-.card-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center;}
-.card-img-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;opacity:0.5;}
-.card-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.card-badges{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:0}
+/* v1.11 · classe .nuevo-highlight conservata per compat ma SENZA bordo verde animato.
+   La novità è marcata SOLO dal dot verde sulla foto (.card-nuevo-dot). */
+.card-img-wrap{width:62px;height:62px;flex-shrink:0;background:var(--brand-bg);position:relative;overflow:visible;border-radius:10px;}
+.card-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center;border-radius:10px;}
+.card-img-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;opacity:0.5;border-radius:10px;}
+/* v1.11 · dot NUEVO sull'angolo top-right della foto */
+.card-nuevo-dot{
+  position:absolute;
+  top:-3px;right:-3px;
+  width:14px;height:14px;
+  border-radius:50%;
+  background:#4ade80;
+  border:2px solid var(--brand-surface);
+  box-shadow:0 0 0 1px rgba(74,222,128,0.4);
+  z-index:2;
+}
+.card-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding-top:1px;}
+/* v1.11 · top row: nome + prezzo allineati */
+.card-top-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.card-name{font-size:15px;font-weight:600;color:var(--brand-text);line-height:1.2;letter-spacing:-0.2px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-name.agotado-text{text-decoration:line-through;color:var(--brand-text-muted)}
+.card-price{font-size:14px;font-weight:500;color:var(--brand-text);opacity:0.85;font-feature-settings:"tnum";letter-spacing:0.3px;flex-shrink:0;white-space:nowrap;}
+.card-price-orig{font-size:11px;font-weight:400;text-decoration:line-through;opacity:0.5;margin-right:6px;}
+/* v1.11 · descrizione 2 righe piene */
+.card-desc{font-size:12px;color:var(--brand-text-muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+/* badges (popular, vegano, etc) restano disponibili ma in formato mini sotto */
+.card-badges{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:2px;}
 .badge{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:8px;font-size:8px;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;}
-.badge-nuevo{background:rgba(34,197,94,0.15);color:#16a34a}
 .badge-popular{background:rgba(245,158,11,0.15);color:#d97706}
 .badge-vegano{background:rgba(132,204,22,0.15);color:#65a30d}
 .badge-singluten{background:rgba(96,165,250,0.15);color:#2563eb}
@@ -333,20 +362,15 @@ body.theme-dark .cat-header-count{color:rgba(255,255,255,0.4)}
 .badge-temporada{background:rgba(167,139,250,0.15);color:#7c3aed}
 .badge-agotado{background:rgba(148,163,184,0.15);color:#64748b}
 .badge-member{background:rgba(233,69,96,0.15);color:#be185d}
-@keyframes newPulse{0%,100%{opacity:1}50%{opacity:0.7}}
-.badge-nuevo{animation:newPulse 2.5s infinite}
-.card-name{font-size:14px;font-weight:600;color:var(--brand-text);line-height:1.2;}
-.card-name.agotado-text{text-decoration:line-through;color:var(--brand-text-muted)}
-.card-desc{font-size:11px;color:var(--brand-text-muted);line-height:1.3;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
-.card-price{font-size:14px;font-weight:700;color:var(--brand-accent);white-space:nowrap;}
-.card-price-member{font-size:10px;font-weight:500;text-decoration:line-through;color:var(--brand-text-muted);}
-.card-price-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:0;line-height:1.2;}
-.agotado-overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,0.55);border-radius:12px;}
+/* v1.11 · badge-nuevo conservato per compat ma DISPLAY:NONE.
+   Il "NUEVO" si vede solo dal dot verde sulla foto. */
+.badge-nuevo{display:none}
+.agotado-overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,0.55);border-radius:14px;}
 .product-card.agotado .agotado-overlay{display:flex}
 .agotado-label{background:rgba(100,116,139,0.9);color:#fff;padding:3px 12px;border-radius:14px;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;}
 
-/* CARD CTA v2 (v1.10) · campanella outline integrata col prezzo */
+/* v1.11 · card-call-btn (campanella per-prodotto) RIMOSSA dalle card.
+   Il selector resta definito per la SCHEDA dettaglio (che usa stesso stile). */
 .card-call-btn{
   width:30px;height:30px;border-radius:50%;
   background:rgba(233,69,96,0.12);
@@ -418,51 +442,148 @@ body.theme-dark .confirm-btn-cancel{background:rgba(255,255,255,0.06);color:rgba
 .empty-text{font-size:14px;color:var(--brand-text-muted)}
 #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--brand-primary);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:all 0.3s ease;z-index:500;white-space:nowrap;pointer-events:none;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-/* v1.10 · FAB campanella · CTA "chiama cameriere generico"
-   Sostituisce il vecchio sticky-call-bar full-width che divorava 80px
-   in basso copridendo le card. Adesso è un cerchio 50px in basso-destra,
-   sopra il bottom-nav, con animazione pulse discreta per attirare attenzione
-   senza essere invadente. */
-#stickyCallBar{
+/* v1.11 · LENTE search nell'header alto (sostituisce searchBarWrap sticky)
+   ─ tap → apre overlay search full-screen */
+.header-search-btn{
+  width:36px;height:36px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.12);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  transition:background var(--transition), transform var(--transition);
+}
+.header-search-btn:active{transform:scale(0.95);background:rgba(255,255,255,0.15)}
+.header-search-icon{font-size:16px;line-height:1;font-weight:600}
+body.theme-dark .header-search-btn{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.1)}
+body.theme-dark .header-search-btn:active{background:rgba(255,255,255,0.12)}
+
+/* v1.11 · SEARCH OVERLAY full-screen (sostituisce search bar sticky)
+   ─ aperto da #headerSearchBtn
+   ─ chiuso da ← back o ESC o swipe-down */
+#searchOverlay{
   display:none;
   position:fixed;
-  bottom:calc(74px + env(safe-area-inset-bottom));
-  right:14px;
-  z-index:99;
-  pointer-events:none;
+  inset:0;
+  z-index:500;
+  background:var(--brand-bg);
+  flex-direction:column;
+  animation:searchOverlayIn 0.22s ease;
 }
-#stickyCallBar.show{display:block}
-.sticky-call-btn{
-  pointer-events:auto;
+#searchOverlay.open{display:flex}
+@keyframes searchOverlayIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.search-overlay-header{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 14px calc(10px + env(safe-area-inset-top));
+  padding-top:calc(14px + env(safe-area-inset-top));
+  border-bottom:1px solid var(--brand-border);
+  flex-shrink:0;
+  background:var(--brand-bg);
+}
+.search-overlay-back{
+  width:36px;height:36px;
+  border-radius:50%;
+  background:transparent;
+  border:1px solid var(--brand-border);
+  color:var(--brand-text);
   display:flex;align-items:center;justify-content:center;
-  width:52px;height:52px;
+  font-size:18px;cursor:pointer;
+  transition:background var(--transition);
+  flex-shrink:0;
+}
+.search-overlay-back:active{background:var(--brand-surface)}
+.search-overlay-input-wrap{
+  flex:1;
+  background:var(--brand-surface);
+  border:1px solid var(--brand-border);
+  border-radius:22px;
+  padding:8px 14px;
+  display:flex;align-items:center;gap:8px;
+}
+.search-overlay-input-wrap:focus-within{border-color:var(--brand-accent)}
+.search-overlay-icon{font-size:14px;opacity:0.5;flex-shrink:0;font-weight:600}
+#searchInput{flex:1;border:none;background:none;font-family:inherit;font-size:14px;color:var(--brand-text);outline:none;min-width:0;}
+#searchInput::placeholder{color:var(--brand-text-muted)}
+#searchClear{font-size:14px;opacity:0.4;display:none;padding:2px;background:none;border:none;color:var(--brand-text-muted);cursor:pointer;flex-shrink:0;}
+#searchClear.show{display:block}
+#searchClear:active{opacity:0.8}
+.search-overlay-results{
+  flex:1;
+  overflow-y:auto;
+  padding:6px 12px 16px;
+}
+.search-overlay-empty{
+  text-align:center;
+  padding:60px 20px;
+  color:var(--brand-text-muted);
+  font-size:13px;
+}
+.search-overlay-empty-emoji{font-size:48px;opacity:0.2;margin-bottom:12px;}
+.search-overlay-result-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 6px;
+  border-bottom:1px solid var(--brand-border);
+  cursor:pointer;
+  transition:background var(--transition);
+}
+.search-overlay-result-item:active{background:var(--brand-surface)}
+.search-overlay-result-img{
+  width:44px;height:44px;
+  border-radius:9px;
+  background:var(--brand-bg);
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.search-overlay-result-img img{width:100%;height:100%;object-fit:cover}
+.search-overlay-result-img-ph{font-size:18px;opacity:0.4}
+.search-overlay-result-info{flex:1;min-width:0;}
+.search-overlay-result-name{font-size:13px;font-weight:500;color:var(--brand-text);line-height:1.2;}
+.search-overlay-result-desc{font-size:11px;color:var(--brand-text-muted);margin-top:2px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;}
+.search-overlay-result-price{font-size:12px;color:var(--brand-text);opacity:0.7;font-weight:500;flex-shrink:0;font-feature-settings:"tnum";}
+mark.search-match{background:rgba(233,69,96,0.25);color:var(--brand-accent);padding:0 2px;border-radius:2px;}
+body.theme-dark mark.search-match{color:#ff6b8a}
+
+/* v1.11 · stickyCallBar (FAB flottante) RIMOSSO.
+   La campanella vive ora come FAB integrato CENTRALE nella bottom-nav.
+   I selettori .sticky-call-* sono conservati ma non più montati nel DOM. */
+@keyframes fabPulse{
+  0%,100%{box-shadow:0 6px 16px rgba(233,69,96,0.35)}
+  50%{box-shadow:0 6px 22px rgba(233,69,96,0.6)}
+}
+
+/* v1.11 · BOTTOM NAV nuovo · 3 voci con FAB centrale rialzato (Llamar) */
+#bottomNav{position:fixed;bottom:0;left:0;right:0;background:var(--brand-surface);border-top:1px solid var(--brand-border);padding:8px 0 calc(12px + env(safe-area-inset-bottom));z-index:100;}
+.bnav-inner{display:flex;align-items:flex-end;justify-content:space-around;max-width:480px;margin:0 auto;}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 8px;background:transparent;border:none;border-radius:8px;font-family:inherit;font-size:10px;font-weight:500;color:var(--brand-text-muted);transition:color var(--transition);cursor:pointer;}
+.bnav-btn.active{color:var(--brand-accent)}
+.bnav-icon{font-size:20px;line-height:1}
+/* FAB integrato centrale */
+.bnav-fab-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;}
+.bnav-fab{
+  width:56px;height:56px;
   border-radius:50%;
   background:var(--brand-accent);
+  border:4px solid var(--brand-surface);
   color:#fff;
-  border:none;cursor:pointer;
-  box-shadow:0 8px 22px rgba(233,69,96,0.5), 0 0 0 4px rgba(233,69,96,0.12);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  margin-top:-22px;margin-bottom:2px;
+  box-shadow:0 6px 16px rgba(233,69,96,0.35);
+  animation:fabPulse 2.4s ease-in-out infinite;
   transition:transform var(--transition);
-  animation:fabPulse 2.5s ease-in-out infinite;
+  position:relative;
+  padding:0;
 }
-.sticky-call-btn:active{transform:scale(0.92)}
-.sticky-call-btn-icon{font-size:22px}
-.sticky-call-btn-text{display:none}
-@keyframes fabPulse{
-  0%,100%{box-shadow:0 8px 22px rgba(233,69,96,0.5), 0 0 0 4px rgba(233,69,96,0.12)}
-  50%{box-shadow:0 8px 22px rgba(233,69,96,0.5), 0 0 0 10px rgba(233,69,96,0.04)}
-}
-body.theme-dark .sticky-call-btn{
-  box-shadow:0 8px 24px rgba(233,69,96,0.6), 0 0 0 4px rgba(233,69,96,0.18);
-}
-body.theme-dark @keyframes fabPulse{
-  0%,100%{box-shadow:0 8px 24px rgba(233,69,96,0.6), 0 0 0 4px rgba(233,69,96,0.18)}
-  50%{box-shadow:0 8px 24px rgba(233,69,96,0.6), 0 0 0 10px rgba(233,69,96,0.06)}
-}
-#bottomNav{position:fixed;bottom:0;left:0;right:0;background:var(--brand-surface);border-top:1px solid var(--brand-border);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:100;}
-.bnav-inner{display:flex;align-items:center;justify-content:space-around;max-width:480px;margin:0 auto;}
-.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 16px;border-radius:8px;font-size:10px;font-weight:500;color:var(--brand-text-muted);transition:color var(--transition);}
-.bnav-btn.active{color:var(--brand-accent)}
-.bnav-icon{font-size:20px}
+.bnav-fab:active{transform:scale(0.92)}
+.bnav-fab-icon{font-size:24px;line-height:1}
+.bnav-fab-label{font-size:10px;font-weight:600;color:var(--brand-accent);letter-spacing:0.3px;}
+body.theme-dark .bnav-fab-label{color:#ff6b8a}
+body.theme-dark .bnav-fab{border-color:var(--brand-surface)}
 #mesaBadge{
   display:none;
   height:28px;padding:0 10px;border-radius:14px;
@@ -515,6 +636,10 @@ body.theme-dark @keyframes fabPulse{
       <div class="brand-logo-text" id="brandLogoText">●&nbsp;Menú</div>
     </div>
     <div class="header-right">
+      <!-- v1.11 · lente search nell'header (sostituisce search bar sticky) -->
+      <button class="header-search-btn" id="headerSearchBtn" onclick="openSearchOverlay()" aria-label="Buscar" data-i18n-aria="nav_search">
+        <span class="header-search-icon">⌕</span>
+      </button>
       <div id="mesaBadge"><span class="mesa-icon">🪑</span><span id="mesaNum">–</span></div>
       <button class="lang-btn" id="langBtn" onclick="toggleLangMenu()" aria-label="Cambia idioma">
         <span class="lang-flag" id="langFlag">🌐</span>
@@ -537,15 +662,20 @@ body.theme-dark @keyframes fabPulse{
 <!-- ── MACRO-GROUPS ── -->
 <div id="groupBar"><div class="group-grid" id="groupGrid"></div></div>
 
-<!-- ── SEARCH ── -->
-<div id="searchBarWrap" style="position:sticky;top:104px;z-index:97;background:var(--brand-surface);border-bottom:1px solid var(--brand-border);box-shadow:0 2px 4px rgba(0,0,0,0.04)">
-  <div style="max-width:480px;margin:0 auto;padding:10px 16px">
-    <div class="search-inner">
-      <span class="search-icon">🔍</span>
-      <input type="search" id="searchInput" autocomplete="off">
-      <button id="searchClear" onclick="clearSearch()">✕</button>
+<!-- v1.11 · ex searchBarWrap sticky · RIMOSSO. Search ora vive in overlay full-screen
+     attivato da #headerSearchBtn. Recuperati ~50px verticali = mezza card in più. -->
+
+<!-- ── SEARCH OVERLAY (v1.11 · full-screen) ── -->
+<div id="searchOverlay">
+  <div class="search-overlay-header">
+    <button class="search-overlay-back" onclick="closeSearchOverlay()" aria-label="Cerrar búsqueda">←</button>
+    <div class="search-overlay-input-wrap">
+      <span class="search-overlay-icon">⌕</span>
+      <input type="search" id="searchInput" autocomplete="off" placeholder="Buscar...">
+      <button id="searchClear" onclick="clearSearch()" aria-label="Limpiar">✕</button>
     </div>
   </div>
+  <div class="search-overlay-results" id="searchOverlayResults"></div>
 </div>
 
 <!-- ── CATEGORY TABS ── -->
@@ -583,25 +713,21 @@ body.theme-dark @keyframes fabPulse{
   </div>
 </div>
 
-<!-- ── FAB CHIAMA CAMERIERE (v1.10) ── -->
-<!-- Floating Action Button in basso destra · sostituisce sticky-call-bar full-width
-     che divorava 80px di altezza coprendo le card. Ora è solo icona 52×52, sopra
-     la bottom-nav, con animazione pulse discreta. -->
-<div id="stickyCallBar">
-  <button class="sticky-call-btn" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero" data-i18n-aria="call_waiter_btn">
-    <span class="sticky-call-btn-icon">🔔</span>
-  </button>
-</div>
+<!-- v1.11 · stickyCallBar (FAB flottante in basso-dx) · RIMOSSO.
+     La campanella vive ora come FAB integrato CENTRALE nella bottom-nav. -->
 
-<!-- ── BOTTOM NAV ── -->
+<!-- ── BOTTOM NAV (v1.11 · 3 voci con FAB centrale Llamar) ── -->
 <div id="bottomNav">
   <div class="bnav-inner">
     <button class="bnav-btn active" onclick="scrollToTop()">
       <span class="bnav-icon">🏠</span><span data-i18n="nav_menu">Menú</span>
     </button>
-    <button class="bnav-btn" id="btnBuscar" onclick="focusSearch()">
-      <span class="bnav-icon">🔍</span><span data-i18n="nav_search">Buscar</span>
-    </button>
+    <div class="bnav-fab-wrap">
+      <button class="bnav-fab" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero" data-i18n-aria="call_waiter_btn">
+        <span class="bnav-fab-icon">🔔</span>
+      </button>
+      <span class="bnav-fab-label" data-i18n="nav_call">Llamar</span>
+    </div>
     <button class="bnav-btn" onclick="showToastMsg(getLang('scan_member'))">
       <span class="bnav-icon">💳</span><span data-i18n="nav_club">Club</span>
     </button>
@@ -701,7 +827,7 @@ let CURRENT_DJ_BKS = {
 const TRANSLATIONS = {
   es:{
     loading:'Cargando menú...',
-    nav_menu:'Menú', nav_search:'Buscar', nav_club:'Club',
+    nav_menu:'Menú', nav_search:'Buscar', nav_club:'Club', nav_call:'Llamar',
     all_day:'Todo el día',
     breakfast:'Desayuno', lunch:'Almuerzo', snack:'Merienda', dinner:'Cena',
     agotado:'Agotado', nuevo:'Nuevo', popular:'Popular',
@@ -731,7 +857,7 @@ const TRANSLATIONS = {
     // v1.10 · rhythm + toast i18n
     rhythm_filter_on:'🔥 Filtro de ritmo activo',
     rhythm_filter_off:'✦ Todo el menú visible',
-    rhythm_none:'◯ Sin ritmo activo · explora libremente',
+    rhythm_none:'◯ El ritmo aparece en su momento · relájate y disfruta',
     rhythm_no_products:'🔥 {nombre} · sin productos · pídele al mesero',
     rhythm_btn_filter:'✦ Filtro',
     coming_soon:'Próximamente · Pedir directo',
@@ -740,7 +866,7 @@ const TRANSLATIONS = {
   },
   en:{
     loading:'Loading menu...',
-    nav_menu:'Menu', nav_search:'Search', nav_club:'Club',
+    nav_menu:'Menu', nav_search:'Search', nav_club:'Club', nav_call:'Call',
     all_day:'All day',
     breakfast:'Breakfast', lunch:'Lunch', snack:'Snack', dinner:'Dinner',
     agotado:'Sold out', nuevo:'New', popular:'Popular',
@@ -768,7 +894,7 @@ const TRANSLATIONS = {
     err_invalid_subtitle:'Please ask the staff for help.',
     rhythm_filter_on:'🔥 Rhythm filter on',
     rhythm_filter_off:'✦ Full menu visible',
-    rhythm_none:'◯ No active rhythm · explore freely',
+    rhythm_none:'◯ The rhythm reveals itself in time · relax and enjoy',
     rhythm_no_products:'🔥 {nombre} · no products · ask the waiter',
     rhythm_btn_filter:'✦ Filter',
     coming_soon:'Coming soon · Order directly',
@@ -777,7 +903,7 @@ const TRANSLATIONS = {
   },
   pt:{
     loading:'Carregando cardápio...',
-    nav_menu:'Cardápio', nav_search:'Buscar', nav_club:'Clube',
+    nav_menu:'Cardápio', nav_search:'Buscar', nav_club:'Clube', nav_call:'Chamar',
     all_day:'Dia todo',
     breakfast:'Café', lunch:'Almoço', snack:'Lanche', dinner:'Jantar',
     agotado:'Esgotado', nuevo:'Novo', popular:'Popular',
@@ -805,7 +931,7 @@ const TRANSLATIONS = {
     err_invalid_subtitle:'Procure a equipe do local para ajudar.',
     rhythm_filter_on:'🔥 Filtro de ritmo ativo',
     rhythm_filter_off:'✦ Cardápio completo visível',
-    rhythm_none:'◯ Sem ritmo ativo · explore livremente',
+    rhythm_none:'◯ O ritmo aparece no seu momento · relaxe e aproveite',
     rhythm_no_products:'🔥 {nombre} · sem produtos · pergunte ao garçom',
     rhythm_btn_filter:'✦ Filtro',
     coming_soon:'Em breve · Pedir diretamente',
@@ -814,7 +940,7 @@ const TRANSLATIONS = {
   },
   it:{
     loading:'Caricamento menu...',
-    nav_menu:'Menu', nav_search:'Cerca', nav_club:'Club',
+    nav_menu:'Menu', nav_search:'Cerca', nav_club:'Club', nav_call:'Chiama',
     all_day:'Tutto il giorno',
     breakfast:'Colazione', lunch:'Pranzo', snack:'Merenda', dinner:'Cena',
     agotado:'Esaurito', nuevo:'Nuovo', popular:'Popolare',
@@ -842,7 +968,7 @@ const TRANSLATIONS = {
     err_invalid_subtitle:"Rivolgiti al personale del locale per aiuto.",
     rhythm_filter_on:'🔥 Filtro ritmo attivo',
     rhythm_filter_off:'✦ Tutto il menu visibile',
-    rhythm_none:'◯ Nessun ritmo attivo · esplora liberamente',
+    rhythm_none:'◯ Il ritmo si manifesta a suo tempo · rilassati e goditelo',
     rhythm_no_products:'🔥 {nombre} · nessun prodotto · chiedi al cameriere',
     rhythm_btn_filter:'✦ Filtro',
     coming_soon:'Prossimamente · Ordina diretto',
@@ -851,7 +977,7 @@ const TRANSLATIONS = {
   },
   de:{
     loading:'Menü wird geladen...',
-    nav_menu:'Speisekarte', nav_search:'Suchen', nav_club:'Club',
+    nav_menu:'Speisekarte', nav_search:'Suchen', nav_club:'Club', nav_call:'Rufen',
     all_day:'Den ganzen Tag',
     breakfast:'Frühstück', lunch:'Mittagessen', snack:'Snack', dinner:'Abendessen',
     agotado:'Ausverkauft', nuevo:'Neu', popular:'Beliebt',
@@ -879,7 +1005,7 @@ const TRANSLATIONS = {
     err_invalid_subtitle:'Bitte an das Personal wenden.',
     rhythm_filter_on:'🔥 Rhythmus-Filter aktiv',
     rhythm_filter_off:'✦ Ganze Karte sichtbar',
-    rhythm_none:'◯ Kein aktiver Rhythmus · frei erkunden',
+    rhythm_none:'◯ Der Rhythmus kommt zur rechten Zeit · entspann dich und genieß',
     rhythm_no_products:'🔥 {nombre} · keine Produkte · frag den Kellner',
     rhythm_btn_filter:'✦ Filter',
     coming_soon:'Bald verfügbar · Direkt bestellen',
@@ -888,7 +1014,7 @@ const TRANSLATIONS = {
   },
   fr:{
     loading:'Chargement du menu...',
-    nav_menu:'Menu', nav_search:'Rechercher', nav_club:'Club',
+    nav_menu:'Menu', nav_search:'Rechercher', nav_club:'Club', nav_call:'Appeler',
     all_day:'Toute la journée',
     breakfast:'Petit-déjeuner', lunch:'Déjeuner', snack:'Goûter', dinner:'Dîner',
     agotado:'Épuisé', nuevo:'Nouveau', popular:'Populaire',
@@ -916,7 +1042,7 @@ const TRANSLATIONS = {
     err_invalid_subtitle:'Demandez au personnel du local.',
     rhythm_filter_on:'🔥 Filtre rythme actif',
     rhythm_filter_off:'✦ Menu complet visible',
-    rhythm_none:'◯ Pas de rythme actif · explorez librement',
+    rhythm_none:'◯ Le rythme arrive en son temps · détends-toi et profite',
     rhythm_no_products:'🔥 {nombre} · pas de produits · demande au serveur',
     rhythm_btn_filter:'✦ Filtre',
     coming_soon:'Bientôt · Commander directement',
@@ -925,7 +1051,7 @@ const TRANSLATIONS = {
   },
   zh:{
     loading:'菜单加载中...',
-    nav_menu:'菜单', nav_search:'搜索', nav_club:'会员',
+    nav_menu:'菜单', nav_search:'搜索', nav_club:'会员', nav_call:'呼叫',
     all_day:'全天',
     breakfast:'早餐', lunch:'午餐', snack:'下午茶', dinner:'晚餐',
     agotado:'售罄', nuevo:'新品', popular:'热门',
@@ -953,7 +1079,7 @@ const TRANSLATIONS = {
     err_invalid_subtitle:'请向工作人员求助。',
     rhythm_filter_on:'🔥 节奏筛选已开',
     rhythm_filter_off:'✦ 显示全部菜单',
-    rhythm_none:'◯ 无活动节奏 · 自由浏览',
+    rhythm_none:'◯ 节奏自有其时 · 放松享受',
     rhythm_no_products:'🔥 {nombre} · 无产品 · 询问服务员',
     rhythm_btn_filter:'✦ 筛选',
     coming_soon:'即将推出 · 直接下单',
@@ -962,7 +1088,7 @@ const TRANSLATIONS = {
   },
   ja:{
     loading:'メニュー読み込み中...',
-    nav_menu:'メニュー', nav_search:'検索', nav_club:'クラブ',
+    nav_menu:'メニュー', nav_search:'検索', nav_club:'クラブ', nav_call:'呼び出し',
     all_day:'終日',
     breakfast:'朝食', lunch:'ランチ', snack:'スナック', dinner:'夕食',
     agotado:'売り切れ', nuevo:'新着', popular:'人気',
@@ -990,7 +1116,7 @@ const TRANSLATIONS = {
     err_invalid_subtitle:'スタッフにお声がけください。',
     rhythm_filter_on:'🔥 リズムフィルター オン',
     rhythm_filter_off:'✦ メニュー全表示',
-    rhythm_none:'◯ アクティブなリズムなし · 自由に探索',
+    rhythm_none:'◯ リズムは自然に現れる · ゆったりとお楽しみください',
     rhythm_no_products:'🔥 {nombre} · 製品なし · 店員に聞く',
     rhythm_btn_filter:'✦ フィルター',
     coming_soon:'近日公開 · 直接注文',
@@ -1172,7 +1298,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('mesaBadge').classList.add('show');
     document.getElementById('mesaNum').textContent = MESA_ID;
     trackView();
-    document.getElementById('stickyCallBar').classList.add('show');
+    // v1.11 · stickyCallBar rimosso · campanella vive ora in bottom-nav (sempre visibile, no toggle)
   }
   if(MEMBER_ID) loadMember(MEMBER_ID);
 
@@ -1320,20 +1446,18 @@ function hideLoading(){
 }
 
 function updateStickyTops(){
+  // v1.11 · searchBarWrap RIMOSSO. La sticky chain è: header → fajaBar → groupBar (opz) → catSticky
   const header  = document.getElementById('header');
   const faja    = document.getElementById('fajaBar');
-  const search  = document.getElementById('searchBarWrap');
   const groups  = document.getElementById('groupBar');
   const cats    = document.getElementById('catSticky');
-  if(!header||!faja||!search||!cats) return;
+  if(!header||!faja||!cats) return;
   const h1 = header.offsetHeight;
   const h2 = faja.offsetHeight;
-  const h3 = search.offsetHeight;
-  const h4 = (groups && groups.classList.contains('show')) ? groups.offsetHeight : 0;
-  faja.style.top   = h1 + 'px';
-  search.style.top = (h1 + h2) + 'px';
-  if(groups) groups.style.top = (h1 + h2 + h3) + 'px';
-  cats.style.top   = (h1 + h2 + h3 + h4) + 'px';
+  const h3 = (groups && groups.classList.contains('show')) ? groups.offsetHeight : 0;
+  faja.style.top = h1 + 'px';
+  if(groups) groups.style.top = (h1 + h2) + 'px';
+  cats.style.top = (h1 + h2 + h3) + 'px';
 }
 
 /* ════════════════════════════════════════════════════
@@ -1363,11 +1487,10 @@ function showErrorState(error){
   document.getElementById('loadingScreen').classList.add('out');
   document.getElementById('header').style.display = 'none';
   document.getElementById('fajaBar').style.display = 'none';
-  document.getElementById('searchBarWrap').style.display = 'none';
+  // v1.11 · searchBarWrap e stickyCallBar rimossi dal DOM, non più nascosti qui
   document.getElementById('catSticky').style.display = 'none';
   document.getElementById('mainContent').style.display = 'none';
   document.getElementById('bottomNav').style.display = 'none';
-  document.getElementById('stickyCallBar').classList.remove('show');
 
   setTimeout(()=>{
     document.getElementById('loadingScreen').style.display = 'none';
@@ -1389,7 +1512,7 @@ function showInvalidLocal(){
   document.getElementById('loadingScreen').classList.add('out');
   document.getElementById('header').style.display = 'none';
   document.getElementById('fajaBar').style.display = 'none';
-  document.getElementById('searchBarWrap').style.display = 'none';
+  // v1.11 · searchBarWrap rimosso dal DOM, non più nascosto qui
   document.getElementById('catSticky').style.display = 'none';
   document.getElementById('mainContent').style.display = 'none';
   document.getElementById('bottomNav').style.display = 'none';
@@ -1664,14 +1787,14 @@ function setGroup(gk){
 function scrollToCategory(id){
   const el = document.getElementById('cat-' + id);
   if(el){
+    // v1.11 · searchBarWrap rimosso dalla sticky chain
     const header = document.getElementById('header');
     const faja   = document.getElementById('fajaBar');
-    const search = document.getElementById('searchBarWrap');
     const cats   = document.getElementById('catSticky');
     const groups = document.getElementById('groupBar');
     const groupsH = (groups && groups.classList.contains('show')) ? groups.offsetHeight : 0;
     const offset = (header?.offsetHeight||54) + (faja?.offsetHeight||50) +
-                   (search?.offsetHeight||56) + groupsH + (cats?.offsetHeight||44) + 8;
+                   groupsH + (cats?.offsetHeight||44) + 8;
     window.scrollTo({top: el.offsetTop - offset, behavior:'smooth'});
   }
   document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
@@ -1746,6 +1869,17 @@ function parsePrice(v){
 }
 
 function formatPrice(n){
+  // v1.11 · prezzo SENZA simbolo currency. Pricing psychology + meno aggressivo visivo.
+  // Il simbolo BRAND.currency_symbol resta disponibile via formatPriceWithSymbol()
+  // per usi specifici come la scheda dettaglio in caso di necessità.
+  const num = parsePrice(n);
+  if(BRAND.currency === 'CLP' || num >= 1000)
+    return num.toLocaleString('es-CL');
+  return num.toFixed(2);
+}
+
+function formatPriceWithSymbol(n){
+  // Variante con simbolo $ se servisse (es. tooltip "Total: $7.990") · NON usato nelle card.
   const s = BRAND.currency_symbol || '$';
   const num = parsePrice(n);
   if(BRAND.currency === 'CLP' || num >= 1000)
@@ -1775,25 +1909,22 @@ function renderMenu(){
   const ritmoFilterActive = RITMO_FILTER_ON && RITMO_ACTUAL && RITMO_ACTUAL.prod_ids && RITMO_ACTUAL.prod_ids.length > 0;
   const ritmoProdSet = ritmoFilterActive ? new Set(RITMO_ACTUAL.prod_ids) : null;
   const promosGroupActive = CURRENT_GROUP === '__PROMOS__';
+  // v1.11 · SEARCH_QUERY non filtra più il menu di sotto · vive isolata nell'overlay full-screen.
+  // Questo evita stati ambigui (chiudo overlay con query attiva → menu filtrato senza UI di feedback).
   FILTERED = ALL_PRODUCTS.filter(p=>{
     const inFaja = productInFaja(p);
     const inGroup = promosGroupActive
       ? !!PROD_TO_PROMO[p.id]
       : visibleCatIds.includes(p.categoria);
     const inRitmo = !ritmoFilterActive || ritmoProdSet.has(p.id);
-    const inSearch = !SEARCH_QUERY ||
-      p.nombre.toLowerCase().includes(SEARCH_QUERY) ||
-      p.descripcion.toLowerCase().includes(SEARCH_QUERY) ||
-      (p.badges||'').toLowerCase().includes(SEARCH_QUERY);
-    return inFaja && inGroup && inRitmo && inSearch;
+    return inFaja && inGroup && inRitmo;
   });
   if(FILTERED.length === 0){
     wrap.innerHTML = '';
     const empty = document.getElementById('emptyState');
     empty.classList.add('show');
     let msg;
-    if(SEARCH_QUERY){ msg = getLang('search_empty') + ' "' + SEARCH_QUERY + '"'; }
-    else if(ritmoFilterActive){ msg = getLang('rhythm_no_products').replace('{nombre}', RITMO_ACTUAL.nombre); }
+    if(ritmoFilterActive){ msg = getLang('rhythm_no_products').replace('{nombre}', RITMO_ACTUAL.nombre); }
     else { msg = getLang('no_products'); }
     document.getElementById('emptyText').textContent = msg;
     document.getElementById('catSticky').style.display = 'none';
@@ -1844,7 +1975,7 @@ function renderProductCard(p){
     ? `<span class="badge" style="background:rgba(251,191,36,0.22);color:#d97706;font-weight:700">🎁 ${promo.nombre}</span>`
     : '';
   const promoFlag = promo
-    ? `<div style="position:absolute;top:2px;left:2px;background:#fbbf24;color:#000;padding:1px 4px;border-radius:4px;font-size:7px;font-weight:700;letter-spacing:0.3px;z-index:2;line-height:1.2">🎁</div>`
+    ? `<div style="position:absolute;top:-3px;left:-3px;background:#fbbf24;color:#000;padding:2px 5px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:0.3px;z-index:3;line-height:1;border:2px solid var(--brand-surface)">🎁</div>`
     : '';
   const promoClass = promo ? ' has-promo' : '';
   const promoPriceMain = promo ? formatPrice(promo.precio_final) : prices.main;
@@ -1852,29 +1983,23 @@ function renderProductCard(p){
   const badgesHtml = (promo || badges)
     ? `<div class="card-badges">${promoBadge}${badges || ''}</div>`
     : '';
-  // v1.10 · campanella outline integrata col prezzo (verticale a destra)
-  const ctaHtml = !p.agotado
-    ? `<button class="card-call-btn" onclick="event.stopPropagation();onCallWaiterForProduct('${p.id}')" aria-label="Llamar mesero">🔔</button>`
+  // v1.11 · dot NUEVO sull'angolo top-right della foto (sostituisce bordo verde animato)
+  const nuevoDot = isNew && !p.agotado
+    ? `<div class="card-nuevo-dot" title="${getLang('nuevo')}"></div>`
     : '';
-  const pedirHtml = !p.agotado
-    ? `<button class="card-pedir-btn" onclick="event.stopPropagation();onPedirDirecto('${p.id}')" aria-label="Pedir directo">+</button>`
-    : '';
+  // v1.11 · layout Strada C · nome+prezzo top, descrizione 2 righe sotto
   return `
     <div class="product-card${p.agotado?' agotado':''}${isNew?' nuevo-highlight':''}${promoClass}" data-id="${p.id}" onclick="openDetail('${p.id}')">
-      <div class="card-inner">
-        <div class="card-img-wrap">${imgHtml}${promoFlag}</div>
-        <div class="card-body">
-          ${badgesHtml}
+      <div class="card-img-wrap">${imgHtml}${promoFlag}${nuevoDot}</div>
+      <div class="card-body">
+        <div class="card-top-row">
           <div class="card-name${p.agotado?' agotado-text':''}">${toTitleCase(p.nombre)}</div>
-          ${p.descripcion ? `<div class="card-desc">${p.descripcion}</div>` : ''}
-        </div>
-        <div class="card-right">
-          <div class="card-price-wrap">
-            ${promoPriceOrig ? `<span class="card-price-member">${promoPriceOrig}</span>` : ''}
-            <span class="card-price"${promo?' style="color:#d97706"':''}>${promoPriceMain}</span>
+          <div class="card-price"${promo?' style="color:#d97706;font-weight:600"':''}>
+            ${promoPriceOrig ? `<span class="card-price-orig">${promoPriceOrig}</span>` : ''}${promoPriceMain}
           </div>
-          ${ctaHtml}${pedirHtml}
         </div>
+        ${p.descripcion ? `<div class="card-desc">${p.descripcion}</div>` : ''}
+        ${badgesHtml}
       </div>
       ${p.agotado ? `<div class="agotado-overlay"><span class="agotado-label">${getLang('agotado')}</span></div>` : ''}
     </div>`;
@@ -1884,7 +2009,11 @@ function openDetail(id){
   const p = ALL_PRODUCTS.find(x=>x.id===id);
   if(!p) return;
   trackProductView(p);
-  const prices  = getDisplayPrice(p);
+  // v1.11 · Nella scheda dettaglio (NON nelle card list) reintroduco simbolo $ per chiarezza.
+  // Il prezzo qui è isolato e grande · disambiguazione utile, niente sovraccarico visivo.
+  const prices = ACTIVE_MEMBER && p.precio_member
+    ? { main: formatPriceWithSymbol(p.precio_member), orig: formatPriceWithSymbol(p.precio) }
+    : { main: formatPriceWithSymbol(p.precio), orig: null };
   const badges  = buildBadges(p, true);
   const cat     = ALL_CATEGORIES.find(c=>c.id===p.categoria);
   const catEmoji= cat?.emoji || '🍽️';
@@ -1956,29 +2085,139 @@ document.getElementById('detailSheet').addEventListener('touchmove',e=>{
   if(dy > 80) closeDetail();
 },{passive:true});
 
-/* SEARCH */
+/* ════════════════════════════════════════════════════
+   v1.11 · SEARCH OVERLAY full-screen
+   ══════════════════════════════════════════════════════
+   ─ Aperto da #headerSearchBtn (lente in header)
+   ─ Chiuso da ← back button, ESC key, o search-overlay-back tap
+   ─ Risultati live filtrati mentre l'utente digita
+   ─ Tap su un risultato → chiude overlay + scrolla alla card del prodotto */
 window.addEventListener('resize', updateStickyTops);
 
 function setupSearch(){
   const inp = document.getElementById('searchInput');
+  if(!inp) return;
   inp.placeholder = getLang('search_placeholder');
   inp.addEventListener('input', e=>{
     SEARCH_QUERY = e.target.value.toLowerCase().trim();
     document.getElementById('searchClear').classList.toggle('show', SEARCH_QUERY.length > 0);
-    renderMenu();
+    renderSearchOverlayResults();
+    // v1.11 · NON chiamiamo più renderMenu() qui · la search vive isolata nell'overlay,
+    // il menu di sotto resta filtrato solo da macro-group/cat/ritmo/faja.
+  });
+  // ESC chiude overlay
+  inp.addEventListener('keydown', e=>{
+    if(e.key === 'Escape') closeSearchOverlay();
   });
 }
 
 function clearSearch(){
-  document.getElementById('searchInput').value = '';
+  const inp = document.getElementById('searchInput');
+  if(inp) inp.value = '';
   SEARCH_QUERY = '';
-  document.getElementById('searchClear').classList.remove('show');
-  renderMenu();
+  const clr = document.getElementById('searchClear');
+  if(clr) clr.classList.remove('show');
+  renderSearchOverlayResults();
+  inp && inp.focus();
 }
 
+function openSearchOverlay(){
+  const ov = document.getElementById('searchOverlay');
+  if(!ov) return;
+  ov.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  // Auto-focus + tastiera mobile
+  setTimeout(()=>{
+    const inp = document.getElementById('searchInput');
+    if(inp) inp.focus();
+  }, 80);
+  // Render iniziale (lista vuota o ultima query)
+  renderSearchOverlayResults();
+}
+
+function closeSearchOverlay(){
+  const ov = document.getElementById('searchOverlay');
+  if(!ov) return;
+  ov.classList.remove('open');
+  document.body.style.overflow = '';
+  // v1.11 · NON resettiamo SEARCH_QUERY · resta in memoria così se riapre
+  //         l'utente ritrova quello che stava cercando.
+}
+
+// retrocompat: vecchi onClick "focusSearch()" presenti in altri punti del DOM
+// (in v1.10 era usato dalla bnav-btn Buscar) → ridiretti all'overlay nuovo.
 function focusSearch(){
-  document.getElementById('searchInput').focus();
-  window.scrollTo({top:0, behavior:'smooth'});
+  openSearchOverlay();
+}
+
+function renderSearchOverlayResults(){
+  const wrap = document.getElementById('searchOverlayResults');
+  if(!wrap) return;
+  if(!SEARCH_QUERY){
+    // Stato iniziale · nessuna query
+    wrap.innerHTML = `
+      <div class="search-overlay-empty">
+        <div class="search-overlay-empty-emoji">⌕</div>
+        <div>${getLang('search_placeholder')}</div>
+      </div>`;
+    return;
+  }
+  const q = SEARCH_QUERY;
+  const matches = ALL_PRODUCTS.filter(p => {
+    if(p.agotado) return false;
+    return p.nombre.toLowerCase().includes(q) ||
+           (p.descripcion||'').toLowerCase().includes(q) ||
+           (p.badges||'').toLowerCase().includes(q);
+  }).slice(0, 30); // hard cap a 30 risultati
+
+  if(matches.length === 0){
+    wrap.innerHTML = `
+      <div class="search-overlay-empty">
+        <div class="search-overlay-empty-emoji">🔍</div>
+        <div>${getLang('search_empty')} "<strong>${escapeHtml(q)}</strong>"</div>
+      </div>`;
+    return;
+  }
+
+  wrap.innerHTML = matches.map(p => {
+    const cat = ALL_CATEGORIES.find(c=>c.id===p.categoria);
+    const catEmoji = cat?.emoji || '🍽️';
+    const imgHtml = p.imagen
+      ? `<img src="${p.imagen}" alt="" loading="lazy" onerror="this.outerHTML='<span class=\\'search-overlay-result-img-ph\\'>${catEmoji}</span>'">`
+      : `<span class="search-overlay-result-img-ph">${catEmoji}</span>`;
+    const prices = getDisplayPrice(p);
+    const nameHi = highlightMatch(toTitleCase(p.nombre), q);
+    const descHi = p.descripcion ? highlightMatch(p.descripcion, q) : '';
+    return `
+      <div class="search-overlay-result-item" onclick="onSearchResultTap('${p.id}')">
+        <div class="search-overlay-result-img">${imgHtml}</div>
+        <div class="search-overlay-result-info">
+          <div class="search-overlay-result-name">${nameHi}</div>
+          ${descHi ? `<div class="search-overlay-result-desc">${descHi}</div>` : ''}
+        </div>
+        <div class="search-overlay-result-price">${prices.main}</div>
+      </div>`;
+  }).join('');
+}
+
+function highlightMatch(text, query){
+  if(!query) return escapeHtml(text);
+  const safe = escapeHtml(text);
+  const safeQ = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return safe.replace(new RegExp('('+safeQ+')', 'ig'), '<mark class="search-match">$1</mark>');
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+function onSearchResultTap(id){
+  // 1. Chiudi overlay (ma SEARCH_QUERY resta, non resettiamo)
+  closeSearchOverlay();
+  // 2. Apri direttamente la scheda dettaglio del prodotto
+  setTimeout(()=>openDetail(id), 220);
 }
 
 /* LANGUAGE */
