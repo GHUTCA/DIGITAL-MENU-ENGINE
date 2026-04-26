@@ -350,10 +350,11 @@ body.theme-dark .faja-scroll{display:none}
    Vedi sezione "SEARCH OVERLAY" nel CSS più sotto. */
 
 /* ══════════════════════════════════════════ MACRO-GROUPS ══════════════════════════════════════════ */
-/* v1.11 iter 2 fix · #groupBar sticky in catena · z-index 97 (sotto faja=98, sopra cat=96)
-   Top default 104px (header 54 + faja 50) poi ricalibrato da updateStickyTops in JS.
-   Senza top esplicito CSS, position:sticky si comporta come relative e il bug ritorna. */
-#groupBar{display:none;position:sticky;top:104px;z-index:97;background:var(--group-bg);border-bottom:1px solid var(--brand-border);padding:12px 16px;max-width:480px;margin:0 auto;}
+/* v1.11 iter 2 · #groupBar NON sticky · scrolla via durante scroll content (decisione UX:
+   le macro-groups sono navigazione di alto livello, non servono incollate sempre.
+   Il bug di "card mezze visibili sotto cat-tabs" è risolto dal bg solido + fade-mask
+   della cat-sticky stessa, NON dal rendere sticky il groupBar). */
+#groupBar{display:none;background:var(--group-bg);border-bottom:1px solid var(--brand-border);padding:12px 16px;max-width:480px;margin:0 auto;}
 #groupBar.show{display:block}
 .group-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .group-grid.g-2{grid-template-columns:repeat(2,1fr)}
@@ -373,8 +374,10 @@ body.theme-dark .group-chip.disabled{opacity:0.35}
 /* v1.11 · padding-bottom ridotto: il FAB ora vive DENTRO bottom-nav, non più flottante esterno.
    80px = bottom-nav reale (~70px con FAB rialzato) + 10px respiro sotto ultima card. */
 #mainContent{max-width:480px;margin:0 auto;padding-bottom:80px;}
-/* v1.11 iter 2 fix · cat-sticky · top iniziale 104px (header 54 + faja 50 stimato)
-   poi aggiustato dinamicamente da updateStickyTops() in JS. z-index 96 (sotto groupBar=97) */
+/* v1.11 iter 2 fix · cat-sticky · top 104px (header 54 + faja 50)
+   Ricalibrato da updateStickyTops() in JS quando groupBar è visibile.
+   IMPORTANTE: bg deve essere SOLIDO (non semitrasparente) altrimenti le macro-groups
+   che scrollano sotto si vedono attraverso. */
 .cat-sticky{position:sticky;top:104px;z-index:96;background:var(--brand-surface);border-bottom:1px solid var(--brand-border);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
 .cat-sticky::before{
   content:'';
@@ -389,17 +392,20 @@ body.theme-dark .group-chip.disabled{opacity:0.35}
 .cat-tab{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:10px 12px;font-size:12px;font-weight:500;color:var(--brand-text-muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all var(--transition);}
 .cat-tab.active{color:var(--brand-primary);border-bottom-color:var(--brand-accent);}
 .cat-tab-emoji{font-size:14px}
-/* v1.11 iter 2 · DARK MODE · cat-tabs distaccate dal nero del bg con surface medio + bordo top sottile */
+/* v1.11 iter 2 · DARK MODE · cat-sticky con bg solido che copre macro-groups in scroll
+   + bordo top accent per stacco dal nero come richiesto da Alberto */
 body.theme-dark .cat-sticky{
   background: var(--brand-surface);
   border-top: 1px solid var(--brand-border);
   border-bottom: 1px solid var(--brand-border);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
 }
+/* fade-mask più aggressivo · 20px gradient da bg trasparente a surface solido
+   maschera il momento in cui le macro-groups scivolano sotto la barra cat */
 body.theme-dark .cat-sticky::before{
-  background: linear-gradient(to bottom, transparent, var(--brand-bg) 30%, var(--brand-surface));
-  height: 16px;
-  top: -16px;
+  background: linear-gradient(to bottom, transparent, var(--brand-bg) 50%, var(--brand-surface));
+  height: 20px;
+  top: -20px;
 }
 /* v1.10 · Cat header compatto · breadcrumb invece di titolone serif */
 .cat-header{padding:8px 16px 4px;display:flex;align-items:center;gap:6px;}
@@ -1871,9 +1877,6 @@ function renderGroups(){
   }
   grid.innerHTML = html;
   wrap.classList.add('show');
-  // v1.11 iter 2 fix · ricalibra cat-sticky top dopo che groupBar è visible+misurabile
-  // (prima groupBar.offsetHeight era 0 perché display:none)
-  updateStickyTops();
 }
 
 function setGroup(gk){
