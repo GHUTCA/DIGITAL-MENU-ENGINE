@@ -229,9 +229,13 @@ a{text-decoration:none;color:inherit}
 /* v1.10 · rhythm-label rimossa dal flow visibile · resta solo per fallback se serve in futuro */
 body.theme-dark .rhythm-label{display:none}
 /* v1.10 · Waveform variante B · 22px · 24 barre · drop-shadow potenziato · firma musicale del momento */
-.rhythm-waveform{display:none;align-items:flex-end;gap:2px;height:22px;padding:6px 16px 10px;max-width:480px;margin:0 auto;}
+/* v1.10 · Waveform mobile-first · 20 barre più solide · variante B+
+   Su mobile (380px) le barre 2-3px sparivano per sub-pixel rendering.
+   Soluzione: meno barre + più larghe + gap maggiore + meno glow.
+   Risultato: barre visibili su mobile, eleganti su desktop. */
+.rhythm-waveform{display:none;align-items:flex-end;gap:3px;height:24px;padding:8px 16px 12px;max-width:480px;margin:0 auto;}
 body.theme-dark .rhythm-waveform{display:flex}
-.wf-bar{flex:1;min-width:2px;background:linear-gradient(to top,var(--brand-accent),rgba(233,69,96,0.45));border-radius:2px;filter:drop-shadow(0 0 3px rgba(233,69,96,0.6));transform-origin:bottom;animation:pulse 0.6s ease-in-out infinite}
+.wf-bar{flex:1;min-width:4px;background:linear-gradient(to top,var(--brand-accent) 0%,var(--brand-accent) 60%,rgba(233,69,96,0.55) 100%);border-radius:2px;filter:drop-shadow(0 0 2px rgba(233,69,96,0.7));transform-origin:bottom;animation:pulse 0.6s ease-in-out infinite}
 @keyframes pulse{0%,100%{transform:scaleY(0.55)}50%{transform:scaleY(1)}}
 .faja-scroll{display:flex;gap:8px;padding:10px 16px;overflow-x:auto;scrollbar-width:none;max-width:480px;margin:0 auto;}
 /* v1.10 · faja-scroll nascosto su BKS (dark mode) · il Ritmo è il vero filtro temporale · su PINSA invariato */
@@ -599,8 +603,14 @@ const RHYTHM_SLOGANS_BKS = {
   'BPM_124': 'La noche prende.',
 };
 
-/* v1.10 · DJ del momento · placeholder hardcoded per S3
+/* v1.10 · DJ del momento · default: "Comandante DJ" come padrone di casa
    ──────────────────────────────────────────────────────────────
+   "Comandante DJ" è il nome scenico del curatore commerciale della serata
+   BKS — chi sceglie cocktail e musica nelle ore senza un DJ ospite.
+   Diventa identità riconoscibile del brand BKS: come Mickey Mouse per Disney.
+   Quando un DJ reale suona (es. Tomás Vega vener\u00ec sera), il backend
+   DJS_AGENDA sostituirà questo default col nome reale per la fascia oraria.
+
    TODO-S4-02 · Backend definitivo: tab DJS_AGENDA in Sheet MENU_BKS
    con calendario settimanale (Dia · Hora_Inicio · Hora_Fin · DJ_Nombre
    · DJ_Foto_URL opt · Notas). GAS expose action=getDJActual che
@@ -609,7 +619,7 @@ const RHYTHM_SLOGANS_BKS = {
    vediamo il design vivere prima di costruire il backend.
    ────────────────────────────────────────────────────────────── */
 let CURRENT_DJ_BKS = {
-  nombre: 'Tomás Vega',
+  nombre: 'Comandante DJ',
   hasta:  null,
 };
 
@@ -1120,8 +1130,9 @@ function purgeOldLangKey(){
 function initWaveform(){
   const wf = document.getElementById('rhythmWaveform');
   if(!wf) return;
-  // 24 altezze in % · pattern audio-like (asimmetrico, varia sopra/sotto media)
-  const heights = [55,78,42,90,60,72,48,82,58,75,40,68,86,52,70,45,62,80,55,73,50,78,42,65];
+  // v1.10 · 20 barre (era 24) · più larghe e visibili su mobile
+  // Pattern audio-like (asimmetrico) — alterna picchi e valli per sembrare onda reale
+  const heights = [55,82,42,90,65,72,48,86,58,75,40,68,80,52,70,45,62,88,55,73];
   const html = heights.map((h,i) => {
     const delay = (i * 0.04).toFixed(2);
     return `<div class="wf-bar" style="height:${h}%;animation-delay:${delay}s"></div>`;
@@ -2025,12 +2036,12 @@ function renderRhythmBar(){
     chipBar.innerHTML = `
       <div style="font-size:9px;color:rgba(255,255,255,0.45);letter-spacing:3px;text-transform:uppercase;font-weight:500;margin-bottom:8px">♪ BKS Rhythm</div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:nowrap">
-        <!-- Sx · Comandante DJ con disco rotante -->
+        <!-- Sx · Comandante DJ con disco rotante · v1.10 · "Comandante DJ" è il nome del curatore della serata · TODO-S4-02 sostituito da DJ reale quando suona -->
         <div style="display:flex;align-items:center;gap:7px;flex-shrink:0;min-width:0">
           <div class="dj-disc" aria-hidden="true"></div>
           <div style="line-height:1.2;min-width:0">
-            <div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600">Comandante DJ</div>
-            <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">${djName}</div>
+            <div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600">DJ</div>
+            <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${djName}</div>
           </div>
         </div>
         <!-- Centro · slogan in corsivo coi puntini sospensivi -->
@@ -2044,7 +2055,7 @@ function renderRhythmBar(){
       </div>`;
   }
 
-  // Waveform · animazione a BPM reale (invariato dalla v1.7)
+  // v1.10 · Waveform animazione a BPM reale · stagger ricalibrato per 20 barre
   const wf = fajaBar.querySelector('.rhythm-waveform');
   if(wf){
     const bpm = RITMO_ACTUAL ? RITMO_ACTUAL.bpm : 0;
@@ -2052,7 +2063,7 @@ function renderRhythmBar(){
       const dur = (60 / bpm).toFixed(3) + 's';
       wf.querySelectorAll('.wf-bar').forEach((bar, i) => {
         bar.style.animationDuration = dur;
-        bar.style.animationDelay = (i * (60/bpm) / 16).toFixed(3) + 's';
+        bar.style.animationDelay = (i * (60/bpm) / 20).toFixed(3) + 's';
       });
     } else {
       wf.querySelectorAll('.wf-bar').forEach(bar => {
