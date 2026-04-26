@@ -17,6 +17,9 @@
      - AGGIUNTO: retry con backoff su getConfig (timeout 10s × 3 tentativi)
      - AGGIUNTO: showErrorState() = UI errore con brand corretto + Reintentar
      - AGGIUNTO: showInvalidLocal() = UI errore QR malformato
+     - AGGIUNTO: purgeOldLangKey() + chiave 'menu_lang_user_choice'
+       (lingua spagnolo SEMPRE all'avvio · localStorage solo per scelta
+        esplicita utente · brand.default_lang vince post-fetch GAS)
      - PRESERVATO: tutto il resto (card v1.7, ritmi, promos, llamar mesero)
      ════════════════════════════════════════════════════════════════════ -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
@@ -509,7 +512,12 @@ const LOCAL_RAW  = URL_PARAMS.get('local') || '';
 const LOCAL_ID   = LOCAL_RAW.toUpperCase();   // sempre UPPERCASE per match GAS
 const MESA_ID    = URL_PARAMS.get('mesa')  || null;
 const MEMBER_ID  = URL_PARAMS.get('member')|| null;
-let   LANG_CODE  = URL_PARAMS.get('lang')  || localStorage.getItem('menu_lang') || 'es';
+// v1.10 · Lingua all'avvio: spagnolo SEMPRE come default, ignorando localStorage.
+// Eccezione: ?lang=xx in URL = scelta deliberata di chi ha fatto il QR (vince).
+// localStorage viene riconsiderato SOLO quando il GAS torna brand.default_lang
+// (vedi loadFromSheet) e ricerca chiave nuova 'menu_lang_user_choice' che è
+// scritta solo da setLang() = click esplicito utente sul selettore lingua.
+let   LANG_CODE  = URL_PARAMS.get('lang') || 'es';
 
 // GAS endpoint — URL invariata da v1.7 (deployment esistente)
 const GAS_URL = URL_PARAMS.get('gas') ||
@@ -848,8 +856,22 @@ function applyBrand(b){
     faviconTag.href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='${col}'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>${enc}</text></svg>`;
   }
   document.getElementById('ldBrand').innerHTML = `<span>${BRAND.logo_emoji}</span> ${BRAND.name}`;
-  if(!URL_PARAMS.get('lang') && !localStorage.getItem('menu_lang')){
-    LANG_CODE = BRAND.default_lang || 'es';
+  // v1.10 · Risoluzione lingua post-brand:
+  //   1. ?lang=xx URL (deliberato chi ha fatto il QR) — vince su tutto
+  //   2. localStorage 'menu_lang_user_choice' — scelta esplicita cliente
+  //   3. brand.default_lang dal GAS — lingua predefinita del locale
+  //   4. 'es' fallback finale
+  const urlLang = URL_PARAMS.get('lang');
+  let userChoice = null;
+  try { userChoice = localStorage.getItem('menu_lang_user_choice'); } catch(e){}
+  if(urlLang && TRANSLATIONS[urlLang]){
+    LANG_CODE = urlLang;
+  } else if(userChoice && TRANSLATIONS[userChoice]){
+    LANG_CODE = userChoice;
+  } else if(BRAND.default_lang && TRANSLATIONS[BRAND.default_lang]){
+    LANG_CODE = BRAND.default_lang;
+  } else {
+    LANG_CODE = 'es';
   }
 }
 
@@ -884,6 +906,11 @@ const SPLASH_DEFAULT = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // 0) v1.10 · Migrazione lingua: cancello la chiave vecchia 'menu_lang'
+  //    che contiene valori inquinati da test precedenti (it/de/etc).
+  //    La nuova chiave 'menu_lang_user_choice' viene scritta SOLO da setLang().
+  purgeOldLangKey();
+
   // 1) Splash neutro IMMEDIATO (mai brand sbagliato)
   applyBrand(SPLASH_DEFAULT);
   showSkeletons();
@@ -935,6 +962,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   startRhythmPolling();
   hideLoading();
 });
+
+/* ════════════════════════════════════════════════════
+   v1.10 · purgeOldLangKey — pulizia chiave lingua legacy
+   ════════════════════════════════════════════════════ */
+function purgeOldLangKey(){
+  // La chiave vecchia 'menu_lang' veniva scritta su QUALSIASI cambio lingua
+  // anche durante test interni. Risultato: telefoni che mostrano italiano
+  // o tedesco al posto dello spagnolo a sessioni successive.
+  // La rimuoviamo. La nuova chiave 'menu_lang_user_choice' è scritta SOLO
+  // da setLang() = click esplicito utente sul selettore in UI.
+  try {
+    if(localStorage.getItem('menu_lang') !== null){
+      localStorage.removeItem('menu_lang');
+      console.log('[v1.10] purgeOldLangKey: chiave legacy rimossa');
+    }
+  } catch(e){ /* localStorage indisponibile (incognito strict) — silent */ }
+}
 
 /* ════════════════════════════════════════════════════
    v1.10 · validateLocal — fail-fast su QR malformato
@@ -1714,7 +1758,9 @@ document.addEventListener('click', e=>{
 
 function setLang(code){
   LANG_CODE = code;
-  localStorage.setItem('menu_lang', code);
+  // v1.10 · Chiave nuova 'menu_lang_user_choice': scelta esplicita utente.
+  // La chiave vecchia 'menu_lang' è stata rimossa al boot (purgeOldLangKey).
+  try { localStorage.setItem('menu_lang_user_choice', code); } catch(e){}
   document.getElementById('langDropdown').classList.remove('open');
   document.documentElement.lang = code;
   applyLang();
