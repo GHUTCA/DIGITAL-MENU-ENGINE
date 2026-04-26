@@ -20,6 +20,12 @@
      - AGGIUNTO: purgeOldLangKey() + chiave 'menu_lang_user_choice'
        (lingua spagnolo SEMPRE all'avvio · localStorage solo per scelta
         esplicita utente · brand.default_lang vince post-fetch GAS)
+     - DESIGN FIX (4 in 1):
+       1. Faja-tabs nascoste su BKS (theme-dark) · su PINSA invariate
+       2. Waveform 10px → 22px variante B · 24 barre fitte · drop-shadow
+       3. Slogan emotivo BKS (Empieza piola/Bacán acá/Acá se arma/La noche
+          prende) sostituisce chip dato tecnico · solo ES cilenismi
+       4. Hero compatto · label '♪ BKS RHYTHM' rimossa · BPM micro firma
      - PRESERVATO: tutto il resto (card v1.7, ritmi, promos, llamar mesero)
      ════════════════════════════════════════════════════════════════════ -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
@@ -106,8 +112,7 @@ body.theme-dark .lang-dropdown { background: var(--brand-surface); border-color:
 body.theme-dark #groupBar { border-bottom-color: rgba(255,255,255,0.08) }
 body.theme-dark .group-chip { border: 1px solid transparent; }
 body.theme-dark .group-chip.active { background: var(--brand-accent); border-color: rgba(255,255,255,0.1); box-shadow: 0 4px 16px rgba(233,69,96,0.35); }
-body.theme-dark .rhythm-waveform { height: 22px; gap: 3px; padding: 8px 16px 10px; }
-body.theme-dark .wf-bar { min-width: 3px; }
+/* v1.10 · waveform unificato a 22px (variante B) — base CSS gestisce già altezza/gap/min-width */
 
 .group-chip-promos { background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(233,69,96,0.15)) !important; border: 1px solid rgba(251,191,36,0.35) !important; animation: goldPulse 2.5s ease-in-out infinite; }
 .group-chip-promos.active { background: linear-gradient(135deg, #fbbf24, #d97706) !important; color: #fff !important; border-color: #fbbf24 !important; animation: none; }
@@ -193,19 +198,16 @@ a{text-decoration:none;color:inherit}
 /* ══════════════════════════════════════════ FAJA / RHYTHM ══════════════════════════════════════════ */
 #fajaBar{position:sticky;top:54px;z-index:98;background:var(--rhythm-bg);border-bottom:1px solid var(--brand-border);overflow:hidden;box-shadow:0 1px 0 var(--brand-border);}
 .rhythm-label{font-size:9px;color:var(--rhythm-label);letter-spacing:2px;text-transform:uppercase;padding:8px 16px 0;max-width:480px;margin:0 auto;display:none;}
-body.theme-dark .rhythm-label{display:block}
-.rhythm-waveform{display:none;align-items:flex-end;gap:2px;height:10px;padding:6px 16px 8px;max-width:480px;margin:0 auto;}
+/* v1.10 · rhythm-label rimossa dal flow visibile · resta solo per fallback se serve in futuro */
+body.theme-dark .rhythm-label{display:none}
+/* v1.10 · Waveform variante B · 22px · 24 barre · drop-shadow potenziato · firma musicale del momento */
+.rhythm-waveform{display:none;align-items:flex-end;gap:2px;height:22px;padding:6px 16px 10px;max-width:480px;margin:0 auto;}
 body.theme-dark .rhythm-waveform{display:flex}
-.wf-bar{flex:1;background:var(--brand-accent);border-radius:1px;animation:pulse 2s ease-in-out infinite}
-.wf-bar:nth-child(2){animation-delay:0.1s}
-.wf-bar:nth-child(3){animation-delay:0.2s}
-.wf-bar:nth-child(4){animation-delay:0.3s}
-.wf-bar:nth-child(5){animation-delay:0.4s}
-.wf-bar:nth-child(6){animation-delay:0.5s}
-.wf-bar:nth-child(7){animation-delay:0.6s}
-.wf-bar:nth-child(8){animation-delay:0.7s}
-@keyframes pulse{0%,100%{transform:scaleY(0.6)}50%{transform:scaleY(1)}}
+.wf-bar{flex:1;min-width:2px;background:linear-gradient(to top,var(--brand-accent),rgba(233,69,96,0.45));border-radius:2px;filter:drop-shadow(0 0 3px rgba(233,69,96,0.6));transform-origin:bottom;animation:pulse 0.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scaleY(0.55)}50%{transform:scaleY(1)}}
 .faja-scroll{display:flex;gap:8px;padding:10px 16px;overflow-x:auto;scrollbar-width:none;max-width:480px;margin:0 auto;}
+/* v1.10 · faja-scroll nascosto su BKS (dark mode) · il Ritmo è il vero filtro temporale · su PINSA invariato */
+body.theme-dark .faja-scroll{display:none}
 .faja-scroll::-webkit-scrollbar{display:none}
 .faja-chip{flex-shrink:0;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:0.3px;background:var(--rhythm-chip-bg);border:1.5px solid var(--brand-border);color:var(--rhythm-chip-text);transition:all var(--transition);cursor:pointer;}
 .faja-chip.active{background:var(--brand-primary);border-color:var(--brand-primary);color:#fff;}
@@ -420,12 +422,8 @@ body.theme-dark .sticky-call-btn{box-shadow:0 6px 24px rgba(233,69,96,0.5), 0 0 
 <div id="fajaBar">
   <div class="rhythm-label">♪ BKS RHYTHM</div>
   <div class="faja-scroll" id="fajaScroll"></div>
-  <div class="rhythm-waveform">
-    <div class="wf-bar" style="height:40%"></div><div class="wf-bar" style="height:65%"></div>
-    <div class="wf-bar" style="height:50%"></div><div class="wf-bar" style="height:80%"></div>
-    <div class="wf-bar" style="height:55%"></div><div class="wf-bar" style="height:70%"></div>
-    <div class="wf-bar" style="height:60%"></div><div class="wf-bar" style="height:45%"></div>
-  </div>
+  <!-- v1.10 · 24 barre generate via JS al boot (vedi initWaveform) · waveform 22px variante B -->
+  <div class="rhythm-waveform" id="rhythmWaveform"></div>
 </div>
 
 <!-- ── MACRO-GROUPS ── -->
@@ -548,6 +546,23 @@ const KNOWN_LOCALS = {
   },
   // 'RIESCO':  { name:'PINSA Riesco', logo_emoji:'🌿', ... },
   // 'EXO':     { name:'EXO',          logo_emoji:'⚡', ... },
+};
+
+/* v1.10 · BKS RHYTHM SLOGANS — copy ES cilenismi
+   ──────────────────────────────────────────────────────────────
+   Slogan emotivi 2-3 parole che identificano il momento della serata BKS.
+   Solo ES (cilenismi NON traducibili senza perdere DNA del brand).
+   Indipendenti dalla lingua dell'UI: anche con menu in IT/EN, lo slogan
+   resta in spagnolo come firma del locale.
+
+   TODO-S4-01 · Spostare in Sheet RITMOS colonna 'Mensaje_Cliente' per dare
+   al JL controllo editoriale via Sheet senza deploy frontend.
+   ────────────────────────────────────────────────────────────── */
+const RHYTHM_SLOGANS_BKS = {
+  'BPM_75':  'Empieza piola.',
+  'BPM_100': 'Bacán acá.',
+  'BPM_118': 'Acá se arma.',
+  'BPM_124': 'La noche prende.',
 };
 
 /* ════════════════════════════════════════════════════
@@ -1024,6 +1039,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   if(MEMBER_ID) loadMember(MEMBER_ID);
 
+  // v1.10 · genera 24 barre del waveform · solo per BKS (theme-dark)
+  initWaveform();
   startRhythmPolling();
   hideLoading();
 });
@@ -1043,6 +1060,25 @@ function purgeOldLangKey(){
       console.log('[v1.10] purgeOldLangKey: chiave legacy rimossa');
     }
   } catch(e){ /* localStorage indisponibile (incognito strict) — silent */ }
+}
+
+/* ════════════════════════════════════════════════════
+   v1.10 · initWaveform — 24 barre stabili pseudo-random
+   ════════════════════════════════════════════════════ */
+// Genera 24 barre per il waveform BKS. Le altezze sono pre-calcolate per dare
+// l'impressione di un'onda audio reale (alterna picchi alti e valli basse).
+// Il delay staggered su ogni barra crea l'effetto di propagazione del suono.
+// Solo theme-dark (BKS) effettivamente le mostra (CSS fa il resto).
+function initWaveform(){
+  const wf = document.getElementById('rhythmWaveform');
+  if(!wf) return;
+  // 24 altezze in % · pattern audio-like (asimmetrico, varia sopra/sotto media)
+  const heights = [55,78,42,90,60,72,48,82,58,75,40,68,86,52,70,45,62,80,55,73,50,78,42,65];
+  const html = heights.map((h,i) => {
+    const delay = (i * 0.04).toFixed(2);
+    return `<div class="wf-bar" style="height:${h}%;animation-delay:${delay}s"></div>`;
+  }).join('');
+  wf.innerHTML = html;
 }
 
 /* ════════════════════════════════════════════════════
@@ -1916,31 +1952,46 @@ function renderRhythmBar(){
   if(!chipBar){
     chipBar = document.createElement('div');
     chipBar.id = 'rhythmChipBar';
-    chipBar.style.cssText = 'display:flex;align-items:center;gap:10px;padding:6px 16px 0;max-width:480px;margin:0 auto;flex-wrap:wrap';
+    // v1.10 · padding più ariato in alto (la rhythm-label è stata rimossa, serve respiro)
+    chipBar.style.cssText = 'padding:14px 16px 4px;max-width:480px;margin:0 auto';
     const wf = fajaBar.querySelector('.rhythm-waveform');
     if(wf) fajaBar.insertBefore(chipBar, wf);
     else fajaBar.appendChild(chipBar);
   }
+
+  // v1.10 · CASO A: nessun ritmo attivo (fuori finestre orarie definite)
   if(!RITMO_ACTUAL){
     chipBar.innerHTML = `
-      <div style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:1px;font-weight:500">
+      <div style="font-size:13px;color:rgba(255,255,255,0.45);letter-spacing:0.3px;font-weight:400;font-style:italic">
         ${getLang('rhythm_none')}
       </div>`;
   } else {
+    // v1.10 · CASO B: ritmo attivo · slogan emotivo dominante + BPM micro firma + toggle ✦ All
     const r = RITMO_ACTUAL;
+    // Slogan ES indipendente dalla lingua UI · fallback al nombre ritmo se ID non mappato
+    const slogan = RHYTHM_SLOGANS_BKS[r.id] || r.nombre || r.id;
     const filterLabel = RITMO_FILTER_ON ? '✦ All' : getLang('rhythm_btn_filter');
     chipBar.innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--brand-accent),#c73050);color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;box-shadow:0 4px 16px rgba(233,69,96,0.35)">
-        <span style="font-size:14px">${r.emoji||'🎵'}</span>
-        <span>${r.nombre||r.id}</span>
-        <span style="font-family:'Consolas',monospace;font-weight:700;opacity:0.9">${r.bpm} BPM</span>
-        <span style="opacity:0.75;font-weight:500;margin-left:2px">${r.hora_inicio}–${r.hora_fin}</span>
-      </div>
-      <button id="rhythmToggleBtn" onclick="toggleRhythmFilter()"
-        style="background:rgba(255,255,255,${RITMO_FILTER_ON?'0.06':'0.18'});border:1px solid rgba(255,255,255,${RITMO_FILTER_ON?'0.18':'0.4'});color:${RITMO_FILTER_ON?'rgba(255,255,255,0.6)':'#fff'};padding:5px 11px;border-radius:18px;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all 0.2s">
-        ${filterLabel}
-      </button>`;
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:0">
+          <!-- Slogan dominante · cinematografico · Fraunces serif -->
+          <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:300;letter-spacing:-0.4px;line-height:1.1;color:#fff;margin-bottom:4px">
+            ${slogan}
+          </div>
+          <!-- Firma micro · BPM in monospace · battito vivo -->
+          <div style="font-family:'Consolas',ui-monospace,monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.4);font-weight:500">
+            ${r.bpm} BPM
+          </div>
+        </div>
+        <!-- Toggle ✦ All · piccolo, in basso a destra -->
+        <button id="rhythmToggleBtn" onclick="toggleRhythmFilter()"
+          style="background:rgba(255,255,255,${RITMO_FILTER_ON?'0.06':'0.2'});border:1px solid rgba(255,255,255,${RITMO_FILTER_ON?'0.18':'0.45'});color:${RITMO_FILTER_ON?'rgba(255,255,255,0.55)':'#fff'};padding:6px 12px;border-radius:18px;font-size:10px;font-weight:700;letter-spacing:1.2px;cursor:pointer;transition:all 0.2s;flex-shrink:0;align-self:flex-end">
+          ${filterLabel}
+        </button>
+      </div>`;
   }
+
+  // Waveform · animazione a BPM reale (invariato dalla v1.7)
   const wf = fajaBar.querySelector('.rhythm-waveform');
   if(wf){
     const bpm = RITMO_ACTUAL ? RITMO_ACTUAL.bpm : 0;
