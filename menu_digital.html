@@ -22,7 +22,7 @@
         esplicita utente · brand.default_lang vince post-fetch GAS)
      - DESIGN FIX (4 in 1):
        1. Faja-tabs nascoste su BKS (theme-dark) · su PINSA invariate
-       2. Waveform 10px → 22px variante B · 24 barre fitte · drop-shadow
+       2. Waveform 10px → 28px · 20 barre min-w 6px · presenza mobile reale
        3. Microbar v1 · Comandante DJ a sx con disco rotante + slogan
           corsivo coi puntini al centro + BPM micro a dx · slogan ES
           NON traducibile (Empieza piola/Bacán acá/Acá se arma/La noche
@@ -32,7 +32,22 @@
        Toggle ✦ All RIMOSSO definitivamente dalla UI cliente · curatela
        del momento è unica realtà · prodotti fuori curatela accessibili
        solo via richiesta al JL (pannello admin · S5+)
-     - PRESERVATO: tutto il resto (card v1.7, ritmi, promos, llamar mesero)
+     - REDESIGN ZONA PRODOTTI (7 fix coordinati · sessione lunga):
+       1. Card prodotto v2 compatta (220px → 80-90px alta)
+          · layout horizontale: foto 50px + corpo + prezzo/campanella
+          · descrizione 1 riga troncata · risultato: 3 prod/schermata
+       2. FAB campanella 52×52 in basso destra · sostituisce
+          sticky-call-bar full-width che divorava 80px e copriva card
+          · animazione pulse discreta · sopra bottom-nav
+       3. Macro-groups: 4 sempre visibili · count=0 → disabled grigio
+          (NON nascosto · stabilità interfaccia)
+       4. Padding-bottom mainContent 130px · no collisione card/FAB
+       5. Tab categoria: 'Pizzas/Burgers' con slash invece di '& '
+          per non troncarsi su mobile
+       6. Cat header gigante 'Fondos' (font Fraunces 24px) → breadcrumb
+          micro 9px maiuscoletto 'FONDOS · 3' (~16px alto vs 50px)
+       7. Card-name 15px → 14px · card-desc 1 riga · gap 12px → 8px
+     - PRESERVATO: tutto il resto (ritmi, promos, llamar mesero, club, sheet)
      ════════════════════════════════════════════════════════════════════ -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -267,67 +282,86 @@ body.theme-dark .faja-scroll{display:none}
 .group-chip{padding:10px 6px;border-radius:10px;background:var(--group-inactive-bg);color:var(--group-inactive-text);text-align:center;cursor:pointer;transition:all var(--transition);border:none;font-family:inherit;}
 .group-chip:active{transform:scale(0.96)}
 .group-chip.active{background:var(--brand-primary);color:#fff;}
+/* v1.10 · macro-group disabled (count=0) · visibile ma non cliccabile */
+.group-chip.disabled{opacity:0.4;cursor:not-allowed;pointer-events:none;}
+.group-chip.disabled:active{transform:none}
+body.theme-dark .group-chip.disabled{opacity:0.35}
 .group-chip-emoji{font-size:16px;display:block;margin-bottom:2px}
 .group-chip-name{font-size:10px;font-weight:600;display:block}
 .group-chip-count{font-size:8px;opacity:0.6;display:block;margin-top:1px}
 
 /* ══════════════════════════════════════════ MAIN ══════════════════════════════════════════ */
-#mainContent{max-width:480px;margin:0 auto;padding-bottom:140px;}
+/* v1.10 · padding-bottom calibrato per non collidere col FAB campanella in basso-destra
+   FAB occupa l'angolo destro · 90px = bottom-nav (56px) + spazio FAB + respiro */
+#mainContent{max-width:480px;margin:0 auto;padding-bottom:130px;}
 .cat-sticky{position:sticky;top:160px;z-index:96;background:var(--brand-surface);border-bottom:1px solid var(--brand-border);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
 .cat-tabs{display:flex;gap:4px;padding:0 16px;overflow-x:auto;scrollbar-width:none;}
 .cat-tabs::-webkit-scrollbar{display:none}
 .cat-tab{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:10px 12px;font-size:12px;font-weight:500;color:var(--brand-text-muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all var(--transition);}
 .cat-tab.active{color:var(--brand-primary);border-bottom-color:var(--brand-accent);}
 .cat-tab-emoji{font-size:14px}
-.cat-section{padding:0 0 8px}
-.cat-header{padding:20px 16px 12px;display:flex;align-items:baseline;gap:8px;}
-.cat-header-emoji{font-size:20px}
-.cat-header-name{font-family:'Fraunces',serif;font-size:24px;font-weight:300;letter-spacing:-0.5px;color:var(--brand-primary);}
-.cat-header-count{font-size:11px;color:var(--brand-text-muted);margin-left:auto;}
+/* v1.10 · Cat header compatto · breadcrumb invece di titolone serif */
+.cat-header{padding:8px 16px 4px;display:flex;align-items:center;gap:6px;}
+.cat-header-emoji{font-size:11px;opacity:0.7}
+.cat-header-name{font-family:'Outfit',sans-serif;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--brand-text-muted);}
+.cat-header-count{font-size:9px;color:var(--brand-text-muted);margin-left:auto;letter-spacing:0.5px;}
+body.theme-dark .cat-header-name{color:rgba(255,255,255,0.45)}
+body.theme-dark .cat-header-count{color:rgba(255,255,255,0.4)}
 
-/* ══════════════════════════════════════════ PRODUCT CARD ══════════════════════════════════════════ */
-.product-list{padding:0 16px;display:flex;flex-direction:column;gap:12px}
-.product-card{background:var(--brand-surface);border-radius:14px;border:1px solid var(--brand-border);overflow:hidden;position:relative;transition:transform var(--transition), box-shadow var(--transition);cursor:pointer;}
+/* ══════════════════════════════════════════ PRODUCT CARD v2 ══════════════════════════════════════════ */
+/* v1.10 · Card v2 compatta · 3 prodotti per schermata invece di 1.5
+   Layout: foto piccola sx (50px) · titolo+badge+descr centro · prezzo+campanella dx
+   Risultato: ~80-90px altezza vs ~220px versione v1 */
+.product-list{padding:0 16px;display:flex;flex-direction:column;gap:8px}
+.product-card{background:var(--brand-surface);border-radius:12px;border:1px solid var(--brand-border);overflow:hidden;position:relative;transition:transform var(--transition), box-shadow var(--transition);cursor:pointer;}
 .product-card:active{transform:scale(0.98)}
-.product-card.agotado{opacity:0.6}
-.product-card.nuevo-highlight{border-color:var(--badge-nuevo);box-shadow:0 0 0 2px rgba(34,197,94,0.15);}
-.card-inner{display:flex;gap:0}
-.card-img-wrap{width:100px;flex-shrink:0;background:var(--brand-bg);position:relative;overflow:hidden;}
+.product-card.agotado{opacity:0.55}
+.product-card.nuevo-highlight{border-color:rgba(34,197,94,0.45);box-shadow:0 0 0 1px rgba(34,197,94,0.15);}
+.card-inner{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.card-img-wrap{width:50px;height:50px;flex-shrink:0;background:var(--brand-bg);position:relative;overflow:hidden;border-radius:8px;}
 .card-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center;}
-.card-img-placeholder{width:100%;height:100%;min-height:100px;display:flex;align-items:center;justify-content:center;font-size:32px;opacity:0.2;}
-.card-body{flex:1;padding:12px 12px 12px 14px;display:flex;flex-direction:column;gap:6px}
-.card-badges{display:flex;flex-wrap:wrap;gap:4px}
-.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;}
-.badge-nuevo{background:rgba(34,197,94,0.12);color:#16a34a}
-.badge-popular{background:rgba(245,158,11,0.12);color:#d97706}
-.badge-vegano{background:rgba(132,204,22,0.12);color:#65a30d}
-.badge-singluten{background:rgba(96,165,250,0.12);color:#2563eb}
-.badge-chef{background:rgba(249,115,22,0.12);color:#ea580c}
-.badge-temporada{background:rgba(167,139,250,0.12);color:#7c3aed}
-.badge-agotado{background:rgba(148,163,184,0.12);color:#64748b}
-.badge-member{background:rgba(233,69,96,0.12);color:#be185d}
+.card-img-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;opacity:0.5;}
+.card-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.card-badges{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:0}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:8px;font-size:8px;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;}
+.badge-nuevo{background:rgba(34,197,94,0.15);color:#16a34a}
+.badge-popular{background:rgba(245,158,11,0.15);color:#d97706}
+.badge-vegano{background:rgba(132,204,22,0.15);color:#65a30d}
+.badge-singluten{background:rgba(96,165,250,0.15);color:#2563eb}
+.badge-chef{background:rgba(249,115,22,0.15);color:#ea580c}
+.badge-temporada{background:rgba(167,139,250,0.15);color:#7c3aed}
+.badge-agotado{background:rgba(148,163,184,0.15);color:#64748b}
+.badge-member{background:rgba(233,69,96,0.15);color:#be185d}
 @keyframes newPulse{0%,100%{opacity:1}50%{opacity:0.7}}
 .badge-nuevo{animation:newPulse 2.5s infinite}
-.card-name{font-size:15px;font-weight:600;color:var(--brand-text);line-height:1.3;}
+.card-name{font-size:14px;font-weight:600;color:var(--brand-text);line-height:1.2;}
 .card-name.agotado-text{text-decoration:line-through;color:var(--brand-text-muted)}
-.card-desc{font-size:12px;color:var(--brand-text-muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:4px}
-.card-price{font-size:17px;font-weight:700;color:var(--brand-accent);}
-.card-price-member{font-size:12px;font-weight:500;text-decoration:line-through;color:var(--brand-text-muted);margin-right:4px;}
-.card-price-wrap{display:flex;align-items:baseline;gap:4px}
-.card-add-btn{width:32px;height:32px;border-radius:50%;background:var(--brand-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:400;flex-shrink:0;transition:background var(--transition), transform var(--transition);}
-.card-add-btn:active{background:var(--brand-accent);transform:scale(0.9)}
-.agotado-overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,0.55);border-radius:14px;}
+.card-desc{font-size:11px;color:var(--brand-text-muted);line-height:1.3;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+.card-price{font-size:14px;font-weight:700;color:var(--brand-accent);white-space:nowrap;}
+.card-price-member{font-size:10px;font-weight:500;text-decoration:line-through;color:var(--brand-text-muted);}
+.card-price-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:0;line-height:1.2;}
+.agotado-overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,0.55);border-radius:12px;}
 .product-card.agotado .agotado-overlay{display:flex}
-.agotado-label{background:rgba(100,116,139,0.9);color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;}
+.agotado-label{background:rgba(100,116,139,0.9);color:#fff;padding:3px 12px;border-radius:14px;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;}
 
-/* CARD CTA (v1.7) */
-.card-cta-row{display:flex;align-items:center;gap:6px;}
-.card-call-btn{width:34px;height:34px;border-radius:50%;background:var(--brand-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;box-shadow:0 2px 8px rgba(233,69,96,0.25);transition:transform var(--transition), box-shadow var(--transition);}
-.card-call-btn:active{transform:scale(0.92);box-shadow:0 1px 4px rgba(233,69,96,0.35)}
-body.theme-dark .card-call-btn{box-shadow:0 2px 12px rgba(233,69,96,0.45);}
-.card-pedir-btn{display:none;width:34px;height:34px;border-radius:50%;background:var(--brand-primary);color:#fff;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:transform var(--transition);}
-.card-pedir-btn:active{transform:scale(0.92)}
+/* CARD CTA v2 (v1.10) · campanella outline integrata col prezzo */
+.card-call-btn{
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(233,69,96,0.12);
+  border:1px solid rgba(233,69,96,0.4);
+  color:var(--brand-accent);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;
+  transition:transform var(--transition),background var(--transition);
+}
+.card-call-btn:active{transform:scale(0.92);background:rgba(233,69,96,0.25)}
+body.theme-dark .card-call-btn{
+  background:rgba(233,69,96,0.18);
+  border-color:rgba(233,69,96,0.5);
+  color:#fb7185;
+}
+.card-pedir-btn{display:none;width:30px;height:30px;border-radius:50%;background:var(--brand-primary);color:#fff;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
 body.feature-pedir-directo .card-pedir-btn{display:flex}
 
 /* CONFIRM SHEET */
@@ -383,12 +417,46 @@ body.theme-dark .confirm-btn-cancel{background:rgba(255,255,255,0.06);color:rgba
 .empty-text{font-size:14px;color:var(--brand-text-muted)}
 #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--brand-primary);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:all 0.3s ease;z-index:500;white-space:nowrap;pointer-events:none;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-#stickyCallBar{display:none;position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:99;padding:10px 16px;background:transparent;pointer-events:none;}
+/* v1.10 · FAB campanella · CTA "chiama cameriere generico"
+   Sostituisce il vecchio sticky-call-bar full-width che divorava 80px
+   in basso copridendo le card. Adesso è un cerchio 50px in basso-destra,
+   sopra il bottom-nav, con animazione pulse discreta per attirare attenzione
+   senza essere invadente. */
+#stickyCallBar{
+  display:none;
+  position:fixed;
+  bottom:calc(74px + env(safe-area-inset-bottom));
+  right:14px;
+  z-index:99;
+  pointer-events:none;
+}
 #stickyCallBar.show{display:block}
-.sticky-call-btn{pointer-events:auto;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:480px;margin:0 auto;padding:14px 20px;border-radius:28px;background:var(--brand-accent);color:#fff;font-family:inherit;font-size:15px;font-weight:600;letter-spacing:0.3px;border:none;cursor:pointer;box-shadow:0 6px 20px rgba(233,69,96,0.4), 0 2px 6px rgba(0,0,0,0.08);transition:transform var(--transition), box-shadow var(--transition);}
-.sticky-call-btn:active{transform:scale(0.97);box-shadow:0 3px 12px rgba(233,69,96,0.5);}
-.sticky-call-btn-icon{font-size:18px}
-body.theme-dark .sticky-call-btn{box-shadow:0 6px 24px rgba(233,69,96,0.5), 0 0 0 1px rgba(255,255,255,0.05);}
+.sticky-call-btn{
+  pointer-events:auto;
+  display:flex;align-items:center;justify-content:center;
+  width:52px;height:52px;
+  border-radius:50%;
+  background:var(--brand-accent);
+  color:#fff;
+  border:none;cursor:pointer;
+  box-shadow:0 8px 22px rgba(233,69,96,0.5), 0 0 0 4px rgba(233,69,96,0.12);
+  transition:transform var(--transition);
+  animation:fabPulse 2.5s ease-in-out infinite;
+}
+.sticky-call-btn:active{transform:scale(0.92)}
+.sticky-call-btn-icon{font-size:22px}
+.sticky-call-btn-text{display:none}
+@keyframes fabPulse{
+  0%,100%{box-shadow:0 8px 22px rgba(233,69,96,0.5), 0 0 0 4px rgba(233,69,96,0.12)}
+  50%{box-shadow:0 8px 22px rgba(233,69,96,0.5), 0 0 0 10px rgba(233,69,96,0.04)}
+}
+body.theme-dark .sticky-call-btn{
+  box-shadow:0 8px 24px rgba(233,69,96,0.6), 0 0 0 4px rgba(233,69,96,0.18);
+}
+body.theme-dark @keyframes fabPulse{
+  0%,100%{box-shadow:0 8px 24px rgba(233,69,96,0.6), 0 0 0 4px rgba(233,69,96,0.18)}
+  50%{box-shadow:0 8px 24px rgba(233,69,96,0.6), 0 0 0 10px rgba(233,69,96,0.06)}
+}
 #bottomNav{position:fixed;bottom:0;left:0;right:0;background:var(--brand-surface);border-top:1px solid var(--brand-border);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:100;}
 .bnav-inner{display:flex;align-items:center;justify-content:space-around;max-width:480px;margin:0 auto;}
 .bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 16px;border-radius:8px;font-size:10px;font-weight:500;color:var(--brand-text-muted);transition:color var(--transition);}
@@ -514,11 +582,13 @@ body.theme-dark .sticky-call-btn{box-shadow:0 6px 24px rgba(233,69,96,0.5), 0 0 
   </div>
 </div>
 
-<!-- ── STICKY CALL BAR ── -->
+<!-- ── FAB CHIAMA CAMERIERE (v1.10) ── -->
+<!-- Floating Action Button in basso destra · sostituisce sticky-call-bar full-width
+     che divorava 80px di altezza coprendo le card. Ora è solo icona 52×52, sopra
+     la bottom-nav, con animazione pulse discreta. -->
 <div id="stickyCallBar">
-  <button class="sticky-call-btn" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero">
+  <button class="sticky-call-btn" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero" data-i18n-aria="call_waiter_btn">
     <span class="sticky-call-btn-icon">🔔</span>
-    <span id="stickyCallLabel" data-i18n="call_waiter_btn">Llamar mesero</span>
   </button>
 </div>
 
@@ -940,7 +1010,14 @@ function getCatName(catId){
 }
 function prettifyCategoryName(id){
   if(!id) return '';
-  const accentFix = { 'nino':'Niño','anos':'Años','cafe':'Café','jugos':'Jugos','acompanamientos':'Acompañamientos','espana':'España' };
+  // v1.10 · accentFix include override per categorie composte con nome troppo lungo
+  // Default usa " & " ma per casi specifici uso " / " più corto o nomi alternativi
+  const accentFix = {
+    'nino':'Niño','anos':'Años','cafe':'Café','jugos':'Jugos',
+    'acompanamientos':'Acompañamientos','espana':'España',
+    'pizzas_burger':'Pizzas/Burgers',
+    'pizzas_burgers':'Pizzas/Burgers',
+  };
   const low = id.toLowerCase();
   if(accentFix[low]) return accentFix[low];
   return id.split('_').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' & ');
@@ -1552,8 +1629,11 @@ function renderGroups(){
     const g = CATEGORY_GROUPS[gk];
     const isActive = CURRENT_GROUP === gk;
     const count = countByGroup[gk] || 0;
+    // v1.10 · count=0 → disabled grigio invece di nascosto · stabilità interfaccia
+    const isDisabled = count === 0;
+    const onclick = isDisabled ? '' : `onclick="setGroup('${gk}')"`;
     return `
-      <button class="group-chip${isActive?' active':''}" onclick="setGroup('${gk}')">
+      <button class="group-chip${isActive?' active':''}${isDisabled?' disabled':''}" ${onclick}${isDisabled?' aria-disabled="true"':''}>
         <span class="group-chip-emoji">${g.emoji||'✦'}</span>
         <span class="group-chip-name">${gk}</span>
         <span class="group-chip-count">${count}</span>
@@ -1754,42 +1834,45 @@ function renderProductCard(p){
   const cat     = ALL_CATEGORIES.find(c=>c.id===p.categoria);
   const catEmoji = cat?.emoji || '🍽️';
   const catColor = _catColor(p.categoria);
-  const phHtml   = `<div class="card-img-placeholder" style="background:${catColor};display:flex"><span style="font-size:28px;opacity:0.55">${catEmoji}</span></div>`;
+  // v1.10 · placeholder con emoji categoria invece di buco grigio
+  const phHtml   = `<div class="card-img-placeholder" style="background:${catColor}"><span>${catEmoji}</span></div>`;
   const imgHtml  = p.imagen
     ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">${phHtml}`
     : phHtml;
   const promoBadge = promo
-    ? `<span class="badge" style="background:rgba(251,191,36,0.22);color:#fbbf24;font-weight:700">${promo.badge_emoji||'🎁'} ${promo.nombre}</span>`
+    ? `<span class="badge" style="background:rgba(251,191,36,0.22);color:#d97706;font-weight:700">🎁 ${promo.nombre}</span>`
     : '';
   const promoFlag = promo
-    ? `<div style="position:absolute;top:6px;left:6px;background:#fbbf24;color:#000;padding:2px 6px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:0.5px;z-index:2">🎁 ${(promo.tipo||'').toUpperCase()}</div>`
+    ? `<div style="position:absolute;top:2px;left:2px;background:#fbbf24;color:#000;padding:1px 4px;border-radius:4px;font-size:7px;font-weight:700;letter-spacing:0.3px;z-index:2;line-height:1.2">🎁</div>`
     : '';
   const promoClass = promo ? ' has-promo' : '';
   const promoPriceMain = promo ? formatPrice(promo.precio_final) : prices.main;
   const promoPriceOrig = promo ? formatPrice(p.precio) : prices.orig;
-  const promoBadgesHtml = promo
+  const badgesHtml = (promo || badges)
     ? `<div class="card-badges">${promoBadge}${badges || ''}</div>`
-    : (badges ? `<div class="card-badges">${badges}</div>` : '');
-  const ctaHtml = !p.agotado ? `
-    <div class="card-cta-row">
-      <button class="card-pedir-btn" onclick="event.stopPropagation();onPedirDirecto('${p.id}')" aria-label="Pedir directo">+</button>
-      <button class="card-call-btn" onclick="event.stopPropagation();onCallWaiterForProduct('${p.id}')" aria-label="Llamar mesero">🔔</button>
-    </div>` : '';
+    : '';
+  // v1.10 · campanella outline integrata col prezzo (verticale a destra)
+  const ctaHtml = !p.agotado
+    ? `<button class="card-call-btn" onclick="event.stopPropagation();onCallWaiterForProduct('${p.id}')" aria-label="Llamar mesero">🔔</button>`
+    : '';
+  const pedirHtml = !p.agotado
+    ? `<button class="card-pedir-btn" onclick="event.stopPropagation();onPedirDirecto('${p.id}')" aria-label="Pedir directo">+</button>`
+    : '';
   return `
-    <div class="product-card${p.agotado?' agotado':''}${isNew?' nuevo-highlight':''}${promoClass}" data-id="${p.id}">
+    <div class="product-card${p.agotado?' agotado':''}${isNew?' nuevo-highlight':''}${promoClass}" data-id="${p.id}" onclick="openDetail('${p.id}')">
       <div class="card-inner">
-        <div class="card-img-wrap" style="position:relative;cursor:pointer" onclick="openDetail('${p.id}')">${imgHtml}${promoFlag}</div>
-        <div class="card-body" onclick="openDetail('${p.id}')" style="cursor:pointer">
-          ${promoBadgesHtml}
+        <div class="card-img-wrap">${imgHtml}${promoFlag}</div>
+        <div class="card-body">
+          ${badgesHtml}
           <div class="card-name${p.agotado?' agotado-text':''}">${toTitleCase(p.nombre)}</div>
-          <div class="card-desc">${p.descripcion}</div>
-          <div class="card-footer">
-            <div class="card-price-wrap">
-              ${promoPriceOrig ? `<span class="card-price-member">${promoPriceOrig}</span>` : ''}
-              <span class="card-price"${promo?' style="color:#fbbf24;text-shadow:0 0 8px rgba(251,191,36,0.3)"':''}>${promoPriceMain}</span>
-            </div>
-            ${ctaHtml}
+          ${p.descripcion ? `<div class="card-desc">${p.descripcion}</div>` : ''}
+        </div>
+        <div class="card-right">
+          <div class="card-price-wrap">
+            ${promoPriceOrig ? `<span class="card-price-member">${promoPriceOrig}</span>` : ''}
+            <span class="card-price"${promo?' style="color:#d97706"':''}>${promoPriceMain}</span>
           </div>
+          ${ctaHtml}${pedirHtml}
         </div>
       </div>
       ${p.agotado ? `<div class="agotado-overlay"><span class="agotado-label">${getLang('agotado')}</span></div>` : ''}
