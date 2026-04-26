@@ -23,9 +23,11 @@
      - DESIGN FIX (4 in 1):
        1. Faja-tabs nascoste su BKS (theme-dark) · su PINSA invariate
        2. Waveform 10px → 22px variante B · 24 barre fitte · drop-shadow
-       3. Slogan emotivo BKS (Empieza piola/Bacán acá/Acá se arma/La noche
-          prende) sostituisce chip dato tecnico · solo ES cilenismi
-       4. Hero compatto · label '♪ BKS RHYTHM' rimossa · BPM micro firma
+       3. Microbar v1 · DJ a sx con disco rotante + slogan corsivo coi
+          puntini al centro + BPM micro + toggle ✦ All a dx · slogan ES
+          NON traducibile (Empieza piola/Bacán acá/Acá se arma/La noche
+          prende) · vende il prodotto, non se stesso
+       4. Label '♪ BKS RHYTHM' ripristinata come contesto discreto
      - PRESERVATO: tutto il resto (card v1.7, ritmi, promos, llamar mesero)
      ════════════════════════════════════════════════════════════════════ -->
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
@@ -113,6 +115,17 @@ body.theme-dark #groupBar { border-bottom-color: rgba(255,255,255,0.08) }
 body.theme-dark .group-chip { border: 1px solid transparent; }
 body.theme-dark .group-chip.active { background: var(--brand-accent); border-color: rgba(255,255,255,0.1); box-shadow: 0 4px 16px rgba(233,69,96,0.35); }
 /* v1.10 · waveform unificato a 22px (variante B) — base CSS gestisce già altezza/gap/min-width */
+
+/* v1.10 · DJ disc · disco rotante che firma il "DJ sta suonando ora" */
+.dj-disc{
+  width:24px;height:24px;border-radius:50%;
+  background:radial-gradient(circle,rgba(233,69,96,0.45) 35%,#1A1A2E 35%,#1A1A2E 38%,rgba(255,255,255,0.18) 40%,#1A1A2E 90%);
+  border:1px solid rgba(255,255,255,0.18);
+  flex-shrink:0;
+  animation:djSpin 3s linear infinite;
+  filter:drop-shadow(0 0 4px rgba(233,69,96,0.35));
+}
+@keyframes djSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
 .group-chip-promos { background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(233,69,96,0.15)) !important; border: 1px solid rgba(251,191,36,0.35) !important; animation: goldPulse 2.5s ease-in-out infinite; }
 .group-chip-promos.active { background: linear-gradient(135deg, #fbbf24, #d97706) !important; color: #fff !important; border-color: #fbbf24 !important; animation: none; }
@@ -563,6 +576,20 @@ const RHYTHM_SLOGANS_BKS = {
   'BPM_100': 'Bacán acá.',
   'BPM_118': 'Acá se arma.',
   'BPM_124': 'La noche prende.',
+};
+
+/* v1.10 · DJ del momento · placeholder hardcoded per S3
+   ──────────────────────────────────────────────────────────────
+   TODO-S4-02 · Backend definitivo: tab DJS_AGENDA in Sheet MENU_BKS
+   con calendario settimanale (Dia · Hora_Inicio · Hora_Fin · DJ_Nombre
+   · DJ_Foto_URL opt · Notas). GAS expose action=getDJActual che
+   ritorna il DJ corrispondente al now+dia. Frontend polling con
+   stessa cadenza di getRitmos (60s). Per ora hardcodato così
+   vediamo il design vivere prima di costruire il backend.
+   ────────────────────────────────────────────────────────────── */
+let CURRENT_DJ_BKS = {
+  nombre: 'Tomás Vega',
+  hasta:  null,
 };
 
 /* ════════════════════════════════════════════════════
@@ -1952,8 +1979,8 @@ function renderRhythmBar(){
   if(!chipBar){
     chipBar = document.createElement('div');
     chipBar.id = 'rhythmChipBar';
-    // v1.10 · padding più ariato in alto (la rhythm-label è stata rimossa, serve respiro)
-    chipBar.style.cssText = 'padding:14px 16px 4px;max-width:480px;margin:0 auto';
+    // v1.10 microbar · padding compatto · respiro sopra al waveform
+    chipBar.style.cssText = 'padding:10px 16px 4px;max-width:480px;margin:0 auto';
     const wf = fajaBar.querySelector('.rhythm-waveform');
     if(wf) fajaBar.insertBefore(chipBar, wf);
     else fajaBar.appendChild(chipBar);
@@ -1962,32 +1989,41 @@ function renderRhythmBar(){
   // v1.10 · CASO A: nessun ritmo attivo (fuori finestre orarie definite)
   if(!RITMO_ACTUAL){
     chipBar.innerHTML = `
-      <div style="font-size:13px;color:rgba(255,255,255,0.45);letter-spacing:0.3px;font-weight:400;font-style:italic">
+      <div style="font-size:9px;color:rgba(255,255,255,0.45);letter-spacing:3px;text-transform:uppercase;font-weight:500;margin-bottom:6px">♪ BKS Rhythm</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.45);letter-spacing:0.3px;font-style:italic">
         ${getLang('rhythm_none')}
       </div>`;
   } else {
-    // v1.10 · CASO B: ritmo attivo · slogan emotivo dominante + BPM micro firma + toggle ✦ All
+    // v1.10 · CASO B microbar V1: DJ sx · slogan corsivo …puntini… centro · BPM+toggle dx
     const r = RITMO_ACTUAL;
-    // Slogan ES indipendente dalla lingua UI · fallback al nombre ritmo se ID non mappato
     const slogan = RHYTHM_SLOGANS_BKS[r.id] || r.nombre || r.id;
+    const sloganStripped = slogan.replace(/\.$/, ''); // rimuovo il punto finale per i puntini sospensivi
     const filterLabel = RITMO_FILTER_ON ? '✦ All' : getLang('rhythm_btn_filter');
+    const djName = (CURRENT_DJ_BKS && CURRENT_DJ_BKS.nombre) ? CURRENT_DJ_BKS.nombre : '';
+
     chipBar.innerHTML = `
-      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap">
-        <div style="flex:1;min-width:0">
-          <!-- Slogan dominante · cinematografico · Fraunces serif -->
-          <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:300;letter-spacing:-0.4px;line-height:1.1;color:#fff;margin-bottom:4px">
-            ${slogan}
-          </div>
-          <!-- Firma micro · BPM in monospace · battito vivo -->
-          <div style="font-family:'Consolas',ui-monospace,monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.4);font-weight:500">
-            ${r.bpm} BPM
+      <div style="font-size:9px;color:rgba(255,255,255,0.45);letter-spacing:3px;text-transform:uppercase;font-weight:500;margin-bottom:8px">♪ BKS Rhythm</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:nowrap">
+        <!-- Sx · DJ con disco rotante -->
+        <div style="display:flex;align-items:center;gap:7px;flex-shrink:0;min-width:0">
+          <div class="dj-disc" aria-hidden="true"></div>
+          <div style="line-height:1.2;min-width:0">
+            <div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600">DJ</div>
+            <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${djName}</div>
           </div>
         </div>
-        <!-- Toggle ✦ All · piccolo, in basso a destra -->
-        <button id="rhythmToggleBtn" onclick="toggleRhythmFilter()"
-          style="background:rgba(255,255,255,${RITMO_FILTER_ON?'0.06':'0.2'});border:1px solid rgba(255,255,255,${RITMO_FILTER_ON?'0.18':'0.45'});color:${RITMO_FILTER_ON?'rgba(255,255,255,0.55)':'#fff'};padding:6px 12px;border-radius:18px;font-size:10px;font-weight:700;letter-spacing:1.2px;cursor:pointer;transition:all 0.2s;flex-shrink:0;align-self:flex-end">
-          ${filterLabel}
-        </button>
+        <!-- Centro · slogan in corsivo coi puntini sospensivi -->
+        <div style="flex:1;text-align:center;font-size:12px;color:rgba(255,255,255,0.55);font-style:italic;letter-spacing:0.2px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          … ${sloganStripped} …
+        </div>
+        <!-- Dx · BPM micro + toggle ✦ All -->
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <span style="font-family:'Consolas',ui-monospace,monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;font-weight:500">${r.bpm} BPM</span>
+          <button id="rhythmToggleBtn" onclick="toggleRhythmFilter()"
+            style="background:rgba(255,255,255,${RITMO_FILTER_ON?'0.06':'0.2'});border:1px solid rgba(255,255,255,${RITMO_FILTER_ON?'0.18':'0.45'});color:${RITMO_FILTER_ON?'rgba(255,255,255,0.55)':'#fff'};padding:5px 10px;border-radius:14px;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all 0.2s;flex-shrink:0">
+            ${filterLabel}
+          </button>
+        </div>
       </div>`;
   }
 
