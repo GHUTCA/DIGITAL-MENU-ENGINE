@@ -175,11 +175,22 @@ body.theme-dark #bottomNav::before {
 
 /* v1.11 iter 2 · MACRO-GROUP attivo · count come pillola accent piena
    ─ identità chiara del group selezionato senza ambiguità */
-body.theme-dark .group-chip { background: var(--group-inactive-bg); border: 1px solid var(--brand-border); }
+body.theme-dark .group-chip {
+  background: var(--group-inactive-bg);
+  border: 1px solid var(--brand-border);
+  color: var(--group-inactive-text);
+  transition: all 0.2s ease;
+}
+body.theme-dark .group-chip:not(.disabled):not(.active):hover,
+body.theme-dark .group-chip:not(.disabled):not(.active):active {
+  border-color: var(--brand-border-strong);
+  background: rgba(255,255,255,0.04);
+}
 body.theme-dark .group-chip.active {
-  background: rgba(233,69,96,0.12);
+  background: rgba(233,69,96,0.15);
   border-color: var(--brand-accent);
-  box-shadow: 0 0 0 1px var(--brand-accent), 0 4px 12px rgba(233,69,96,0.2);
+  color: #fff;
+  box-shadow: 0 0 0 1px var(--brand-accent), 0 4px 16px rgba(233,69,96,0.25);
 }
 body.theme-dark .group-chip.active .group-chip-count {
   background: var(--brand-accent);
@@ -188,7 +199,7 @@ body.theme-dark .group-chip.active .group-chip-count {
   border-radius: 10px;
   font-weight: 600;
 }
-body.theme-dark .group-chip-count { letter-spacing: 0.3px; }
+body.theme-dark .group-chip-count { letter-spacing: 0.3px; padding: 1px 4px; }
 
 /* v1.11 iter 2 · CAT-HEADER con barretta accent · ancora visivo durante scroll */
 body.theme-dark .cat-header { padding: 6px 16px 10px; gap: 8px; align-items: center; position: relative; }
@@ -202,8 +213,9 @@ body.theme-dark .cat-header-count {
   font-size: 9px; padding: 2px 8px; background: var(--brand-surface);
   border-radius: 10px; font-weight: 600; letter-spacing: 0.5px;
 }
-body.theme-dark .group-chip { border: 1px solid transparent; }
-body.theme-dark .group-chip.active { background: var(--brand-accent); border-color: rgba(255,255,255,0.1); box-shadow: 0 4px 16px rgba(233,69,96,0.35); }
+/* v1.11 iter 2 · regole .group-chip duplicate del v1.10 RIMOSSE
+   (sovrascrivevano il nuovo styling con bg surface-2 + border accent quando active).
+   Vedi sezione "MACRO-GROUP attivo" sopra per le regole correnti. */
 /* v1.10 · waveform unificato a 22px (variante B) — base CSS gestisce già altezza/gap/min-width */
 
 /* v1.10 · DJ disc · disco rotante che firma il "DJ sta suonando ora" */
