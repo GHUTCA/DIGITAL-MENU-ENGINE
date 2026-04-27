@@ -1524,6 +1524,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 7) Render UI normale
   renderFajas();
+  renderGroups();      // v1.12 · S5 · fix bug latente v1.11 · senza questo i macro-groups
+                       // Comida/Barra/Dolci NON appaiono al boot fino al primo polling ritmi
   renderCatTabs();
   renderMenu();
   setupSearch();
@@ -2073,7 +2075,9 @@ function scrollToCategory(id){
 }
 
 function setupCatObserver(){
-  const opts = { rootMargin:'-20% 0px -70% 0px', threshold:0 };
+  // v1.12 · rootMargin allargato (era '-20% 0px -70% 0px') per essere più reattivo
+  // durante scroll · ora la fascia attiva è il primo 50% del viewport dal top
+  const opts = { rootMargin:'-15% 0px -50% 0px', threshold:0 };
   const obs = new IntersectionObserver(entries=>{
     entries.forEach(e=>{
       if(e.isIntersecting){
@@ -2096,12 +2100,12 @@ function setupCatObserver(){
    v1.12 · S5 · CROSS-SELL STRIP · logica completa
    ════════════════════════════════════════════════════ */
 
-// Debounce 200ms per evitare flicker durante scroll veloce
+// Debounce 100ms · evita flicker ma resta reattivo durante scroll
 function triggerCrossSellUpdate(catId){
   if(CROSSSELL_DEBOUNCE_TIMER) clearTimeout(CROSSSELL_DEBOUNCE_TIMER);
   CROSSSELL_DEBOUNCE_TIMER = setTimeout(()=>{
     updateCrossSellStrip(catId);
-  }, 200);
+  }, 100);
 }
 
 // Trova prodotto target di cross-sell per la categoria sorgente attiva
