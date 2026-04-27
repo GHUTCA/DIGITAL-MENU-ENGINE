@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- v1.15 · S7 · forza light scheme su Samsung Internet/Chrome Android per palette DIA splash -->
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
      menu_digital.html · v1.12 · 27-apr-2026 · Sessione S5 (in lavorazione)
@@ -974,6 +978,13 @@ body[data-fascia="TARDE"]    #bienvenidaSplash{
   /* v1.14 · S7 fix · forza light scheme (DIA) → blocca dark-mode-engine
      di Samsung Internet/Chrome Android che invertiva il cremoso in marrone. */
   color-scheme: light;
+  /* v1.15 · S7 fix · GRADIENT TRICK anti-dark-mode Samsung Internet.
+     Samsung non inverte linear-gradient (li considera decorativi).
+     Background ridondante: var color + linear-gradient stesso colore.
+     Se dark-engine inverte la var, il gradient sopra resta cremoso. */
+  background:
+    linear-gradient(#F0E9DD, #F0E9DD),
+    var(--bv-bg, #F0E9DD);
 }
 body[data-fascia="CERRADO"] #bienvenidaSplash,
 body[data-fascia="NOCHE"]   #bienvenidaSplash{
@@ -1010,6 +1021,24 @@ body[data-fascia="NOCHE"]   #bienvenidaSplash{
 body[data-fascia="NOCHE"] #bienvenidaSplash .bv-hero,
 body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
   flex:0 0 60vh;
+}
+
+/* v1.15 · S7 fix · MOBILE responsive hero · CTA sopra la fold garantito.
+   Su viewport ≤480px (mobile), hero si riduce a 38vh per lasciare spazio a
+   bv-status (~70px) + bv-proposal (~280px) + bv-cta-wrap (~108px) sotto.
+   38dvh prima (dynamic viewport · sottrae barra browser Samsung dinamicamente),
+   fallback 38vh per browser più vecchi.
+   Desktop ≥481px mantiene 50vh/60vh originali (foto cinematografica). */
+@media (max-width:480px){
+  #bienvenidaSplash .bv-hero{
+    flex:0 0 38vh;
+    flex:0 0 38dvh;     /* override per browser che supportano dvh */
+  }
+  body[data-fascia="NOCHE"] #bienvenidaSplash .bv-hero,
+  body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
+    flex:0 0 42vh;
+    flex:0 0 42dvh;     /* notte un filo più alta · meno testo sotto */
+  }
 }
 
 /* v1.13 fix · S6c3 · NO-PHOTO MODE · hero si comprime se foto manca o fallisce
@@ -3054,6 +3083,15 @@ function showBienvenidaSplash(){
   document.body.style.overflow = 'hidden';
   document.body.style.touchAction = 'none';
 
+  // v1.15 · S7 fix · theme-color dinamico per fascia · segnala al browser
+  // mobile (Samsung/Chrome) la palette corretta · status bar coerente.
+  // DIA = #F0E9DD cremoso · NOCHE/CERRADO = #0A0A14 nero.
+  const themeMeta = document.getElementById('bvThemeColor');
+  if(themeMeta){
+    const isDay = (franja.id === 'ALMUERZO' || franja.id === 'TARDE');
+    themeMeta.setAttribute('content', isDay ? '#F0E9DD' : '#0A0A14');
+  }
+
   // Track view bienvenida (telemetria semplice per Alberto)
   console.log('[v1.15] Bienvenida shown · franja=' + franja.id +
               ' · tono=' + franja.tono +
@@ -3071,6 +3109,9 @@ function dismissBienvenida(){
   // di 500ms · il menu sotto può iniziare a comportarsi normalmente già).
   document.body.style.overflow = '';
   document.body.style.touchAction = '';
+  // v1.15 · S7 fix · ripristino theme-color al default BKS dark del menu.
+  const themeMeta = document.getElementById('bvThemeColor');
+  if(themeMeta) themeMeta.setAttribute('content', '#0A0A14');
   setTimeout(()=>{
     splash.style.display = 'none';
     splash.classList.remove('show', 'out');
