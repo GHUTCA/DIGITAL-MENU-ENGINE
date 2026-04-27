@@ -2247,6 +2247,76 @@ function setupCatObserver(){
     });
   }, opts);
   document.querySelectorAll('.cat-section').forEach(s=>obs.observe(s));
+  // v1.13 · S6 · ISSUE-S5-01 fix · scroll listener parallelo dedicato al cross-sell
+  setupCrossSellScrollWatcher();
+}
+
+/* ════════════════════════════════════════════════════
+   v1.13 · S6 · ISSUE-S5-01 FIX · CROSS-SELL SCROLL WATCHER
+   ────────────────────────────────────────────────────
+   Problema: l'IntersectionObserver per cat-tab attiva non sempre
+   triggera durante scroll lento/smooth, lasciando la cross-sell strip
+   indietro rispetto alla categoria realmente visibile sotto la
+   sticky chain.
+
+   Soluzione: scroll listener nativo throttled via rAF che calcola
+   la cat attiva con getBoundingClientRect rispetto alla soglia
+   reale (header + fajaBar + xs strip se visibile + 20px buffer)
+   e chiama triggerCrossSellUpdate. NON tocca cat-tab attiva
+   (resta gestita dall'observer · niente regressione).
+   triggerCrossSellUpdate ha già debounce 100ms a valle e
+   updateCrossSellStrip skippa re-render se target invariato:
+   il costo reale del listener è una getBoundingClientRect per
+   categoria visibile + early return.
+   ════════════════════════════════════════════════════ */
+
+let CROSSSELL_SCROLL_RAF = false;
+let CROSSSELL_SCROLL_INSTALLED = false;
+
+function getCatActiveByScroll(){
+  // Soglia top reale = sotto header + fajaBar + crossSellStrip (se visibile) + buffer
+  const header = document.getElementById('header');
+  const faja   = document.getElementById('fajaBar');
+  const xs     = document.getElementById('crossSellStrip');
+  const headerH = header ? header.offsetHeight : 54;
+  const fajaH   = faja   ? faja.offsetHeight   : 50;
+  const xsH     = (xs && xs.classList.contains('visible')) ? xs.offsetHeight : 0;
+  const threshold = headerH + fajaH + xsH + 20;
+
+  // Trovo la cat-section il cui top è già passato la soglia ma il bottom è ancora sotto.
+  // Le cat-section sono in ordine DOM, scelgo l'ultima il cui top <= threshold.
+  const sections = document.querySelectorAll('.cat-section');
+  let activeId = null;
+  for(const sec of sections){
+    const r = sec.getBoundingClientRect();
+    if(r.top <= threshold && r.bottom > threshold){
+      activeId = sec.id.replace('cat-','');
+      break;
+    }
+    // Fallback: se siamo prima di tutte (boot/scroll-top), prendo la prima visibile
+    if(r.top > threshold && !activeId){
+      activeId = sec.id.replace('cat-','');
+      break;
+    }
+  }
+  return activeId;
+}
+
+function onCrossSellScroll(){
+  if(CROSSSELL_SCROLL_RAF) return;
+  CROSSSELL_SCROLL_RAF = true;
+  requestAnimationFrame(()=>{
+    CROSSSELL_SCROLL_RAF = false;
+    const id = getCatActiveByScroll();
+    if(id) triggerCrossSellUpdate(id);
+  });
+}
+
+function setupCrossSellScrollWatcher(){
+  // Install una sola volta · setupCatObserver è chiamato ad ogni renderCatTabs
+  if(CROSSSELL_SCROLL_INSTALLED) return;
+  CROSSSELL_SCROLL_INSTALLED = true;
+  window.addEventListener('scroll', onCrossSellScroll, { passive: true });
 }
 
 /* ════════════════════════════════════════════════════
