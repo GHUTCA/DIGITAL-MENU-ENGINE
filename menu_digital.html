@@ -1834,6 +1834,22 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
 </head>
 <body>
 
+<!-- ════════════════════════════════════════════════════
+     v1.15 · S7 · CARTELERA bottom-sheet
+     Si apre tappando il disco rosso in faja CASO A (no DJ live).
+     Modalità 1 · settimana DJ residenti · default
+     Modalità 2 · poster evento override (campo Sheet CARTELERA_EVENTOS)
+     Pattern: stesso djSheet esistente · z-index 301 sopra overlay 300.
+     ════════════════════════════════════════════════════ -->
+<div id="carteleraOverlay" onclick="closeCartelera()"></div>
+<div id="carteleraSheet" role="dialog" aria-label="Cartelera de la semana" aria-modal="true">
+  <div class="cart-handle"></div>
+  <button class="cart-close" onclick="closeCartelera()" aria-label="Cerrar cartelera">✕</button>
+
+  <!-- Container dinamico · JS riempie con Modalità 1 o 2 a runtime -->
+  <div id="carteleraContent"></div>
+</div>
+     
 <!-- ── BIENVENIDA SPLASH (v1.13 · S6) ── solo se !MESA_ID -->
 <div id="bienvenidaSplash">
   <div class="bv-hero">
@@ -3491,6 +3507,244 @@ function dismissBienvenida(){
   }, 500);
 }
 
+/* ════════════════════════════════════════════════════
+   v1.15 · S7 · CARTELERA · open/close + rendering modo 1/2
+   ════════════════════════════════════════════════════ */
+
+let CARTELERA_DATA = null;       // ultimo payload GAS · cache locale
+let CARTELERA_LOADING = false;   // dedupe richieste concorrenti
+let CARTELERA_POLL_TIMER = null; // poll fascia per "en_vivo" recalc
+
+// Foto di sfondo modalità 1 · curata BKS (interni atmosfera).
+// Sostituibile da Sheet PARAMETROS in S8 se vuoi controllo editoriale.
+const CARTELERA_HERO_DEFAULT = 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800';
+
+async function loadCartelera(force){
+  if(CARTELERA_LOADING) return CARTELERA_DATA;
+  if(CARTELERA_DATA && !force) return CARTELERA_DATA;
+  CARTELERA_LOADING = true;
+
+  try {
+    const url = GAS_URL + '?action=getCartelera&local=' + LOCAL_ID + '&_=' + Date.now();
+    const res = await fetch(url);
+    const data = await res.json();
+    if(data && data.ok){
+      CARTELERA_DATA = data;
+      console.log('[v1.15] Cartelera loaded · modo=' + data.modo +
+                  ' · evento=' + (data.evento ? data.evento.id : 'no') +
+                  ' · djs=' + (data.djs_semana ? data.djs_semana.length : 0));
+    } else {
+      console.warn('[v1.15] Cartelera load failed:', data);
+    }
+  } catch(err){
+    console.warn('[v1.15] Cartelera fetch error:', err);
+  } finally {
+    CARTELERA_LOADING = false;
+  }
+  return CARTELERA_DATA;
+}
+
+async function openCartelera(){
+  // Carica dati se non in cache
+  await loadCartelera();
+  if(!CARTELERA_DATA){
+    // Fallback estremo · niente dati, niente sheet
+    console.warn('[v1.15] Cartelera no data, abort open');
+    return;
+  }
+
+  // Render + show
+  renderCarteleraSheet(CARTELERA_DATA);
+
+  const sheet = document.getElementById('carteleraSheet');
+  const overlay = document.getElementById('carteleraOverlay');
+  if(!sheet || !overlay) return;
+
+  overlay.classList.add('show');
+  // Doppio rAF per garantire transition (pattern djSheet)
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      sheet.classList.add('show');
+    });
+  });
+
+  // Body lock · evita scroll-chaining come BIENVENIDA splash
+  document.body.style.overflow = 'hidden';
+  document.body.style.touchAction = 'none';
+
+  // Poll fascia ogni 60s per ricalcolare "en_vivo" se utente lascia sheet aperto
+  if(CARTELERA_POLL_TIMER) clearInterval(CARTELERA_POLL_TIMER);
+  CARTELERA_POLL_TIMER = setInterval(() => {
+    loadCartelera(true).then(d => { if(d) renderCarteleraSheet(d); });
+  }, 60000);
+}
+
+function closeCartelera(){
+  const sheet = document.getElementById('carteleraSheet');
+  const overlay = document.getElementById('carteleraOverlay');
+  if(!sheet || !overlay) return;
+
+  sheet.classList.remove('show');
+  overlay.classList.remove('show');
+
+  // Ripristino scroll body
+  document.body.style.overflow = '';
+  document.body.style.touchAction = '';
+
+  // Stop poll
+  if(CARTELERA_POLL_TIMER){
+    clearInterval(CARTELERA_POLL_TIMER);
+    CARTELERA_POLL_TIMER = null;
+  }
+}
+
+function renderCarteleraSheet(data){
+  const container = document.getElementById('carteleraContent');
+  if(!container) return;
+
+  if(data.modo === '2' && data.evento){
+    container.innerHTML = renderCarteleraMode2(data.evento);
+  } else {
+    container.innerHTML = renderCarteleraMode1(data.djs_semana || []);
+  }
+}
+
+// ─── MODO 1 · default settimana ──────────────────────────────────────────
+function renderCarteleraMode1(djs){
+  // Costruisco righe sessione per ogni DJ attivo
+  // dj.foto_url presente → <img>, altrimenti iniziali (max 2 char dal nome)
+  const rowsHtml = djs.map(dj => {
+    const initials = (dj.nombre || '?').trim().split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const avatarHtml = dj.foto_url && dj.foto_url.startsWith('http')
+      ? `<img src="${escapeHtml(dj.foto_url)}" alt="${escapeHtml(dj.nombre)}" onerror="this.parentElement.innerHTML='<div class=\\'cart-sesh-avatar-initials\\'>${initials}</div>'">`
+      : `<div class="cart-sesh-avatar-initials">${initials}</div>`;
+
+    const igHtml = dj.instagram
+      ? `<div class="cart-sesh-ig" onclick="event.stopPropagation();openInstagram('${escapeJsString(dj.instagram)}')">${formatIgHandle(dj.instagram)}</div>`
+      : '';
+
+    const liveBadge = dj.en_vivo
+      ? `<span class="cart-sesh-live-badge"><span class="cart-live-dot"></span>EN VIVO</span>`
+      : '';
+
+    return `
+      <div class="cart-sesh-row${dj.en_vivo ? ' live' : ''}">
+        <div class="cart-sesh-avatar">${avatarHtml}</div>
+        <div class="cart-sesh-info">
+          <div class="cart-sesh-name">${escapeHtml(dj.nombre || '—')}</div>
+          <div class="cart-sesh-days">${escapeHtml(dj.dias_visible || '')}</div>
+        </div>
+        ${igHtml}
+        <div class="cart-sesh-time">${escapeHtml(dj.hora_ini || '')} — ${escapeHtml(dj.hora_fin || '')}${liveBadge}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Footer · "padron de la casa" se Comandante DJ presente nei dati
+  const hasComandante = djs.some(d => d.dj_id === 'CDJ' || /comandante/i.test(d.nombre || ''));
+  const footerHtml = hasComandante
+    ? `<div class="cart-mode1-footer">
+         <div class="cart-mode1-footer-text"><strong>Comandante DJ</strong> es padrón de la casa</div>
+       </div>`
+    : '';
+
+  return `
+    <div class="cart-mode1-hero">
+      <img src="${CARTELERA_HERO_DEFAULT}" alt="" onerror="this.style.display='none'">
+      <div class="cart-mode1-brand-overlay">BKS</div>
+      <div class="cart-mode1-title-wrap">
+        <div class="cart-mode1-eyebrow">★ CARTELERA · ESTA SEMANA</div>
+        <div class="cart-mode1-title">Quién toca</div>
+      </div>
+    </div>
+    <div class="cart-mode1-sessions">
+      ${rowsHtml || '<div style="padding:20px;text-align:center;color:rgba(255,255,255,0.5);font-style:italic">Cartelera vacía · vuelve pronto</div>'}
+    </div>
+    ${footerHtml}
+  `;
+}
+
+// ─── MODO 2 · poster evento override ─────────────────────────────────────
+function renderCarteleraMode2(evento){
+  // Lingua · ES default · EN se lang=en (S7 decisione cartelera = ES + EN)
+  const lang = (typeof getCurrentLang === 'function') ? getCurrentLang() : 'es';
+  const useEn = lang === 'en';
+
+  const eyebrow = useEn && evento.en && evento.en.eyebrow
+    ? evento.en.eyebrow : evento.eyebrow_es;
+  const titulo = useEn && evento.en && evento.en.titulo
+    ? evento.en.titulo : evento.titulo_es;
+  const subtitulo = evento.subtitulo_es || ''; // PT/EN subtitle non lo abbiamo, sempre ES
+  const footer = evento.footer_es || '';
+
+  const fotoSrc = evento.foto_url && evento.foto_url.startsWith('http')
+    ? evento.foto_url : '';
+
+  const fechaHtml = evento.fecha_visible
+    ? `<div class="cart-mode2-meta-pill date">${escapeHtml(evento.fecha_visible)}</div>` : '';
+  const horarioHtml = evento.horario_visible
+    ? `<div class="cart-mode2-meta-pill time">${escapeHtml(evento.horario_visible)}</div>` : '';
+
+  const pushPillLabel = useEn ? 'SPECIAL EVENT' : 'EVENTO ESPECIAL';
+
+  return `
+    <div class="cart-mode2-hero">
+      ${fotoSrc ? `<img src="${escapeHtml(fotoSrc)}" alt="${escapeHtml(titulo)}" onerror="this.style.display='none'">` : ''}
+      <div class="cart-mode2-brand-overlay">BKS</div>
+      <div class="cart-mode2-push-pill">${pushPillLabel}</div>
+      <div class="cart-mode2-title-wrap">
+        ${eyebrow ? `<div class="cart-mode2-eyebrow">${escapeHtml(eyebrow)}</div>` : ''}
+        <div class="cart-mode2-title">${escapeHtml(titulo)}</div>
+        ${subtitulo ? `<div class="cart-mode2-subtitle">${escapeHtml(subtitulo)}</div>` : ''}
+        ${(fechaHtml || horarioHtml) ? `<div class="cart-mode2-meta">${fechaHtml}${horarioHtml}</div>` : ''}
+      </div>
+    </div>
+    ${footer ? `<div class="cart-mode2-footer"><div class="cart-mode1-footer-text">${escapeHtml(footer)}</div></div>` : ''}
+  `;
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────
+function escapeHtml(s){
+  if(s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function escapeJsString(s){
+  if(s === null || s === undefined) return '';
+  return String(s).replace(/'/g, "\\'");
+}
+// Formatta handle Instagram · supporta @utente, utente, https://instagram.com/utente
+function formatIgHandle(raw){
+  if(!raw) return '';
+  let s = String(raw).trim();
+  // Estrae username da URL
+  const m = s.match(/instagram\.com\/([^\/?\#]+)/i);
+  if(m) s = m[1];
+  // Pulisci @ iniziale doppio
+  s = s.replace(/^@+/, '');
+  return '@' + s;
+}
+// Apre Instagram in nuovo tab · supporta @utente, utente, URL completo
+function openInstagram(raw){
+  if(!raw) return;
+  let s = String(raw).trim();
+  if(/^https?:\/\//i.test(s)){
+    window.open(s, '_blank');
+    return;
+  }
+  s = s.replace(/^@+/, '');
+  window.open('https://instagram.com/' + s, '_blank');
+}
+
+// Fallback se getCurrentLang non esiste · ritorna 'es' di default
+if(typeof getCurrentLang !== 'function'){
+  window.getCurrentLang = function(){
+    if(typeof CURRENT_LANG !== 'undefined') return CURRENT_LANG;
+    return localStorage.getItem('bks_lang') || 'es';
+  };
+}
+     
 /* ════════════════════════════════════════════════════
    v1.12 · S5 · CROSS-SELL STRIP · logica completa
    ════════════════════════════════════════════════════ */
