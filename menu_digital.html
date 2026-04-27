@@ -227,9 +227,10 @@ body.theme-dark .cat-header-count {
    Vedi sezione "MACRO-GROUP attivo" sopra per le regole correnti. */
 /* v1.10 · waveform unificato a 22px (variante B) — base CSS gestisce già altezza/gap/min-width */
 
-/* v1.10 · DJ disc · disco rotante che firma il "DJ sta suonando ora" */
+/* v1.10 · DJ disc · disco rotante che firma il "DJ sta suonando ora"
+   v1.12 c5b · da 24px a 32px per maggiore visibilità in microbar */
 .dj-disc{
-  width:24px;height:24px;border-radius:50%;
+  width:32px;height:32px;border-radius:50%;
   background:radial-gradient(circle,rgba(233,69,96,0.45) 35%,#1A1A2E 35%,#1A1A2E 38%,rgba(255,255,255,0.18) 40%,#1A1A2E 90%);
   border:1px solid rgba(255,255,255,0.18);
   flex-shrink:0;
@@ -238,13 +239,14 @@ body.theme-dark .cat-header-count {
 }
 @keyframes djSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
-/* v1.12 · S5 · DJ photo · sostituisce disco rotante quando Foto_URL valorizzato */
+/* v1.12 · S5 · DJ photo · sostituisce disco rotante quando Foto_URL valorizzato
+   v1.12 c5b · 32px allineato al disc · halo più presente */
 .dj-photo-wrap{
-  width:24px;height:24px;border-radius:50%;
+  width:32px;height:32px;border-radius:50%;
   flex-shrink:0;
   position:relative;
   overflow:hidden;
-  border:1px solid rgba(255,255,255,0.18);
+  border:1px solid rgba(255,255,255,0.2);
 }
 .dj-photo-wrap img{
   width:100%;height:100%;
@@ -2925,16 +2927,27 @@ function openDjSheet(){
     ? `<img src="${dj.foto_url}" alt="${dj.nombre||'DJ'}" onerror="this.outerHTML='<div class=&quot;dj-sheet-fallback&quot;></div>'">`
     : `<div class="dj-sheet-fallback"></div>`;
 
-  // Instagram · solo se popolato · normalizza @handle a URL
+  // Instagram · solo se popolato · normalizza handle/URL a formato pulito
+  // Accetta: "@handle" · "handle" · "https://instagram.com/handle" · "https://www.instagram.com/handle?igsh=..."
   let instagramHtml = '';
   if(dj.instagram && dj.instagram.trim().length > 0){
     const ig = dj.instagram.trim();
-    const igHandle = ig.replace(/^@/, '');
-    const igUrl = ig.startsWith('http') ? ig : `https://instagram.com/${igHandle}`;
+    let handle = '';
+    let url = '';
+    if(ig.startsWith('http')){
+      // URL completo · estrai handle da path, rimuovi query string
+      const m = ig.match(/instagram\.com\/([^\/?#]+)/i);
+      handle = m ? m[1] : ig;
+      url = ig;
+    } else {
+      // @handle o handle plain
+      handle = ig.replace(/^@/, '');
+      url = `https://instagram.com/${handle}`;
+    }
     instagramHtml = `
-      <a href="${igUrl}" target="_blank" rel="noopener noreferrer" class="dj-sheet-instagram">
+      <a href="${url}" target="_blank" rel="noopener noreferrer" class="dj-sheet-instagram">
         <span style="font-size:14px">📷</span>
-        <span>${ig.startsWith('@') ? ig : '@'+igHandle}</span>
+        <span>@${handle}</span>
       </a>`;
   }
 
@@ -3037,14 +3050,47 @@ function renderRhythmBar(){
   if(!RITMO_ACTUAL){
     // v1.11 iter 2 · linea decorativa rossa elegante invece di waveform spento (sembrava bug)
     // Il waveform sotto resta nel DOM ma viene nascosto via CSS quando non c'è RITMO_ACTUAL
+    // v1.12 · S5 · DJ visibile anche senza ritmo · Comandante DJ è padrone di casa,
+    // sempre presente anche fuori dalle finestre BPM. Il "ritmo" è una cosa diversa dal "DJ in console".
+    const dj = CURRENT_DJ_BKS;
+    const djHasFoto = dj && dj.foto_url && dj.foto_url.startsWith('http');
+    const djHasBio = dj && dj.bio_corta && dj.bio_corta.trim().length > 0;
+    const djClickable = !!(dj && (djHasFoto || djHasBio));
+    const djName = dj && dj.nombre ? dj.nombre : '';
+    let djAvatarHtml = '';
+    if(dj){
+      if(djHasFoto){
+        djAvatarHtml = `<div class="dj-photo-wrap${djClickable?' clickable':''}"${djClickable?` onclick="openDjSheet()" role="button" aria-label="Ver detalle DJ"`:''}>
+          <img src="${dj.foto_url}" alt="${dj.nombre||'DJ'}" onerror="this.parentElement.outerHTML='&lt;div class=\\'dj-disc\\' aria-hidden=\\'true\\'&gt;&lt;/div&gt;'">
+        </div>`;
+      } else {
+        djAvatarHtml = `<div class="dj-disc${djClickable?' clickable':''}"${djClickable?` onclick="openDjSheet()" role="button" aria-label="Ver detalle DJ"`:' aria-hidden="true"'}></div>`;
+      }
+    }
+
     chipBar.innerHTML = `
-      <div style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:3px;text-transform:uppercase;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px">
+      <div style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:3px;text-transform:uppercase;font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:6px">
         <span style="width:6px;height:6px;border-radius:50%;background:var(--brand-accent);box-shadow:0 0 8px var(--brand-accent);display:inline-block"></span>
         <span>♪ BKS Rhythm</span>
       </div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.55);letter-spacing:0.3px;font-style:italic;line-height:1.4">
-        ${getLang('rhythm_none')}
-      </div>
+      ${dj ? `
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:nowrap">
+          <div style="display:flex;align-items:center;gap:7px;flex-shrink:0">
+            ${djAvatarHtml}
+            <div style="line-height:1.2;min-width:0">
+              <div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600">DJ</div>
+              <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${djName}</div>
+            </div>
+          </div>
+          <div style="flex:1;text-align:right;font-size:11px;color:rgba(255,255,255,0.5);font-style:italic;letter-spacing:0.2px;line-height:1.3;min-width:0">
+            ${getLang('rhythm_none')}
+          </div>
+        </div>
+      ` : `
+        <div style="font-size:12px;color:rgba(255,255,255,0.55);letter-spacing:0.3px;font-style:italic;line-height:1.4">
+          ${getLang('rhythm_none')}
+        </div>
+      `}
       <div style="margin-top:8px;height:1px;background:linear-gradient(90deg, transparent, var(--brand-accent-line) 30%, var(--brand-accent-line-strong) 50%, var(--brand-accent-line) 70%, transparent);opacity:0.7"></div>`;
     // Nascondi waveform spento
     const wf = fajaBar.querySelector('.rhythm-waveform');
