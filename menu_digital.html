@@ -1538,6 +1538,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   initWaveform();
   startRhythmPolling();
   hideLoading();
+
+  // v1.12 · S5 · trigger iniziale cross-sell sulla prima categoria visibile
+  // (l'observer triggera solo durante scroll · senza questo, il primo schermo
+  //  resta senza strip anche se la prima categoria avrebbe un suggerimento)
+  setTimeout(() => {
+    if(ALL_CATEGORIES && ALL_CATEGORIES.length > 0){
+      const visibleCats = getVisibleCategories();
+      if(visibleCats && visibleCats.length > 0){
+        triggerCrossSellUpdate(visibleCats[0].id);
+      }
+    }
+  }, 800);
 });
 
 /* ════════════════════════════════════════════════════
@@ -2023,6 +2035,15 @@ function setGroup(gk){
   renderCatTabs();
   renderMenu();
   window.scrollTo({top:0});
+  // v1.12 · S5 · update cross-sell sulla nuova prima cat del gruppo selezionato
+  setTimeout(() => {
+    const visibleCats = getVisibleCategories();
+    if(visibleCats && visibleCats.length > 0){
+      triggerCrossSellUpdate(visibleCats[0].id);
+    } else {
+      updateCrossSellStrip(null); // nessuna cat → strip nascosta
+    }
+  }, 300);
 }
 
 function scrollToCategory(id){
@@ -2041,6 +2062,8 @@ function scrollToCategory(id){
   document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
   const tab = document.getElementById('tab-' + id);
   if(tab) tab.classList.add('active');
+  // v1.12 · S5 · cross-sell strip aggiornata anche al tap (non solo scroll)
+  triggerCrossSellUpdate(id);
 }
 
 function setupCatObserver(){
@@ -2078,7 +2101,7 @@ function triggerCrossSellUpdate(catId){
 // Trova prodotto target di cross-sell per la categoria sorgente attiva
 // Ritorna prodotto target o null se nessun match.
 function resolveCrossSell(activeCatId){
-  if(!SUGERENCIA_ACTIVA) return null;
+  if(!SUGERENCIA_ACTIVA) return null;          // master switch off
   if(!activeCatId) return null;
   if(!ALL_PRODUCTS || ALL_PRODUCTS.length === 0) return null;
 
@@ -2090,40 +2113,28 @@ function resolveCrossSell(activeCatId){
     !p.agotado &&
     productInFaja(p)
   );
-  if(!sourceProduct){
-    console.log('[XS-DEEP] no source for cat='+activeCatId);
-    return null;
-  }
-  console.log('[XS-DEEP] source='+sourceProduct.id+' · sugerencia_categoria='+JSON.stringify(sourceProduct.sugerencia_categoria));
+  if(!sourceProduct) return null;
 
   const targetCatId = sourceProduct.sugerencia_categoria;
 
-  if(targetCatId === activeCatId){
-    console.log('[XS-DEEP] self-suggest blocked');
-    return null;
-  }
+  // 2) NO SELF-SUGGEST: se la categoria target è la stessa attiva, niente strip
+  //    (evita pubblicità inutile dentro la stessa zona prodotti)
+  if(targetCatId === activeCatId) return null;
 
   // 3) Filtra prodotti della categoria target attualmente disponibili
+  //    Decisione S5 · Opzione B: la strip RISPETTA il filtro ritmo (curatela = unica realtà · regola n.4)
+  //    JL può aggiungere i prodotti destinazione nei Prod_IDs_CSV dei ritmi dove vuole cross-sell
   const ritmoFilterActive = RITMO_FILTER_ON && RITMO_ACTUAL && RITMO_ACTUAL.prod_ids && RITMO_ACTUAL.prod_ids.length > 0;
   const ritmoSet = ritmoFilterActive ? new Set(RITMO_ACTUAL.prod_ids) : null;
-
-  // DEEP debug: quali prodotti hanno categoria === targetCatId?
-  const sameCat = ALL_PRODUCTS.filter(p => p.categoria === targetCatId);
-  console.log('[XS-DEEP] prodotti con categoria=="'+targetCatId+'" → '+sameCat.length+' totali');
-  if(sameCat.length > 0){
-    console.log('[XS-DEEP] esempio sameCat[0]:', sameCat[0].id, '· cat:'+JSON.stringify(sameCat[0].categoria), '· agotado:'+sameCat[0].agotado, '· hero:'+sameCat[0].es_sugerencia_destacada);
-  }
-  console.log('[XS-DEEP] ritmoFilterActive:', ritmoFilterActive, '· ritmoSet size:', ritmoSet ? ritmoSet.size : 0);
-
   const candidates = ALL_PRODUCTS.filter(p =>
     p.categoria === targetCatId &&
     !p.agotado &&
     productInFaja(p) &&
     (!ritmoSet || ritmoSet.has(p.id))
   );
-  console.log('[XS-DEEP] candidates (post tutti filtri):', candidates.length);
   if(candidates.length === 0) return null;
 
+  // 4) Hero (Es_Sugerencia_Destacada=TRUE) vince. Altrimenti primo candidato.
   const hero = candidates.find(p => p.es_sugerencia_destacada);
   return hero || candidates[0];
 }
