@@ -238,6 +238,34 @@ body.theme-dark .cat-header-count {
 }
 @keyframes djSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
+/* v1.12 · S5 · DJ photo · sostituisce disco rotante quando Foto_URL valorizzato */
+.dj-photo-wrap{
+  width:24px;height:24px;border-radius:50%;
+  flex-shrink:0;
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,0.18);
+}
+.dj-photo-wrap img{
+  width:100%;height:100%;
+  object-fit:cover;
+  display:block;
+}
+/* Halo accent attorno alla foto quando il DJ è cliccabile (ha bio o foto) */
+.dj-photo-wrap.clickable{
+  cursor:pointer;
+  box-shadow:0 0 0 1px rgba(233,69,96,0.4), 0 0 8px rgba(233,69,96,0.5);
+  animation:djHalo 2.4s ease-in-out infinite;
+}
+@keyframes djHalo{
+  0%,100%{box-shadow:0 0 0 1px rgba(233,69,96,0.35), 0 0 6px rgba(233,69,96,0.35);}
+  50%{box-shadow:0 0 0 1px rgba(233,69,96,0.55), 0 0 12px rgba(233,69,96,0.6);}
+}
+.dj-disc.clickable{
+  cursor:pointer;
+  animation:djSpin 3s linear infinite, djHalo 2.4s ease-in-out infinite;
+}
+
 .group-chip-promos { background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(233,69,96,0.15)) !important; border: 1px solid rgba(251,191,36,0.35) !important; animation: goldPulse 2.5s ease-in-out infinite; }
 .group-chip-promos.active { background: linear-gradient(135deg, #fbbf24, #d97706) !important; color: #fff !important; border-color: #fbbf24 !important; animation: none; }
 @keyframes goldPulse { 0%,100% { box-shadow: 0 0 0 rgba(251,191,36,0); } 50% { box-shadow: 0 0 14px rgba(251,191,36,0.4); } }
@@ -2693,12 +2721,86 @@ async function loadPromos(){
   } catch(e){ console.warn('[v1.10] loadPromos failed:', e.message); }
 }
 
+/* v1.12 · S5 · DJS_AGENDA · poll DJ ogni 60s, calcola DJ attivo per giorno+ora
+   ────────────────────────────────────────────────────────────────────
+   Endpoint GAS: action=getDJsAgenda · ritorna array di DJs configurati
+   con dia (es. "L,M,X,J,V,S,D"), hora_ini, hora_fin, foto_url, bio, instagram.
+   Frontend calcola DJ attivo locale (no dipendenza GAS time).
+   Se nessun DJ attivo → fallback al disco rotante con label "DJ" vuota.
+   ──────────────────────────────────────────────────────────────────── */
+const DAY_CODES_BKS = ['D','L','M','X','J','V','S']; // 0=Dom,1=Lun,...,6=Sab (convención ES)
+
+async function loadDJs(){
+  if(!BRAND.gas_url) return;
+  try {
+    const url = `${BRAND.gas_url}?action=getDJsAgenda&local=${LOCAL_ID}&t=${Date.now()}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if(!data.ok) return;
+    DJS_AGENDA = data.djs || [];
+    const prevDjId = CURRENT_DJ_BKS ? CURRENT_DJ_BKS.dj_id : null;
+    CURRENT_DJ_BKS = resolveDjActual();
+    const newDjId = CURRENT_DJ_BKS ? CURRENT_DJ_BKS.dj_id : null;
+    if(prevDjId !== newDjId){
+      console.log('[v1.12] DJ cambiato:', prevDjId, '→', newDjId);
+    }
+    renderRhythmBar();
+  } catch(e){ console.warn('[v1.12] loadDJs failed:', e.message); }
+}
+
+// Calcola DJ attivo in base a giorno e ora locali del cliente
+// Ritorna oggetto DJ o null se nessun match
+function resolveDjActual(){
+  if(!DJS_AGENDA || DJS_AGENDA.length === 0) return null;
+  const now = new Date();
+  const dayCode = DAY_CODES_BKS[now.getDay()];
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+
+  for(const dj of DJS_AGENDA){
+    if(!dj.activo) continue;
+    // Filtro giorno
+    const dias = (dj.dia || '').toUpperCase().split(',').map(s => s.trim()).filter(Boolean);
+    if(dias.length > 0 && !dias.includes(dayCode)) continue;
+    // Filtro orario · supporta wrap-midnight (es 22:00 → 02:00)
+    const iniMin = parseHHMMtoMin(dj.hora_ini);
+    const finMin = parseHHMMtoMin(dj.hora_fin);
+    if(iniMin === null || finMin === null) continue;
+    let inWindow;
+    if(iniMin <= finMin){
+      inWindow = nowMin >= iniMin && nowMin < finMin;
+    } else {
+      // wrap notte (es 22:00-02:00 · attivo 22-23:59 OPPURE 00-02)
+      inWindow = nowMin >= iniMin || nowMin < finMin;
+    }
+    if(inWindow) return dj;
+  }
+  return null;
+}
+
+// Parser HH:MM → minuti totali · ritorna null se invalido
+function parseHHMMtoMin(s){
+  if(!s) return null;
+  const str = String(s).trim();
+  const m = str.match(/^(\d{1,2}):(\d{2})/);
+  if(!m) return null;
+  return parseInt(m[1])*60 + parseInt(m[2]);
+}
+
+// v1.12 · S5 · STUB openDjSheet · vero bottom-sheet implementato in commit 5
+// Per ora apre console log come segnale visivo del tap
+function openDjSheet(){
+  if(!CURRENT_DJ_BKS) return;
+  console.log('[v1.12] openDjSheet · DJ:', CURRENT_DJ_BKS.nombre, '· bio:', CURRENT_DJ_BKS.bio_corta);
+  // TODO C5: rendering scheda DJ bottom-sheet con foto 180px, bio, instagram, próximas sesiones
+}
+
 function startRhythmPolling(){
   if(!document.body.classList.contains('theme-dark')) return;
   if(RITMO_POLL_TIMER) return;
   loadRitmos();
   loadPromos();
-  RITMO_POLL_TIMER = setInterval(() => { loadRitmos(); loadPromos(); }, 60000);
+  loadDJs();   // v1.12 · S5 · poll iniziale DJ
+  RITMO_POLL_TIMER = setInterval(() => { loadRitmos(); loadPromos(); loadDJs(); }, 60000);
   console.log('[v1.10] Rhythm polling attivo (60s) per', LOCAL_ID);
 }
 
@@ -2748,22 +2850,35 @@ function renderRhythmBar(){
     const sloganStripped = slogan.replace(/\.$/, ''); // rimuovo punto finale per puntini sospensivi
     const djName = (CURRENT_DJ_BKS && CURRENT_DJ_BKS.nombre) ? CURRENT_DJ_BKS.nombre : '';
 
+    // v1.12 · S5 · DJ avatar dinamico
+    // Se CURRENT_DJ_BKS ha foto_url → mostra <img>. Altrimenti disco rotante rosso.
+    // Halo accent + cursor pointer se DJ ha bio_corta o foto (= scheda apribile)
+    const dj = CURRENT_DJ_BKS;
+    const djHasFoto = dj && dj.foto_url && dj.foto_url.startsWith('http');
+    const djHasBio = dj && dj.bio_corta && dj.bio_corta.trim().length > 0;
+    const djClickable = !!(dj && (djHasFoto || djHasBio));
+    let djAvatarHtml;
+    if(djHasFoto){
+      djAvatarHtml = `<div class="dj-photo-wrap${djClickable?' clickable':''}"${djClickable?` onclick="openDjSheet()" role="button" aria-label="Ver detalle DJ"`:''}>
+        <img src="${dj.foto_url}" alt="${dj.nombre||'DJ'}" onerror="this.parentElement.outerHTML='&lt;div class=\\'dj-disc\\' aria-hidden=\\'true\\'&gt;&lt;/div&gt;'">
+      </div>`;
+    } else {
+      djAvatarHtml = `<div class="dj-disc${djClickable?' clickable':''}"${djClickable?` onclick="openDjSheet()" role="button" aria-label="Ver detalle DJ"`:' aria-hidden="true"'}></div>`;
+    }
+
     chipBar.innerHTML = `
       <div style="font-size:9px;color:rgba(255,255,255,0.45);letter-spacing:3px;text-transform:uppercase;font-weight:500;margin-bottom:8px">♪ BKS Rhythm</div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:nowrap">
-        <!-- Sx · Comandante DJ con disco rotante · v1.10 · "Comandante DJ" è il nome del curatore della serata · TODO-S4-02 sostituito da DJ reale quando suona -->
         <div style="display:flex;align-items:center;gap:7px;flex-shrink:0;min-width:0">
-          <div class="dj-disc" aria-hidden="true"></div>
+          ${djAvatarHtml}
           <div style="line-height:1.2;min-width:0">
             <div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600">DJ</div>
-            <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${djName}</div>
+            <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${djName||'—'}</div>
           </div>
         </div>
-        <!-- Centro · slogan in corsivo coi puntini sospensivi -->
         <div style="flex:1;text-align:center;font-size:12px;color:rgba(255,255,255,0.55);font-style:italic;letter-spacing:0.2px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
           … ${sloganStripped} …
         </div>
-        <!-- Dx · BPM micro firma · battito vivo -->
         <div style="flex-shrink:0">
           <span style="font-family:'Consolas',ui-monospace,monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;font-weight:500">${r.bpm} BPM</span>
         </div>
