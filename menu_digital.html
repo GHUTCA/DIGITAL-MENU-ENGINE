@@ -631,6 +631,111 @@ body.theme-dark .confirm-btn-cancel{background:rgba(255,255,255,0.06);color:rgba
 #detailSheet{position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:480px;z-index:301;background:var(--brand-surface);border-radius:20px 20px 0 0;max-height:90dvh;overflow-y:auto;transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);}
 #detailSheet.open{transform:translate(-50%,0)}
 .sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--brand-border);margin:12px auto 0;}
+
+/* v1.12 · S5 · DJ Sheet · stesso pattern detailSheet, contenuti dedicati */
+#djOverlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.5);}
+#djOverlay.open{display:block}
+#djSheet{position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:480px;z-index:301;background:var(--brand-surface);border-radius:20px 20px 0 0;max-height:90dvh;overflow-y:auto;transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);}
+#djSheet.open{transform:translate(-50%,0)}
+body.theme-dark #djSheet{background:#1A1A2E;box-shadow:0 -10px 40px rgba(0,0,0,0.6);}
+.dj-sheet-content{padding:8px 24px 32px;text-align:center;}
+.dj-sheet-photo{
+  width:140px;height:140px;border-radius:50%;
+  margin:16px auto 18px;
+  background:#22223D;
+  border:2px solid rgba(233,69,96,0.4);
+  box-shadow:0 0 24px rgba(233,69,96,0.25);
+  overflow:hidden;
+  position:relative;
+}
+.dj-sheet-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.dj-sheet-photo .dj-sheet-fallback{
+  width:100%;height:100%;
+  background:radial-gradient(circle,rgba(233,69,96,0.45) 35%,#1A1A2E 35%,#1A1A2E 38%,rgba(255,255,255,0.18) 40%,#1A1A2E 90%);
+  animation:djSpin 4s linear infinite;
+}
+.dj-sheet-name{
+  font-family:'Fraunces',serif;
+  font-size:24px;font-weight:400;
+  color:#fff;letter-spacing:-0.3px;
+  margin-bottom:8px;
+}
+.dj-sheet-bio{
+  font-size:14px;line-height:1.5;
+  color:rgba(255,255,255,0.7);
+  font-style:italic;
+  max-width:320px;margin:0 auto 18px;
+}
+.dj-sheet-instagram{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 18px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:24px;
+  color:#fff;
+  font-size:13px;font-weight:500;letter-spacing:0.2px;
+  cursor:pointer;
+  text-decoration:none;
+  transition:background 0.2s, border-color 0.2s;
+  margin-bottom:18px;
+}
+.dj-sheet-instagram:active{background:rgba(255,255,255,0.12);border-color:rgba(233,69,96,0.4);}
+.dj-sheet-divider{
+  border:none;
+  height:1px;
+  background:rgba(255,255,255,0.08);
+  margin:18px 0 14px;
+}
+.dj-sheet-section-title{
+  font-size:9px;
+  color:rgba(233,69,96,0.85);
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  font-weight:600;
+  margin-bottom:10px;
+  text-align:left;
+}
+.dj-sheet-next-list{
+  display:flex;flex-direction:column;gap:8px;
+  text-align:left;
+}
+.dj-sheet-next-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;
+  background:rgba(255,255,255,0.03);
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.06);
+}
+.dj-sheet-next-name{font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);}
+.dj-sheet-next-when{font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:0.3px;}
+.dj-sheet-now{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;
+  background:rgba(233,69,96,0.08);
+  border-radius:10px;
+  border:1px solid rgba(233,69,96,0.25);
+  text-align:left;
+}
+.dj-sheet-now-text{font-size:12px;color:rgba(255,255,255,0.7);font-style:italic;}
+.dj-sheet-now-bpm{font-family:'Consolas',ui-monospace,monospace;font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:1px;font-weight:500;}
+.dj-sheet-close{
+  position:absolute;top:14px;right:18px;
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,0.08);
+  color:rgba(255,255,255,0.7);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;cursor:pointer;
+  border:none;
+}
+.dj-sheet-close:active{background:rgba(255,255,255,0.15);}
+/* light mode (eventuale Candelaria futuro · per ora microbar è solo BKS dark) */
+body:not(.theme-dark) #djSheet{background:#FFFFFF;}
+body:not(.theme-dark) .dj-sheet-name{color:var(--brand-text);}
+body:not(.theme-dark) .dj-sheet-bio{color:rgba(0,0,0,0.65);}
+body:not(.theme-dark) .dj-sheet-instagram{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1);color:var(--brand-text);}
+body:not(.theme-dark) .dj-sheet-next-item{background:rgba(0,0,0,0.02);border-color:rgba(0,0,0,0.06);}
+body:not(.theme-dark) .dj-sheet-next-name{color:var(--brand-text);}
+body:not(.theme-dark) .dj-sheet-close{background:rgba(0,0,0,0.06);color:rgba(0,0,0,0.6);}
 .sheet-img{width:100%;height:220px;background:var(--brand-bg);object-fit:cover;position:relative;}
 .sheet-img img{width:100%;height:100%;object-fit:cover}
 .sheet-img-ph{width:100%;height:220px;display:flex;align-items:center;justify-content:center;background:var(--brand-bg);font-size:64px;opacity:0.15;}
@@ -949,6 +1054,15 @@ body.theme-dark .bnav-fab{border-color:var(--brand-surface)}
   </div>
 </div>
 
+<!-- ── DJ SHEET · v1.12 S5 · scheda DJ con foto, bio, instagram, próximas sesiones ── -->
+<div id="djOverlay" onclick="closeDjSheet()"></div>
+<div id="djSheet" role="dialog" aria-modal="true" aria-label="Detalle DJ">
+  <div class="sheet-handle"></div>
+  <div class="dj-sheet-content" id="djSheetContent">
+    <!-- popolato dinamicamente da renderDjSheet() -->
+  </div>
+</div>
+
 <!-- v1.11 · stickyCallBar (FAB flottante in basso-dx) · RIMOSSO.
      La campanella vive ora come FAB integrato CENTRALE nella bottom-nav. -->
 
@@ -1102,6 +1216,8 @@ const TRANSLATIONS = {
     // v1.12 · S5 · cross-sell strip
     xs_label:'Sugerencia del momento',
     xs_intro_default:'Pruébalo con',
+    // v1.12 · S5 · DJ sheet
+    dj_now_label:'Ahora en cabina', dj_next_label:'Próximas sesiones', dj_close:'Cerrar',
   },
   en:{
     loading:'Loading menu...',
@@ -1141,6 +1257,7 @@ const TRANSLATIONS = {
     call_retry_error:'⚠ Call error · please try again',
     xs_label:'Of-the-moment pick',
     xs_intro_default:'Try it with',
+    dj_now_label:'Now in the booth', dj_next_label:'Up next', dj_close:'Close',
   },
   pt:{
     loading:'Carregando cardápio...',
@@ -1180,6 +1297,7 @@ const TRANSLATIONS = {
     call_retry_error:'⚠ Erro ao chamar · tente novamente',
     xs_label:'Sugestão do momento',
     xs_intro_default:'Experimente com',
+    dj_now_label:'Agora na cabine', dj_next_label:'Próximas sessões', dj_close:'Fechar',
   },
   it:{
     loading:'Caricamento menu...',
@@ -1219,6 +1337,7 @@ const TRANSLATIONS = {
     call_retry_error:'⚠ Errore chiamata · riprova',
     xs_label:'Suggerito ora',
     xs_intro_default:'Provalo con',
+    dj_now_label:'In console adesso', dj_next_label:'Prossime serate', dj_close:'Chiudi',
   },
   de:{
     loading:'Menü wird geladen...',
@@ -1258,6 +1377,7 @@ const TRANSLATIONS = {
     call_retry_error:'⚠ Anruffehler · bitte erneut versuchen',
     xs_label:'Empfehlung des Moments',
     xs_intro_default:'Probier es mit',
+    dj_now_label:'Jetzt am Pult', dj_next_label:'Demnächst', dj_close:'Schließen',
   },
   fr:{
     loading:'Chargement du menu...',
@@ -1297,6 +1417,7 @@ const TRANSLATIONS = {
     call_retry_error:'⚠ Erreur appel · réessayez',
     xs_label:'Suggestion du moment',
     xs_intro_default:'Essaie avec',
+    dj_now_label:'En cabine maintenant', dj_next_label:'À venir', dj_close:'Fermer',
   },
   zh:{
     loading:'菜单加载中...',
@@ -1336,6 +1457,7 @@ const TRANSLATIONS = {
     call_retry_error:'⚠ 呼叫错误 · 请重试',
     xs_label:'此刻推荐',
     xs_intro_default:'搭配',
+    dj_now_label:'现场DJ', dj_next_label:'即将登场', dj_close:'关闭',
   },
   ja:{
     loading:'メニュー読み込み中...',
@@ -1375,6 +1497,7 @@ const TRANSLATIONS = {
     call_retry_error:'⚠ 呼び出しエラー · 再試行してください',
     xs_label:'今のおすすめ',
     xs_intro_default:'こちらと一緒に',
+    dj_now_label:'ブース内', dj_next_label:'次回の出演', dj_close:'閉じる',
   },
 };
 
@@ -2786,12 +2909,99 @@ function parseHHMMtoMin(s){
   return parseInt(m[1])*60 + parseInt(m[2]);
 }
 
-// v1.12 · S5 · STUB openDjSheet · vero bottom-sheet implementato in commit 5
-// Per ora apre console log come segnale visivo del tap
+// v1.12 · S5 · openDjSheet · scheda DJ bottom-sheet con foto, bio, instagram,
+// próximas sesiones (max 3) e snapshot ahora en cabina (slogan + BPM).
 function openDjSheet(){
   if(!CURRENT_DJ_BKS) return;
-  console.log('[v1.12] openDjSheet · DJ:', CURRENT_DJ_BKS.nombre, '· bio:', CURRENT_DJ_BKS.bio_corta);
-  // TODO C5: rendering scheda DJ bottom-sheet con foto 180px, bio, instagram, próximas sesiones
+  const dj = CURRENT_DJ_BKS;
+  const content = document.getElementById('djSheetContent');
+  const sheet = document.getElementById('djSheet');
+  const overlay = document.getElementById('djOverlay');
+  if(!content || !sheet || !overlay) return;
+
+  // Foto · se URL valida usa <img>, altrimenti fallback disco rotante
+  const hasFoto = dj.foto_url && dj.foto_url.startsWith('http');
+  const fotoHtml = hasFoto
+    ? `<img src="${dj.foto_url}" alt="${dj.nombre||'DJ'}" onerror="this.outerHTML='<div class=&quot;dj-sheet-fallback&quot;></div>'">`
+    : `<div class="dj-sheet-fallback"></div>`;
+
+  // Instagram · solo se popolato · normalizza @handle a URL
+  let instagramHtml = '';
+  if(dj.instagram && dj.instagram.trim().length > 0){
+    const ig = dj.instagram.trim();
+    const igHandle = ig.replace(/^@/, '');
+    const igUrl = ig.startsWith('http') ? ig : `https://instagram.com/${igHandle}`;
+    instagramHtml = `
+      <a href="${igUrl}" target="_blank" rel="noopener noreferrer" class="dj-sheet-instagram">
+        <span style="font-size:14px">📷</span>
+        <span>${ig.startsWith('@') ? ig : '@'+igHandle}</span>
+      </a>`;
+  }
+
+  // Próximas sesiones · DJ diversi dal corrente, attivi, max 3, ordinate per giorno+ora
+  const proximasHtml = renderProximasSesiones(dj.dj_id);
+
+  // Ahora en cabina · slogan ritmo + BPM (snapshot del momento attuale)
+  const r = RITMO_ACTUAL;
+  let nowHtml = '';
+  if(r){
+    const sheetMsg = (r.mensaje_cliente || '').trim();
+    const slogan = sheetMsg || (typeof RHYTHM_SLOGANS_BKS !== 'undefined' && RHYTHM_SLOGANS_BKS[r.id]) || r.nombre || r.id;
+    const sloganStripped = String(slogan).replace(/\.$/, '');
+    nowHtml = `
+      <hr class="dj-sheet-divider">
+      <div class="dj-sheet-section-title">${getLang('dj_now_label') || 'AHORA EN CABINA'}</div>
+      <div class="dj-sheet-now">
+        <span class="dj-sheet-now-text">… ${sloganStripped} …</span>
+        <span class="dj-sheet-now-bpm">${r.bpm} BPM</span>
+      </div>`;
+  }
+
+  content.innerHTML = `
+    <button class="dj-sheet-close" onclick="closeDjSheet()" aria-label="${getLang('dj_close')||'Cerrar'}">✕</button>
+    <div class="dj-sheet-photo">${fotoHtml}</div>
+    <div class="dj-sheet-name">${dj.nombre || 'DJ'}</div>
+    ${dj.bio_corta ? `<div class="dj-sheet-bio">${dj.bio_corta}</div>` : ''}
+    ${instagramHtml}
+    ${proximasHtml}
+    ${nowHtml}
+  `;
+
+  overlay.classList.add('open');
+  sheet.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  console.log('[v1.12] openDjSheet ·', dj.nombre);
+}
+
+// Render bottom-sheet section "Próximas sesiones" (max 3 DJ diversi dal corrente)
+function renderProximasSesiones(currentDjId){
+  if(!DJS_AGENDA || DJS_AGENDA.length === 0) return '';
+  const proximas = DJS_AGENDA
+    .filter(d => d.activo && d.dj_id !== currentDjId && d.nombre)
+    .slice(0, 3);
+  if(proximas.length === 0) return '';
+  const items = proximas.map(d => {
+    const days = d.dia ? d.dia.replace(/,/g, '/') : '';
+    const time = (d.hora_ini && d.hora_fin) ? `${d.hora_ini}-${d.hora_fin}` : '';
+    const when = [days, time].filter(Boolean).join(' · ');
+    return `
+      <div class="dj-sheet-next-item">
+        <span class="dj-sheet-next-name">${d.nombre}</span>
+        <span class="dj-sheet-next-when">${when}</span>
+      </div>`;
+  }).join('');
+  return `
+    <hr class="dj-sheet-divider">
+    <div class="dj-sheet-section-title">${getLang('dj_next_label') || 'PRÓXIMAS SESIONES'}</div>
+    <div class="dj-sheet-next-list">${items}</div>`;
+}
+
+function closeDjSheet(){
+  const overlay = document.getElementById('djOverlay');
+  const sheet = document.getElementById('djSheet');
+  if(overlay) overlay.classList.remove('open');
+  if(sheet) sheet.classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 function startRhythmPolling(){
