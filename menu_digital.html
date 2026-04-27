@@ -3622,6 +3622,8 @@ async function openCartelera(){
       sheet.classList.add('show');
     });
   });
+
+  // Body lock · evita scroll-chaining come BIENVENIDA splash
   document.body.style.overflow = 'hidden';
   document.body.style.touchAction = 'none';
 
@@ -3635,27 +3637,12 @@ async function openCartelera(){
     }
   }
 
-  const sheet = document.getElementById('carteleraSheet');
-  const overlay = document.getElementById('carteleraOverlay');
-  if(!sheet || !overlay) return;
-
-  overlay.classList.add('show');
-  // Doppio rAF per garantire transition (pattern djSheet)
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      sheet.classList.add('show');
-    });
-  });
-
-  // Body lock · evita scroll-chaining come BIENVENIDA splash
-  document.body.style.overflow = 'hidden';
-  document.body.style.touchAction = 'none';
-
   // Poll fascia ogni 60s per ricalcolare "en_vivo" se utente lascia sheet aperto
   if(CARTELERA_POLL_TIMER) clearInterval(CARTELERA_POLL_TIMER);
   CARTELERA_POLL_TIMER = setInterval(() => {
     loadCartelera(true).then(d => { if(d) renderCarteleraSheet(d); });
   }, 60000);
+}
 }
 
 function closeCartelera(){
