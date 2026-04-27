@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- v1.15 · S7 · forza light scheme su Samsung Internet/Chrome Android per palette DIA splash -->
-<meta name="color-scheme" content="light dark">
-<meta name="supported-color-schemes" content="light dark">
+<!-- v1.15 · S7 · color-scheme dinamico (modificato a runtime da JS in base a fascia).
+     Default light per coerenza con palette DIA al primo paint splash.
+     Niente "light dark" → Samsung Internet altrimenti attiva dark-engine in dark mode telefono. -->
+<meta name="color-scheme" content="light" id="bvColorScheme">
+<meta name="supported-color-schemes" content="light" id="bvSupportedScheme">
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
@@ -3083,14 +3085,18 @@ function showBienvenidaSplash(){
   document.body.style.overflow = 'hidden';
   document.body.style.touchAction = 'none';
 
-  // v1.15 · S7 fix · theme-color dinamico per fascia · segnala al browser
-  // mobile (Samsung/Chrome) la palette corretta · status bar coerente.
-  // DIA = #F0E9DD cremoso · NOCHE/CERRADO = #0A0A14 nero.
+  // v1.15 · S7 fix · theme-color + color-scheme dinamici per fascia.
+  // Segnala al browser mobile (Samsung/Chrome) la palette corretta.
+  // DIA = #F0E9DD cremoso + scheme:light · NOCHE/CERRADO = #0A0A14 + scheme:dark.
+  // CRITICO: niente "light dark" · Samsung in dark mode telefono altrimenti
+  // attiva il proprio dark-engine e inverte il cremoso DIA in marrone scuro.
+  const isDay = (franja.id === 'ALMUERZO' || franja.id === 'TARDE');
   const themeMeta = document.getElementById('bvThemeColor');
-  if(themeMeta){
-    const isDay = (franja.id === 'ALMUERZO' || franja.id === 'TARDE');
-    themeMeta.setAttribute('content', isDay ? '#F0E9DD' : '#0A0A14');
-  }
+  if(themeMeta) themeMeta.setAttribute('content', isDay ? '#F0E9DD' : '#0A0A14');
+  const schemeMeta = document.getElementById('bvColorScheme');
+  if(schemeMeta) schemeMeta.setAttribute('content', isDay ? 'light' : 'dark');
+  const supportedMeta = document.getElementById('bvSupportedScheme');
+  if(supportedMeta) supportedMeta.setAttribute('content', isDay ? 'light' : 'dark');
 
   // Track view bienvenida (telemetria semplice per Alberto)
   console.log('[v1.15] Bienvenida shown · franja=' + franja.id +
@@ -3109,9 +3115,14 @@ function dismissBienvenida(){
   // di 500ms · il menu sotto può iniziare a comportarsi normalmente già).
   document.body.style.overflow = '';
   document.body.style.touchAction = '';
-  // v1.15 · S7 fix · ripristino theme-color al default BKS dark del menu.
+  // v1.15 · S7 fix · ripristino theme-color + color-scheme al default BKS dark del menu.
+  // Il menu BKS è dark-only oggi (la palette dinamica menu è S7 prossima sessione).
   const themeMeta = document.getElementById('bvThemeColor');
   if(themeMeta) themeMeta.setAttribute('content', '#0A0A14');
+  const schemeMeta = document.getElementById('bvColorScheme');
+  if(schemeMeta) schemeMeta.setAttribute('content', 'dark');
+  const supportedMeta = document.getElementById('bvSupportedScheme');
+  if(supportedMeta) supportedMeta.setAttribute('content', 'dark');
   setTimeout(()=>{
     splash.style.display = 'none';
     splash.classList.remove('show', 'out');
