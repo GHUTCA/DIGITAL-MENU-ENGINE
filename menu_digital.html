@@ -996,10 +996,41 @@ body[data-fascia="NOCHE"]   #bienvenidaSplash{
   flex:0 0 50vh;
   overflow:hidden;
   background:var(--bv-surface, #1F1F38);
+  transition:flex-basis 0.4s ease;
 }
 body[data-fascia="NOCHE"] #bienvenidaSplash .bv-hero,
 body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
   flex:0 0 60vh;
+}
+
+/* v1.13 fix · S6c3 · NO-PHOTO MODE · hero si comprime se foto manca o fallisce
+   Garantisce CTA sempre visibile sopra la fold anche con Foto_URL vuota in Sheet. */
+#bienvenidaSplash.no-photo .bv-hero{
+  flex:0 0 22vh !important;     /* override sia 50vh sia 60vh */
+}
+#bienvenidaSplash.no-photo .bv-hero-img{
+  display:none;
+}
+/* In no-photo mode, slogan e DJ ribbon escono dall'hero (non c'è spazio)
+   e si riposizionano in flow normale dentro l'hero compresso */
+#bienvenidaSplash.no-photo .bv-slogan{
+  position:static;
+  font-size:26px;
+  margin:8px 24px;
+  display:block;
+  text-shadow:none;
+}
+#bienvenidaSplash.no-photo .bv-dj{
+  bottom:14px;             /* resta in fondo all'hero compresso */
+  font-size:11px;
+}
+/* Quando no-photo, aumento il padding zona proposta per respirare meglio */
+#bienvenidaSplash.no-photo .bv-proposal{
+  padding-top:24px;
+  padding-bottom:8px;
+}
+#bienvenidaSplash.no-photo .bv-status{
+  padding-top:24px;
 }
 #bienvenidaSplash .bv-hero-img{
   position:absolute; inset:0;
@@ -2906,15 +2937,27 @@ function showBienvenidaSplash(){
   // Brand label
   document.getElementById('bvBrand').textContent = BRAND.name || 'BKS';
 
-  // Foto hero · onerror fallback a placeholder gradient
+  // v1.13 fix · S6c3 · Foto hero con NO-PHOTO MODE
+  // Se foto_url manca O l'immagine fallisce → applico classe no-photo allo splash:
+  // hero si comprime drasticamente (22vh invece di 50/60vh) e CTA è sempre visibile.
+  const splashEl = document.getElementById('bienvenidaSplash');
   const heroImg = document.getElementById('bvHeroImg');
+  splashEl.classList.remove('no-photo');     // reset per casi multipli (improbabile ma safe)
+
   if(franja.foto_url){
     heroImg.src = franja.foto_url;
     heroImg.onerror = ()=>{
       heroImg.style.display = 'none';
+      splashEl.classList.add('no-photo');
+      console.log('[v1.13] Bienvenida foto failed to load · activating no-photo mode');
+    };
+    heroImg.onload = ()=>{
+      heroImg.style.display = '';            // reset display nel caso fosse stato nascosto prima
+      splashEl.classList.remove('no-photo');
     };
   } else {
     heroImg.style.display = 'none';
+    splashEl.classList.add('no-photo');     // foto vuota in Sheet → modalità no-photo da subito
   }
 
   // Zona 2 · stato + ora corrente
