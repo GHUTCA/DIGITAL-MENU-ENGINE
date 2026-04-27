@@ -379,6 +379,84 @@ body.theme-dark .group-chip.disabled{opacity:0.35}
 .group-chip-name{font-size:10px;font-weight:600;display:block}
 .group-chip-count{font-size:8px;opacity:0.6;display:block;margin-top:1px}
 
+/* ══════════════════════════════════════════ CROSS-SELL STRIP · v1.12 S5 ══════════════════════════════════════════
+   Tono 3 · quarto livello cromatico (decisione design Alberto S5):
+   - bg #1A1A2E (PINSA primary usato come bg neutro caldo, distinto da chrome navigation)
+   - border accent rosso 0.18 alpha sopra/sotto + spilla verticale sx 3px
+   - micro-label "★ Sugerencia del momento" in 9px accent muto
+   - foto 40×40 + intro+nome + prezzo+freccia
+   - hidden by default, JS controlla visibilità per categoria
+   ───────────────────────────────────────────────────────────────────────────── */
+#crossSellStrip{
+  display:none;
+  background:#1A1A2E;
+  border-top:1px solid rgba(233,69,96,0.18);
+  border-bottom:1px solid rgba(233,69,96,0.18);
+  position:relative;
+  max-width:480px;
+  margin:0 auto;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:background 0.2s;
+}
+#crossSellStrip.visible{display:block;}
+#crossSellStrip:active{background:#22223D}
+#crossSellStrip::before{
+  content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,transparent,var(--brand-accent) 50%,transparent);
+  opacity:0.7;
+  pointer-events:none;
+}
+.xs-label{
+  padding:6px 16px 0;font-size:9px;color:rgba(233,69,96,0.85);
+  letter-spacing:2.5px;text-transform:uppercase;font-weight:600;
+  display:flex;align-items:center;gap:6px;
+}
+.xs-label::before{
+  content:'';width:5px;height:5px;border-radius:50%;background:var(--brand-accent);
+  box-shadow:0 0 6px var(--brand-accent);
+}
+.xs-row{
+  padding:6px 16px 10px;
+  display:flex;align-items:center;gap:10px;
+}
+.xs-photo{
+  width:40px;height:40px;border-radius:8px;flex-shrink:0;
+  background:#1F1F38;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.xs-photo img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
+.xs-photo-emoji{font-size:20px;}
+.xs-content{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.xs-intro{
+  font-size:9px;color:rgba(255,255,255,0.55);
+  letter-spacing:2.5px;text-transform:uppercase;font-weight:600;
+}
+.xs-name{
+  font-size:13px;font-weight:600;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.xs-price-arrow{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.xs-price{font-size:13px;font-weight:500;color:rgba(255,255,255,0.85);}
+.xs-arrow{
+  width:24px;height:24px;border-radius:50%;
+  background:var(--brand-accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:600;line-height:1;
+}
+/* Light mode (PINSA Candelaria) · stesso pattern, palette adattata */
+body:not(.theme-dark) #crossSellStrip{
+  background:#FBFAF7;  /* tono caldo distinto dal bg principale */
+  border-top:1px solid rgba(233,69,96,0.18);
+  border-bottom:1px solid rgba(233,69,96,0.18);
+}
+body:not(.theme-dark) #crossSellStrip:active{background:#F2F0EA}
+body:not(.theme-dark) .xs-photo{background:#F0EEE8;}
+body:not(.theme-dark) .xs-name{color:var(--brand-text);}
+body:not(.theme-dark) .xs-price{color:var(--brand-text);}
+body:not(.theme-dark) .xs-intro{color:rgba(0,0,0,0.55);}
+
 /* ══════════════════════════════════════════ MAIN ══════════════════════════════════════════ */
 /* v1.11 · padding-bottom ridotto: il FAB ora vive DENTRO bottom-nav, non più flottante esterno.
    80px = bottom-nav reale (~70px con FAB rialzato) + 10px respiro sotto ultima card. */
@@ -790,6 +868,22 @@ body.theme-dark .bnav-fab{border-color:var(--brand-surface)}
   <div class="search-overlay-results" id="searchOverlayResults"></div>
 </div>
 
+<!-- ── CROSS-SELL STRIP · v1.12 S5 · subito sopra cat-tabs · hidden by default ── -->
+<div id="crossSellStrip" role="button" tabindex="0" aria-label="Sugerencia del momento">
+  <div class="xs-label" id="crossSellLabel"></div>
+  <div class="xs-row">
+    <div class="xs-photo" id="crossSellPhoto"></div>
+    <div class="xs-content">
+      <div class="xs-intro" id="crossSellIntro"></div>
+      <div class="xs-name" id="crossSellName"></div>
+    </div>
+    <div class="xs-price-arrow">
+      <div class="xs-price" id="crossSellPrice"></div>
+      <div class="xs-arrow">›</div>
+    </div>
+  </div>
+</div>
+
 <!-- ── CATEGORY TABS ── -->
 <div class="cat-sticky" id="catSticky">
   <div class="cat-tabs" id="catTabs"></div>
@@ -975,6 +1069,9 @@ const TRANSLATIONS = {
     coming_soon:'Próximamente · Pedir directo',
     call_send_error:'⚠ No se pudo enviar la llamada',
     call_retry_error:'⚠ Error al llamar · intenta de nuevo',
+    // v1.12 · S5 · cross-sell strip
+    xs_label:'Sugerencia del momento',
+    xs_intro_default:'Pruébalo con',
   },
   en:{
     loading:'Loading menu...',
@@ -1012,6 +1109,8 @@ const TRANSLATIONS = {
     coming_soon:'Coming soon · Order directly',
     call_send_error:'⚠ Could not send the call',
     call_retry_error:'⚠ Call error · please try again',
+    xs_label:'Of-the-moment pick',
+    xs_intro_default:'Try it with',
   },
   pt:{
     loading:'Carregando cardápio...',
@@ -1049,6 +1148,8 @@ const TRANSLATIONS = {
     coming_soon:'Em breve · Pedir diretamente',
     call_send_error:'⚠ Não foi possível enviar a chamada',
     call_retry_error:'⚠ Erro ao chamar · tente novamente',
+    xs_label:'Sugestão do momento',
+    xs_intro_default:'Experimente com',
   },
   it:{
     loading:'Caricamento menu...',
@@ -1086,6 +1187,8 @@ const TRANSLATIONS = {
     coming_soon:'Prossimamente · Ordina diretto',
     call_send_error:"⚠ Impossibile inviare la chiamata",
     call_retry_error:'⚠ Errore chiamata · riprova',
+    xs_label:'Suggerito ora',
+    xs_intro_default:'Provalo con',
   },
   de:{
     loading:'Menü wird geladen...',
@@ -1123,6 +1226,8 @@ const TRANSLATIONS = {
     coming_soon:'Bald verfügbar · Direkt bestellen',
     call_send_error:'⚠ Anruf konnte nicht gesendet werden',
     call_retry_error:'⚠ Anruffehler · bitte erneut versuchen',
+    xs_label:'Empfehlung des Moments',
+    xs_intro_default:'Probier es mit',
   },
   fr:{
     loading:'Chargement du menu...',
@@ -1160,6 +1265,8 @@ const TRANSLATIONS = {
     coming_soon:'Bientôt · Commander directement',
     call_send_error:"⚠ Impossible d'envoyer l'appel",
     call_retry_error:'⚠ Erreur appel · réessayez',
+    xs_label:'Suggestion du moment',
+    xs_intro_default:'Essaie avec',
   },
   zh:{
     loading:'菜单加载中...',
@@ -1197,6 +1304,8 @@ const TRANSLATIONS = {
     coming_soon:'即将推出 · 直接下单',
     call_send_error:'⚠ 无法发送呼叫',
     call_retry_error:'⚠ 呼叫错误 · 请重试',
+    xs_label:'此刻推荐',
+    xs_intro_default:'搭配',
   },
   ja:{
     loading:'メニュー読み込み中...',
@@ -1234,6 +1343,8 @@ const TRANSLATIONS = {
     coming_soon:'近日公開 · 直接注文',
     call_send_error:'⚠ 呼び出しを送信できません',
     call_retry_error:'⚠ 呼び出しエラー · 再試行してください',
+    xs_label:'今のおすすめ',
+    xs_intro_default:'こちらと一緒に',
   },
 };
 
@@ -1944,10 +2055,113 @@ function setupCatObserver(){
           tab.classList.add('active');
           tab.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
         }
+        // v1.12 · S5 · cross-sell strip · debounced real-time update
+        triggerCrossSellUpdate(id);
       }
     });
   }, opts);
   document.querySelectorAll('.cat-section').forEach(s=>obs.observe(s));
+}
+
+/* ════════════════════════════════════════════════════
+   v1.12 · S5 · CROSS-SELL STRIP · logica completa
+   ════════════════════════════════════════════════════ */
+
+// Debounce 200ms per evitare flicker durante scroll veloce
+function triggerCrossSellUpdate(catId){
+  if(CROSSSELL_DEBOUNCE_TIMER) clearTimeout(CROSSSELL_DEBOUNCE_TIMER);
+  CROSSSELL_DEBOUNCE_TIMER = setTimeout(()=>{
+    updateCrossSellStrip(catId);
+  }, 200);
+}
+
+// Trova prodotto target di cross-sell per la categoria sorgente attiva
+// Ritorna prodotto target o null se nessun match.
+function resolveCrossSell(activeCatId){
+  if(!SUGERENCIA_ACTIVA) return null;          // master switch off
+  if(!activeCatId) return null;
+  if(!ALL_PRODUCTS || ALL_PRODUCTS.length === 0) return null;
+
+  // 1) Cerco un prodotto della categoria attiva che dichiara una sugerencia_categoria target
+  const sourceProduct = ALL_PRODUCTS.find(p =>
+    p.categoria === activeCatId &&
+    p.sugerencia_categoria &&
+    p.sugerencia_categoria.length > 0 &&
+    !p.agotado &&
+    productInFaja(p)
+  );
+  if(!sourceProduct) return null;
+
+  const targetCatId = sourceProduct.sugerencia_categoria;
+
+  // 2) NO SELF-SUGGEST: se la categoria target è la stessa attiva, niente strip
+  //    (evita pubblicità inutile dentro la stessa zona prodotti)
+  if(targetCatId === activeCatId) return null;
+
+  // 3) Filtra prodotti della categoria target attualmente disponibili (no agotado, in faja, in ritmo)
+  const ritmoFilterActive = RITMO_FILTER_ON && RITMO_ACTUAL && RITMO_ACTUAL.prod_ids && RITMO_ACTUAL.prod_ids.length > 0;
+  const ritmoSet = ritmoFilterActive ? new Set(RITMO_ACTUAL.prod_ids) : null;
+  const candidates = ALL_PRODUCTS.filter(p =>
+    p.categoria === targetCatId &&
+    !p.agotado &&
+    productInFaja(p) &&
+    (!ritmoSet || ritmoSet.has(p.id))
+  );
+  if(candidates.length === 0) return null;
+
+  // 4) Hero (Es_Sugerencia_Destacada=TRUE) vince. Altrimenti primo candidato.
+  const hero = candidates.find(p => p.es_sugerencia_destacada);
+  return hero || candidates[0];
+}
+
+function updateCrossSellStrip(activeCatId){
+  const strip = document.getElementById('crossSellStrip');
+  if(!strip) return;
+
+  const target = resolveCrossSell(activeCatId);
+
+  // Hide se nessun match (regola 2a · niente fallback)
+  if(!target){
+    strip.classList.remove('visible');
+    CURRENT_CROSSSELL_TARGET = null;
+    updateStickyTops();
+    return;
+  }
+
+  // Skip re-render se stesso target già visibile (evita flicker visivo durante scroll continuo)
+  if(CURRENT_CROSSSELL_TARGET === target.id && strip.classList.contains('visible')){
+    return;
+  }
+  CURRENT_CROSSSELL_TARGET = target.id;
+
+  // Popola DOM
+  document.getElementById('crossSellLabel').textContent = '★ ' + getLang('xs_label');
+
+  // Intro: PARAMETROS.sugerencia_frase_default vince > i18n fallback
+  const intro = SUGERENCIA_FRASE_DEFAULT || getLang('xs_intro_default');
+  document.getElementById('crossSellIntro').textContent = intro + ' ·';
+
+  document.getElementById('crossSellName').textContent = target.nombre;
+  document.getElementById('crossSellPrice').textContent = formatPrice(target.precio);
+
+  // Foto: usa imagen prodotto se valida, altrimenti placeholder con emoji categoria
+  const photo = document.getElementById('crossSellPhoto');
+  const cat = ALL_CATEGORIES.find(c => c.id === target.categoria);
+  if(target.imagen && target.imagen.startsWith('http')){
+    photo.innerHTML = `<img src="${target.imagen}" alt="${target.nombre}"
+      onerror="this.parentElement.innerHTML='<span class=\\'xs-photo-emoji\\'>${cat?.emoji||'✦'}</span>'">`;
+  } else {
+    photo.innerHTML = `<span class="xs-photo-emoji">${cat?.emoji||'✦'}</span>`;
+    photo.style.background = _catColor ? _catColor(target.categoria) : '#1F1F38';
+  }
+
+  // Click → apre scheda dettaglio prodotto target (riutilizza openDetail esistente)
+  strip.onclick = () => {
+    if(typeof openDetail === 'function') openDetail(target);
+  };
+
+  strip.classList.add('visible');
+  updateStickyTops();
 }
 
 /* BADGES */
