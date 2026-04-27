@@ -961,6 +961,19 @@ body.theme-dark .bnav-fab{border-color:var(--brand-surface)}
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
   transition:opacity 0.5s ease;
+  /* v1.15 · S7 fix · BLINDATURA contro Samsung Internet dark-engine proprietario.
+     forced-color-adjust:none dice al browser "non toccare i miei colori".
+     Diagnosi DevTools desktop ha confermato che prefers-color-scheme:dark
+     emulato NON cambia palette → Samsung usa filtro post-render proprietario.
+     Questa direttiva è il modo standard per dire "lasciami in pace". */
+  forced-color-adjust: none;
+  -webkit-forced-color-adjust: none;
+}
+/* Estendo a tutti i discendenti dello splash · Samsung a volte applica
+   il dark engine elemento-per-elemento, non solo al container root. */
+#bienvenidaSplash *{
+  forced-color-adjust: none;
+  -webkit-forced-color-adjust: none;
 }
 #bienvenidaSplash.show{display:flex}
 #bienvenidaSplash.out{opacity:0; pointer-events:none}
