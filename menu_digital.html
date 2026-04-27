@@ -1876,26 +1876,6 @@ async function loadFromSheet(timeoutMs){
 
   ALL_PRODUCTS = parsed;
 
-  // v1.12 DEBUG · diagnostico cross-sell sul deploy reale
-  const sugerenciaCount = ALL_PRODUCTS.filter(p => p.sugerencia_categoria).length;
-  const heroCount = ALL_PRODUCTS.filter(p => p.es_sugerencia_destacada).length;
-  console.log('[v1.12 XS-DEBUG] SUGERENCIA_ACTIVA:', SUGERENCIA_ACTIVA, '· FRASE:', JSON.stringify(SUGERENCIA_FRASE_DEFAULT));
-  console.log('[v1.12 XS-DEBUG] Total prods:', ALL_PRODUCTS.length, '· con sugerencia_categoria:', sugerenciaCount, '· con hero=TRUE:', heroCount);
-  if(sugerenciaCount > 0){
-    const sample = ALL_PRODUCTS.find(p => p.sugerencia_categoria);
-    console.log('[v1.12 XS-DEBUG] Esempio sorgente:', sample.id, '·', sample.nombre, '· cat:', sample.categoria, '· →', sample.sugerencia_categoria);
-  } else {
-    console.warn('[v1.12 XS-DEBUG] ⚠ NESSUN prodotto ha sugerencia_categoria · controlla che la colonna T del Sheet sia letta correttamente');
-    // Dump prima riga raw per capire la struttura colonne reale
-    if(rows.length > 0){
-      console.log('[v1.12 XS-DEBUG] Prima riga CSV raw (col 0..21):', rows[0].slice(0, 22));
-    }
-  }
-  if(heroCount > 0){
-    const heros = ALL_PRODUCTS.filter(p => p.es_sugerencia_destacada).map(p => p.id + '·' + p.nombre);
-    console.log('[v1.12 XS-DEBUG] Hero prodotti:', heros.join(', '));
-  }
-
   // STEP 5 · Categories
   const catIds = [...new Set(ALL_PRODUCTS.map(p=>p.categoria))];
   const catMap = {
@@ -2089,7 +2069,6 @@ function setupCatObserver(){
 
 // Debounce 200ms per evitare flicker durante scroll veloce
 function triggerCrossSellUpdate(catId){
-  console.log('[v1.12 XS-DEBUG] triggerCrossSellUpdate('+catId+')');
   if(CROSSSELL_DEBOUNCE_TIMER) clearTimeout(CROSSSELL_DEBOUNCE_TIMER);
   CROSSSELL_DEBOUNCE_TIMER = setTimeout(()=>{
     updateCrossSellStrip(catId);
@@ -2099,7 +2078,7 @@ function triggerCrossSellUpdate(catId){
 // Trova prodotto target di cross-sell per la categoria sorgente attiva
 // Ritorna prodotto target o null se nessun match.
 function resolveCrossSell(activeCatId){
-  if(!SUGERENCIA_ACTIVA) return null;          // master switch off
+  if(!SUGERENCIA_ACTIVA) return null;
   if(!activeCatId) return null;
   if(!ALL_PRODUCTS || ALL_PRODUCTS.length === 0) return null;
 
@@ -2111,36 +2090,49 @@ function resolveCrossSell(activeCatId){
     !p.agotado &&
     productInFaja(p)
   );
-  if(!sourceProduct) return null;
+  if(!sourceProduct){
+    console.log('[XS-DEEP] no source for cat='+activeCatId);
+    return null;
+  }
+  console.log('[XS-DEEP] source='+sourceProduct.id+' · sugerencia_categoria='+JSON.stringify(sourceProduct.sugerencia_categoria));
 
   const targetCatId = sourceProduct.sugerencia_categoria;
 
-  // 2) NO SELF-SUGGEST: se la categoria target è la stessa attiva, niente strip
-  //    (evita pubblicità inutile dentro la stessa zona prodotti)
-  if(targetCatId === activeCatId) return null;
+  if(targetCatId === activeCatId){
+    console.log('[XS-DEEP] self-suggest blocked');
+    return null;
+  }
 
-  // 3) Filtra prodotti della categoria target attualmente disponibili (no agotado, in faja, in ritmo)
+  // 3) Filtra prodotti della categoria target attualmente disponibili
   const ritmoFilterActive = RITMO_FILTER_ON && RITMO_ACTUAL && RITMO_ACTUAL.prod_ids && RITMO_ACTUAL.prod_ids.length > 0;
   const ritmoSet = ritmoFilterActive ? new Set(RITMO_ACTUAL.prod_ids) : null;
+
+  // DEEP debug: quali prodotti hanno categoria === targetCatId?
+  const sameCat = ALL_PRODUCTS.filter(p => p.categoria === targetCatId);
+  console.log('[XS-DEEP] prodotti con categoria=="'+targetCatId+'" → '+sameCat.length+' totali');
+  if(sameCat.length > 0){
+    console.log('[XS-DEEP] esempio sameCat[0]:', sameCat[0].id, '· cat:'+JSON.stringify(sameCat[0].categoria), '· agotado:'+sameCat[0].agotado, '· hero:'+sameCat[0].es_sugerencia_destacada);
+  }
+  console.log('[XS-DEEP] ritmoFilterActive:', ritmoFilterActive, '· ritmoSet size:', ritmoSet ? ritmoSet.size : 0);
+
   const candidates = ALL_PRODUCTS.filter(p =>
     p.categoria === targetCatId &&
     !p.agotado &&
     productInFaja(p) &&
     (!ritmoSet || ritmoSet.has(p.id))
   );
+  console.log('[XS-DEEP] candidates (post tutti filtri):', candidates.length);
   if(candidates.length === 0) return null;
 
-  // 4) Hero (Es_Sugerencia_Destacada=TRUE) vince. Altrimenti primo candidato.
   const hero = candidates.find(p => p.es_sugerencia_destacada);
   return hero || candidates[0];
 }
 
 function updateCrossSellStrip(activeCatId){
   const strip = document.getElementById('crossSellStrip');
-  if(!strip) { console.warn('[v1.12 XS-DEBUG] strip DOM not found'); return; }
+  if(!strip) return;
 
   const target = resolveCrossSell(activeCatId);
-  console.log('[v1.12 XS-DEBUG] updateStrip cat=' + activeCatId + ' · target=' + (target ? target.id+'·'+target.nombre : 'null'));
 
   // Hide se nessun match (regola 2a · niente fallback)
   if(!target){
