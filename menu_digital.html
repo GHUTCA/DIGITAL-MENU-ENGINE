@@ -947,7 +947,13 @@ body.theme-dark .bnav-fab{border-color:var(--brand-surface)}
   background:var(--bv-bg, #0A0A14);
   color:var(--bv-text, #F5F4EE);
   font-family:'Outfit',sans-serif;
-  overflow:hidden;
+  /* v1.14 · S7 fix · scroll interno splash + blocco scroll-chaining mobile.
+     Era overflow:hidden → CTA finiva clippato fuori viewport su mobile.
+     overscroll-behavior:contain → blocca propagazione scroll al body sotto. */
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
   transition:opacity 0.5s ease;
 }
 #bienvenidaSplash.show{display:flex}
@@ -965,6 +971,9 @@ body[data-fascia="TARDE"]    #bienvenidaSplash{
   --bv-border:    rgba(42,31,26, 0.10);
   --bv-extra-dot: #3DAA68;
   --bv-shadow:    rgba(42,31,26, 0.18);
+  /* v1.14 · S7 fix · forza light scheme (DIA) → blocca dark-mode-engine
+     di Samsung Internet/Chrome Android che invertiva il cremoso in marrone. */
+  color-scheme: light;
 }
 body[data-fascia="CERRADO"] #bienvenidaSplash,
 body[data-fascia="NOCHE"]   #bienvenidaSplash{
@@ -3039,6 +3048,12 @@ function showBienvenidaSplash(){
   splash.classList.add('show');
   BIENVENIDA_SHOWN = true;
 
+  // v1.14 · S7 fix · blocca scroll body sottostante mentre splash è attivo.
+  // Senza questo, su mobile il dito che scrolla dentro lo splash propaga
+  // lo scroll al menu sotto (scroll-chaining), che diventa visibile in basso.
+  document.body.style.overflow = 'hidden';
+  document.body.style.touchAction = 'none';
+
   // Track view bienvenida (telemetria semplice per Alberto)
   console.log('[v1.13] Bienvenida shown · franja=' + franja.id +
               ' · tono=' + franja.tono +
@@ -3052,6 +3067,10 @@ function dismissBienvenida(){
   const splash = document.getElementById('bienvenidaSplash');
   if(!splash) return;
   splash.classList.add('out');
+  // v1.14 · S7 fix · ripristino scroll body subito (non aspetto il fade-out
+  // di 500ms · il menu sotto può iniziare a comportarsi normalmente già).
+  document.body.style.overflow = '';
+  document.body.style.touchAction = '';
   setTimeout(()=>{
     splash.style.display = 'none';
     splash.classList.remove('show', 'out');
