@@ -934,9 +934,521 @@ body.theme-dark .bnav-fab{border-color:var(--brand-surface)}
 
 .hidden{display:none!important}
 .currency::before{content:attr(data-symbol)}
+
+/* ════════════════════════════════════════════════════
+   v1.13 · S6 · BIENVENIDA SPLASH
+   Overlay full-screen mostrato SOLO senza ?mesa= (QR vetrina).
+   Palette dinamica via body[data-fascia].
+   ════════════════════════════════════════════════════ */
+#bienvenidaSplash{
+  position:fixed; inset:0; z-index:998;
+  display:none;            /* show via JS solo se franja_actual + !MESA_ID */
+  flex-direction:column;
+  background:var(--bv-bg, #0A0A14);
+  color:var(--bv-text, #F5F4EE);
+  font-family:'Outfit',sans-serif;
+  overflow:hidden;
+  transition:opacity 0.5s ease;
+}
+#bienvenidaSplash.show{display:flex}
+#bienvenidaSplash.out{opacity:0; pointer-events:none}
+
+/* Palette per fascia · variabili CSS attivate via body[data-fascia] */
+body[data-fascia="ALMUERZO"] #bienvenidaSplash,
+body[data-fascia="TARDE"]    #bienvenidaSplash{
+  --bv-bg:        #F0E9DD;
+  --bv-surface:   #E8DFCE;
+  --bv-surface-2: #FFFFFF;
+  --bv-text:      #2A1F1A;
+  --bv-text-dim:  rgba(42,31,26, 0.65);
+  --bv-text-mute: rgba(42,31,26, 0.42);
+  --bv-border:    rgba(42,31,26, 0.10);
+  --bv-extra-dot: #3DAA68;
+  --bv-shadow:    rgba(42,31,26, 0.18);
+}
+body[data-fascia="CERRADO"] #bienvenidaSplash,
+body[data-fascia="NOCHE"]   #bienvenidaSplash{
+  --bv-bg:        #0A0A14;
+  --bv-surface:   #15152A;
+  --bv-surface-2: #1F1F38;
+  --bv-text:      #F5F4EE;
+  --bv-text-dim:  rgba(245,244,238, 0.72);
+  --bv-text-mute: rgba(245,244,238, 0.45);
+  --bv-border:    rgba(255,255,255, 0.14);
+  --bv-extra-dot: #5DD68C;
+  --bv-shadow:    rgba(0,0,0, 0.6);
+}
+/* Default (se data-fascia non settato) → notturno */
+#bienvenidaSplash{
+  --bv-bg:        #0A0A14;
+  --bv-text:      #F5F4EE;
+  --bv-text-dim:  rgba(245,244,238, 0.72);
+  --bv-text-mute: rgba(245,244,238, 0.45);
+  --bv-border:    rgba(255,255,255, 0.14);
+  --bv-surface-2: #1F1F38;
+  --bv-extra-dot: #5DD68C;
+  --bv-shadow:    rgba(0,0,0, 0.6);
+}
+
+/* HERO foto · 50vh diurno · 60vh notturno (NOCHE è più cinematica) */
+#bienvenidaSplash .bv-hero{
+  position:relative;
+  flex:0 0 50vh;
+  overflow:hidden;
+  background:var(--bv-surface, #1F1F38);
+}
+body[data-fascia="NOCHE"] #bienvenidaSplash .bv-hero,
+body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
+  flex:0 0 60vh;
+}
+#bienvenidaSplash .bv-hero-img{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  object-position:center 45%;
+}
+body[data-fascia="ALMUERZO"] #bienvenidaSplash .bv-hero-img,
+body[data-fascia="TARDE"]    #bienvenidaSplash .bv-hero-img{
+  filter:saturate(1.05) contrast(1.02) brightness(1.03);
+}
+body[data-fascia="NOCHE"] #bienvenidaSplash .bv-hero-img,
+body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero-img{
+  filter:saturate(1.18) contrast(1.10) brightness(0.90);
+}
+#bienvenidaSplash .bv-gradient{
+  position:absolute; inset:0;
+  pointer-events:none;
+}
+body[data-fascia="ALMUERZO"] #bienvenidaSplash .bv-gradient,
+body[data-fascia="TARDE"]    #bienvenidaSplash .bv-gradient{
+  background:linear-gradient(180deg,
+    rgba(240,233,221,0) 0%, rgba(240,233,221,0) 60%,
+    rgba(240,233,221,0.85) 92%, var(--bv-bg) 100%);
+}
+body[data-fascia="NOCHE"]   #bienvenidaSplash .bv-gradient,
+body[data-fascia="CERRADO"] #bienvenidaSplash .bv-gradient{
+  background:linear-gradient(180deg,
+    rgba(10,10,20,0.45) 0%, rgba(10,10,20,0) 25%,
+    rgba(10,10,20,0) 55%, rgba(10,10,20,0.92) 88%, var(--bv-bg) 100%);
+}
+
+#bienvenidaSplash .bv-brand{
+  position:absolute; top:24px; left:24px;
+  display:flex; align-items:center; gap:9px;
+  z-index:2;
+  font-family:'Fraunces',serif;
+  font-weight:700;
+  font-size:22px;
+  letter-spacing:0.5px;
+  color:var(--bv-text);
+}
+body[data-fascia="NOCHE"] #bienvenidaSplash .bv-brand,
+body[data-fascia="CERRADO"] #bienvenidaSplash .bv-brand{
+  text-shadow:0 2px 14px rgba(0,0,0,0.7);
+}
+#bienvenidaSplash .bv-brand::before{
+  content:'';
+  width:10px; height:10px;
+  border-radius:50%;
+  background:var(--brand-accent, #E94560);
+  box-shadow:0 0 18px rgba(233,69,96,0.55);
+  animation:bvPulse 2.4s ease-in-out infinite;
+}
+@keyframes bvPulse{
+  0%,100%{opacity:1; transform:scale(1)}
+  50%{opacity:0.65; transform:scale(1.2)}
+}
+
+/* Slogan ritmo · solo NOCHE · DNA brand cilenismo */
+#bienvenidaSplash .bv-slogan{
+  position:absolute;
+  bottom:148px; left:24px; right:24px;
+  font-family:'Fraunces',serif;
+  font-style:italic;
+  font-weight:600;
+  font-size:36px;
+  line-height:1;
+  letter-spacing:-0.7px;
+  color:#F5F4EE;
+  text-shadow:0 4px 32px rgba(0,0,0,0.85);
+  display:none;            /* show solo se NOCHE + ritmo attivo */
+  animation:bvFadeUp 0.9s cubic-bezier(0.2,0.8,0.2,1) 0.4s backwards;
+}
+#bienvenidaSplash .bv-slogan::after{
+  content:'';
+  display:block;
+  margin-top:8px;
+  width:36px; height:2px;
+  background:#E94560;
+  box-shadow:0 0 8px rgba(233,69,96,0.4);
+}
+body[data-fascia="NOCHE"] #bienvenidaSplash .bv-slogan{display:block}
+@keyframes bvFadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* DJ ribbon · solo NOCHE */
+#bienvenidaSplash .bv-dj{
+  position:absolute;
+  bottom:96px; left:24px;
+  display:none;            /* show solo NOCHE quando DJ è risolvibile */
+  align-items:center; gap:12px;
+  padding:8px 14px 8px 8px;
+  background:rgba(15,15,30,0.88);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(233,69,96,0.22);
+  border-radius:999px;
+  z-index:3;
+  animation:bvSlideRight 0.9s cubic-bezier(0.2,0.8,0.2,1) 0.6s backwards;
+}
+body[data-fascia="NOCHE"] #bienvenidaSplash .bv-dj{display:flex}
+@keyframes bvSlideRight{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}
+#bienvenidaSplash .bv-dj-avatar{
+  width:36px; height:36px; border-radius:50%;
+  background:#1F1F38;
+  border:1.5px solid #E94560;
+  box-shadow:0 0 12px rgba(233,69,96,0.22);
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; flex-shrink:0;
+}
+#bienvenidaSplash .bv-dj-info{display:flex; flex-direction:column; line-height:1.05; padding-right:4px}
+#bienvenidaSplash .bv-dj-eyebrow{
+  font-size:9px; letter-spacing:1.6px; text-transform:uppercase;
+  color:#E94560; font-weight:600; margin-bottom:2px;
+}
+#bienvenidaSplash .bv-dj-name{
+  font-family:'Fraunces',serif; font-weight:600; font-size:14px;
+  letter-spacing:-0.2px; color:#F5F4EE;
+}
+
+/* ZONA 2 · STATO */
+#bienvenidaSplash .bv-status{
+  flex:0 0 auto;
+  padding:20px 26px 6px;
+}
+#bienvenidaSplash .bv-status-row{
+  display:flex; align-items:baseline; gap:14px;
+  margin-bottom:5px;
+}
+#bienvenidaSplash .bv-fascia-name{
+  font-family:'Fraunces',serif;
+  font-weight:700;
+  font-size:28px;
+  line-height:1;
+  letter-spacing:-0.5px;
+  color:var(--bv-text);
+}
+body[data-fascia="NOCHE"] #bienvenidaSplash .bv-fascia-name{
+  font-size:24px; text-transform:uppercase;
+}
+#bienvenidaSplash .bv-time{
+  font-size:11px; letter-spacing:1.4px; text-transform:uppercase;
+  color:var(--bv-text-mute); font-weight:500;
+}
+#bienvenidaSplash .bv-status-line{
+  font-size:14px;
+  color:var(--bv-text-dim);
+  line-height:1.45;
+}
+
+/* ZONA 3 · PROPOSTA */
+#bienvenidaSplash .bv-proposal{
+  flex:1 1 auto;
+  padding:16px 26px 0;
+  position:relative;
+  display:flex; flex-direction:column; justify-content:center;
+}
+#bienvenidaSplash .bv-proposal::before{
+  content:'';
+  position:absolute;
+  top:0; left:26px; right:26px;
+  height:1px;
+  background:linear-gradient(90deg, transparent, rgba(233,69,96,0.20) 30%, rgba(233,69,96,0.20) 70%, transparent);
+}
+
+/* PILL OVERRIDE · arancione push */
+#bienvenidaSplash .bv-push-pill{
+  display:none;            /* show solo se override_activo */
+  align-items:center; gap:7px;
+  padding:5px 11px 5px 9px;
+  background:rgba(255,138,61,0.16);
+  border:1px solid rgba(255,138,61,0.42);
+  border-radius:999px;
+  font-weight:600;
+  font-size:10px;
+  letter-spacing:1.8px;
+  text-transform:uppercase;
+  color:#FF8A3D;
+  margin-bottom:11px;
+  width:fit-content;
+  animation:bvPushPulse 2.8s ease-in-out infinite;
+}
+#bienvenidaSplash .bv-push-pill.show{display:inline-flex}
+#bienvenidaSplash .bv-push-pill::before{
+  content:'';
+  width:6px; height:6px;
+  border-radius:50%;
+  background:#FF8A3D;
+  box-shadow:0 0 10px rgba(255,138,61,0.45);
+  animation:bvPushDot 1.6s ease-in-out infinite;
+}
+@keyframes bvPushPulse{
+  0%,100%{box-shadow:0 0 0 rgba(255,138,61,0)}
+  50%{box-shadow:0 0 14px rgba(255,138,61,0.18)}
+}
+@keyframes bvPushDot{0%,100%{opacity:1}50%{opacity:0.55}}
+
+/* Layout proposta · varia per tono */
+#bienvenidaSplash .bv-prop-row{
+  display:flex; align-items:flex-start; gap:18px;
+}
+/* Almuerzo (pragmatic) · nessun thumb · prezzo gigante prima riga */
+body[data-fascia="ALMUERZO"] #bienvenidaSplash .bv-prop-row,
+body[data-fascia="TARDE"]    #bienvenidaSplash .bv-prop-row,
+body[data-fascia="CERRADO"]  #bienvenidaSplash .bv-prop-row{
+  display:block;
+}
+body[data-fascia="ALMUERZO"] #bienvenidaSplash .bv-prop-thumb,
+body[data-fascia="TARDE"]    #bienvenidaSplash .bv-prop-thumb,
+body[data-fascia="CERRADO"]  #bienvenidaSplash .bv-prop-thumb{
+  display:none;
+}
+
+#bienvenidaSplash .bv-prop-thumb{
+  flex-shrink:0;
+  width:74px; height:74px;
+  border-radius:14px;
+  background:linear-gradient(135deg, #C12440, #E94560 60%, #FF7A8E);
+  display:flex; align-items:center; justify-content:center;
+  font-size:34px;
+  border:1px solid rgba(233,69,96,0.22);
+  box-shadow:0 8px 22px rgba(233,69,96,0.35);
+  position:relative;
+}
+/* Thumb override · ingrandito + cornice arancione + badge ❄ */
+#bienvenidaSplash .bv-proposal.is-override .bv-prop-thumb{
+  width:96px; height:96px;
+  border-radius:18px;
+  background:linear-gradient(135deg, #4A1A0E, #8C3214 35%, #C8581E 70%, #FF8A3D);
+  border:2px solid #FF8A3D;
+  font-size:42px;
+  box-shadow:0 12px 28px rgba(255,138,61,0.38), 0 0 0 4px rgba(255,138,61,0.10);
+  animation:bvThumbScale 0.7s cubic-bezier(0.2,1.4,0.4,1) 0.4s backwards;
+}
+#bienvenidaSplash .bv-proposal.is-override .bv-prop-thumb::after{
+  content:'❄';
+  position:absolute;
+  top:-6px; right:-6px;
+  width:24px; height:24px;
+  border-radius:50%;
+  background:#FF8A3D;
+  color:white;
+  font-size:13px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 12px rgba(255,138,61,0.5);
+  border:2px solid var(--bv-bg);
+}
+@keyframes bvThumbScale{from{opacity:0;transform:scale(0.7)}to{opacity:1;transform:scale(1)}}
+
+#bienvenidaSplash .bv-prop-text{flex:1; min-width:0}
+
+#bienvenidaSplash .bv-prop-eyebrow{
+  font-size:11px;
+  letter-spacing:2.3px;
+  font-weight:600;
+  text-transform:uppercase;
+  color:var(--brand-accent, #E94560);
+  margin-bottom:8px;
+}
+/* override non mostra eyebrow (è sostituito dalla pill) */
+#bienvenidaSplash .bv-proposal.is-override .bv-prop-eyebrow{display:none}
+
+#bienvenidaSplash .bv-prop-title{
+  font-family:'Fraunces',serif;
+  font-weight:700;
+  font-size:32px;
+  line-height:1.05;
+  letter-spacing:-0.5px;
+  color:var(--bv-text);
+  margin-bottom:6px;
+}
+body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-title{
+  font-size:24px; font-weight:600;
+}
+#bienvenidaSplash .bv-prop-detail{
+  font-size:14px;
+  color:var(--bv-text-dim);
+  line-height:1.45;
+  margin-bottom:14px;
+}
+body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-detail{
+  font-size:13px; margin-bottom:10px;
+}
+
+#bienvenidaSplash .bv-prop-price-row{
+  display:flex; align-items:baseline; gap:8px;
+  margin-bottom:12px;
+}
+#bienvenidaSplash .bv-prop-price{
+  font-family:'Fraunces',serif;
+  font-weight:700;
+  font-size:46px;
+  line-height:1;
+  letter-spacing:-1.4px;
+  color:var(--bv-text);
+}
+body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-price{
+  font-size:24px;
+}
+#bienvenidaSplash .bv-prop-currency{
+  font-weight:500;
+  font-size:16px;
+  color:var(--bv-text-mute);
+}
+body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
+  font-size:13px;
+}
+
+/* Extra pill verde · "Mesa lista 35min" */
+#bienvenidaSplash .bv-prop-extra{
+  display:none;            /* show se popolata */
+  align-items:center; gap:8px;
+  padding:7px 13px;
+  border-radius:999px;
+  background:var(--bv-surface-2);
+  border:1px solid var(--bv-border);
+  font-size:12px;
+  font-weight:500;
+  color:var(--bv-text-dim);
+  width:fit-content;
+}
+#bienvenidaSplash .bv-prop-extra.show{display:inline-flex}
+#bienvenidaSplash .bv-prop-extra::before{
+  content:'';
+  width:6px; height:6px;
+  border-radius:50%;
+  background:var(--bv-extra-dot);
+  box-shadow:0 0 6px var(--bv-extra-dot);
+}
+
+/* Validity hint · sotto · solo override */
+#bienvenidaSplash .bv-validity{
+  display:none;
+  margin-top:12px;
+  font-size:11px;
+  color:var(--bv-text-mute);
+  letter-spacing:0.3px;
+  align-items:center; gap:6px;
+}
+#bienvenidaSplash .bv-validity.show{display:flex}
+#bienvenidaSplash .bv-validity::before{
+  content:'';
+  width:4px; height:4px;
+  border-radius:50%;
+  background:var(--bv-text-mute);
+}
+
+/* ZONA 4 · CTA */
+#bienvenidaSplash .bv-cta-wrap{
+  flex:0 0 auto;
+  padding:20px 26px 30px;
+}
+#bienvenidaSplash .bv-cta{
+  display:flex; align-items:center; justify-content:space-between;
+  width:100%;
+  height:58px;
+  padding:0 24px;
+  border:none;
+  border-radius:16px;
+  background:var(--brand-accent, #E94560);
+  color:white;
+  font-family:'Outfit',sans-serif;
+  font-weight:600;
+  font-size:16px;
+  letter-spacing:0.3px;
+  cursor:pointer;
+  transition:transform 0.15s ease;
+  box-shadow:0 8px 24px rgba(233,69,96,0.32), inset 0 1px 0 rgba(255,255,255,0.15);
+  position:relative;
+  overflow:hidden;
+}
+#bienvenidaSplash .bv-cta::before{
+  content:'';
+  position:absolute; top:0; bottom:0; left:-30%; width:30%;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  animation:bvShine 3.5s ease-in-out infinite;
+}
+@keyframes bvShine{0%,100%{left:-30%}60%,100%{left:130%}}
+#bienvenidaSplash .bv-cta:active{transform:scale(0.98)}
+#bienvenidaSplash .bv-cta-arrow{
+  display:flex; align-items:center; justify-content:center;
+  width:32px; height:32px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.18);
+  font-size:18px;
+}
+
+/* Reveal staggered */
+#bienvenidaSplash .bv-hero{animation:bvFadeIn 0.9s ease-out backwards}
+#bienvenidaSplash .bv-status{animation:bvSlideUp 0.7s ease-out 0.4s backwards}
+#bienvenidaSplash .bv-proposal{animation:bvSlideUp 0.7s ease-out 0.55s backwards}
+#bienvenidaSplash .bv-cta-wrap{animation:bvSlideUp 0.7s ease-out 0.7s backwards}
+@keyframes bvFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes bvSlideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+@media (min-width:481px){
+  #bienvenidaSplash{max-width:430px; margin:0 auto; box-shadow:0 0 60px var(--bv-shadow)}
+}
+/* fine BIENVENIDA */
 </style>
 </head>
 <body>
+
+<!-- ── BIENVENIDA SPLASH (v1.13 · S6) ── solo se !MESA_ID -->
+<div id="bienvenidaSplash">
+  <div class="bv-hero">
+    <img class="bv-hero-img" id="bvHeroImg" alt="" />
+    <div class="bv-gradient"></div>
+    <div class="bv-brand" id="bvBrand">BKS</div>
+    <div class="bv-slogan" id="bvSlogan"></div>
+    <div class="bv-dj" id="bvDj">
+      <div class="bv-dj-avatar" id="bvDjAvatar">🎧</div>
+      <div class="bv-dj-info">
+        <div class="bv-dj-eyebrow" id="bvDjEyebrow">En cabina</div>
+        <div class="bv-dj-name" id="bvDjName">Comandante DJ</div>
+      </div>
+    </div>
+  </div>
+  <div class="bv-status">
+    <div class="bv-status-row">
+      <div class="bv-fascia-name" id="bvFasciaName">—</div>
+      <div class="bv-time" id="bvTime">—</div>
+    </div>
+    <div class="bv-status-line" id="bvStatusLine">—</div>
+  </div>
+  <div class="bv-proposal" id="bvProposal">
+    <div class="bv-push-pill" id="bvPushPill"><span id="bvPushPillText">Temporada</span></div>
+    <div class="bv-prop-row">
+      <div class="bv-prop-thumb" id="bvPropThumb">🍸</div>
+      <div class="bv-prop-text">
+        <div class="bv-prop-eyebrow" id="bvPropEyebrow">Hoy te recomendamos</div>
+        <div class="bv-prop-title" id="bvPropTitle">—</div>
+        <div class="bv-prop-detail" id="bvPropDetail">—</div>
+        <div class="bv-prop-price-row" id="bvPropPriceRow">
+          <span class="bv-prop-currency">$</span>
+          <span class="bv-prop-price" id="bvPropPrice">—</span>
+        </div>
+        <div class="bv-prop-extra" id="bvPropExtra">—</div>
+      </div>
+    </div>
+    <div class="bv-validity" id="bvValidity">—</div>
+  </div>
+  <div class="bv-cta-wrap">
+    <button class="bv-cta" id="bvCta" onclick="dismissBienvenida()">
+      <span id="bvCtaLabel">Ver el menú completo</span>
+      <span class="bv-cta-arrow">→</span>
+    </button>
+  </div>
+</div>
 
 <!-- ── LOADING ── -->
 <div id="loadingScreen">
@@ -1662,6 +2174,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 4) Warm-up ping al GAS — fire-and-forget, parallelo allo skeleton
   pingGAS();
 
+  // v1.13 · S6 · BIENVENIDA splash · fire-and-forget parallelo (8s timeout interno)
+  // Solo se !MESA_ID (= QR vetrina). Carica payload mentre il menu si carica.
+  const bvPromise = loadBienvenida();
+
   // 5) Carica menu con retry
   try {
     await loadMenuWithRetry();
@@ -1695,6 +2211,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   initWaveform();
   startRhythmPolling();
   hideLoading();
+
+  // v1.13 · S6 · attendo bienvenida (era parallela al menu) e mostro splash se applicabile
+  // Aspetto un tick perché ritmo+DJ devono prima arrivare per popolare slogan+DJ ribbon NOCHE
+  setTimeout(async () => {
+    await bvPromise;       // riprendo il fetch già partito
+    showBienvenidaSplash(); // no-op se MESA_ID, no-op se no franja_actual
+  }, 600);
 
   // v1.12 · S5 · trigger iniziale cross-sell sulla prima categoria visibile
   // (l'observer triggera solo durante scroll · senza questo, il primo schermo
@@ -2317,6 +2840,181 @@ function setupCrossSellScrollWatcher(){
   if(CROSSSELL_SCROLL_INSTALLED) return;
   CROSSSELL_SCROLL_INSTALLED = true;
   window.addEventListener('scroll', onCrossSellScroll, { passive: true });
+}
+
+/* ════════════════════════════════════════════════════
+   v1.13 · S6 · BIENVENIDA SPLASH (QR vetrina)
+   ────────────────────────────────────────────────────
+   Mostra splash full-screen prima del menu SOLO quando:
+   - URL non ha ?mesa= (= QR vetrina, scenario 1)
+   - GAS ritorna franja_actual valida
+   Logica dismiss: tap CTA → fade out → menu visibile.
+   ════════════════════════════════════════════════════ */
+
+let BIENVENIDA_DATA = null;       // payload completo getBienvenida
+let BIENVENIDA_SHOWN = false;     // flag: lo splash è stato mostrato in questa sessione?
+
+async function loadBienvenida(){
+  // No mesa = QR vetrina → mostra splash. Con mesa = QR tavolo → skip (S7+)
+  if(MESA_ID) return null;
+
+  try {
+    const url = `${BRAND.gas_url || GAS_URL}?action=getBienvenida&local=${LOCAL_ID}&t=${Date.now()}`;
+    const ctrl = new AbortController();
+    const tmo = setTimeout(()=>ctrl.abort(), 8000);
+    const resp = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(tmo);
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if(!data || !data.ok) throw new Error(data && data.error || 'no ok');
+    BIENVENIDA_DATA = data;
+    console.log('[v1.13] Bienvenida loaded · franjas=' + data.franjas.length +
+                ' · franja_actual=' + (data.franja_actual ? data.franja_actual.id : 'NULL'));
+    return data;
+  } catch(e){
+    console.warn('[v1.13] loadBienvenida failed:', e.message);
+    return null;
+  }
+}
+
+/**
+ * Renderizza e mostra lo splash bienvenida.
+ * Ritorna true se mostrato, false se skipped (no franja, no data, ecc).
+ */
+function showBienvenidaSplash(){
+  if(MESA_ID) return false;                          // QR tavolo → skip
+  if(!BIENVENIDA_DATA) return false;                 // no data → skip
+  if(!BIENVENIDA_DATA.franja_actual) return false;   // nessuna franja matcha l'ora corrente
+  if(BIENVENIDA_SHOWN) return false;                 // già mostrato in questa sessione
+
+  const franja = BIENVENIDA_DATA.franja_actual;
+
+  // Lingua · usa user choice se PT, altrimenti ES (le altre 6 lingue fallback ES)
+  const lang = (LANG_CODE === 'pt') ? 'pt' : 'es';
+  const useT = (lang === 'pt' && franja.pt && franja.pt.propuesta_titulo);
+
+  const saludo  = useT ? franja.pt.saludo          : franja.saludo;
+  const estado  = useT ? franja.pt.estado_linea    : franja.estado_linea;
+  const propTit = useT ? franja.pt.propuesta_titulo: franja.propuesta_titulo;
+  const propDet = useT ? franja.pt.propuesta_detalle: franja.propuesta_detalle;
+  const propExt = useT ? franja.pt.propuesta_extra : franja.propuesta_extra;
+  const ctaLab  = useT ? franja.pt.cta_label       : franja.cta_label;
+
+  // Imposta data-fascia su body → attiva palette CSS
+  document.body.setAttribute('data-fascia', franja.id);
+
+  // Brand label
+  document.getElementById('bvBrand').textContent = BRAND.name || 'BKS';
+
+  // Foto hero · onerror fallback a placeholder gradient
+  const heroImg = document.getElementById('bvHeroImg');
+  if(franja.foto_url){
+    heroImg.src = franja.foto_url;
+    heroImg.onerror = ()=>{
+      heroImg.style.display = 'none';
+    };
+  } else {
+    heroImg.style.display = 'none';
+  }
+
+  // Zona 2 · stato + ora corrente
+  document.getElementById('bvFasciaName').textContent = franja.nombre_visible || franja.id;
+  const now = new Date();
+  const hh = now.getHours().toString().padStart(2,'0');
+  const mm = now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('bvTime').textContent = (lang === 'pt' ? 'Agora' : 'Ahora') + ' · ' + hh + ':' + mm;
+  document.getElementById('bvStatusLine').textContent = estado || '';
+
+  // Zona 3 · proposta
+  const proposalEl = document.getElementById('bvProposal');
+  if(franja.override_activo){
+    proposalEl.classList.add('is-override');
+    document.getElementById('bvPushPill').classList.add('show');
+    // Testo pill: usa Override_Titulo per inferire il tema, ma testo fisso "TEMPORADA" + freccia
+    // Se in futuro vuoi pill custom (es "EDICIN LIMITADA"), aggiungi colonna Override_Pill
+    document.getElementById('bvPushPillText').textContent = '❄ ' + (lang === 'pt' ? 'Temporada' : 'Temporada');
+  } else {
+    proposalEl.classList.remove('is-override');
+    document.getElementById('bvPushPill').classList.remove('show');
+  }
+
+  document.getElementById('bvPropEyebrow').textContent = saludo || (lang === 'pt' ? 'Hoje recomendamos' : 'Hoy te recomendamos');
+  document.getElementById('bvPropTitle').textContent   = propTit || '';
+  document.getElementById('bvPropDetail').textContent  = propDet || '';
+
+  // Prezzo · formattato CLP
+  if(franja.propuesta_precio && franja.propuesta_precio > 0){
+    document.getElementById('bvPropPriceRow').style.display = 'flex';
+    document.getElementById('bvPropPrice').textContent = formatPrice(franja.propuesta_precio);
+  } else {
+    document.getElementById('bvPropPriceRow').style.display = 'none';
+  }
+
+  // Extra pill · solo se popolata
+  const extraEl = document.getElementById('bvPropExtra');
+  if(propExt && propExt.length > 0){
+    extraEl.textContent = propExt;
+    extraEl.classList.add('show');
+  } else {
+    extraEl.classList.remove('show');
+  }
+
+  // Validity hint · solo se override + Override_Hasta presente
+  const validityEl = document.getElementById('bvValidity');
+  if(franja.override_activo && BIENVENIDA_DATA.franja_actual){
+    // Costruisco testo validity dal raw payload (override_hasta non è esposto nella struct semplificata,
+    // per ora omettiamo · se serve, GAS può aggiungere campo override_hasta_iso)
+    validityEl.classList.remove('show');  // disabilitato in v1.13 · attivare in v1.14
+  } else {
+    validityEl.classList.remove('show');
+  }
+
+  // Slogan ritmo (NOCHE) · prende dal RITMO_ACTUAL se presente
+  if(franja.id === 'NOCHE' && typeof RITMO_ACTUAL !== 'undefined' && RITMO_ACTUAL && RITMO_ACTUAL.mensaje_cliente){
+    document.getElementById('bvSlogan').textContent = RITMO_ACTUAL.mensaje_cliente;
+  } else if(franja.id === 'NOCHE' && typeof RHYTHM_SLOGANS_BKS !== 'undefined'){
+    // Fallback ai cilenismi DNA brand se ritmo attivo ma senza Mensaje_Cliente in Sheet
+    const slogan = (typeof RITMO_ACTUAL !== 'undefined' && RITMO_ACTUAL && RHYTHM_SLOGANS_BKS[RITMO_ACTUAL.id])
+                   ? RHYTHM_SLOGANS_BKS[RITMO_ACTUAL.id] : 'La noche prende.';
+    document.getElementById('bvSlogan').textContent = slogan;
+  }
+
+  // DJ ribbon (NOCHE) · prende da CURRENT_DJ_BKS se risolvibile
+  if(franja.id === 'NOCHE'){
+    const djName = (typeof CURRENT_DJ_BKS !== 'undefined' && CURRENT_DJ_BKS && CURRENT_DJ_BKS.nombre)
+                    ? CURRENT_DJ_BKS.nombre : 'Comandante DJ';
+    document.getElementById('bvDjName').textContent = djName;
+    document.getElementById('bvDjEyebrow').textContent = lang === 'pt' ? 'Na cabine' : 'En cabina';
+  }
+
+  // CTA label
+  document.getElementById('bvCtaLabel').textContent = ctaLab ||
+    (lang === 'pt' ? 'Ver o cardápio completo' : 'Ver el menú completo');
+
+  // Show!
+  const splash = document.getElementById('bienvenidaSplash');
+  splash.classList.add('show');
+  BIENVENIDA_SHOWN = true;
+
+  // Track view bienvenida (telemetria semplice per Alberto)
+  console.log('[v1.13] Bienvenida shown · franja=' + franja.id +
+              ' · tono=' + franja.tono +
+              ' · override=' + (franja.override_activo ? 'YES' : 'no') +
+              ' · lang=' + lang);
+
+  return true;
+}
+
+function dismissBienvenida(){
+  const splash = document.getElementById('bienvenidaSplash');
+  if(!splash) return;
+  splash.classList.add('out');
+  setTimeout(()=>{
+    splash.style.display = 'none';
+    splash.classList.remove('show', 'out');
+    // Rimuovo data-fascia dal body (palette dinamica del menu è S7, qui solo splash)
+    document.body.removeAttribute('data-fascia');
+  }, 500);
 }
 
 /* ════════════════════════════════════════════════════
