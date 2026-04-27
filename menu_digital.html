@@ -2908,11 +2908,11 @@ async function loadBienvenida(){
     const data = await resp.json();
     if(!data || !data.ok) throw new Error(data && data.error || 'no ok');
     BIENVENIDA_DATA = data;
-    console.log('[v1.13] Bienvenida loaded · franjas=' + data.franjas.length +
+    console.log('[v1.15] Bienvenida loaded · franjas=' + data.franjas.length +
                 ' · franja_actual=' + (data.franja_actual ? data.franja_actual.id : 'NULL'));
     return data;
   } catch(e){
-    console.warn('[v1.13] loadBienvenida failed:', e.message);
+    console.warn('[v1.15] loadBienvenida failed:', e.message);
     return null;
   }
 }
@@ -3055,7 +3055,7 @@ function showBienvenidaSplash(){
   document.body.style.touchAction = 'none';
 
   // Track view bienvenida (telemetria semplice per Alberto)
-  console.log('[v1.13] Bienvenida shown · franja=' + franja.id +
+  console.log('[v1.15] Bienvenida shown · franja=' + franja.id +
               ' · tono=' + franja.tono +
               ' · override=' + (franja.override_activo ? 'YES' : 'no') +
               ' · lang=' + lang);
