@@ -1540,6 +1540,31 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
   line-height:1.3;
 }
 
+/* v1.15 · S7 · sub-stato A2 · slogan ritmo + BPM discreti su seconda riga
+   Quando ritmo BPM attivo ma DJ non presente · info contestuale leggera. */
+.faja-cartA2-info{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:8px;
+  margin-top:3px;
+  padding-top:4px;
+  border-top:1px solid rgba(255,255,255,0.06);
+}
+.faja-cartA2-slogan{
+  flex:1; min-width:0;
+  font-size:11px;
+  color: rgba(255,255,255,0.48);
+  font-style:italic;
+  letter-spacing:0.2px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.faja-cartA2-bpm{
+  flex:0 0 auto;
+  font-family:'Consolas',ui-monospace,monospace;
+  font-size:10px; font-weight:500;
+  color: rgba(255,255,255,0.4);
+  letter-spacing:1px;
+}
+     
 /* ── Bottom-sheet cartelera ── */
 #carteleraSheet{
   position:fixed; left:0; right:0; bottom:0;
@@ -4559,13 +4584,30 @@ function renderRhythmBar(){
   }
 
 
-// v1.10 · CASO A: nessun ritmo attivo (fuori finestre orarie definite)
-  // v1.15 · S7 · REDESIGN · faja minimale + cartelera
-  // Decisione 34 (S7) · faja senza DJ live = stato minimale.
-  // Sostituisce CASO A v1.12 (Comandante DJ + slogan rhythm_none italico).
-  // Ora: disco rosso cliccabile + eyebrow CARTELERA + frase "¿Quién toca esta semana?"
-  // Il Comandante DJ ricompare quando ritmo attivo (CASO B invariato).
-  if(!RITMO_ACTUAL){
+// v1.15 · S7 · REDESIGN faja in funzione di DJ presente (NON di ritmo BPM)
+  // Decisione 35 (S7) · DJ-driven faja:
+  //   CASO A1 · no DJ + no ritmo  → minimale cartelera (disco + frase)
+  //   CASO A2 · no DJ + ritmo att → minimale cartelera + slogan/BPM riga2 + waveform
+  //   CASO B  · DJ presente       → faja attuale (avatar + nome + slogan + BPM + waveform)
+  // Sostituisce decisione 34 (che usava !RITMO_ACTUAL come driver).
+  if(!CURRENT_DJ_BKS){
+    // ─── CASO A · nessun DJ presente ───
+    // Sub-stato A2: c'è ritmo BPM ma DJ non c'è ancora → mostra slogan/BPM discreti
+    let rhythmInfoHtml = '';
+    let waveformDisplay = 'none';
+    if(RITMO_ACTUAL){
+      const r = RITMO_ACTUAL;
+      const sheetMsg = (r.mensaje_cliente || '').trim();
+      const slogan = sheetMsg || RHYTHM_SLOGANS_BKS[r.id] || r.nombre || r.id;
+      const sloganStripped = slogan.replace(/\.$/, '');
+      rhythmInfoHtml = `
+        <div class="faja-cartA2-info">
+          <span class="faja-cartA2-slogan">… ${sloganStripped} …</span>
+          <span class="faja-cartA2-bpm">${r.bpm} BPM</span>
+        </div>`;
+      waveformDisplay = 'flex'; // waveform animata anche in A2 (decisione utente)
+    }
+
     chipBar.innerHTML = `
       <div class="faja-cartelera-mode">
         <div class="faja-cart-disc"
@@ -4577,15 +4619,16 @@ function renderRhythmBar(){
         <div class="faja-cart-content" onclick="openCartelera()">
           <div class="faja-cart-eyebrow">${getLang('cartelera_eyebrow')}</div>
           <div class="faja-cart-text">${getLang('cartelera_question')}</div>
+          ${rhythmInfoHtml}
         </div>
       </div>
       <div style="margin-top:4px;height:1px;background:linear-gradient(90deg, transparent, var(--brand-accent-line) 30%, var(--brand-accent-line-strong) 50%, var(--brand-accent-line) 70%, transparent);opacity:0.7"></div>`;
-    // Nascondi waveform spento
-    const wf = fajaBar.querySelector('.rhythm-waveform');
-    if(wf) wf.style.display = 'none';
 
-    // v1.15 · S7 · pre-load cartelera in background per UX istantanea al tap
-    // Se il disco è visibile, l'utente potrebbe tappare a breve · meglio averla pronta
+    // Waveform · visibile solo se c'è ritmo (sub-stato A2)
+    const wf = fajaBar.querySelector('.rhythm-waveform');
+    if(wf) wf.style.display = waveformDisplay;
+
+    // Pre-load cartelera in background per UX istantanea al tap
     if(typeof loadCartelera === 'function'){
       loadCartelera();
     }
