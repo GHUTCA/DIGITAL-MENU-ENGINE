@@ -5,8 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.11 iter 2 · 26-apr-2026 · Sessione S4
+     menu_digital.html · v1.12 · 27-apr-2026 · Sessione S5 (in lavorazione)
      ════════════════════════════════════════════════════════════════════
+     CHANGELOG v1.11 → v1.12 (S5 commit 1/5)
+     - Lettura PARAMETROS.sugerencia_activa + sugerencia_frase_default
+     - Lettura RITMOS.Mensaje_Cliente con fallback ai cilenismi DNA brand
+     - Variabili globali per cross-sell strip + DJS_AGENDA (preparate)
+     - Solo backend: nessun cambio UI ancora · invisibile al cliente
+
+     ────────────────────────────────────────────────────────────────────
      CHANGELOG v1.10 → v1.11 (iter 2 · 9 fix UX + 5 polish cromatici)
 
      ITER 1 · UI POLISH (9 fix coordinati):
@@ -1342,6 +1349,15 @@ let RITMO_FILTER_ON  = true;
 let RITMO_POLL_TIMER = null;
 let PROD_TO_PROMO    = {};
 
+/* v1.12 · S5 · Cross-sell strip + DJ agenda
+   ────────────────────────────────────────── */
+let SUGERENCIA_ACTIVA       = true;            // master switch da PARAMETROS.sugerencia_activa
+let SUGERENCIA_FRASE_DEFAULT = '';             // override Sheet PARAMETROS.sugerencia_frase_default
+let CURRENT_CROSSSELL_TARGET = null;           // prodotto target attualmente mostrato in strip (per evitare re-render uguale)
+let CROSSSELL_DEBOUNCE_TIMER = null;           // debounce 200ms per real-time observer
+let DJS_AGENDA              = [];              // [{dj_id, nombre, dia, hora_ini, hora_fin, foto_url, bio_corta, instagram, activo}]
+let DJ_POLL_TIMER           = null;
+
 /* ════════════════════════════════════════════════════
    v1.10 · INIT — splash neutro, validate, ping, load
    ════════════════════════════════════════════════════ */
@@ -1695,6 +1711,11 @@ async function loadFromSheet(timeoutMs){
     } catch(e){ console.warn('category_groups JSON malformato:', e.message); }
   }
 
+  // v1.12 · Cross-sell strip · master switch + frase default da PARAMETROS
+  // Vuoto/falsy in Sheet → fallback ai default safety: attiva, frase tradotta da i18n.
+  SUGERENCIA_ACTIVA = (String(cfg.sugerencia_activa||'TRUE').toUpperCase() !== 'FALSE');
+  SUGERENCIA_FRASE_DEFAULT = (cfg.sugerencia_frase_default||'').trim();
+
   // STEP 2 · CSV URL
   const dataSource = cfgResp.dataSource || 'visor';
   const csvUrl = (dataSource === 'seed' && cfg.sheet_csv_url_seed)
@@ -1730,6 +1751,10 @@ async function loadFromSheet(timeoutMs){
     precio_member: parsePrice(r[12]) || '',
     fecha_agregado:r[13]||'',
     menu_visible:  r[14]!=='FALSE',
+    // r[15] Visor_ID · r[16] Vistas_Hoy · r[17] Precio_Almuerzo · r[18] Almuerzo_Dias (non usati lato cliente)
+    // v1.12 · S5 · cross-sell strip
+    sugerencia_categoria:    (r[19]||'').toLowerCase().trim(),  // ID categoria target (es. 'spritz')
+    es_sugerencia_destacada: r[20]==='TRUE',                    // se TRUE, hero della sua categoria
   })).filter(p=>p.id && p.activo && p.menu_visible!==false);
 
   if(parsed.length === 0){
@@ -2467,7 +2492,10 @@ function renderRhythmBar(){
     // v1.10 · CASO B microbar V1: Comandante DJ sx · slogan corsivo …puntini… centro · BPM dx
     // (NO toggle ALL · v1.10 finale: filtro ritmo è unica realtà · curatela del momento sempre attiva)
     const r = RITMO_ACTUAL;
-    const slogan = RHYTHM_SLOGANS_BKS[r.id] || r.nombre || r.id;
+    // v1.12 · S5 · Slogan ritmo da Sheet RITMOS.Mensaje_Cliente (controllo editoriale JL)
+    // Fallback chain: Sheet > hardcoded cilenismi DNA brand > nome ritmo
+    const sheetMsg = (r.mensaje_cliente || '').trim();
+    const slogan = sheetMsg || RHYTHM_SLOGANS_BKS[r.id] || r.nombre || r.id;
     const sloganStripped = slogan.replace(/\.$/, ''); // rimuovo punto finale per puntini sospensivi
     const djName = (CURRENT_DJ_BKS && CURRENT_DJ_BKS.nombre) ? CURRENT_DJ_BKS.nombre : '';
 
