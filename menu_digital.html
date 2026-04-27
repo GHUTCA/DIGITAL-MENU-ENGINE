@@ -392,7 +392,9 @@ body.theme-dark .group-chip.disabled{opacity:0.35}
   background:#1A1A2E;
   border-top:1px solid rgba(233,69,96,0.18);
   border-bottom:1px solid rgba(233,69,96,0.18);
-  position:relative;
+  position:sticky;
+  top:104px;        /* default: subito sotto header+fajaBar · ricalibrato da updateStickyTops */
+  z-index:97;       /* tra fajaBar (98) e cat-sticky (96) */
   max-width:480px;
   margin:0 auto;
   cursor:pointer;
@@ -1691,17 +1693,21 @@ function hideLoading(){
 
 function updateStickyTops(){
   // v1.11 · searchBarWrap RIMOSSO. La sticky chain è: header → fajaBar → groupBar (opz) → catSticky
+  // v1.12 · S5 · cross-sell strip aggiunta sotto fajaBar quando visible
   const header  = document.getElementById('header');
   const faja    = document.getElementById('fajaBar');
   const groups  = document.getElementById('groupBar');
+  const xs      = document.getElementById('crossSellStrip');
   const cats    = document.getElementById('catSticky');
   if(!header||!faja||!cats) return;
   const h1 = header.offsetHeight;
   const h2 = faja.offsetHeight;
   const h3 = (groups && groups.classList.contains('show')) ? groups.offsetHeight : 0;
+  const h4 = (xs && xs.classList.contains('visible')) ? xs.offsetHeight : 0;
   faja.style.top = h1 + 'px';
   if(groups) groups.style.top = (h1 + h2) + 'px';
-  cats.style.top = (h1 + h2 + h3) + 'px';
+  if(xs) xs.style.top = (h1 + h2) + 'px';      // strip sotto fajaBar (groupBar non è sticky · scrolla via)
+  cats.style.top = (h1 + h2 + h4) + 'px';      // cat-sticky scende quando strip visible
 }
 
 /* ════════════════════════════════════════════════════
