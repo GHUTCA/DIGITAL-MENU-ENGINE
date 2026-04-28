@@ -3938,21 +3938,29 @@ function getCatActiveByScroll(){
   const xsH     = (xs && xs.classList.contains('visible')) ? xs.offsetHeight : 0;
   const threshold = headerH + fajaH + xsH + 20;
 
-  // Trovo la cat-section il cui top è già passato la soglia ma il bottom è ancora sotto.
-  // Le cat-section sono in ordine DOM, scelgo l'ultima il cui top <= threshold.
+  // v1.18 · S9 · PATCH B · Fix getCatActiveByScroll
+  // Bug v1.13: il check "top<=threshold && bottom>threshold" sceglieva la
+  // sezione PRECEDENTE quando le sezioni sono adiacenti (es entradas finisce
+  // a y=241, pizzas_burger inizia a y=241, threshold=215 → entradas vince
+  // anche se sotto le sticky è già visibile pizzas_burger).
+  // Risultato: tab UI dice "pizzas_burger" (per IntersectionObserver) ma
+  // cross-sell guarda "entradas" (no sugerencia → strip nascosta).
+  // Fix: prendo l'ULTIMA sezione il cui top <= threshold + tolleranza 60px
+  // (allinea con IntersectionObserver rootMargin -15% top).
+  // Se nessuna soddisfa (boot/scroll-top), prima sezione del DOM.
   const sections = document.querySelectorAll('.cat-section');
+  if(sections.length === 0) return null;
+  const tolerance = 60;
   let activeId = null;
-  for(const sec of sections){
+  sections.forEach(sec => {
     const r = sec.getBoundingClientRect();
-    if(r.top <= threshold && r.bottom > threshold){
+    if(r.top <= threshold + tolerance){
       activeId = sec.id.replace('cat-','');
-      break;
     }
-    // Fallback: se siamo prima di tutte (boot/scroll-top), prendo la prima visibile
-    if(r.top > threshold && !activeId){
-      activeId = sec.id.replace('cat-','');
-      break;
-    }
+  });
+  // Fallback se siamo prima di ogni sezione (top di tutte > threshold)
+  if(!activeId){
+    activeId = sections[0].id.replace('cat-','');
   }
   return activeId;
 }
