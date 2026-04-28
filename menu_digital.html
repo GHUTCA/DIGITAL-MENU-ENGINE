@@ -213,6 +213,80 @@ body.theme-dark[data-fascia-menu="dia"] .cat-header::before {
   opacity: 0.85;
 }
 
+     /* ════════════════════════════════════════════════════════════════════
+   v1.18 · S9 · PATCH C-bis · DIA · 5 fix leggibilità residui
+   ════════════════════════════════════════════════════════════════════
+   Punti 2, 3, 5, 6 segnalati da test live screenshot · post Patch C.
+   Tutti additivi · zero impatto su NOCHE/TARDE.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Patch C-bis 1 · Macro-group ATTIVO · testo bianco illeggibile su rosa pallido
+   .group-chip.active in NOCHE ha color:#fff su bg rosso 15% trasparente.
+   In DIA il bg diventa rosa-cremoso e il bianco scompare. Sostituisco con
+   bg accent pieno + testo bianco brillante (vince leggibilità). */
+body.theme-dark[data-fascia-menu="dia"] .group-chip.active {
+  background: var(--brand-accent);
+  border-color: var(--brand-accent);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(233,69,96,0.35);
+}
+body.theme-dark[data-fascia-menu="dia"] .group-chip.active .group-chip-count {
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+/* Macro-group INATTIVI in DIA · testo scuro definito (era già grigio leggibile,
+   confermo via override esplicito per evitare ereditarietà strane). */
+body.theme-dark[data-fascia-menu="dia"] .group-chip:not(.active) {
+  color: var(--brand-text);
+}
+body.theme-dark[data-fascia-menu="dia"] .group-chip:not(.active) .group-chip-count {
+  color: var(--brand-text-muted);
+  opacity: 0.85;
+}
+
+/* Patch C-bis 2 · Macro-group · font-size più grandi per Comida/Barra/Dolci/Promo
+   Decisione utente: gli emoji 16px sono ok, ma i nomi 10px e i counter 8px
+   risultano piccoli. Bump generale (vale sia DIA che NOCHE che TARDE). */
+.group-chip-name { font-size: 12px; font-weight: 600; }
+.group-chip-count { font-size: 10px; opacity: 0.75; }
+
+/* Patch C-bis 3 · X chiusura cartelera bottom-sheet
+   Era bianco su bianco in DIA. Adatto colore al tema corrente. */
+body.theme-dark[data-fascia-menu="dia"] #carteleraSheet .cart-close {
+  background: rgba(42,31,26,0.10);
+  color: rgba(42,31,26,0.75);
+}
+body.theme-dark[data-fascia-menu="dia"] #carteleraSheet .cart-close:active {
+  background: rgba(42,31,26,0.18);
+}
+body.theme-dark[data-fascia-menu="dia"] #carteleraSheet .cart-handle {
+  background: rgba(42,31,26,0.20);
+}
+
+/* Patch C-bis 4 · Bottone CANCELAR confirm sheet (chiamare mesero)
+   In DIA il bg bianco-trasparente e il testo bianco-trasparente erano
+   entrambi invisibili sul surface cremoso del confirmSheet. */
+body.theme-dark[data-fascia-menu="dia"] .confirm-btn-cancel {
+  background: rgba(42,31,26,0.08);
+  color: var(--brand-text);
+}
+body.theme-dark[data-fascia-menu="dia"] .confirm-btn-cancel:active {
+  background: rgba(42,31,26,0.14);
+}
+
+/* Patch C-bis 5 · BONUS · X chiusura scheda DJ bottom-sheet (stesso pattern)
+   Il djSheet ha la stessa struttura della cartelera, stesso bug in DIA. */
+body.theme-dark[data-fascia-menu="dia"] #djSheet .dj-sheet-close {
+  background: rgba(42,31,26,0.08);
+  color: rgba(42,31,26,0.75);
+}
+body.theme-dark[data-fascia-menu="dia"] #djSheet .dj-sheet-close:active {
+  background: rgba(42,31,26,0.16);
+}
+body.theme-dark[data-fascia-menu="dia"] #djSheet .sheet-handle {
+  background: rgba(42,31,26,0.20);
+}
+
 /* ════════════════════════════════════════════════════════════════════
    v1.17 · S8 · PALETTE DINAMICA TARDE · 17:30 → 21:00
    PLUM-BORDEAUX scuro · "il crepuscolo elettrico, il neon si accende"
