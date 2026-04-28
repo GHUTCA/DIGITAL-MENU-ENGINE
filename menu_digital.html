@@ -287,6 +287,24 @@ body.theme-dark[data-fascia-menu="dia"] #djSheet .sheet-handle {
   background: rgba(42,31,26,0.20);
 }
 
+/* Patch C-bis 6 · Dropdown lingue
+   In NOCHE/TARDE le voci sono bianche su sfondo scuro · OK.
+   In DIA il dropdown ha bg cremoso (--brand-surface = #E8DFCE) ma le voci
+   restano bianche → invisibili. Color scuro + hover scuro coerente. */
+body.theme-dark[data-fascia-menu="dia"] .lang-dropdown {
+  background: var(--brand-surface-card);
+  border-color: var(--brand-border);
+  box-shadow: 0 10px 30px rgba(42,31,26,0.18);
+}
+body.theme-dark[data-fascia-menu="dia"] .lang-option {
+  color: rgba(42,31,26,0.75);
+}
+body.theme-dark[data-fascia-menu="dia"] .lang-option:hover,
+body.theme-dark[data-fascia-menu="dia"] .lang-option.active {
+  background: rgba(42,31,26,0.06);
+  color: var(--brand-text);
+}
+
 /* ════════════════════════════════════════════════════════════════════
    v1.18 · S9 · PATCH D-fix2 · Cartelera Sheet · leggibilità DIA
    ════════════════════════════════════════════════════════════════════
