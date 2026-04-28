@@ -157,33 +157,34 @@ body.theme-dark[data-fascia-menu="dia"] {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   v1.16 · S8 · PALETTE DINAMICA TARDE · 17:30 → 21:00
-   Terracotta scuro caldo (cuoio/legno). Card warm-dark.
-   Glow rosso radiale leggero. Sensazione "il bar che si accende".
+   v1.17 · S8 · PALETTE DINAMICA TARDE · 17:30 → 21:00
+   PLUM-BORDEAUX scuro · "il crepuscolo elettrico, il neon si accende"
+   Sostituisce terracotta v1.16 · troppo lounge per cocktail bar Bellavista.
+   Plum dà profondità notturna ma con pigmento vivo · accent rosso più
+   vibrante perché contrasto cromatico (non solo luminosità).
    ════════════════════════════════════════════════════════════════════ */
 body.theme-dark[data-fascia-menu="tarde"] {
-  --brand-bg: #2E2519;
-  --brand-surface: #3A2E20;
-  --brand-surface-card: #43321F;
-  --brand-text: #F0E5D8;
-  --brand-text-muted: rgba(240,229,216,0.60);
+  --brand-bg: #1F0F1F;
+  --brand-surface: #2A1530;
+  --brand-surface-card: #33183A;
+  --brand-text: #F2E9F0;
+  --brand-text-muted: rgba(242,233,240,0.62);
   --brand-border: rgba(255,255,255,0.06);
   --brand-border-strong: rgba(255,255,255,0.12);
-  --brand-accent-line: rgba(233,69,96,0.40);
-  --brand-accent-line-strong: rgba(233,69,96,0.55);
-  --rhythm-bg: #3A2E20;
-  --rhythm-label: rgba(240,229,216,0.45);
+  --brand-accent-line: rgba(233,69,96,0.42);
+  --brand-accent-line-strong: rgba(233,69,96,0.58);
+  --rhythm-bg: #2A1530;
+  --rhythm-label: rgba(242,233,240,0.45);
   --rhythm-chip-bg: rgba(255,255,255,0.04);
-  --rhythm-chip-text: rgba(240,229,216,0.55);
-  --group-bg: #3A2E20;
-  --group-inactive-bg: #43321F;
-  --group-inactive-text: rgba(240,229,216,0.70);
-  --card-shadow: 0 2px 10px rgba(0,0,0,0.30), 0 0 0 1px rgba(255,255,255,0.02);
-  --cross-sell-bg: #3F2F22;
-  --cross-sell-border: rgba(233,69,96,0.20);
-  --faja-cartelera-bg: #3A2E20;
+  --rhythm-chip-text: rgba(242,233,240,0.55);
+  --group-bg: #2A1530;
+  --group-inactive-bg: #33183A;
+  --group-inactive-text: rgba(242,233,240,0.72);
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.02);
+  --cross-sell-bg: #3A1A42;
+  --cross-sell-border: rgba(233,69,96,0.22);
+  --faja-cartelera-bg: #2A1530;
 }
-
 /* v1.16 · S8 · DIA · accent del badge agotado leggibile su bg chiaro */
 body.theme-dark[data-fascia-menu="dia"] .badge-popular  { background:rgba(245,158,11,0.18); color:#9a6700 }
 body.theme-dark[data-fascia-menu="dia"] .badge-vegano   { background:rgba(99,153,34,0.18); color:#3b6d11 }
@@ -268,6 +269,19 @@ body.theme-dark[data-fascia-menu="tarde"] #crossSellStrip {
 body.theme-dark[data-fascia-menu="dia"] .group-chip:not(.disabled):not(.active):hover,
 body.theme-dark[data-fascia-menu="dia"] .group-chip:not(.disabled):not(.active):active {
   background: rgba(42,31,26,0.04);
+}
+
+/* v1.17 · S8 · TARDE · nebbia magenta radiale · "il neon si accende"
+   Approccio pulito: gradient direttamente sul body bg, niente pseudo-elementi
+   né stacking context tricks. Si sovrappone al --brand-bg via background-image
+   layer separato. Solo TARDE · DIA non lo vuole, NOCHE non lo vuole. */
+body.theme-dark[data-fascia-menu="tarde"] {
+  background-color: var(--brand-bg);
+  background-image: radial-gradient(ellipse 90% 50% at 50% 20%,
+                    rgba(233,69,96,0.10) 0%,
+                    transparent 60%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
 }
 
 
@@ -800,7 +814,19 @@ body.theme-dark .confirm-btn-cancel{background:rgba(255,255,255,0.06);color:rgba
 #djOverlay.open{display:block}
 #djSheet{position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:480px;z-index:301;background:var(--brand-surface);border-radius:20px 20px 0 0;max-height:90dvh;overflow-y:auto;transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);}
 #djSheet.open{transform:translate(-50%,0)}
-body.theme-dark #djSheet{background:#1A1A2E;box-shadow:0 -10px 40px rgba(0,0,0,0.6);}
+/* v1.17 · S8 · Scheda DJ "carbone caldo" · palette dedicata, INDIPENDENTE
+   dalla fascia menu (decisione Alberto: scheda DJ è "atelier dietro il bar",
+   spazio fuori dal tempo). Spotlight rosso top-sx come faretto da cabina.
+   Più caldo e con più pigmento del NOCHE menu (#0A0A14) per dare identità.
+   Approccio pulito: gradient nel background, niente pseudo-element. */
+body.theme-dark #djSheet{
+  background-color: #0D0D11;
+  background-image: radial-gradient(circle at 30% 12%,
+                    rgba(233,69,96,0.13) 0%,
+                    transparent 55%);
+  background-repeat: no-repeat;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+}
 .dj-sheet-content{padding:8px 24px 32px;text-align:center;}
 .dj-sheet-photo{
   width:140px;height:140px;border-radius:50%;
@@ -1161,21 +1187,22 @@ body[data-fascia="ALMUERZO"] #bienvenidaSplash{
     linear-gradient(#F0E9DD, #F0E9DD),
     var(--bv-bg, #F0E9DD);
 }
-/* v1.16 · S8 · TARDE separata da ALMUERZO · palette terracotta scuro
-   identica a quella menu TARDE (decisione Alberto: splash + menu match).
-   color-scheme dark · niente gradient trick anti-Samsung perché bg è già scuro. */
+/* v1.17 · S8 · TARDE · palette plum-bordeaux · "crepuscolo elettrico".
+   Sostituisce terracotta v1.16 (troppo lounge per cocktail bar Bellavista).
+   Match identico al menu TARDE (decisione Alberto: splash + menu uguali).
+   color-scheme dark · niente gradient trick (bg già scuro). */
 body[data-fascia="TARDE"] #bienvenidaSplash{
-  --bv-bg:        #2E2519;
-  --bv-surface:   #3A2E20;
-  --bv-surface-2: #43321F;
-  --bv-text:      #F0E5D8;
-  --bv-text-dim:  rgba(240,229,216, 0.70);
-  --bv-text-mute: rgba(240,229,216, 0.45);
+  --bv-bg:        #1F0F1F;
+  --bv-surface:   #2A1530;
+  --bv-surface-2: #33183A;
+  --bv-text:      #F2E9F0;
+  --bv-text-dim:  rgba(242,233,240, 0.72);
+  --bv-text-mute: rgba(242,233,240, 0.45);
   --bv-border:    rgba(255,255,255, 0.08);
   --bv-extra-dot: #5DD68C;
   --bv-shadow:    rgba(0,0,0, 0.5);
   color-scheme: dark;
-}
+}     
 body[data-fascia="CERRADO"] #bienvenidaSplash,
 body[data-fascia="NOCHE"]   #bienvenidaSplash{
   --bv-bg:        #0A0A14;
@@ -3713,12 +3740,9 @@ function showBienvenidaSplash(){
   if(franja.id === 'ALMUERZO'){
     bvThemeColor = '#F0E9DD';
     bvScheme = 'light';
+  
   } else if(franja.id === 'TARDE'){
-    bvThemeColor = '#2E2519';
-    bvScheme = 'dark';
-  } else {
-    // CERRADO / NOCHE
-    bvThemeColor = '#0A0A14';
+    bvThemeColor = '#1F0F1F';
     bvScheme = 'dark';
   }
   const themeMeta = document.getElementById('bvThemeColor');
