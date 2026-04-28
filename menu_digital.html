@@ -157,6 +157,63 @@ body.theme-dark[data-fascia-menu="dia"] {
 }
 
 /* ════════════════════════════════════════════════════════════════════
+   v1.18 · S9 · PATCH C · DIA + TARDE · Leggibilità testi
+   ════════════════════════════════════════════════════════════════════
+   Decisione utente S9 · alcuni testi in palette DIA cremosa (#F0E9DD)
+   restavano illeggibili perché eredi della palette NOCHE (bianco semi-
+   trasparente). 5 patch additive · zero impatto su NOCHE (BKS notte).
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Patch 1 · titoli categoria menu (PINSAS, POSTRES, ENSALADAS, …)
+   Base 9px troppo piccolo su bg cremoso. Aumento a 11px solo in DIA.
+   In TARDE resta colore bianco eredità NOCHE (plum funziona già). */
+body.theme-dark[data-fascia-menu="dia"] .cat-header-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--brand-text);
+}
+
+/* Patch 2 · cartelera "¿Quién toca esta semana?" (.faja-cart-text)
+   Era rgba(255,255,255,0.55) su sfondo cremoso → invisibile.
+   In DIA testo scuro 75% opacity · in TARDE testo bianco 80% (su plum). */
+body.theme-dark[data-fascia-menu="dia"] .faja-cart-text {
+  color: rgba(42,31,26,0.75);
+  font-size: 14px;
+}
+body.theme-dark[data-fascia-menu="tarde"] .faja-cart-text {
+  color: rgba(255,255,255,0.80);
+  font-size: 14px;
+}
+
+/* Patch 3 · sub-stato A2 (slogan ritmo + BPM senza DJ)
+   Erano rgba(255,255,255,0.48 / 0.40) → quasi spenti su cremoso.
+   In DIA usano brand-text-muted · in TARDE alziamo opacity bianca. */
+body.theme-dark[data-fascia-menu="dia"] .faja-cartA2-slogan,
+body.theme-dark[data-fascia-menu="dia"] .faja-cartA2-bpm {
+  color: var(--brand-text-muted);
+}
+body.theme-dark[data-fascia-menu="tarde"] .faja-cartA2-slogan {
+  color: rgba(255,255,255,0.70);
+}
+body.theme-dark[data-fascia-menu="tarde"] .faja-cartA2-bpm {
+  color: rgba(255,255,255,0.60);
+}
+
+/* Patch 4 · eyebrow "CARTELERA DE LA SEMANA"
+   Colore accent rosso #E94560 ok in DIA ma testo 9px troppo discreto.
+   Bump a 10px · letter-spacing già a 1.6px va bene. Solo DIA. */
+body.theme-dark[data-fascia-menu="dia"] .faja-cart-eyebrow {
+  font-size: 10px;
+}
+
+/* Patch 5 · BONUS · barretta accent cat-header più visibile in DIA.
+   Su cremoso il rosso semitrasparente perde forza. Solo DIA. */
+body.theme-dark[data-fascia-menu="dia"] .cat-header::before {
+  background: var(--brand-accent);
+  opacity: 0.85;
+}
+
+/* ════════════════════════════════════════════════════════════════════
    v1.17 · S8 · PALETTE DINAMICA TARDE · 17:30 → 21:00
    PLUM-BORDEAUX scuro · "il crepuscolo elettrico, il neon si accende"
    Sostituisce terracotta v1.16 · troppo lounge per cocktail bar Bellavista.
