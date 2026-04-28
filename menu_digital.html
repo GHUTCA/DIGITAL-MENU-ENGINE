@@ -98,7 +98,12 @@ body.theme-dark {
      ─ bg = livello più profondo (sotto tutto)
      ─ surface = chrome navigazione (header, ritmo, macro-groups, bottom-nav)
      ─ surface-card = card prodotto (galleggiano sopra il chrome)
-     Differenza percepibile su OLED Samsung dove i neri sono davvero spenti. */
+     Differenza percepibile su OLED Samsung dove i neri sono davvero spenti.
+
+     v1.16 · S8 · PALETTE DINAMICA DIA/TARDE/NOCHE
+     I valori qui sotto sono il DEFAULT (= NOCHE, zero regressione).
+     DIA e TARDE sono definite in 2 blocchi sotto e sovrascrivono solo
+     quanto serve. Switch via body.dataset.fasciaMenu="dia"|"tarde"|"noche". */
   --brand-bg: #0A0A14;          /* era #0D0D1A · più profondo */
   --brand-surface: #15152A;      /* invariato · chrome navigazione */
   --brand-surface-card: #1F1F38; /* NUOVO · card list, surface alto */
@@ -116,7 +121,155 @@ body.theme-dark {
   --group-inactive-bg: #1F1F38;  /* surface-2 · contrasto vs group-bg */
   --group-inactive-text: rgba(255,255,255,0.65);
   --card-shadow: 0 2px 10px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+  /* v1.16 · S8 · cross-sell strip bg come variable (era hardcoded #1A1A2E nel selector) */
+  --cross-sell-bg: #1A1A2E;
+  --cross-sell-border: rgba(233,69,96,0.18);
+  /* v1.16 · S8 · faja CASO A bg per cartelera disco · era hardcoded #15152A */
+  --faja-cartelera-bg: #15152A;
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   v1.16 · S8 · PALETTE DINAMICA DIA · 06:00 → 17:30
+   Cremoso pasta-madre / lino. CARD bianco caldo galleggiano su bg cremoso.
+   Accent rosso #E94560 INVARIATO (DNA brand). Verde NUEVO #3DAA68 INVARIATO.
+   ════════════════════════════════════════════════════════════════════ */
+body.theme-dark[data-fascia-menu="dia"] {
+  --brand-bg: #F0E9DD;
+  --brand-surface: #E8DFCE;
+  --brand-surface-card: #FFFFFF;
+  --brand-text: #2A1F1A;
+  --brand-text-muted: #6B5A4F;
+  --brand-border: rgba(42,31,26,0.08);
+  --brand-border-strong: rgba(42,31,26,0.14);
+  --brand-accent-line: rgba(233,69,96,0.30);
+  --brand-accent-line-strong: rgba(233,69,96,0.45);
+  --rhythm-bg: #E8DFCE;
+  --rhythm-label: rgba(42,31,26,0.40);
+  --rhythm-chip-bg: rgba(42,31,26,0.04);
+  --rhythm-chip-text: rgba(42,31,26,0.55);
+  --group-bg: #E8DFCE;
+  --group-inactive-bg: #FFFFFF;
+  --group-inactive-text: rgba(42,31,26,0.65);
+  --card-shadow: 0 1px 4px rgba(42,31,26,0.06), 0 0 0 1px rgba(42,31,26,0.02);
+  --cross-sell-bg: #FBF7F0;
+  --cross-sell-border: rgba(233,69,96,0.22);
+  --faja-cartelera-bg: #E8DFCE;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   v1.16 · S8 · PALETTE DINAMICA TARDE · 17:30 → 21:00
+   Terracotta scuro caldo (cuoio/legno). Card warm-dark.
+   Glow rosso radiale leggero. Sensazione "il bar che si accende".
+   ════════════════════════════════════════════════════════════════════ */
+body.theme-dark[data-fascia-menu="tarde"] {
+  --brand-bg: #2E2519;
+  --brand-surface: #3A2E20;
+  --brand-surface-card: #43321F;
+  --brand-text: #F0E5D8;
+  --brand-text-muted: rgba(240,229,216,0.60);
+  --brand-border: rgba(255,255,255,0.06);
+  --brand-border-strong: rgba(255,255,255,0.12);
+  --brand-accent-line: rgba(233,69,96,0.40);
+  --brand-accent-line-strong: rgba(233,69,96,0.55);
+  --rhythm-bg: #3A2E20;
+  --rhythm-label: rgba(240,229,216,0.45);
+  --rhythm-chip-bg: rgba(255,255,255,0.04);
+  --rhythm-chip-text: rgba(240,229,216,0.55);
+  --group-bg: #3A2E20;
+  --group-inactive-bg: #43321F;
+  --group-inactive-text: rgba(240,229,216,0.70);
+  --card-shadow: 0 2px 10px rgba(0,0,0,0.30), 0 0 0 1px rgba(255,255,255,0.02);
+  --cross-sell-bg: #3F2F22;
+  --cross-sell-border: rgba(233,69,96,0.20);
+  --faja-cartelera-bg: #3A2E20;
+}
+
+/* v1.16 · S8 · DIA · accent del badge agotado leggibile su bg chiaro */
+body.theme-dark[data-fascia-menu="dia"] .badge-popular  { background:rgba(245,158,11,0.18); color:#9a6700 }
+body.theme-dark[data-fascia-menu="dia"] .badge-vegano   { background:rgba(99,153,34,0.18); color:#3b6d11 }
+body.theme-dark[data-fascia-menu="dia"] .badge-singluten{ background:rgba(55,138,221,0.16); color:#185fa5 }
+body.theme-dark[data-fascia-menu="dia"] .badge-chef     { background:rgba(216,90,48,0.15); color:#993c1d }
+body.theme-dark[data-fascia-menu="dia"] .badge-temporada{ background:rgba(127,119,221,0.18); color:#3c3489 }
+body.theme-dark[data-fascia-menu="dia"] .badge-agotado  { background:rgba(95,94,90,0.18); color:#444441 }
+body.theme-dark[data-fascia-menu="dia"] .badge-member   { background:rgba(233,69,96,0.18); color:#993556 }
+
+/* v1.16 · S8 · DIA · prezzo card e bottom-nav · usano colori dark di default (bianchi)
+   ma in DIA il bg è chiaro · forziamo nero/scuro per leggibilità */
+body.theme-dark[data-fascia-menu="dia"] .card-price,
+body.theme-dark[data-fascia-menu="dia"] .cat-header-name,
+body.theme-dark[data-fascia-menu="dia"] .sheet-name { color: var(--brand-text); }
+body.theme-dark[data-fascia-menu="dia"] .sheet-desc { color: rgba(42,31,26,0.65); }
+body.theme-dark[data-fascia-menu="dia"] .cat-tab { color: rgba(42,31,26,0.50); }
+body.theme-dark[data-fascia-menu="dia"] .cat-tab.active { color: var(--brand-text); }
+body.theme-dark[data-fascia-menu="dia"] .bnav-btn { color: rgba(42,31,26,0.55); }
+body.theme-dark[data-fascia-menu="dia"] .bnav-btn.active { color: var(--brand-accent); }
+body.theme-dark[data-fascia-menu="dia"] #searchInput { color: var(--brand-text); }
+body.theme-dark[data-fascia-menu="dia"] #searchInput::placeholder { color: rgba(42,31,26,0.45); }
+
+/* v1.16 · S8 · DIA · card NUEVO dot border surface-card (bianco) */
+body.theme-dark[data-fascia-menu="dia"] .card-nuevo-dot {
+  border-color: var(--brand-surface-card);
+  box-shadow: 0 0 0 1px rgba(61,170,104,0.5), 0 0 6px rgba(61,170,104,0.35);
+}
+
+/* v1.16 · S8 · DIA · card-img-wrap usa surface (cremoso scuro) per stacco minimo */
+body.theme-dark[data-fascia-menu="dia"] .card-img-wrap { background: var(--brand-surface); }
+
+/* v1.16 · S8 · DIA · waveform bar gradient da accent · su bg chiaro l'opacità 0.4 in basso
+   diventa quasi invisibile · alziamo a 0.55 */
+body.theme-dark[data-fascia-menu="dia"] .wf-bar {
+  background:linear-gradient(to top, var(--brand-accent), rgba(233,69,96,0.55));
+  filter: drop-shadow(0 0 2px rgba(233,69,96,0.35));
+}
+
+/* v1.16 · S8 · DIA · rhythm-label (in faja eyebrow "♪ BKS Rhythm") leggibile */
+body.theme-dark[data-fascia-menu="dia"] .rhythm-label { color: var(--brand-text-muted); }
+
+/* v1.16 · S8 · DIA · microbar inline texts (DJ, slogan, BPM) · in CASO B sono inline-style
+   scritti direttamente in JS con rgba(255,255,255,X). In DIA andrebbero scuri.
+   Override via attribute selector + child selector. NB: gli inline-style hanno
+   priorità più alta · serve !important.
+   TODO refactor S9: spostare gli inline-style del chipBar in classi CSS dedicate
+   (.faja-bks-eyebrow, .faja-dj-name, .faja-slogan, .faja-bpm) per smettere
+   di dipendere da string match esatto sui valori alpha. */
+body.theme-dark[data-fascia-menu="dia"] #fajaBar div[style*="color:#fff"],
+body.theme-dark[data-fascia-menu="dia"] #fajaBar div[style*="color: #fff"] {
+  color: var(--brand-text) !important;
+}
+body.theme-dark[data-fascia-menu="dia"] #fajaBar div[style*="rgba(255,255,255,0.4)"],
+body.theme-dark[data-fascia-menu="dia"] #fajaBar div[style*="rgba(255,255,255,0.45)"],
+body.theme-dark[data-fascia-menu="dia"] #fajaBar div[style*="rgba(255,255,255,0.5)"],
+body.theme-dark[data-fascia-menu="dia"] #fajaBar div[style*="rgba(255,255,255,0.55)"],
+body.theme-dark[data-fascia-menu="dia"] #fajaBar span[style*="rgba(255,255,255,0.4)"],
+body.theme-dark[data-fascia-menu="dia"] #fajaBar span[style*="rgba(255,255,255,0.45)"] {
+  color: var(--brand-text-muted) !important;
+}
+
+/* v1.16 · S8 · TARDE · stessa tecnica per microbar inline texts ma colore caldo */
+body.theme-dark[data-fascia-menu="tarde"] #fajaBar div[style*="color:#fff"],
+body.theme-dark[data-fascia-menu="tarde"] #fajaBar div[style*="color: #fff"] {
+  color: var(--brand-text) !important;
+}
+
+/* v1.16 · S8 · DIA · faja CASO A wrapper bg · era hardcoded surface */
+body.theme-dark[data-fascia-menu="dia"] .faja-cart-wrapper,
+body.theme-dark[data-fascia-menu="tarde"] .faja-cart-wrapper {
+  background: var(--faja-cartelera-bg);
+}
+
+/* v1.16 · S8 · DIA · cross-sell strip bg · usa variable dinamica */
+body.theme-dark[data-fascia-menu="dia"] #crossSellStrip,
+body.theme-dark[data-fascia-menu="tarde"] #crossSellStrip {
+  background: var(--cross-sell-bg) !important;
+  border-bottom-color: var(--cross-sell-border) !important;
+}
+
+/* v1.16 · S8 · DIA · hover/active background per group-chip · scure di default */
+body.theme-dark[data-fascia-menu="dia"] .group-chip:not(.disabled):not(.active):hover,
+body.theme-dark[data-fascia-menu="dia"] .group-chip:not(.disabled):not(.active):active {
+  background: rgba(42,31,26,0.04);
+}
+
 
 /* Dark mode badges */
 body.theme-dark .badge-popular  { background:rgba(245,158,11,0.22); color:#fbbf24 }
@@ -425,9 +578,11 @@ body.theme-dark .group-chip.disabled{opacity:0.35}
    ───────────────────────────────────────────────────────────────────────────── */
 #crossSellStrip{
   display:none;
-  background:#1A1A2E;
-  border-top:1px solid rgba(233,69,96,0.18);
-  border-bottom:1px solid rgba(233,69,96,0.18);
+  /* v1.16 · S8 · usa CSS variable dinamica · fallback #1A1A2E NOCHE BKS originale.
+     Light mode (Candelaria) ha override separato body:not(.theme-dark). */
+  background: var(--cross-sell-bg, #1A1A2E);
+  border-top:1px solid var(--cross-sell-border, rgba(233,69,96,0.18));
+  border-bottom:1px solid var(--cross-sell-border, rgba(233,69,96,0.18));
   position:sticky;
   top:104px;        /* default: subito sotto header+fajaBar · ricalibrato da updateStickyTops */
   z-index:97;       /* tra fajaBar (98) e cat-sticky (96) */
@@ -979,8 +1134,7 @@ body.theme-dark .bnav-fab{border-color:var(--brand-surface)}
 #bienvenidaSplash.out{opacity:0; pointer-events:none}
 
 /* Palette per fascia · variabili CSS attivate via body[data-fascia] */
-body[data-fascia="ALMUERZO"] #bienvenidaSplash,
-body[data-fascia="TARDE"]    #bienvenidaSplash{
+body[data-fascia="ALMUERZO"] #bienvenidaSplash{
   --bv-bg:        #F0E9DD;
   --bv-surface:   #E8DFCE;
   --bv-surface-2: #FFFFFF;
@@ -1000,6 +1154,21 @@ body[data-fascia="TARDE"]    #bienvenidaSplash{
   background:
     linear-gradient(#F0E9DD, #F0E9DD),
     var(--bv-bg, #F0E9DD);
+}
+/* v1.16 · S8 · TARDE separata da ALMUERZO · palette terracotta scuro
+   identica a quella menu TARDE (decisione Alberto: splash + menu match).
+   color-scheme dark · niente gradient trick anti-Samsung perché bg è già scuro. */
+body[data-fascia="TARDE"] #bienvenidaSplash{
+  --bv-bg:        #2E2519;
+  --bv-surface:   #3A2E20;
+  --bv-surface-2: #43321F;
+  --bv-text:      #F0E5D8;
+  --bv-text-dim:  rgba(240,229,216, 0.70);
+  --bv-text-mute: rgba(240,229,216, 0.45);
+  --bv-border:    rgba(255,255,255, 0.08);
+  --bv-extra-dot: #5DD68C;
+  --bv-shadow:    rgba(0,0,0, 0.5);
+  color-scheme: dark;
 }
 body[data-fascia="CERRADO"] #bienvenidaSplash,
 body[data-fascia="NOCHE"]   #bienvenidaSplash{
@@ -2718,6 +2887,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // v1.10 · genera 24 barre del waveform · solo per BKS (theme-dark)
   initWaveform();
+  // v1.16 · S8 · palette dinamica DIA/TARDE/NOCHE · applica subito + polling 60s.
+  // Va PRIMA di startRhythmPolling perché la prima renderRhythmBar legge le
+  // CSS variables corrette (es slogan color in DIA).
+  startFasciaMenuPolling();
   startRhythmPolling();
   hideLoading();
 
@@ -3524,17 +3697,30 @@ function showBienvenidaSplash(){
   document.body.style.touchAction = 'none';
 
   // v1.15 · S7 fix · theme-color + color-scheme dinamici per fascia.
+  // v1.16 · S8 · estesi a 3 palette (DIA/TARDE/NOCHE) per match con menu.
   // Segnala al browser mobile (Samsung/Chrome) la palette corretta.
-  // DIA = #F0E9DD cremoso + scheme:light · NOCHE/CERRADO = #0A0A14 + scheme:dark.
+  // ALMUERZO = #F0E9DD cremoso + scheme:light · TARDE = #2E2519 terracotta + scheme:dark
+  // NOCHE/CERRADO = #0A0A14 + scheme:dark.
   // CRITICO: niente "light dark" · Samsung in dark mode telefono altrimenti
   // attiva il proprio dark-engine e inverte il cremoso DIA in marrone scuro.
-  const isDay = (franja.id === 'ALMUERZO' || franja.id === 'TARDE');
+  let bvThemeColor, bvScheme;
+  if(franja.id === 'ALMUERZO'){
+    bvThemeColor = '#F0E9DD';
+    bvScheme = 'light';
+  } else if(franja.id === 'TARDE'){
+    bvThemeColor = '#2E2519';
+    bvScheme = 'dark';
+  } else {
+    // CERRADO / NOCHE
+    bvThemeColor = '#0A0A14';
+    bvScheme = 'dark';
+  }
   const themeMeta = document.getElementById('bvThemeColor');
-  if(themeMeta) themeMeta.setAttribute('content', isDay ? '#F0E9DD' : '#0A0A14');
+  if(themeMeta) themeMeta.setAttribute('content', bvThemeColor);
   const schemeMeta = document.getElementById('bvColorScheme');
-  if(schemeMeta) schemeMeta.setAttribute('content', isDay ? 'light' : 'dark');
+  if(schemeMeta) schemeMeta.setAttribute('content', bvScheme);
   const supportedMeta = document.getElementById('bvSupportedScheme');
-  if(supportedMeta) supportedMeta.setAttribute('content', isDay ? 'light' : 'dark');
+  if(supportedMeta) supportedMeta.setAttribute('content', bvScheme);
 
   // Track view bienvenida (telemetria semplice per Alberto)
   console.log('[v1.15] Bienvenida shown · franja=' + franja.id +
@@ -4656,6 +4842,63 @@ function stopRhythmPolling(){
   if(RITMO_POLL_TIMER){ clearInterval(RITMO_POLL_TIMER); RITMO_POLL_TIMER = null; }
 }
 
+/* ════════════════════════════════════════════════════
+   v1.16 · S8 · PALETTE DINAMICA MENU · DIA/TARDE/NOCHE
+   ════════════════════════════════════════════════════
+   Calcola la fascia oraria attuale e applica body.dataset.fasciaMenu.
+   3 fasce (semplificate vs 4 fasce splash BIENVENIDA · il menu non ha CERRADO):
+     ─ dia   06:00 → 17:30 · cremoso pasta-madre
+     ─ tarde 17:30 → 21:00 · terracotta scuro caldo
+     ─ noche 21:00 → 06:00 · nero attuale invariato
+   
+   Override debug · ?_fascia=dia|tarde|noche forza la fascia per QA controllata
+   senza dover aspettare l'orario reale (lezione S4 · test mobile multi-fascia
+   obbligatorio · OLED Samsung amplifica delta cromatici).
+   
+   Solo BKS · Candelaria resta single-mode light (decisione S7 confermata).
+   Hard switch (no fade transition · decisione S8 Alberto).
+   ─────────────────────────────────────────────────────────── */
+
+let FASCIA_MENU_POLL_TIMER = null;
+let CURRENT_FASCIA_MENU = null;
+
+function getFasciaMenu(){
+  // 1. Override debug ?_fascia=
+  const override = (URL_PARAMS.get('_fascia') || '').toLowerCase().trim();
+  if(override === 'dia' || override === 'tarde' || override === 'noche'){
+    return override;
+  }
+  // 2. Calcolo da ora corrente
+  const now = new Date();
+  const mins = now.getHours() * 60 + now.getMinutes();
+  // dia · 06:00 (360) → 17:30 (1050)
+  if(mins >= 360 && mins < 1050) return 'dia';
+  // tarde · 17:30 (1050) → 21:00 (1260)
+  if(mins >= 1050 && mins < 1260) return 'tarde';
+  // noche · 21:00 → 06:00 (incluso wrap notte)
+  return 'noche';
+}
+
+function applyFasciaMenu(){
+  // Solo BKS · Candelaria invariata
+  if(!document.body.classList.contains('theme-dark')) return;
+  const fascia = getFasciaMenu();
+  if(fascia === CURRENT_FASCIA_MENU) return; // no-op se invariata
+  document.body.dataset.fasciaMenu = fascia;
+  const wasNull = CURRENT_FASCIA_MENU === null;
+  CURRENT_FASCIA_MENU = fascia;
+  console.log('[v1.16] Fascia menu' + (wasNull ? ' INIT' : ' switch') + ' → ' + fascia);
+}
+
+function startFasciaMenuPolling(){
+  if(!document.body.classList.contains('theme-dark')) return;
+  if(FASCIA_MENU_POLL_TIMER) return;
+  applyFasciaMenu();
+  // Polling 60s · stesso ritmo di RITMO_POLL_TIMER · hard switch al cambio fascia
+  FASCIA_MENU_POLL_TIMER = setInterval(applyFasciaMenu, 60000);
+  console.log('[v1.16] Fascia menu polling attivo (60s) per', LOCAL_ID);
+}
+
 function renderRhythmBar(){
   if(!document.body.classList.contains('theme-dark')) return;
   const fajaBar = document.getElementById('fajaBar');
@@ -4755,7 +4998,7 @@ function renderRhythmBar(){
           ${djAvatarHtml}
           <div style="line-height:1.2;min-width:0">
             <div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600">DJ</div>
-            <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${djName||'—'}</div>
+            <div style="font-size:12.5px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px">${djName||'—'}</div>
           </div>
         </div>
         <div style="flex:1;text-align:center;font-size:12px;color:rgba(255,255,255,0.55);font-style:italic;letter-spacing:0.2px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
