@@ -305,6 +305,20 @@ body.theme-dark[data-fascia-menu="dia"] .lang-option.active {
   color: var(--brand-text);
 }
 
+     /* Patch C-bis 7 · Cross-sell strip
+   In NOCHE/TARDE testi bianchi su bg scuro · OK.
+   In DIA bg cremoso (--cross-sell-bg = #FBF7F0) ma testi restano bianchi.
+   Override: intro/name/price scuri leggibili. Photo e arrow invariati. */
+body.theme-dark[data-fascia-menu="dia"] .xs-intro {
+  color: rgba(42,31,26,0.55);
+}
+body.theme-dark[data-fascia-menu="dia"] .xs-name {
+  color: var(--brand-text);
+}
+body.theme-dark[data-fascia-menu="dia"] .xs-price {
+  color: var(--brand-text);
+}
+
 /* ════════════════════════════════════════════════════════════════════
    v1.18 · S9 · PATCH D-fix2 · Cartelera Sheet · leggibilità DIA
    ════════════════════════════════════════════════════════════════════
