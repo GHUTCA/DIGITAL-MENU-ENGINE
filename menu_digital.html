@@ -1686,6 +1686,74 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
   background:var(--bv-text-mute);
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   v1.17 · S8 · BV BASE PILL · "Drink de la casa" sotto la proposta override
+   ════════════════════════════════════════════════════════════════════
+   Visibile solo quando override è attivo · mostra la propuesta base BKS
+   (es Negroni Atomic 7.500) anche quando l'override sta dominando l'hero
+   (es BBQ tagliere brasiliani 18.500).
+   Convivenza: brasiliani vedono push, abituali vedono il loro drink.
+   Pill compatta orizzontale: avatar 40px · titolo+detalle · prezzo
+   ════════════════════════════════════════════════════════════════════ */
+#bienvenidaSplash .bv-base-pill{
+  display:none;
+  margin-top:14px;
+  padding:10px 14px;
+  background:var(--bv-surface-2);
+  border:0.5px solid var(--bv-border);
+  border-radius:14px;
+  flex-direction:row; align-items:center; gap:11px;
+}
+#bienvenidaSplash .bv-base-pill.show{display:flex}
+#bienvenidaSplash .bv-base-pill-eyebrow{
+  font-size:8.5px; font-weight:700;
+  color:var(--bv-text-mute);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:2px;
+}
+#bienvenidaSplash .bv-base-pill-thumb{
+  width:42px; height:42px; border-radius:9px;
+  background:rgba(233,69,96,0.13);
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px;
+  flex-shrink:0;
+}
+#bienvenidaSplash .bv-base-pill-text{flex:1; min-width:0; line-height:1.25}
+#bienvenidaSplash .bv-base-pill-title{
+  font-family:'Fraunces',serif;
+  font-size:14.5px; font-weight:600;
+  color:var(--bv-text);
+  letter-spacing:-0.2px;
+  line-height:1.15;
+  margin-bottom:1px;
+  display:-webkit-box;
+  -webkit-line-clamp:1;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+#bienvenidaSplash .bv-base-pill-detail{
+  font-size:10.5px;
+  color:var(--bv-text-mute);
+  font-style:italic;
+  line-height:1.3;
+  display:-webkit-box;
+  -webkit-line-clamp:1;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+#bienvenidaSplash .bv-base-pill-price{
+  font-size:13.5px; font-weight:600;
+  color:var(--bv-text);
+  font-feature-settings:'tnum';
+  letter-spacing:0.3px;
+  flex-shrink:0;
+}
+#bienvenidaSplash .bv-base-pill-price::before{
+  content:'$ ';
+  font-size:10px; opacity:0.7; font-weight:500;
+}
+
 /* ZONA 4 · CTA */
 #bienvenidaSplash .bv-cta-wrap{
   flex:0 0 auto;
@@ -2162,7 +2230,7 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
     </div>
     <div class="bv-status-line" id="bvStatusLine">—</div>
   </div>
-  <div class="bv-proposal" id="bvProposal">
+ <div class="bv-proposal" id="bvProposal">
     <div class="bv-push-pill" id="bvPushPill"><span id="bvPushPillText">Temporada</span></div>
     <div class="bv-prop-row">
       <div class="bv-prop-thumb" id="bvPropThumb">🍸</div>
@@ -2178,6 +2246,16 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
       </div>
     </div>
     <div class="bv-validity" id="bvValidity">—</div>
+    <!-- v1.17 · S8 · pill base (Drink de la casa) · visibile solo se override è attivo -->
+    <div class="bv-base-pill" id="bvBasePill">
+      <div class="bv-base-pill-thumb" id="bvBasePillThumb">🍸</div>
+      <div class="bv-base-pill-text">
+        <div class="bv-base-pill-eyebrow" id="bvBasePillEyebrow">Drink de la casa</div>
+        <div class="bv-base-pill-title" id="bvBasePillTitle">—</div>
+        <div class="bv-base-pill-detail" id="bvBasePillDetail">—</div>
+      </div>
+      <div class="bv-base-pill-price" id="bvBasePillPrice">—</div>
+    </div>
   </div>
   <div class="bv-cta-wrap">
     <button class="bv-cta" id="bvCta" onclick="dismissBienvenida()">
@@ -3724,16 +3802,42 @@ function showBienvenidaSplash(){
     document.getElementById('bvPushPill').classList.remove('show');
   }
 
-  document.getElementById('bvPropEyebrow').textContent = saludo || (lang === 'pt' ? 'Hoje recomendamos' : 'Hoy te recomendamos');
+document.getElementById('bvPropEyebrow').textContent = saludo || (lang === 'pt' ? 'Hoje recomendamos' : 'Hoy te recomendamos');
   document.getElementById('bvPropTitle').textContent   = propTit || '';
   document.getElementById('bvPropDetail').textContent  = propDet || '';
 
-  // Prezzo · formattato CLP
-  if(franja.propuesta_precio && franja.propuesta_precio > 0){
+  // v1.17 · S8 · Prezzo · convivenza override+base
+  // Se override attivo · prezzo principale = override price (BBQ 18.500)
+  // Se override no · prezzo principale = base price (Negroni 7.500)
+  // GAS espone propuesta_precio_override = 0 quando non override o cella vuota.
+  const precioMain = (franja.override_activo && franja.propuesta_precio_override > 0)
+    ? franja.propuesta_precio_override
+    : franja.propuesta_precio;
+  if(precioMain && precioMain > 0){
     document.getElementById('bvPropPriceRow').style.display = 'flex';
-    document.getElementById('bvPropPrice').textContent = formatPrice(franja.propuesta_precio);
+    document.getElementById('bvPropPrice').textContent = formatPrice(precioMain);
   } else {
     document.getElementById('bvPropPriceRow').style.display = 'none';
+  }
+
+  // v1.17 · S8 · Pill base "Drink de la casa" · convivenza
+  // Visibile SOLO quando override attivo + base ha contenuto valido.
+  // Mostra propuesta base BKS (es Negroni Atomic 7.500) anche durante push (BBQ 18.500).
+  // Brasiliani vedono il push, abituali ritrovano il loro drink.
+  // Usa propuesta_base_titulo/detalle (GAS v2.8.0 step 6) che preservano sempre la base.
+  const basePillEl = document.getElementById('bvBasePill');
+  if(franja.override_activo
+     && franja.propuesta_precio > 0
+     && franja.propuesta_base_titulo
+     && franja.propuesta_base_titulo.length > 0){
+    document.getElementById('bvBasePillTitle').textContent = franja.propuesta_base_titulo;
+    document.getElementById('bvBasePillDetail').textContent = franja.propuesta_base_detalle || '';
+    document.getElementById('bvBasePillPrice').textContent = formatPrice(franja.propuesta_precio);
+    document.getElementById('bvBasePillEyebrow').textContent =
+      lang === 'pt' ? 'Drink da casa' : 'Drink de la casa';
+    basePillEl.classList.add('show');
+  } else {
+    basePillEl.classList.remove('show');
   }
 
   // Extra pill · solo se popolata
@@ -3756,13 +3860,23 @@ function showBienvenidaSplash(){
   }
 
   // Slogan ritmo (NOCHE) · prende dal RITMO_ACTUAL se presente
+  // v1.17 · S8 · BUG FIX · race condition + rimozione fallback hardcoded "La noche prende"
+  // Prima il fallback mostrava "La noche prende" hardcoded anche fuori dal range BPM_124,
+  // creando confusione visiva sopra la foto override (esempio: alle 22:30 con DJ active,
+  // ritmo è BPM_118 "Acá se arma" ma se RITMO_ACTUAL non è ancora caricato per race condition,
+  // mostrava "La noche prende"). Ora: solo se RITMO_ACTUAL ha mensaje_cliente reale.
+  const sloganEl = document.getElementById('bvSlogan');
   if(franja.id === 'NOCHE' && typeof RITMO_ACTUAL !== 'undefined' && RITMO_ACTUAL && RITMO_ACTUAL.mensaje_cliente){
-    document.getElementById('bvSlogan').textContent = RITMO_ACTUAL.mensaje_cliente;
-  } else if(franja.id === 'NOCHE' && typeof RHYTHM_SLOGANS_BKS !== 'undefined'){
-    // Fallback ai cilenismi DNA brand se ritmo attivo ma senza Mensaje_Cliente in Sheet
-    const slogan = (typeof RITMO_ACTUAL !== 'undefined' && RITMO_ACTUAL && RHYTHM_SLOGANS_BKS[RITMO_ACTUAL.id])
-                   ? RHYTHM_SLOGANS_BKS[RITMO_ACTUAL.id] : 'La noche prende.';
-    document.getElementById('bvSlogan').textContent = slogan;
+    sloganEl.textContent = RITMO_ACTUAL.mensaje_cliente;
+    sloganEl.style.display = '';
+  } else if(franja.id === 'NOCHE' && typeof RITMO_ACTUAL !== 'undefined' && RITMO_ACTUAL && typeof RHYTHM_SLOGANS_BKS !== 'undefined' && RHYTHM_SLOGANS_BKS[RITMO_ACTUAL.id]){
+    // Fallback ai cilenismi DNA brand SOLO se ritmo attivo è risolto (no fallback hardcoded)
+    sloganEl.textContent = RHYTHM_SLOGANS_BKS[RITMO_ACTUAL.id];
+    sloganEl.style.display = '';
+  } else {
+    // Niente ritmo risolto · niente slogan visivo (era il bug "La noche prende" sempre on)
+    sloganEl.textContent = '';
+    sloganEl.style.display = 'none';
   }
 
   // DJ ribbon (NOCHE) · prende da CURRENT_DJ_BKS se risolvibile
