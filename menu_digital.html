@@ -1572,6 +1572,20 @@ body[data-fascia="CERRADO"]  #bienvenidaSplash .bv-prop-thumb{
   font-size:42px;
   box-shadow:0 12px 28px rgba(255,138,61,0.38), 0 0 0 4px rgba(255,138,61,0.10);
   animation:bvThumbScale 0.7s cubic-bezier(0.2,1.4,0.4,1) 0.4s backwards;
+  overflow:hidden; /* v1.17 · S8 · clip foto override ai bordi rounded */
+}
+/* v1.17 · S8 · foto override come thumb · sostituisce emoji quando immagine valida */
+#bienvenidaSplash .bv-proposal.is-override .bv-prop-thumb img{
+  width:100%; height:100%;
+  object-fit:cover;
+  display:block;
+  /* Leggera saturazione + warm tone per coerenza con palette override arancione */
+  filter:saturate(1.05) contrast(1.02);
+}
+#bienvenidaSplash .bv-proposal.is-override .bv-prop-thumb img.show{display:block}
+/* Quando img è caricata · nascondo emoji testuale (resta nel DOM come fallback) */
+#bienvenidaSplash .bv-proposal.is-override .bv-prop-thumb.has-photo{
+  font-size:0; /* nasconde emoji testuale ma mantiene img visibile */
 }
 #bienvenidaSplash .bv-proposal.is-override .bv-prop-thumb::after{
   content:'❄';
@@ -2266,7 +2280,7 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
  <div class="bv-proposal" id="bvProposal">
     <div class="bv-push-pill" id="bvPushPill"><span id="bvPushPillText">Temporada</span></div>
     <div class="bv-prop-row">
-      <div class="bv-prop-thumb" id="bvPropThumb">🍸</div>
+      <div class="bv-prop-thumb" id="bvPropThumb"><img id="bvPropThumbImg" alt="" style="display:none">🍸</div>
       <div class="bv-prop-text">
         <div class="bv-prop-eyebrow" id="bvPropEyebrow">Hoy te recomendamos</div>
         <div class="bv-prop-title" id="bvPropTitle">—</div>
@@ -3824,15 +3838,38 @@ function showBienvenidaSplash(){
 
   // Zona 3 · proposta
   const proposalEl = document.getElementById('bvProposal');
+  const propThumbEl = document.getElementById('bvPropThumb');
+  const propThumbImgEl = document.getElementById('bvPropThumbImg');
   if(franja.override_activo){
     proposalEl.classList.add('is-override');
     document.getElementById('bvPushPill').classList.add('show');
-    // Testo pill: usa Override_Titulo per inferire il tema, ma testo fisso "TEMPORADA" + freccia
-    // Se in futuro vuoi pill custom (es "EDICIN LIMITADA"), aggiungi colonna Override_Pill
     document.getElementById('bvPushPillText').textContent = '❄ ' + (lang === 'pt' ? 'Temporada' : 'Temporada');
+
+    // v1.17 · S8 · Foto override come thumb (era emoji 🍸 hardcoded → mismatch BBQ)
+    // Riusa Override_Foto_URL come thumb · stessa foto dell'hero, ma 96×96 con cornice arancione.
+    // Se foto fallisce (404, no URL), fallback automatico a emoji testuale 🍸 ancora nel DOM.
+    if(franja.foto_url){
+      propThumbImgEl.onerror = ()=>{
+        propThumbImgEl.style.display = 'none';
+        propThumbEl.classList.remove('has-photo');
+        console.warn('[v1.17] Override thumb foto failed · fallback emoji');
+      };
+      propThumbImgEl.onload = ()=>{
+        propThumbImgEl.style.display = 'block';
+        propThumbEl.classList.add('has-photo');
+      };
+      propThumbImgEl.src = franja.foto_url;
+    } else {
+      propThumbImgEl.style.display = 'none';
+      propThumbEl.classList.remove('has-photo');
+    }
   } else {
     proposalEl.classList.remove('is-override');
     document.getElementById('bvPushPill').classList.remove('show');
+    // Reset thumb a emoji default in modalità non-override
+    propThumbImgEl.style.display = 'none';
+    propThumbImgEl.src = '';
+    propThumbEl.classList.remove('has-photo');
   }
 
 document.getElementById('bvPropEyebrow').textContent = saludo || (lang === 'pt' ? 'Hoje recomendamos' : 'Hoy te recomendamos');
