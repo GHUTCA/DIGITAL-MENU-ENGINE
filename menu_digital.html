@@ -872,15 +872,21 @@ body.theme-dark #djSheet{background:#1A1A2E;box-shadow:0 -10px 40px rgba(0,0,0,0
 .dj-sheet-next-name{font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);}
 .dj-sheet-next-when{font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:0.3px;}
 .dj-sheet-now{
-  display:flex;justify-content:space-between;align-items:center;
+  display:flex;justify-content:flex-start;align-items:center;gap:8px;
   padding:10px 14px;
   background:rgba(233,69,96,0.08);
   border-radius:10px;
   border:1px solid rgba(233,69,96,0.25);
   text-align:left;
 }
-.dj-sheet-now-text{font-size:12px;color:rgba(255,255,255,0.7);font-style:italic;}
-.dj-sheet-now-bpm{font-family:'Consolas',ui-monospace,monospace;font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:1px;font-weight:500;}
+.dj-sheet-now-text{font-size:11.5px;color:rgba(255,255,255,0.7);font-style:italic;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dj-sheet-now-bpm{font-family:'Consolas',ui-monospace,monospace;font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:1px;font-weight:500;flex-shrink:0;}
+/* v1.17 · S8 · nome DJ in "in cabina adesso" + separatore */
+.dj-sheet-now-name{font-size:12.5px;font-weight:600;color:rgba(255,255,255,0.95);flex-shrink:0;}
+.dj-sheet-now-sep{color:rgba(233,69,96,0.6);font-weight:600;flex-shrink:0;}
+/* light mode (Candelaria futuro) */
+body:not(.theme-dark) .dj-sheet-now-name{color:var(--brand-text);}
+body:not(.theme-dark) .dj-sheet-now-sep{color:rgba(233,69,96,0.7);}
 .dj-sheet-close{
   position:absolute;top:14px;right:18px;
   width:28px;height:28px;border-radius:50%;
@@ -4772,10 +4778,16 @@ function openDjSheet(){
     const sheetMsg = (r.mensaje_cliente || '').trim();
     const slogan = sheetMsg || (typeof RHYTHM_SLOGANS_BKS !== 'undefined' && RHYTHM_SLOGANS_BKS[r.id]) || r.nombre || r.id;
     const sloganStripped = String(slogan).replace(/\.$/, '');
+    // v1.17 · S8 · "in cabina adesso" · mostra nome DJ + slogan + BPM
+    // Prima mostrava solo slogan/BPM, era UX rotta (label dice "chi" ma contenuto era "vibe").
+    // Ora la sezione risponde davvero alla domanda: chi sta suonando e che vibe.
+    const nowDjName = dj.nombre || 'DJ';
     nowHtml = `
       <hr class="dj-sheet-divider">
       <div class="dj-sheet-section-title">${getLang('dj_now_label') || 'AHORA EN CABINA'}</div>
       <div class="dj-sheet-now">
+        <span class="dj-sheet-now-name">${nowDjName}</span>
+        <span class="dj-sheet-now-sep">·</span>
         <span class="dj-sheet-now-text">… ${sloganStripped} …</span>
         <span class="dj-sheet-now-bpm">${r.bpm} BPM</span>
       </div>`;
