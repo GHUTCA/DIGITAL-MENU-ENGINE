@@ -4308,9 +4308,13 @@ async function loadCartelera(force){
   return CARTELERA_DATA;
 }
 
-async function openCartelera(){
+async function openCartelera(forceMode1){
   // v1.15 fix · UX immediato: mostra sheet con skeleton mentre fetch è in corso.
   // Senza questo, primo tap su GAS freddo restava silenzioso 1-15s.
+  // v1.18 · S9 · PATCH D fix · forceMode1 forza vista lista DJ (modo 1)
+  // anche quando evento attivo. Usato dal disco rosso/teaser cartelera in
+  // CASO A. La pill EVENTO continua a chiamare openCartelera() senza param
+  // → vede comunque modo 2 (poster evento). Due CTA separati.
 
   const sheet = document.getElementById('carteleraSheet');
   const overlay = document.getElementById('carteleraOverlay');
@@ -4320,7 +4324,7 @@ async function openCartelera(){
   if(!CARTELERA_DATA){
     renderCarteleraSkeleton();
   } else {
-    renderCarteleraSheet(CARTELERA_DATA);
+    renderCarteleraSheet(CARTELERA_DATA, forceMode1);
   }
   overlay.classList.add('show');
   requestAnimationFrame(() => {
@@ -4337,7 +4341,7 @@ async function openCartelera(){
   if(!CARTELERA_DATA){
     await loadCartelera();
     if(CARTELERA_DATA){
-      renderCarteleraSheet(CARTELERA_DATA);
+      renderCarteleraSheet(CARTELERA_DATA, forceMode1);
     } else {
       renderCarteleraError();
     }
@@ -4346,7 +4350,7 @@ async function openCartelera(){
   // Poll fascia ogni 60s per ricalcolare "en_vivo" se utente lascia sheet aperto
   if(CARTELERA_POLL_TIMER) clearInterval(CARTELERA_POLL_TIMER);
   CARTELERA_POLL_TIMER = setInterval(() => {
-    loadCartelera(true).then(d => { if(d) renderCarteleraSheet(d); });
+    loadCartelera(true).then(d => { if(d) renderCarteleraSheet(d, forceMode1); });
   }, 60000);
 }
 
@@ -4412,11 +4416,14 @@ function renderCarteleraError(){
   `;
 }
      
-function renderCarteleraSheet(data){
+function renderCarteleraSheet(data, forceMode1){
   const container = document.getElementById('carteleraContent');
   if(!container) return;
 
-  if(data.modo === '2' && data.evento){
+  // v1.18 · S9 · PATCH D fix · forceMode1=true bypassa check evento
+  // Disco rosso/teaser CASO A passano forceMode1=true → mostra sempre lista DJ.
+  // Pill EVENTO chiama senza param → comportamento storico (modo 2 se evento).
+  if(!forceMode1 && data.modo === '2' && data.evento){
     container.innerHTML = renderCarteleraMode2(data.evento);
   } else {
     container.innerHTML = renderCarteleraMode1(data.djs_semana || []);
@@ -5441,12 +5448,12 @@ function renderRhythmBar(){
     chipBar.innerHTML = `
       <div class="faja-cartelera-mode">
         <div class="faja-cart-disc"
-             onclick="openCartelera()"
+             onclick="openCartelera(true)"
              role="button"
              tabindex="0"
              aria-label="${getLang('cartelera_eyebrow')}"
-             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCartelera();}"></div>
-        <div class="faja-cart-content" onclick="openCartelera()">
+             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCartelera(true);}"></div>
+        <div class="faja-cart-content" onclick="openCartelera(true)">
           <div class="faja-cart-eyebrow">${getLang('cartelera_eyebrow')}</div>
           <div class="faja-cart-text">${getLang('cartelera_question')}</div>
           ${rhythmInfoHtml}
