@@ -288,6 +288,59 @@ body.theme-dark[data-fascia-menu="dia"] #djSheet .sheet-handle {
 }
 
 /* ════════════════════════════════════════════════════════════════════
+   v1.18 · S9 · PATCH D-fix2 · Cartelera Sheet · leggibilità DIA
+   ════════════════════════════════════════════════════════════════════
+   Cartelera Sheet (modo 1 lista DJ) era stata progettata per NOCHE.
+   Nel rendering in DIA tutti i testi della sezione sessioni + footer
+   sono bianchi semitrasparenti su bg cremoso → invisibili.
+   Hero (foto interno BKS) resta scura, testi sopra hero NON cambiano.
+   Solo testi DOPO hero (lista DJ + footer) diventano scuri.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Lista DJ · nome · da #fff a brand-text */
+body.theme-dark[data-fascia-menu="dia"] #carteleraSheet .cart-sesh-name {
+  color: var(--brand-text);
+}
+
+/* Lista DJ · giorni "L,M,X,J,V,S,D" · da bianco trasp a brand-text-muted */
+body.theme-dark[data-fascia-menu="dia"] #carteleraSheet .cart-sesh-days {
+  color: rgba(42,31,26,0.55);
+}
+
+/* Lista DJ · orari "20:00 — 0:45" · adatta al fondo cremoso */
+body.theme-dark[data-fascia-menu="dia"] #carteleraSheet .cart-sesh-time {
+  color: rgba(42,31,26,0.65);
+}
+body.theme-dark[data-fascia-menu="dia"] #carteleraSheet .cart-sesh-row.live .cart-sesh-time {
+  color: var(--brand-text);
+  font-weight: 600;
+}
+
+/* Pill Instagram nella riga sessione · scura su cremoso */
+body.theme-dark[data-fascia-menu="dia"] #carteleraSheet .cart-sesh-ig {
+  background: rgba(42,31,26,0.04);
+  color: rgba(42,31,26,0.65);
+}
+body.theme-dark[data-fascia-menu="dia"] #carteleraSheet .cart-sesh-ig:hover {
+  color: var(--brand-text);
+  background: rgba(233,69,96,0.08);
+}
+
+/* Card riga DJ · sfondo bianco card già OK in DIA, regolo bordo */
+body.theme-dark[data-fascia-menu="dia"] #carteleraSheet .cart-sesh-row {
+  background: var(--brand-surface-card);
+  border-color: var(--brand-border);
+}
+
+/* Footer "Comandante DJ es patrón de la casa" · scuro leggibile */
+body.theme-dark[data-fascia-menu="dia"] #carteleraSheet .cart-mode1-footer-text {
+  color: rgba(42,31,26,0.55);
+}
+body.theme-dark[data-fascia-menu="dia"] #carteleraSheet .cart-mode1-footer-text strong {
+  color: var(--brand-text);
+}
+
+/* ════════════════════════════════════════════════════════════════════
    v1.17 · S8 · PALETTE DINAMICA TARDE · 17:30 → 21:00
    PLUM-BORDEAUX scuro · "il crepuscolo elettrico, il neon si accende"
    Sostituisce terracotta v1.16 · troppo lounge per cocktail bar Bellavista.
