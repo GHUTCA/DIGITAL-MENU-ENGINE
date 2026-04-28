@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.12 · 27-apr-2026 · Sessione S5 (in lavorazione)
+     menu_digital.html · v1.16 · 27-apr-2026 · Sessione S8 (in lavorazione)
      ════════════════════════════════════════════════════════════════════
      CHANGELOG v1.11 → v1.12 (S5 commit 1/5)
      - Lettura PARAMETROS.sugerencia_activa + sugerencia_frase_default
@@ -1697,11 +1697,19 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
 .cart-sesh-info{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px}
 .cart-sesh-name{
   font-family:'Fraunces',serif;
-  font-size:14.5px; font-weight:600;
+  font-size:14px; font-weight:600;
   color: #fff;
   letter-spacing:-0.2px;
   line-height:1.15;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  /* v1.16 · S8 · FIX-1 · rimosso white-space:nowrap + ellipsis · ora wrappa
+     a 2 righe massimo invece di troncare "Comandante DJ" → "Coman…".
+     Font ridotto 14.5→14px per compensare visivamente il leggero peso in più
+     dato dal wrap. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
 }
 .cart-sesh-days{
   font-size:10.5px; font-weight:600; letter-spacing:1.2px;
@@ -1712,7 +1720,9 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
 .cart-sesh-ig{
   flex:0 0 auto;
   display:inline-flex; align-items:center; gap:4px;
-  padding: 4px 9px;
+  /* v1.16 · S8 · FIX-2 · pill IG più compatta · padding 4px 9px → 3px 8px,
+     max-width 120 → 105px · libera ~15px laterali per cart-sesh-name. */
+  padding: 3px 8px;
   background: rgba(255,255,255,0.05);
   border:1px solid var(--brand-border);
   border-radius:12px;
@@ -1721,7 +1731,7 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
   cursor:pointer;
   transition: all 0.2s;
   white-space:nowrap;
-  max-width:120px; overflow:hidden; text-overflow:ellipsis;
+  max-width:105px; overflow:hidden; text-overflow:ellipsis;
 }
 .cart-sesh-ig:hover{
   border-color: var(--brand-accent);
@@ -2665,6 +2675,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   // v1.13 · S6 · BIENVENIDA splash · fire-and-forget parallelo (8s timeout interno)
   // Solo se !MESA_ID (= QR vetrina). Carica payload mentre il menu si carica.
   const bvPromise = loadBienvenida();
+
+  // v1.16 · S8 · ISSUE-S7-01 fix · warm-up cartelera al boot.
+  // Pre-carica getCartelera in background sul boot menu, così quando l'utente
+  // arriva al disco rosso (faja CASO A) il dato è già in CARTELERA_DATA e
+  // l'apertura è istantanea anche da GAS freddo.
+  // Solo BKS · Candelaria non ha cartelera. Fire-and-forget, errori silenti
+  // (loadCartelera ha già retry logic interna 3 tentativi).
+  if(LOCAL_ID === 'BKS' && typeof loadCartelera === 'function'){
+    loadCartelera();
+    console.log('[v1.16] Cartelera warm-up inviato al boot');
+  }
 
   // 5) Carica menu con retry
   try {
