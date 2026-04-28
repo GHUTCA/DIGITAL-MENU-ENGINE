@@ -474,6 +474,43 @@ body.theme-dark[data-fascia-menu="tarde"] {
 /* Versione DIA · testo scuro su pill chiara, accent invariato */
 body.theme-dark[data-fascia-menu="dia"] .faja-event-title{color: var(--brand-text);}
 
+/* ════════════════════════════════════════════════════════════════════
+   v1.18 · S9 · PATCH D · Variante COMPACT pill EVENTO per faja CASO A
+   ════════════════════════════════════════════════════════════════════
+   Quando in CASO A (no DJ) c'è un evento attivo, la pill viene mostrata
+   ACCANTO al teaser cartelera (non sotto come CASO B). Versione ridotta:
+   logo + nome sponsor + freccia. No eyebrow lungo, no data, no titolo
+   completo · solo brand recall + CTA. Cliente che vuole dettagli tappa
+   pill o disco rosso e apre cartelera modo 2.
+   ════════════════════════════════════════════════════════════════════ */
+.faja-event-pill.compact{
+  margin: 0;
+  padding: 6px 11px;
+  gap: 5px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  box-shadow: 0 0 8px var(--event-pill-glow, rgba(255,138,61,0.12));
+}
+.faja-event-pill.compact .faja-event-logo{
+  width: 12px; height: 12px; border-radius: 2px;
+}
+.faja-event-pill.compact .faja-event-eyebrow{
+  display: none; /* compact non ha eyebrow lungo */
+}
+.faja-event-pill.compact .faja-event-sep{
+  display: none; /* né separatori */
+}
+.faja-event-pill.compact .faja-event-title{
+  font-size: 10.5px;
+  max-width: 80px; /* cap aggressivo · "RedBull DJ Night" → "RedBull D…" */
+}
+.faja-event-pill.compact .faja-event-date{
+  display: none; /* no data nella compact */
+}
+.faja-event-pill.compact .faja-event-arrow{
+  font-size: 11px; margin-left: 1px;
+}
+
 
 /* Dark mode badges */
 body.theme-dark .badge-popular  { background:rgba(245,158,11,0.22); color:#fbbf24 }
@@ -4186,7 +4223,7 @@ const CARTELERA_HERO_DEFAULT = 'https://images.unsplash.com/photo-1572116469696-
    - sponsor.color_hex vuoto    → arancione push #FF8A3D default (Guetta-style)
    - sponsor.logo_url popolato  → mini-logo 14x14 prima dell'eyebrow
    ════════════════════════════════════════════════════════════════════ */
-function renderFajaEventPill(){
+function renderFajaEventPill(compact){
   if(!CARTELERA_DATA || CARTELERA_DATA.modo !== '2' || !CARTELERA_DATA.evento) return '';
   const ev = CARTELERA_DATA.evento;
 
@@ -4208,8 +4245,12 @@ function renderFajaEventPill(){
     ? `<img class="faja-event-logo" src="${escapeHtml(sponsorLogo)}" alt="" onerror="this.style.display='none'">`
     : '';
 
+  // v1.18 · S9 · PATCH D · classe compact aggiunta in CASO A (no DJ presente)
+  // CSS .faja-event-pill.compact nasconde eyebrow + sep + date e riduce padding/font
+  const pillClass = compact ? 'faja-event-pill compact show' : 'faja-event-pill show';
+
   return `
-    <div class="faja-event-pill show" ${styleVars}
+    <div class="${pillClass}" ${styleVars}
          onclick="event.stopPropagation();openCartelera()"
          role="button" tabindex="0"
          aria-label="${escapeHtml(titulo)} · ${escapeHtml(fecha)}"
@@ -5410,6 +5451,7 @@ function renderRhythmBar(){
           <div class="faja-cart-text">${getLang('cartelera_question')}</div>
           ${rhythmInfoHtml}
         </div>
+        ${renderFajaEventPill(true)}
       </div>
       <div style="margin-top:4px;height:1px;background:linear-gradient(90deg, transparent, var(--brand-accent-line) 30%, var(--brand-accent-line-strong) 50%, var(--brand-accent-line) 70%, transparent);opacity:0.7"></div>`;
 
