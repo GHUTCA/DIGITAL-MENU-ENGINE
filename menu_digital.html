@@ -1695,34 +1695,65 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
    Convivenza: brasiliani vedono push, abituali vedono il loro drink.
    Pill compatta orizzontale: avatar 40px · titolo+detalle · prezzo
    ════════════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════════
+   v1.17 · S8 · BV BASE PILL · "noche elegante"
+   ════════════════════════════════════════════════════════════════════
+   Background gradient plum→noir (cromatica della famiglia notte BKS)
+   Bordo plum sottile 30% · glow rosso minimale · avatar bicromatico
+   Eyebrow rosso con dot live · ispirazione: il Negroni nel bicchiere
+   Lavora in armonia con palette TARDE/NOCHE · NON compete con override
+   arancione sopra né CTA rosso pieno sotto.
+   ════════════════════════════════════════════════════════════════════ */
 #bienvenidaSplash .bv-base-pill{
   display:none;
   margin-top:14px;
   padding:10px 14px;
-  background:var(--bv-surface-2);
-  border:0.5px solid var(--bv-border);
+  background:linear-gradient(180deg,rgba(31,15,42,0.55) 0%, rgba(15,8,22,0.7) 100%);
+  border:0.5px solid rgba(167,90,140,0.30);
   border-radius:14px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 4px 14px rgba(0,0,0,0.4),
+    0 0 0 1px rgba(167,90,140,0.04);
   flex-direction:row; align-items:center; gap:11px;
+  position:relative;
 }
 #bienvenidaSplash .bv-base-pill.show{display:flex}
-#bienvenidaSplash .bv-base-pill-eyebrow{
-  font-size:8.5px; font-weight:700;
-  color:var(--bv-text-mute);
-  letter-spacing:1.5px;
-  text-transform:uppercase;
-  margin-bottom:2px;
-}
+
+/* Avatar · gradient bicromatico rosso+plum + glow rosso sottile */
 #bienvenidaSplash .bv-base-pill-thumb{
-  width:42px; height:42px; border-radius:9px;
-  background:rgba(233,69,96,0.13);
+  width:42px; height:42px; border-radius:10px;
+  background:linear-gradient(135deg, rgba(233,69,96,0.20), rgba(167,90,140,0.10));
+  border:0.5px solid rgba(255,255,255,0.10);
+  box-shadow:0 0 14px rgba(233,69,96,0.15);
   display:flex; align-items:center; justify-content:center;
   font-size:18px;
   flex-shrink:0;
 }
+
 #bienvenidaSplash .bv-base-pill-text{flex:1; min-width:0; line-height:1.25}
+
+/* Eyebrow · rosso brand con dot live verde-style (eredita filosofia "BKS · live") */
+#bienvenidaSplash .bv-base-pill-eyebrow{
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:8.5px; font-weight:700;
+  color:rgba(233,69,96,0.95);
+  letter-spacing:1.7px;
+  text-transform:uppercase;
+  margin-bottom:2px;
+}
+#bienvenidaSplash .bv-base-pill-eyebrow::before{
+  content:'';
+  display:inline-block;
+  width:5px; height:5px;
+  border-radius:50%;
+  background:#E94560;
+  box-shadow:0 0 6px rgba(233,69,96,0.8);
+}
+
 #bienvenidaSplash .bv-base-pill-title{
   font-family:'Fraunces',serif;
-  font-size:14.5px; font-weight:600;
+  font-size:15px; font-weight:600;
   color:var(--bv-text);
   letter-spacing:-0.2px;
   line-height:1.15;
@@ -1734,7 +1765,7 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
 }
 #bienvenidaSplash .bv-base-pill-detail{
   font-size:10.5px;
-  color:var(--bv-text-mute);
+  color:rgba(255,255,255,0.6);
   font-style:italic;
   line-height:1.3;
   display:-webkit-box;
@@ -1742,8 +1773,10 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
   -webkit-box-orient:vertical;
   overflow:hidden;
 }
+
+/* Prezzo · pulito, leggermente più grande per gerarchia */
 #bienvenidaSplash .bv-base-pill-price{
-  font-size:13.5px; font-weight:600;
+  font-size:14px; font-weight:600;
   color:var(--bv-text);
   font-feature-settings:'tnum';
   letter-spacing:0.3px;
