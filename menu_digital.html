@@ -285,6 +285,64 @@ body.theme-dark[data-fascia-menu="tarde"] {
   background-repeat: no-repeat;
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   v1.17 · S8 · PILL EVENTO · sotto microbar CASO B (Comandante DJ live)
+   ════════════════════════════════════════════════════════════════════
+   Pattern: pill arancione push #FF8A3D (default · stesso pattern BIENVENIDA
+   override stagionale S6 dec.26) OPPURE colore custom da Sheet sponsor.
+   Click → apre cartelera bottom-sheet modo 2.
+   Auto-spegne quando evento finisce (Hasta passata in Sheet).
+   ════════════════════════════════════════════════════════════════════ */
+.faja-event-pill{
+  display:none; /* visibile solo quando evento attivo · JS toggle */
+  align-items:center; gap:7px;
+  margin: 6px auto 4px;
+  padding: 6px 14px;
+  background: var(--event-pill-bg, rgba(255,138,61,0.12));
+  border: 1px solid var(--event-pill-border, rgba(255,138,61,0.45));
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 0 10px var(--event-pill-glow, rgba(255,138,61,0.15));
+  max-width: fit-content;
+}
+.faja-event-pill.show{display:inline-flex}
+.faja-event-pill:active{transform:scale(0.97)}
+.faja-event-logo{
+  width:14px; height:14px; border-radius:3px;
+  object-fit:cover; flex-shrink:0;
+  background: rgba(255,255,255,0.08);
+}
+.faja-event-eyebrow{
+  font-size:10px; font-weight:700;
+  color: var(--event-pill-accent, #FF8A3D);
+  letter-spacing:1.4px; text-transform:uppercase;
+  flex-shrink:0;
+}
+.faja-event-eyebrow::before{content:'★ '}
+.faja-event-sep{
+  color: var(--event-pill-accent, rgba(255,138,61,0.5));
+  font-size:8px; flex-shrink:0;
+}
+.faja-event-title{
+  font-size:11.5px; font-weight:500; color:#fff;
+  letter-spacing:0.2px; flex-shrink:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  max-width:140px;
+}
+.faja-event-date{
+  font-size:10px; color: var(--event-pill-accent, rgba(255,138,61,0.85));
+  letter-spacing:0.5px; flex-shrink:0;
+  text-transform: lowercase;
+}
+.faja-event-arrow{
+  font-size:11px; color: var(--event-pill-accent, rgba(255,138,61,0.7));
+  flex-shrink:0; margin-left:2px;
+}
+/* Versione DIA · testo scuro su pill chiara, accent invariato */
+body.theme-dark[data-fascia-menu="dia"] .faja-event-title{color: var(--brand-text);}
+
 
 /* Dark mode badges */
 body.theme-dark .badge-popular  { background:rgba(245,158,11,0.22); color:#fbbf24 }
@@ -3796,6 +3854,57 @@ let CARTELERA_POLL_TIMER = null; // poll fascia per "en_vivo" recalc
 // Sostituibile da Sheet PARAMETROS in S8 se vuoi controllo editoriale.
 const CARTELERA_HERO_DEFAULT = 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800';
 
+/* ════════════════════════════════════════════════════════════════════
+   v1.17 · S8 · renderFajaEventPill — pill EVENTO sotto microbar CASO B
+   ════════════════════════════════════════════════════════════════════
+   Genera HTML della pill se CARTELERA_DATA contiene evento attivo (modo 2).
+   Stringa vuota = pill nascosta, niente render.
+   
+   Sponsor branding (decisione 36 · S8):
+   - sponsor.color_hex popolato → bg/border/accent prendono il colore sponsor
+   - sponsor.color_hex vuoto    → arancione push #FF8A3D default (Guetta-style)
+   - sponsor.logo_url popolato  → mini-logo 14x14 prima dell'eyebrow
+   ════════════════════════════════════════════════════════════════════ */
+function renderFajaEventPill(){
+  if(!CARTELERA_DATA || CARTELERA_DATA.modo !== '2' || !CARTELERA_DATA.evento) return '';
+  const ev = CARTELERA_DATA.evento;
+
+  // Lingua · ES default · EN se lang=en
+  const lang = (typeof getCurrentLang === 'function') ? getCurrentLang() : 'es';
+  const useEn = lang === 'en' && ev.en && ev.en.titulo;
+  const eyebrow = useEn ? (ev.en.eyebrow || 'EVENT') : 'Evento';
+  const titulo = useEn ? ev.en.titulo : ev.titulo_es;
+  const fecha = ev.fecha_visible || '';
+
+  // Sponsor color · default arancione push #FF8A3D
+  const sponsorColor = (ev.sponsor && ev.sponsor.color_hex) ? ev.sponsor.color_hex.trim() : '';
+  const sponsorLogo = (ev.sponsor && ev.sponsor.logo_url) ? ev.sponsor.logo_url.trim() : '';
+  const styleVars = sponsorColor && /^#[0-9A-Fa-f]{6}$/.test(sponsorColor)
+    ? `style="--event-pill-bg:${sponsorColor}26; --event-pill-border:${sponsorColor}73; --event-pill-glow:${sponsorColor}33; --event-pill-accent:${sponsorColor};"`
+    : '';
+
+  const logoHtml = sponsorLogo && sponsorLogo.startsWith('http')
+    ? `<img class="faja-event-logo" src="${escapeHtml(sponsorLogo)}" alt="" onerror="this.style.display='none'">`
+    : '';
+
+  return `
+    <div class="faja-event-pill show" ${styleVars}
+         onclick="event.stopPropagation();openCartelera()"
+         role="button" tabindex="0"
+         aria-label="${escapeHtml(titulo)} · ${escapeHtml(fecha)}"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCartelera();}">
+      ${logoHtml}
+      <span class="faja-event-eyebrow">${escapeHtml(eyebrow)}</span>
+      <span class="faja-event-sep">·</span>
+      <span class="faja-event-title">${escapeHtml(titulo)}</span>
+      ${fecha ? `<span class="faja-event-sep">·</span><span class="faja-event-date">${escapeHtml(fecha)}</span>` : ''}
+      <span class="faja-event-arrow">›</span>
+    </div>
+  `;
+}
+
+</parameter>
+     
 async function loadCartelera(force){
   if(CARTELERA_LOADING) return CARTELERA_DATA;
   if(CARTELERA_DATA && !force) return CARTELERA_DATA;
@@ -4997,6 +5106,14 @@ function renderRhythmBar(){
     // v1.10 · CASO B microbar V1: Comandante DJ sx · slogan corsivo …puntini… centro · BPM dx
     // (NO toggle ALL · v1.10 finale: filtro ritmo è unica realtà · curatela del momento sempre attiva)
     const r = RITMO_ACTUAL;
+    // v1.17 · S8 · BUG FIX · race condition: DJ caricato prima del ritmo
+    // (es. boot menu · DJS_AGENDA arriva subito, RITMOS arriva 100-300ms dopo).
+    // Senza guardia, r.mensaje_cliente crasha con "Cannot read properties of null".
+    // Skip render slogan se ritmo non ancora arrivato · re-render scatta al loadRitmos completo.
+    if(!r){
+      console.warn('[v1.17] CASO B render skipped · RITMO_ACTUAL null (race condition · attendiamo loadRitmos)');
+      return;
+    }
     // v1.12 · S5 · Slogan ritmo da Sheet RITMOS.Mensaje_Cliente (controllo editoriale JL)
     // Fallback chain: Sheet > hardcoded cilenismi DNA brand > nome ritmo
     const sheetMsg = (r.mensaje_cliente || '').trim();
@@ -5020,6 +5137,10 @@ function renderRhythmBar(){
       djAvatarHtml = `<div class="dj-disc${djClickable?' clickable':''}"${djClickable?` onclick="openDjSheet()" role="button" aria-label="Ver detalle DJ"`:' aria-hidden="true"'}></div>`;
     }
 
+    // v1.17 · S8 · pill EVENTO opzionale sotto microbar · costruisco l'HTML
+    // Renderizzata solo se CARTELERA_DATA contiene evento (modo 2). Centrata sotto la riga DJ/slogan/BPM.
+    const eventPillHtml = renderFajaEventPill();
+
     chipBar.innerHTML = `
       <div style="font-size:9px;color:rgba(255,255,255,0.45);letter-spacing:3px;text-transform:uppercase;font-weight:500;margin-bottom:8px">♪ BKS Rhythm</div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:nowrap">
@@ -5036,7 +5157,8 @@ function renderRhythmBar(){
         <div style="flex-shrink:0">
           <span style="font-family:'Consolas',ui-monospace,monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;font-weight:500">${r.bpm} BPM</span>
         </div>
-      </div>`;
+      </div>
+      ${eventPillHtml}`;
   }
 
   // v1.10 · Waveform animazione a BPM reale · stagger ricalibrato per 20 barre
