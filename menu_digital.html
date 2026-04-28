@@ -3626,21 +3626,27 @@ async function loadBienvenida(){
   // No mesa = QR vetrina → mostra splash. Con mesa = QR tavolo → skip (S7+)
   if(MESA_ID) return null;
 
+  // v1.17 · S8 · BUG FIX · timeout 8s → 15s
+  // Warm-up cartelera al boot (v1.16) gira in parallelo ed entrambi colpiscono
+  // GAS freddo (cold start 5-15s). Con 8s, bienvenida abortiva a metà
+  // del cold start mentre cartelera completava. Ora allineato al timeout cartelera.
+  // Pattern: retry 1 tentativo (cartelera ne ha 3 perché on-demand, splash è
+  // one-shot al boot, basta 1 tentativo + timeout esteso).
   try {
     const url = `${BRAND.gas_url || GAS_URL}?action=getBienvenida&local=${LOCAL_ID}&t=${Date.now()}`;
     const ctrl = new AbortController();
-    const tmo = setTimeout(()=>ctrl.abort(), 8000);
+    const tmo = setTimeout(()=>ctrl.abort(), 15000);
     const resp = await fetch(url, { signal: ctrl.signal });
     clearTimeout(tmo);
     if(!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
     if(!data || !data.ok) throw new Error(data && data.error || 'no ok');
     BIENVENIDA_DATA = data;
-    console.log('[v1.15] Bienvenida loaded · franjas=' + data.franjas.length +
+    console.log('[v1.17] Bienvenida loaded · franjas=' + data.franjas.length +
                 ' · franja_actual=' + (data.franja_actual ? data.franja_actual.id : 'NULL'));
     return data;
   } catch(e){
-    console.warn('[v1.15] loadBienvenida failed:', e.message);
+    console.warn('[v1.17] loadBienvenida failed:', e.name + ' · ' + (e.message || 'no message'));
     return null;
   }
 }
