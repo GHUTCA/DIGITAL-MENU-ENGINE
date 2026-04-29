@@ -573,14 +573,19 @@ body.theme-dark[data-fascia-menu="dia"] .faja-event-title{color: var(--brand-tex
    ════════════════════════════════════════════════════════════════════ */
 .faja-event-pill.banner{
   display: flex !important;
-  width: 100%;
+  width: 100% !important;
   max-width: none !important;
-  margin: 4px 0 0;
-  padding: 7px 12px;
+  margin: 6px 0 4px !important;
+  padding: 8px 14px !important;
   gap: 6px;
   align-items: center;
-  border-radius: 8px;
+  border-radius: 8px !important;
   box-shadow: 0 0 8px var(--event-pill-glow, rgba(255,138,61,0.10));
+  box-sizing: border-box;
+  /* Banner version uses MORE opaque sponsor bg than the small pill version
+     · 12% trasparente → 30% per stagliarsi sopra il bg dark menu BKS · NOCHE
+     · in DIA il bg cremoso del menu rende già il banner visibile */
+  background: var(--event-pill-banner-bg, var(--event-pill-bg, rgba(255,138,61,0.22))) !important;
 }
 /* Logo prende margin-left auto · spinge TUTTO il contenuto a destra */
 .faja-event-pill.banner .faja-event-logo{
@@ -617,6 +622,7 @@ body.theme-dark[data-fascia-menu="dia"] .faja-event-title{color: var(--brand-tex
   font-size: 14px;
   flex-shrink: 0;
   margin-left: 2px;
+  color: rgba(255,255,255,0.85);
 }
 
 /* Variante COMPACT (legacy v1.18 prima iterazione · non più usata in CASO A
@@ -4384,8 +4390,12 @@ function renderFajaEventPill(mode){
   // Sponsor color · default arancione push #FF8A3D
   const sponsorColor = (ev.sponsor && ev.sponsor.color_hex) ? ev.sponsor.color_hex.trim() : '';
   const sponsorLogo = (ev.sponsor && ev.sponsor.logo_url) ? ev.sponsor.logo_url.trim() : '';
+  // v1.18 · S9 · PATCH D-banner-v2 · oltre alle var standard, esponiamo
+  // anche --event-pill-banner-bg con opacity 30% (vs 15% standard pill)
+  // per rendere il banner più "presente" sopra bg dark menu BKS notte.
+  // Hex 4D = 77/255 = 30% trasparenza · si applica solo se .banner attivo.
   const styleVars = sponsorColor && /^#[0-9A-Fa-f]{6}$/.test(sponsorColor)
-    ? `style="--event-pill-bg:${sponsorColor}26; --event-pill-border:${sponsorColor}73; --event-pill-glow:${sponsorColor}33; --event-pill-accent:${sponsorColor};"`
+    ? `style="--event-pill-bg:${sponsorColor}26; --event-pill-banner-bg:${sponsorColor}4D; --event-pill-border:${sponsorColor}73; --event-pill-glow:${sponsorColor}33; --event-pill-accent:${sponsorColor};"`
     : '';
 
   const logoHtml = sponsorLogo && sponsorLogo.startsWith('http')
