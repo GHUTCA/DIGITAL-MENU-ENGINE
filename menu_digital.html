@@ -1279,6 +1279,64 @@ body.theme-dark #djSheet{
 }
 .dj-sheet-now-text{font-size:12px;color:rgba(255,255,255,0.7);font-style:italic;}
 .dj-sheet-now-bpm{font-family:'Consolas',ui-monospace,monospace;font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:1px;font-weight:500;}
+/* v1.18 · S9 · PATCH AHORA EN CABINA · card DJ live (sostituisce slogan ritmo) */
+.dj-now-card{
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: rgba(233,69,96,0.08);
+  border: 1px solid rgba(233,69,96,0.25);
+  border-radius: 10px;
+}
+.dj-now-avatar{
+  position: relative; flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #E94560 0%, #5a1820 70%, #1a0a0e 100%);
+  box-shadow: 0 0 8px rgba(233,69,96,0.4);
+  overflow: visible;
+}
+.dj-now-avatar-img{
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border-radius: 50%; object-fit: cover;
+  z-index: 2;
+}
+.dj-now-avatar-fallback{
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.dj-now-avatar:not(.no-img) .dj-now-avatar-fallback{ display: none; }
+.dj-now-pulse{
+  position: absolute; top: -1px; right: -1px;
+  width: 8px; height: 8px;
+  background: #E94560; border-radius: 50%;
+  border: 1.5px solid var(--brand-surface-card, #1F1F38);
+  box-shadow: 0 0 6px rgba(233,69,96,0.8);
+  z-index: 3;
+  animation: djNowPulse 1.6s ease-in-out infinite;
+}
+@keyframes djNowPulse{
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+.dj-now-info{ flex: 1; min-width: 0; }
+.dj-now-name{
+  font-size: 13px; font-weight: 600; color: #fff; line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dj-now-horario{
+  font-size: 10px; color: rgba(255,255,255,0.55);
+  margin-top: 1px; letter-spacing: 0.3px;
+}
+.dj-now-live-badge{
+  flex-shrink: 0;
+  font-size: 9px; font-weight: 700; letter-spacing: 1.2px;
+  color: #E94560;
+  padding: 3px 8px;
+  background: rgba(233,69,96,0.12);
+  border-radius: 4px;
+}
 .dj-sheet-close{
   position:absolute;top:14px;right:18px;
   width:28px;height:28px;border-radius:50%;
@@ -5459,19 +5517,34 @@ function openDjSheet(){
   // Próximas sesiones · DJ diversi dal corrente, attivi, max 3, ordinate per giorno+ora
   const proximasHtml = renderProximasSesiones(dj.dj_id);
 
-  // Ahora en cabina · slogan ritmo + BPM (snapshot del momento attuale)
-  const r = RITMO_ACTUAL;
+  // v1.18 · S9 · PATCH AHORA EN CABINA · mostra DJ live invece dello slogan ritmo
+  // Decisione utente · slogan+BPM è ridondante (vive già nel microbar header).
+  // Qui mostriamo il DJ effettivamente in cabina ora · CURRENT_DJ_BKS è già
+  // calcolato a boot e poll · null se nessun DJ in agenda per giorno+ora correnti.
+  // Sezione si nasconde automaticamente se nessun DJ live.
   let nowHtml = '';
-  if(r){
-    const sheetMsg = (r.mensaje_cliente || '').trim();
-    const slogan = sheetMsg || (typeof RHYTHM_SLOGANS_BKS !== 'undefined' && RHYTHM_SLOGANS_BKS[r.id]) || r.nombre || r.id;
-    const sloganStripped = String(slogan).replace(/\.$/, '');
+  if(CURRENT_DJ_BKS && CURRENT_DJ_BKS.dj_id){
+    const liveDj = CURRENT_DJ_BKS;
+    // Avatar · foto se disponibile, altrimenti iniziali (riusa pattern cartelera)
+    const liveDjAvatarHtml = liveDj.foto_url
+      ? `<img class="dj-now-avatar-img" src="${escapeHtml(liveDj.foto_url)}" alt="${escapeHtml(liveDj.nombre || '')}" onerror="this.style.display='none';this.parentElement.classList.add('no-img')">`
+      : '';
+    const liveDjInitials = (liveDj.nombre || 'DJ').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+    const horario = (liveDj.hora_ini && liveDj.hora_fin) ? `${liveDj.hora_ini} — ${liveDj.hora_fin}` : '';
     nowHtml = `
       <hr class="dj-sheet-divider">
       <div class="dj-sheet-section-title">${getLang('dj_now_label') || 'AHORA EN CABINA'}</div>
-      <div class="dj-sheet-now">
-        <span class="dj-sheet-now-text">… ${sloganStripped} …</span>
-        <span class="dj-sheet-now-bpm">${r.bpm} BPM</span>
+      <div class="dj-now-card">
+        <div class="dj-now-avatar${liveDj.foto_url ? '' : ' no-img'}">
+          ${liveDjAvatarHtml}
+          <span class="dj-now-avatar-fallback">${liveDjInitials}</span>
+          <span class="dj-now-pulse"></span>
+        </div>
+        <div class="dj-now-info">
+          <div class="dj-now-name">${escapeHtml(liveDj.nombre || 'DJ')}</div>
+          ${horario ? `<div class="dj-now-horario">${horario}</div>` : ''}
+        </div>
+        <span class="dj-now-live-badge">LIVE</span>
       </div>`;
   }
 
