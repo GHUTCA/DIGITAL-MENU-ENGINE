@@ -560,14 +560,57 @@ body.theme-dark[data-fascia-menu="tarde"] {
 body.theme-dark[data-fascia-menu="dia"] .faja-event-title{color: var(--brand-text);}
 
 /* ════════════════════════════════════════════════════════════════════
-   v1.18 · S9 · PATCH D · Variante COMPACT pill EVENTO per faja CASO A
+   v1.18 · S9 · PATCH D · Variante BANNER pill EVENTO per faja CASO A
    ════════════════════════════════════════════════════════════════════
-   Quando in CASO A (no DJ) c'è un evento attivo, la pill viene mostrata
-   ACCANTO al teaser cartelera (non sotto come CASO B). Versione ridotta:
-   logo + nome sponsor + freccia. No eyebrow lungo, no data, no titolo
-   completo · solo brand recall + CTA. Cliente che vuole dettagli tappa
-   pill o disco rosso e apre cartelera modo 2.
+   Decisione utente S9 · in CASO A (no DJ) la pill viene mostrata SOTTO il
+   teaser cartelera come banner full-width · una riga dedicata. Layout:
+   [logo] EVENTO  Titolo evento · data ─────────────────────────────› ›
+   Freccia in fondo a destra (justify-content: space-between).
+   Distribuzione gerarchica chiara: cartelera in alto, evento sotto.
    ════════════════════════════════════════════════════════════════════ */
+.faja-event-pill.banner{
+  display: flex;
+  width: 100%;
+  margin: 4px 0 0;
+  padding: 7px 12px;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  border-radius: 8px;
+  box-shadow: 0 0 8px var(--event-pill-glow, rgba(255,138,61,0.10));
+}
+.faja-event-pill.banner .faja-event-logo{
+  width: 14px; height: 14px; border-radius: 2px;
+  flex-shrink: 0;
+}
+.faja-event-pill.banner .faja-event-eyebrow{
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  flex-shrink: 0;
+}
+.faja-event-pill.banner .faja-event-sep{
+  flex-shrink: 0;
+}
+.faja-event-pill.banner .faja-event-title{
+  font-size: 12px;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.faja-event-pill.banner .faja-event-date{
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.faja-event-pill.banner .faja-event-arrow{
+  margin-left: auto;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Variante COMPACT (legacy v1.18 prima iterazione · non più usata in CASO A
+   ma conservata per future evoluzioni · si attivava con renderFajaEventPill(true))
+   */
 .faja-event-pill.compact{
   margin: 0;
   padding: 6px 11px;
@@ -4316,7 +4359,7 @@ const CARTELERA_HERO_DEFAULT = 'https://images.unsplash.com/photo-1572116469696-
    - sponsor.color_hex vuoto    → arancione push #FF8A3D default (Guetta-style)
    - sponsor.logo_url popolato  → mini-logo 14x14 prima dell'eyebrow
    ════════════════════════════════════════════════════════════════════ */
-function renderFajaEventPill(compact){
+function renderFajaEventPill(mode){
   if(!CARTELERA_DATA || CARTELERA_DATA.modo !== '2' || !CARTELERA_DATA.evento) return '';
   const ev = CARTELERA_DATA.evento;
 
@@ -4338,9 +4381,13 @@ function renderFajaEventPill(compact){
     ? `<img class="faja-event-logo" src="${escapeHtml(sponsorLogo)}" alt="" onerror="this.style.display='none'">`
     : '';
 
-  // v1.18 · S9 · PATCH D · classe compact aggiunta in CASO A (no DJ presente)
-  // CSS .faja-event-pill.compact nasconde eyebrow + sep + date e riduce padding/font
-  const pillClass = compact ? 'faja-event-pill compact show' : 'faja-event-pill show';
+  // v1.18 · S9 · PATCH D · 3 modalità rendering pill:
+  //   undefined · pill normale (CASO B sotto microbar DJ live · default)
+  //   'compact' · pill compact accanto al teaser (legacy iterazione 1)
+  //   'banner'  · banner full-width sotto faja (CASO A senza DJ · iterazione 2 · attuale)
+  let pillClass = 'faja-event-pill show';
+  if(mode === 'compact') pillClass = 'faja-event-pill compact show';
+  else if(mode === 'banner') pillClass = 'faja-event-pill banner show';
 
   return `
     <div class="${pillClass}" ${styleVars}
@@ -5551,8 +5598,8 @@ function renderRhythmBar(){
           <div class="faja-cart-text">${getLang('cartelera_question')}</div>
           ${rhythmInfoHtml}
         </div>
-        ${renderFajaEventPill(true)}
       </div>
+      ${renderFajaEventPill('banner')}
       <div style="margin-top:4px;height:1px;background:linear-gradient(90deg, transparent, var(--brand-accent-line) 30%, var(--brand-accent-line-strong) 50%, var(--brand-accent-line) 70%, transparent);opacity:0.7"></div>`;
 
     // Waveform · visibile solo se c'è ritmo (sub-stato A2)
