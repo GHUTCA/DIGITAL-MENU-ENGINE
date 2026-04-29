@@ -560,33 +560,42 @@ body.theme-dark[data-fascia-menu="tarde"] {
 body.theme-dark[data-fascia-menu="dia"] .faja-event-title{color: var(--brand-text);}
 
 /* ════════════════════════════════════════════════════════════════════
-   v1.18 · S9 · PATCH D · Variante BANNER pill EVENTO per faja CASO A
+   v1.18 · S9 · PATCH D-banner-v2 · Banner pill EVENTO per faja CASO A
    ════════════════════════════════════════════════════════════════════
-   Decisione utente S9 · in CASO A (no DJ) la pill viene mostrata SOTTO il
-   teaser cartelera come banner full-width · una riga dedicata. Layout:
-   [logo] EVENTO  Titolo evento · data ─────────────────────────────› ›
-   Freccia in fondo a destra (justify-content: space-between).
-   Distribuzione gerarchica chiara: cartelera in alto, evento sotto.
+   Sub-variante B confermata utente S9 · banner full-width sotto faja con
+   contenuto compatto a destra (logo+EVENTO+titolo+data) e freccia in fondo.
+   Layout:
+   [───────vuoto──────][RB] EVENTO RedBull DJ Night · vie 15 may  ›
+   Click → openCartelera() (apre poster evento modo 2).
+   IMPORTANT: forziamo display:flex !important + max-width:none !important
+   per vincere sulla classe base .show (display:inline-flex) + max-width:fit-content
+   che altrimenti collasserebbero il banner in pillola.
    ════════════════════════════════════════════════════════════════════ */
 .faja-event-pill.banner{
-  display: flex;
+  display: flex !important;
   width: 100%;
+  max-width: none !important;
   margin: 4px 0 0;
   padding: 7px 12px;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
-  justify-content: flex-start;
   border-radius: 8px;
   box-shadow: 0 0 8px var(--event-pill-glow, rgba(255,138,61,0.10));
 }
+/* Logo prende margin-left auto · spinge TUTTO il contenuto a destra */
 .faja-event-pill.banner .faja-event-logo{
   width: 14px; height: 14px; border-radius: 2px;
   flex-shrink: 0;
+  margin-left: auto;
 }
+/* Eyebrow "EVENTO" · senza ★ prefisso (banner ha già il logo brand) */
 .faja-event-pill.banner .faja-event-eyebrow{
   font-size: 9px;
   letter-spacing: 1.5px;
   flex-shrink: 0;
+}
+.faja-event-pill.banner .faja-event-eyebrow::before{
+  content: '';
 }
 .faja-event-pill.banner .faja-event-sep{
   flex-shrink: 0;
@@ -594,6 +603,8 @@ body.theme-dark[data-fascia-menu="dia"] .faja-event-title{color: var(--brand-tex
 .faja-event-pill.banner .faja-event-title{
   font-size: 12px;
   flex-shrink: 1;
+  min-width: 0;
+  max-width: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -603,13 +614,13 @@ body.theme-dark[data-fascia-menu="dia"] .faja-event-title{color: var(--brand-tex
   flex-shrink: 0;
 }
 .faja-event-pill.banner .faja-event-arrow{
-  margin-left: auto;
   font-size: 14px;
   flex-shrink: 0;
+  margin-left: 2px;
 }
 
 /* Variante COMPACT (legacy v1.18 prima iterazione · non più usata in CASO A
-   ma conservata per future evoluzioni · si attivava con renderFajaEventPill(true))
+   ma conservata per future evoluzioni · si attivava con renderFajaEventPill('compact'))
    */
 .faja-event-pill.compact{
   margin: 0;
