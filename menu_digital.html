@@ -2590,6 +2590,42 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
   background: #1a0e08;
   margin-top: 4px;
 }
+/* v1.20 · S10 · Patch 4 · auto_contained · poster puro edge-to-edge
+   ─ height auto · si adatta alla proporzione naturale del poster
+   ─ aspect-ratio fallback per poster verticali (3:4 standard A3/A4)
+   ─ no gradient ::after (banda nera che copriva contenuto)
+   ─ pill EVENTO più discreta · brand BKS più piccolo
+   Si attiva via data-render="auto_contained" sul container hero. */
+.cart-mode2-hero[data-render="auto_contained"]{
+  height: auto;
+  aspect-ratio: 3 / 4;
+  background: #0A0A14;
+}
+.cart-mode2-hero[data-render="auto_contained"] img{
+  filter: none;
+  object-fit: contain;
+  background: #0A0A14;
+}
+.cart-mode2-hero[data-render="auto_contained"]::after{
+  display: none;
+}
+.cart-mode2-hero[data-render="auto_contained"] .cart-mode2-brand-overlay{
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  background: rgba(10,10,20,0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.cart-mode2-hero[data-render="auto_contained"] .cart-mode2-push-pill{
+  font-size: 8px;
+  padding: 4px 9px;
+  letter-spacing: 1.2px;
+}
+.cart-mode2-hero[data-render="auto_contained"] .cart-mode2-push-pill::before{
+  font-size: 9px;
+}
 .cart-mode2-hero img{
   width:100%; height:100%; object-fit:cover;
   filter: contrast(1.05) saturate(1.05);
@@ -4801,27 +4837,48 @@ function renderCarteleraMode1(djs){
 }
 
 // ─── MODO 2 · poster evento override ─────────────────────────────────────
+// v1.20 · S10 · Patch 4 · supporto modo_render auto_contained · poster puro
+// edge-to-edge senza overlay editoriale (per poster auto-esplicativi tipo
+// House Command Line Up). Modo editorial_overlay (default · vuoto) invariato.
 function renderCarteleraMode2(evento){
   // Lingua · ES default · EN se lang=en (S7 decisione cartelera = ES + EN)
   const lang = (typeof getCurrentLang === 'function') ? getCurrentLang() : 'es';
   const useEn = lang === 'en';
 
-  const eyebrow = useEn && evento.en && evento.en.eyebrow
-    ? evento.en.eyebrow : evento.eyebrow_es;
   const titulo = useEn && evento.en && evento.en.titulo
     ? evento.en.titulo : evento.titulo_es;
-  const subtitulo = evento.subtitulo_es || ''; // PT/EN subtitle non lo abbiamo, sempre ES
-  const footer = evento.footer_es || '';
 
   const fotoSrc = evento.foto_url && evento.foto_url.startsWith('http')
     ? evento.foto_url : '';
+
+  const pushPillLabel = useEn ? 'SPECIAL EVENT' : 'EVENTO ESPECIAL';
+
+  // v1.20 · S10 · branching modo_render
+  // 'auto_contained' = poster ha già tutto · NO overlay editoriale
+  // '' o 'editorial_overlay' = comportamento storico
+  const isAutoContained = (evento.modo_render || '').toLowerCase() === 'auto_contained';
+
+  if(isAutoContained){
+    // Modalità poster puro · solo brand BKS top-left + pill EVENTO top-right (compatti)
+    return `
+      <div class="cart-mode2-hero" data-render="auto_contained">
+        ${fotoSrc ? `<img src="${escapeHtml(fotoSrc)}" alt="${escapeHtml(titulo)}" onerror="this.style.display='none'">` : ''}
+        <div class="cart-mode2-brand-overlay">BKS</div>
+        <div class="cart-mode2-push-pill">${pushPillLabel}</div>
+      </div>
+    `;
+  }
+
+  // Comportamento storico · editorial_overlay (default)
+  const eyebrow = useEn && evento.en && evento.en.eyebrow
+    ? evento.en.eyebrow : evento.eyebrow_es;
+  const subtitulo = evento.subtitulo_es || '';
+  const footer = evento.footer_es || '';
 
   const fechaHtml = evento.fecha_visible
     ? `<div class="cart-mode2-meta-pill date">${escapeHtml(evento.fecha_visible)}</div>` : '';
   const horarioHtml = evento.horario_visible
     ? `<div class="cart-mode2-meta-pill time">${escapeHtml(evento.horario_visible)}</div>` : '';
-
-  const pushPillLabel = useEn ? 'SPECIAL EVENT' : 'EVENTO ESPECIAL';
 
   return `
     <div class="cart-mode2-hero">
