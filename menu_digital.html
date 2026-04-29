@@ -4858,13 +4858,14 @@ function renderCarteleraMode2(evento){
   // '' o 'editorial_overlay' = comportamento storico
   const isAutoContained = (evento.modo_render || '').toLowerCase() === 'auto_contained';
 
-  if(isAutoContained){
-    // Modalità poster puro · solo brand BKS top-left + pill EVENTO top-right (compatti)
+ if(isAutoContained){
+    // v1.20 · S10 · Patch 4d · poster puro · zero overlay
+    // Decisione editoriale: il poster contiene già il proprio branding (House Command),
+    // pill + brand BKS aggiungono solo rumore visivo. Lasciamo il poster respirare.
+    // Bottom-sheet ha già handle + close come marker di "vista speciale".
     return `
       <div class="cart-mode2-hero" data-render="auto_contained">
         ${fotoSrc ? `<img src="${escapeHtml(fotoSrc)}" alt="${escapeHtml(titulo)}" onerror="this.style.display='none'">` : ''}
-        <div class="cart-mode2-brand-overlay">BKS</div>
-        <div class="cart-mode2-push-pill">${pushPillLabel}</div>
       </div>
     `;
   }
