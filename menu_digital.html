@@ -1510,6 +1510,11 @@ body.theme-dark mark.search-match{color:#ff6b8a}
 
 /* v1.11 · BOTTOM NAV nuovo · 3 voci con FAB centrale rialzato (Llamar) */
 #bottomNav{position:fixed;bottom:0;left:0;right:0;background:var(--brand-surface);border-top:1px solid var(--brand-border);padding:8px 0 calc(12px + env(safe-area-inset-bottom));z-index:100;}
+
+/* v1.19 · S10 · vetrina mode · QR fuori locale · nasconde bottom-nav, recupera padding */
+body[data-vetrina="true"] #bottomNav { display: none !important; }
+body[data-vetrina="true"] #mainContent { padding-bottom: 24px !important; }
+
 .bnav-inner{display:flex;align-items:flex-end;justify-content:space-around;max-width:480px;margin:0 auto;}
 .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 8px;background:transparent;border:none;border-radius:8px;font-family:inherit;font-size:10px;font-weight:500;color:var(--brand-text-muted);transition:color var(--transition);cursor:pointer;}
 .bnav-btn.active{color:var(--brand-accent)}
@@ -2878,6 +2883,8 @@ const LOCAL_RAW  = URL_PARAMS.get('local') || '';
 const LOCAL_ID   = LOCAL_RAW.toUpperCase();   // sempre UPPERCASE per match GAS
 const MESA_ID    = URL_PARAMS.get('mesa')  || null;
 const MEMBER_ID  = URL_PARAMS.get('member')|| null;
+// v1.19 · S10 · vetrina = QR fuori locale (?local=X senza ?mesa=N)
+const IS_VETRINA = !MESA_ID && !!LOCAL_RAW.trim();
 // v1.10 · Lingua all'avvio: spagnolo SEMPRE come default, ignorando localStorage.
 // Eccezione: ?lang=xx in URL = scelta deliberata di chi ha fatto il QR (vince).
 // localStorage viene riconsiderato SOLO quando il GAS torna brand.default_lang
@@ -3481,6 +3488,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   applyBrand(KNOWN_LOCALS[LOCAL_ID]);
   // theme dark eventuale già da subito → coerenza visuale
   document.body.classList.toggle('theme-dark', KNOWN_LOCALS[LOCAL_ID].theme_mode === 'dark');
+
+  // v1.19 · S10 · marca body in modalità vetrina · CSS nasconde bottom-nav
+  document.body.dataset.vetrina = IS_VETRINA ? 'true' : 'false';
+  console.log('[v1.19] IS_VETRINA=' + IS_VETRINA + ' · MESA_ID=' + MESA_ID);
 
   // 4) Warm-up ping al GAS — fire-and-forget, parallelo allo skeleton
   pingGAS();
