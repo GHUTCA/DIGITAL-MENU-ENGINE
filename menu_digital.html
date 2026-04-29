@@ -4885,7 +4885,18 @@ if(typeof getCurrentLang !== 'function'){
    ════════════════════════════════════════════════════ */
 
 // Debounce 100ms · evita flicker ma resta reattivo durante scroll
+// v1.19 · S10b · cooldown 350ms post-toggle visibility · evita loop
+// quando strip toggle visible cambia altezza cat-sticky → IntersectionObserver
+// re-triggera → strip toggle inverso → on/off infinito.
+let CROSSSELL_LAST_TOGGLE_TS = 0;
+const CROSSSELL_TOGGLE_COOLDOWN_MS = 350;
+
 function triggerCrossSellUpdate(catId){
+  // Se siamo nel cooldown post-toggle, ignora il trigger (layout sta ancora stabilizzandosi)
+  const sinceLastToggle = Date.now() - CROSSSELL_LAST_TOGGLE_TS;
+  if(sinceLastToggle < CROSSSELL_TOGGLE_COOLDOWN_MS){
+    return;
+  }
   if(CROSSSELL_DEBOUNCE_TIMER) clearTimeout(CROSSSELL_DEBOUNCE_TIMER);
   CROSSSELL_DEBOUNCE_TIMER = setTimeout(()=>{
     updateCrossSellStrip(catId);
@@ -4941,6 +4952,10 @@ function updateCrossSellStrip(activeCatId){
 
   // Hide se nessun match (regola 2a · niente fallback)
   if(!target){
+    // Solo se era visible prima, segnaliamo toggle per cooldown
+    if(strip.classList.contains('visible')){
+      CROSSSELL_LAST_TOGGLE_TS = Date.now();
+    }
     strip.classList.remove('visible');
     CURRENT_CROSSSELL_TARGET = null;
     updateStickyTops();
@@ -4981,6 +4996,10 @@ function updateCrossSellStrip(activeCatId){
     if(typeof openDetail === 'function') openDetail(target.id);
   };
 
+  // Solo se era hidden prima, segnaliamo toggle per cooldown
+  if(!strip.classList.contains('visible')){
+    CROSSSELL_LAST_TOGGLE_TS = Date.now();
+  }
   strip.classList.add('visible');
   updateStickyTops();
 }
