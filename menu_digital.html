@@ -4975,8 +4975,10 @@ function updateCrossSellStrip(activeCatId){
   }
 
   // Click → apre scheda dettaglio prodotto target (riutilizza openDetail esistente)
+  // v1.19 · S10a · BUG FIX da S5 · openDetail accetta ID stringa, non oggetto.
+  // Era openDetail(target) → undefined p in find → return silenzioso → click morto.
   strip.onclick = () => {
-    if(typeof openDetail === 'function') openDetail(target);
+    if(typeof openDetail === 'function') openDetail(target.id);
   };
 
   strip.classList.add('visible');
