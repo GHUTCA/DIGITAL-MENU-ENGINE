@@ -964,26 +964,27 @@ body.theme-dark .group-chip.disabled{opacity:0.35}
    ───────────────────────────────────────────────────────────────────────────── */
 #crossSellStrip{
   display:none;
-  /* v1.16 · S8 · usa CSS variable dinamica · fallback #1A1A2E NOCHE BKS originale.
-     Light mode (Candelaria) ha override separato body:not(.theme-dark). */
+  /* v1.19 · S10c · floating card · stacca strip dal bg menu con bordo + shadow.
+     Funziona universalmente in DIA / TARDE / NOCHE / Candelaria light · zero override per fascia. */
   background: var(--cross-sell-bg, #1A1A2E);
-  border-top:1px solid var(--cross-sell-border, rgba(233,69,96,0.18));
-  border-bottom:1px solid var(--cross-sell-border, rgba(233,69,96,0.18));
+  border:1.5px solid var(--brand-accent, #E94560);
+  border-radius:12px;
+  box-shadow:0 4px 14px rgba(233,69,96,0.25), 0 0 0 1px rgba(233,69,96,0.10);
   position:sticky;
   top:104px;        /* default: subito sotto header+fajaBar · ricalibrato da updateStickyTops */
   z-index:97;       /* tra fajaBar (98) e cat-sticky (96) */
   max-width:480px;
-  margin:0 auto;
+  margin:6px 8px;   /* margin laterali · stacco visivo dal bg */
   cursor:pointer;
+  overflow:hidden;  /* per clip della spilla rossa al border-radius */
   -webkit-tap-highlight-color:transparent;
   transition:background 0.2s;
 }
 #crossSellStrip.visible{display:block;}
-#crossSellStrip:active{background:#22223D}
+#crossSellStrip:active{background:rgba(34,34,61,0.9)}
 #crossSellStrip::before{
-  content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
-  background:linear-gradient(180deg,transparent,var(--brand-accent) 50%,transparent);
-  opacity:0.7;
+  content:'';position:absolute;top:0;left:0;bottom:0;width:4px;
+  background:var(--brand-accent, #E94560);
   pointer-events:none;
 }
 .xs-label{
@@ -4891,6 +4892,13 @@ if(typeof getCurrentLang !== 'function'){
 let CROSSSELL_LAST_TOGGLE_TS = 0;
 const CROSSSELL_TOGGLE_COOLDOWN_MS = 350;
 
+// v1.19 · S10c · timer di "grazia" per nascondere · 2.5s prima che la strip
+// sparisca quando scrolli su una categoria senza cross-sell. Cancellato se
+// nel frattempo torni a una cat con cross-sell. Permette scroll veloci di
+// vedere la strip per qualche secondo.
+let CROSSSELL_HIDE_GRACE_TIMER = null;
+const CROSSSELL_HIDE_GRACE_MS = 2500;
+
 function triggerCrossSellUpdate(catId){
   // Se siamo nel cooldown post-toggle, ignora il trigger (layout sta ancora stabilizzandosi)
   const sinceLastToggle = Date.now() - CROSSSELL_LAST_TOGGLE_TS;
@@ -4951,15 +4959,26 @@ function updateCrossSellStrip(activeCatId){
   const target = resolveCrossSell(activeCatId);
 
   // Hide se nessun match (regola 2a · niente fallback)
+  // v1.19 · S10c · grace period 2.5s · permette agli scroll veloci di vedere
+  // la strip ancora qualche secondo prima che sparisca. Se nel frattempo torna
+  // un target valido, cancelliamo il timer e la strip resta.
   if(!target){
-    // Solo se era visible prima, segnaliamo toggle per cooldown
-    if(strip.classList.contains('visible')){
-      CROSSSELL_LAST_TOGGLE_TS = Date.now();
+    if(strip.classList.contains('visible') && !CROSSSELL_HIDE_GRACE_TIMER){
+      CROSSSELL_HIDE_GRACE_TIMER = setTimeout(()=>{
+        CROSSSELL_LAST_TOGGLE_TS = Date.now();
+        strip.classList.remove('visible');
+        CURRENT_CROSSSELL_TARGET = null;
+        updateStickyTops();
+        CROSSSELL_HIDE_GRACE_TIMER = null;
+      }, CROSSSELL_HIDE_GRACE_MS);
     }
-    strip.classList.remove('visible');
-    CURRENT_CROSSSELL_TARGET = null;
-    updateStickyTops();
     return;
+  }
+
+  // Target valido · cancello eventuale timer di scomparsa pendente
+  if(CROSSSELL_HIDE_GRACE_TIMER){
+    clearTimeout(CROSSSELL_HIDE_GRACE_TIMER);
+    CROSSSELL_HIDE_GRACE_TIMER = null;
   }
 
   // Skip re-render se stesso target già visibile (evita flicker visivo durante scroll continuo)
