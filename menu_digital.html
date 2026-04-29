@@ -1025,6 +1025,9 @@ body.theme-dark .group-chip.disabled{opacity:0.35}
   font-size:13px;font-weight:600;line-height:1;
   /* v1.19 · S10 · arrow nudge · coerente con CTA splash */
   animation: xsArrowNudge 1.6s ease-in-out infinite;
+  /* v1.19 · S10a · click pass-through · transform crea stacking context
+     che intercetta tap. Strip parent ha onclick, freccia deve solo decorare. */
+  pointer-events: none;
 }
 @keyframes xsArrowNudge{
   0%, 100% { transform:translateX(0)   }
