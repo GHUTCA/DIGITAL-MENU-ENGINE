@@ -1019,10 +1019,33 @@ body.theme-dark .group-chip.disabled{opacity:0.35}
 .xs-price-arrow{display:flex;align-items:center;gap:6px;flex-shrink:0;}
 .xs-price{font-size:13px;font-weight:500;color:rgba(255,255,255,0.85);}
 .xs-arrow{
+  .xs-arrow{
   width:24px;height:24px;border-radius:50%;
   background:var(--brand-accent);color:#fff;
   display:flex;align-items:center;justify-content:center;
   font-size:13px;font-weight:600;line-height:1;
+  /* v1.19 · S10 · arrow nudge permanente · feedback Comandante BKS
+     Razionale: la strip è già cliccabile (apre scheda dettaglio) ma freccia
+     statica non urla "tappami". Nudge orizzontale 1.6s coerente con CTA splash. */
+  animation: xsArrowNudge 1.6s ease-in-out infinite;
+}
+@keyframes xsArrowNudge{
+  0%, 100% { transform:translateX(0)   }
+  50%      { transform:translateX(3px) }
+}
+/* v1.19 · S10 · pulse glow all'apparizione · 3 cicli poi si calma
+   Si ri-triggera quando target prodotto cambia (re-render strip durante scroll). */
+#crossSellStrip.visible{
+  animation: xsAppearPulse 1.4s ease-out 3;
+}
+@keyframes xsAppearPulse{
+  0%   { box-shadow: 0 0 0 0    rgba(233,69,96,0.45); }
+  50%  { box-shadow: 0 0 0 8px  rgba(233,69,96,0.10); }
+  100% { box-shadow: 0 0 0 14px rgba(233,69,96,0);    }
+}
+@media (prefers-reduced-motion: reduce){
+  .xs-arrow,
+  #crossSellStrip.visible{ animation:none !important }
 }
 /* Light mode (PINSA Candelaria) · stesso pattern, palette adattata */
 body:not(.theme-dark) #crossSellStrip{
