@@ -2212,12 +2212,43 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
 }
 @keyframes bvShine{0%,100%{left:-30%}60%,100%{left:130%}}
 #bienvenidaSplash .bv-cta:active{transform:scale(0.98)}
+
+/* v1.19 · S10 · CTA pulse ring + arrow nudge · feedback Comandante BKS
+   Razionale: bvShine è poco percepibile su sfondo crema. Pulse ring esterno
+   (alone rosso che espande) + arrow nudge orizzontale dicono "tappami" senza
+   essere invasivi. Reduced-motion rispettato per accessibilità.
+   Periodi sincronizzati: pulse 2.4s · nudge 1.6s · LCM evita effetto metronomo. */
+#bienvenidaSplash .bv-cta::after{
+  content:'';
+  position:absolute;
+  inset:-2px;
+  border-radius:18px;
+  border:2px solid var(--brand-accent, #E94560);
+  opacity:0;
+  pointer-events:none;
+  animation:bvCtaPulse 2.4s ease-out infinite;
+}
+@keyframes bvCtaPulse{
+  0%   { opacity:0.55; transform:scale(1);    }
+  70%  { opacity:0;    transform:scale(1.08); }
+  100% { opacity:0;    transform:scale(1.08); }
+}
 #bienvenidaSplash .bv-cta-arrow{
   display:flex; align-items:center; justify-content:center;
   width:32px; height:32px;
   border-radius:50%;
   background:rgba(255,255,255,0.18);
   font-size:18px;
+  animation:bvCtaArrowNudge 1.6s ease-in-out infinite;
+}
+@keyframes bvCtaArrowNudge{
+  0%, 100% { transform:translateX(0)   }
+  50%      { transform:translateX(4px) }
+}
+@media (prefers-reduced-motion: reduce){
+  #bienvenidaSplash .bv-cta::after,
+  #bienvenidaSplash .bv-cta-arrow{ animation:none !important }
+  #bienvenidaSplash .bv-cta::before{ animation:none !important }
 }
 
 /* Reveal staggered */
