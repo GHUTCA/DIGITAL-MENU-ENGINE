@@ -5768,8 +5768,9 @@ function renderRhythmBar(){
     }
 
     // v1.17 · S8 · pill EVENTO opzionale sotto microbar · costruisco l'HTML
-    // Renderizzata solo se CARTELERA_DATA contiene evento (modo 2). Centrata sotto la riga DJ/slogan/BPM.
-    const eventPillHtml = renderFajaEventPill();
+    // v1.18 · S9 · uniformata a banner full-width sotto · come CASO A · contenuto a destra
+    // Renderizzata solo se CARTELERA_DATA contiene evento (modo 2).
+    const eventPillHtml = renderFajaEventPill('banner');
 
     chipBar.innerHTML = `
       <div style="font-size:9px;color:rgba(255,255,255,0.45);letter-spacing:3px;text-transform:uppercase;font-weight:500;margin-bottom:8px">♪ BKS Rhythm</div>
