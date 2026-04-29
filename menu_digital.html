@@ -1098,9 +1098,17 @@ body.theme-dark .cat-header-count{color:rgba(255,255,255,0.4)}
 .product-card.agotado{opacity:0.55}
 /* v1.11 · classe .nuevo-highlight conservata per compat ma SENZA bordo verde animato.
    La novità è marcata SOLO dal dot verde sulla foto (.card-nuevo-dot). */
-.card-img-wrap{width:62px;height:62px;flex-shrink:0;background:var(--brand-bg);position:relative;overflow:visible;border-radius:10px;}
+/* v1.18 · S9 · Fix card-img-placeholder overflow
+   Bug: wrap aveva overflow:visible + placeholder display:block senza position absolute
+   → il placeholder fuoriesce SOTTO la card visibile come "cerchio fantasma".
+   Fix 1 · overflow:hidden sul wrap (taglia tutto fuori 62×62)
+   Fix 2 · placeholder position:absolute sopra l'img · display:none di default
+   Fix 3 · img.onerror imposta display:flex sul placeholder per mostrarlo */
+.card-img-wrap{width:62px;height:62px;flex-shrink:0;background:var(--brand-bg);position:relative;overflow:hidden;border-radius:10px;}
 .card-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center;border-radius:10px;}
-.card-img-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;opacity:0.5;border-radius:10px;}
+.card-img-placeholder{position:absolute;inset:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;font-size:28px;opacity:0.5;border-radius:10px;}
+/* Quando img assente (p.imagen vuoto) il placeholder è il SOLO elemento → mostriamo */
+.card-img-wrap > .card-img-placeholder:only-child{display:flex;}
 /* v1.11 · dot NUEVO sull'angolo top-right della foto */
 .card-nuevo-dot{
   position:absolute;
