@@ -11,7 +11,9 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.17 · 27-apr-2026 · Sessione S8 (in lavorazione)
+     menu_digital.html · v1.21 · 30-apr-2026 · Sessione S12
+     CHANGELOG v1.20 → v1.21: filtro p.agotado=true in renderMenu()
+     · admin BKS Bar Manager · prodotti messi in 86 spariscono dal menu
      ════════════════════════════════════════════════════════════════════
      CHANGELOG v1.11 → v1.12 (S5 commit 1/5)
      - Lettura PARAMETROS.sugerencia_activa + sugerencia_frase_default
@@ -5173,6 +5175,7 @@ function renderMenu(){
   // v1.11 · SEARCH_QUERY non filtra più il menu di sotto · vive isolata nell'overlay full-screen.
   // Questo evita stati ambigui (chiudo overlay con query attiva → menu filtrato senza UI di feedback).
   FILTERED = ALL_PRODUCTS.filter(p=>{
+    if(p.agotado) return false;  // v1.21 · S12 · admin BKS Bar Manager · nasconde 86 producto
     const inFaja = productInFaja(p);
     const inGroup = promosGroupActive
       ? !!PROD_TO_PROMO[p.id]
