@@ -4,11 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0A0A14">
-<title>BKS Bar Manager · v0.2</title>
+<title>BKS Bar Manager · v1.0</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_admin.html · v0.2 · MOCKUP NAVIGABILE (no backend)
-     S11 · 30-Apr-2026
-     PIN: 1234 JL · 5678 Comandante · 9999 Gerente
+     menu_admin.html · v1.0 · A.1 PRODUCTION-READY (GAS backend)
+     S12 · 30-Apr-2026
+     · 86 producto · tutti i ruoli (JL1/JL2/JL3 + GG)
+     · Forzar producto fuori ritmo · solo GG
+     · Reportar precio · operatori (S13)
+     · Cambiar precio · solo GG (S13)
+     · Push singolo · S13
+     PIN gestiti via Sheet PARAMETROS (PIN_JL1/2/3 + PIN_GG)
      ════════════════════════════════════════════════════════════════════ -->
 <style>
   *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
@@ -276,7 +281,7 @@
       <button class="pin-key" data-key="7">7</button><button class="pin-key" data-key="8">8</button><button class="pin-key" data-key="9">9</button>
       <button class="pin-key action" data-key="clear">Limpiar</button><button class="pin-key" data-key="0">0</button><button class="pin-key action" data-key="back">←</button>
     </div>
-    <div class="pin-hint">MOCK · PINs de prueba<br><strong>1234</strong> JL · <strong>5678</strong> Comandante · <strong>9999</strong> Gerente</div>
+    <div class="pin-hint">Solo personal autorizado</div>
   </div>
 </section>
 
@@ -291,7 +296,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version">v0.2 · MOCK</div>
+    <div class="hub-footer-version">v1.0 · A.1</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -408,32 +413,82 @@
 <div class="toast" id="toast"><div class="toast-icon" id="toastIcon"></div><div id="toastText"></div></div>
 
 <script>
-const STATE = { user:null, role:null, pin:'', failedAttempts:0, currentCat:'all', searchQuery:'', pendingProdId:null, pendingAction:null, listMode:'86', pushDuration:'2h', lastPriceChange:null };
+const STATE = { user:null, role:null, pin:'', failedAttempts:0, currentCat:'all', searchQuery:'', pendingProdId:null, pendingAction:null, listMode:'86', pushDuration:'2h', lastPriceChange:null, loading:false, lastListFetchTs:0 };
 
-const PINS = { '1234':{name:'JL',role:'op'}, '5678':{name:'Comandante',role:'op'}, '9999':{name:'Gerente',role:'gerente'} };
+/* ═════ CONFIG BACKEND v1.0 ═════ */
+const CFG = {
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzS3bBaYc34uJ6wXP9FG13i58-NT0FJp964vqkUYbRObUxryeRb9I_Fz24kb42f5t/exec',
+  LOCAL: 'BKS',
+  // sessionStorage keys
+  SK_PIN: 'bks_admin_pin_v1',
+  SK_USER: 'bks_admin_user_v1',
+  SK_ROLE: 'bks_admin_role_v1',
+  // timing
+  COLD_START_TIMEOUT_MS: 25000,   // tempo max attesa GAS · cold start ~15s
+  AUTO_REFRESH_MS: 60000,         // refresh lista in background ogni 60s
+  PIN_LOCK_AFTER: 5,              // dopo N PIN sbagliati blocco 60s
+  PIN_LOCK_DURATION_MS: 60000,
+};
 
-let PRODUCTS = [
-  { id:'BKS-SOU-003', nombre:'Pisco Sour Catedral',  cat:'Sour',     precio:9000,  agotado:true,  marcado_por:'JL', marcado_hace:'2h' },
-  { id:'BKS-ENT-002', nombre:'Camarones al pil pil', cat:'Entradas', precio:12990, agotado:true,  marcado_por:'Comandante', marcado_hace:'45min' },
-  { id:'BKS-FON-003', nombre:'Parrillada para 2',    cat:'Fondos',   precio:32000, agotado:true,  marcado_por:'JL', marcado_hace:'12min' },
-  { id:'BKS-ENT-001', nombre:'Camarones Crocantes',  cat:'Entradas', precio:10000, agotado:false, reportado:{ aloha:11500, by:'JL', hace:'30min', nota:'ALOHA cambió ayer' } },
-  { id:'BKS-PAS-001', nombre:'Penne Salsa Boloñesa', cat:'Pastas',   precio:15000, agotado:false },
-  { id:'BKS-PIZ-002', nombre:'Pizza BKS',            cat:'Pizzas',   precio:24000, agotado:false },
-  { id:'BKS-PIZ-003', nombre:'Cheese Burger',        cat:'Pizzas',   precio:16500, agotado:false },
-  { id:'BKS-BAR-019', nombre:'Negroni',              cat:'Bar',      precio:8500,  agotado:false, pushed:{ until:'00:30', phrase:'El recomendado del Comandante', by:'Comandante' } },
-  { id:'BKS-BAR-013', nombre:'Margarita',            cat:'Bar',      precio:7900,  agotado:false },
-  { id:'BKS-BAR-001', nombre:'Appletini',            cat:'Bar',      precio:7500,  agotado:false },
-  { id:'BKS-MOJ-001', nombre:'Mojito Bourbon',       cat:'Mojitos',  precio:8900,  agotado:false },
-  { id:'BKS-SPR-001', nombre:'Aperol Spritz',        cat:'Spritz',   precio:7500,  agotado:false },
-  { id:'BKS-CER-001', nombre:'Heineken',             cat:'Cervezas', precio:4500,  agotado:false },
-  { id:'BKS-VIN-001', nombre:'Carmenere Reserva',    cat:'Vinos',    precio:18000, agotado:false },
-  { id:'BKS-DES-007', nombre:'Tequila',              cat:'Destilados', precio:6500,agotado:false },
-  { id:'BKS-FON-001', nombre:'Filete Mignon',        cat:'Fondos',   precio:21000, agotado:false },
-  { id:'BKS-PAS-002', nombre:'Ravioli de espinaca',  cat:'Pastas',   precio:14000, agotado:false },
-  { id:'BKS-POS-001', nombre:'Tiramisú',             cat:'Postres',  precio:6500,  agotado:false },
-];
+let PRODUCTS = [];
+let RITMO_ACTUAL_ID = null;
+let lastSavedPin = '';      // tenuto in memoria post-login per le call subsequenti
 
 const CAT_ORDER = ['Entradas','Pastas','Pizzas','Fondos','Postres','Bar','Sour','Mojitos','Spritz','Cervezas','Vinos','Destilados'];
+
+/* ═════ NETWORK · GAS calls con cold-start handling ═════ */
+async function gasGet(action, extraParams) {
+  const url = new URL(CFG.GAS_URL);
+  url.searchParams.set('action', action);
+  url.searchParams.set('local', CFG.LOCAL);
+  if (extraParams) Object.keys(extraParams).forEach(k => url.searchParams.set(k, extraParams[k]));
+
+  const ctrl = new AbortController();
+  const timeoutId = setTimeout(() => ctrl.abort(), CFG.COLD_START_TIMEOUT_MS);
+  try {
+    const r = await fetch(url.toString(), { method:'GET', signal: ctrl.signal, cache:'no-store' });
+    clearTimeout(timeoutId);
+    if (!r.ok) throw new Error('http_'+r.status);
+    return await r.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') throw new Error('timeout');
+    throw err;
+  }
+}
+
+async function gasPost(action, body) {
+  const ctrl = new AbortController();
+  const timeoutId = setTimeout(() => ctrl.abort(), CFG.COLD_START_TIMEOUT_MS);
+  try {
+    const r = await fetch(CFG.GAS_URL, {
+      method:'POST',
+      // text/plain evita CORS preflight su Apps Script · payload comunque JSON
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify(Object.assign({ action: action, local: CFG.LOCAL }, body || {})),
+      signal: ctrl.signal,
+      cache:'no-store',
+      redirect: 'follow',
+    });
+    clearTimeout(timeoutId);
+    if (!r.ok) throw new Error('http_'+r.status);
+    return await r.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') throw new Error('timeout');
+    throw err;
+  }
+}
+
+/* helper retry · 1 retry su timeout o network */
+async function withRetry(fn, label) {
+  try { return await fn(); }
+  catch (e1) {
+    console.log('[v1.0] retry · '+label+' · err1=' + e1.message);
+    await new Promise(res => setTimeout(res, 800));
+    return await fn();
+  }
+}
 
 function showView(id){ document.querySelectorAll('.view').forEach(v=>v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
@@ -450,18 +505,168 @@ document.getElementById('pinPad').addEventListener('click', e=>{
   if(STATE.pin.length===4) setTimeout(validatePin, 120);
 });
 function updatePinDots(){ pinDotsEl.querySelectorAll('.pin-dot').forEach((d,i)=>{ d.classList.remove('error'); d.classList.toggle('filled', i<STATE.pin.length); }); pinErrorEl.classList.remove('show'); }
-function validatePin(){
-  const u = PINS[STATE.pin];
-  if(u){ STATE.user=u.name; STATE.role=u.role; setTimeout(()=>{ enterHub(); STATE.pin=''; STATE.failedAttempts=0; updatePinDots(); }, 200); }
-  else { STATE.failedAttempts++; pinDotsEl.classList.add('shaking'); pinDotsEl.querySelectorAll('.pin-dot').forEach(d=>d.classList.add('error')); pinErrorEl.textContent = STATE.failedAttempts>=3?`${STATE.failedAttempts} intentos fallidos`:'PIN incorrecto'; pinErrorEl.classList.add('show'); setTimeout(()=>{ pinDotsEl.classList.remove('shaking'); STATE.pin=''; updatePinDots(); }, 600); }
+
+async function validatePin(){
+  // Lock timer attivo?
+  const lockUntil = parseInt(sessionStorage.getItem('bks_admin_lock_until')||'0',10);
+  if (lockUntil && Date.now() < lockUntil) {
+    const sec = Math.ceil((lockUntil-Date.now())/1000);
+    pinErrorEl.textContent = 'Bloqueado · ' + sec + 's';
+    pinErrorEl.classList.add('show');
+    pinDotsEl.classList.add('shaking');
+    setTimeout(()=>{ pinDotsEl.classList.remove('shaking'); STATE.pin=''; updatePinDots(); }, 600);
+    return;
+  }
+
+  // Visual feedback durante chiamata GAS (cold start può durare 5-15s)
+  pinErrorEl.textContent = 'Validando…';
+  pinErrorEl.classList.add('show');
+  pinErrorEl.style.color = '';
+
+  const triedPin = STATE.pin;
+  try {
+    const r = await withRetry(() => gasGet('adminPing', { pin: triedPin }), 'adminPing');
+    if (r && r.ok) {
+      STATE.user = r.user;
+      STATE.role = r.role;
+      lastSavedPin = triedPin;
+      try {
+        sessionStorage.setItem(CFG.SK_PIN,  triedPin);
+        sessionStorage.setItem(CFG.SK_USER, r.user);
+        sessionStorage.setItem(CFG.SK_ROLE, r.role);
+      } catch(e){}
+      pinErrorEl.classList.remove('show');
+      enterHub();
+      STATE.pin=''; STATE.failedAttempts=0; updatePinDots();
+      return;
+    }
+    // Errore validazione
+    STATE.failedAttempts++;
+    pinErrorEl.style.color = '';
+    if (STATE.failedAttempts >= CFG.PIN_LOCK_AFTER) {
+      const until = Date.now() + CFG.PIN_LOCK_DURATION_MS;
+      sessionStorage.setItem('bks_admin_lock_until', String(until));
+      pinErrorEl.textContent = 'Demasiados intentos · 60s bloqueo';
+    } else {
+      pinErrorEl.textContent = STATE.failedAttempts>=3 ? STATE.failedAttempts+' intentos fallidos' : 'PIN incorrecto';
+    }
+    pinDotsEl.classList.add('shaking');
+    pinDotsEl.querySelectorAll('.pin-dot').forEach(d=>d.classList.add('error'));
+    setTimeout(()=>{ pinDotsEl.classList.remove('shaking'); STATE.pin=''; updatePinDots(); }, 600);
+  } catch (err) {
+    pinErrorEl.style.color = 'var(--warning)';
+    pinErrorEl.textContent = err.message==='timeout' ? 'Servidor lento · reintenta' : 'Sin conexión';
+    pinDotsEl.classList.add('shaking');
+    setTimeout(()=>{ pinDotsEl.classList.remove('shaking'); STATE.pin=''; updatePinDots(); pinErrorEl.style.color=''; }, 800);
+  }
 }
-function logout(){ STATE.user=null; STATE.role=null; STATE.pin=''; showView('viewPin'); updatePinDots(); }
+
+function logout(){
+  STATE.user=null; STATE.role=null; STATE.pin=''; lastSavedPin='';
+  try { sessionStorage.removeItem(CFG.SK_PIN); sessionStorage.removeItem(CFG.SK_USER); sessionStorage.removeItem(CFG.SK_ROLE); } catch(e){}
+  showView('viewPin'); updatePinDots();
+}
+
+/* Ripristino sessione · se PIN salvato in sessionStorage e ancora valido */
+async function tryRestoreSession(){
+  const savedPin = sessionStorage.getItem(CFG.SK_PIN);
+  if (!savedPin) return false;
+  try {
+    const r = await gasGet('adminPing', { pin: savedPin });
+    if (r && r.ok) {
+      STATE.user = r.user; STATE.role = r.role; lastSavedPin = savedPin;
+      enterHub();
+      return true;
+    }
+  } catch(e) {}
+  // pulisci sessione corrotta
+  try { sessionStorage.removeItem(CFG.SK_PIN); sessionStorage.removeItem(CFG.SK_USER); sessionStorage.removeItem(CFG.SK_ROLE); } catch(e){}
+  return false;
+}
 
 /* HUB */
-function enterHub(){ document.getElementById('hubUserName').textContent=STATE.user; document.getElementById('hubUserRole').textContent=STATE.role==='gerente'?'Gerente':'Op.'; document.getElementById('hubUserChip').classList.toggle('gerente',STATE.role==='gerente'); renderHub(); showView('viewHub'); }
+async function enterHub(){
+  document.getElementById('hubUserName').textContent=STATE.user;
+  document.getElementById('hubUserRole').textContent=STATE.role==='gerente'?'Gerente':'Op.';
+  document.getElementById('hubUserChip').classList.toggle('gerente',STATE.role==='gerente');
+  showView('viewHub');
+  renderHubSkeleton();
+  await loadProducts();
+  renderHub();
+}
+
+/* Carica lista prodotti dal GAS · gestisce cold start con feedback */
+async function loadProducts(){
+  if (!lastSavedPin) return false;
+  STATE.loading = true;
+  try {
+    const r = await withRetry(() => gasGet('adminListProducts', { pin: lastSavedPin }), 'adminListProducts');
+    if (!r || !r.ok) {
+      console.log('[v1.0] loadProducts error: ' + JSON.stringify(r));
+      showToast('error', r && r.error ? 'Error: ' + r.error : 'No se pudo cargar lista');
+      STATE.loading = false;
+      return false;
+    }
+    PRODUCTS = (r.products || []).map(p => normalizeProduct(p));
+    RITMO_ACTUAL_ID = r.ritmo_actual_id || null;
+    STATE.lastListFetchTs = Date.now();
+    STATE.loading = false;
+    return true;
+  } catch (err) {
+    console.log('[v1.0] loadProducts exception: ' + err.message);
+    showToast('error', err.message==='timeout' ? 'Servidor lento · reintenta' : 'Sin conexión');
+    STATE.loading = false;
+    return false;
+  }
+}
+
+/* Normalizza il prodotto dal backend in struttura usata dal mockup */
+function normalizeProduct(p){
+  const o = {
+    id: p.id, nombre: p.nombre, cat: p.cat || 'Otros', precio: parseFloat(p.precio)||0,
+    agotado: !!p.agotado,
+    en_ritmo_actual: p.en_ritmo_actual !== false,  // default true
+  };
+  if (p.agotado) {
+    o.marcado_por  = p.agotado_by   || '';
+    o.marcado_hace = p.agotado_hace || 'ahora';
+  }
+  if (p.pushed && p.pushed.until) {
+    const t = new Date(p.pushed.until);
+    o.pushed = {
+      until: isNaN(t.getTime()) ? '' : (String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0')),
+      phrase: p.pushed.phrase || '', by: p.pushed.by || '',
+    };
+  }
+  if (p.forzado && p.forzado.until) {
+    const t = new Date(p.forzado.until);
+    o.forzado = {
+      until: isNaN(t.getTime()) ? '' : (String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0')),
+      until_iso: p.forzado.until,
+      by: p.forzado.by || '',
+    };
+  }
+  if (p.reportado && p.reportado.aloha) {
+    o.reportado = {
+      aloha: parseFloat(p.reportado.aloha)||0,
+      by: p.reportado.by || '',
+      hace: p.reportado.hace || '',
+      nota: p.reportado.nota || '',
+    };
+  }
+  return o;
+}
+
+function renderHubSkeleton(){
+  const body = document.getElementById('hubBody');
+  body.innerHTML = '<div class="hub-section-label">Cargando…</div>' +
+    '<div class="hub-card disabled" style="opacity:0.5"><div class="hub-card-icon"></div><div class="hub-card-body"><div class="hub-card-title">…</div><div class="hub-card-meta">esperando datos</div></div></div>'.repeat(3);
+}
+
 const getCount86 = ()=>PRODUCTS.filter(p=>p.agotado).length;
 const getPushed = ()=>PRODUCTS.find(p=>p.pushed);
 const getReports = ()=>PRODUCTS.filter(p=>p.reportado);
+const getForzados = ()=>PRODUCTS.filter(p=>p.forzado);
 
 function renderHub(){
   const body = document.getElementById('hubBody');
@@ -670,12 +875,55 @@ function showConfirm(o){
   if(o.btnClass) btn.classList.add(o.btnClass);
 }
 
-function confirmCurrentAction(){
+async function confirmCurrentAction(){
   const p = PRODUCTS.find(x=>x.id===STATE.pendingProdId); if(!p) return closeBs();
+
   if(STATE.pendingAction==='86_toggle'){
-    if(p.agotado){ p.agotado=false; delete p.marcado_por; delete p.marcado_hace; showToast('success',`${p.nombre} · disponible`); }
-    else { p.agotado=true; p.marcado_por=STATE.user; p.marcado_hace='ahora'; if(p.pushed) delete p.pushed; showToast('success',`${p.nombre} · 86 hasta mañana 06:00`); }
+    // Snapshot per rollback
+    const snapshot = JSON.parse(JSON.stringify(p));
+    const newAgotado = !p.agotado;
+
+    // 1. OPTIMISTIC UPDATE locale
+    if(newAgotado){
+      p.agotado=true; p.marcado_por=STATE.user; p.marcado_hace='ahora';
+      if(p.pushed) delete p.pushed;
+    } else {
+      p.agotado=false; delete p.marcado_por; delete p.marcado_hace;
+    }
+    closeBs(); renderChips(); renderList(); renderHub();
+
+    // 2. Disabilita conferma in flight (prevenire doppio-tap)
+    const confirmBtn = document.getElementById('bsConfirm');
+    if (confirmBtn) confirmBtn.disabled = true;
+
+    // 3. Chiamata GAS in background
+    try {
+      const r = await withRetry(() => gasPost('adminToggle86', { pin: lastSavedPin, prod_id: p.id, value: newAgotado }), 'adminToggle86');
+      if (r && r.ok) {
+        showToast('success', newAgotado ? `${p.nombre} · 86 hasta mañana 06:00` : `${p.nombre} · disponible`);
+      } else {
+        // 4. ROLLBACK se server rifiuta
+        Object.assign(p, snapshot);
+        // pulisci campi non presenti nel snapshot
+        if (!snapshot.marcado_por) delete p.marcado_por;
+        if (!snapshot.marcado_hace) delete p.marcado_hace;
+        if (!snapshot.pushed && p.pushed) delete p.pushed;
+        renderChips(); renderList(); renderHub();
+        showToast('error', r && r.error ? 'Error: '+r.error : 'No se pudo guardar');
+      }
+    } catch (err) {
+      Object.assign(p, snapshot);
+      if (!snapshot.marcado_por) delete p.marcado_por;
+      if (!snapshot.marcado_hace) delete p.marcado_hace;
+      if (!snapshot.pushed && p.pushed) delete p.pushed;
+      renderChips(); renderList(); renderHub();
+      showToast('error', err.message==='timeout' ? 'Tiempo agotado · revisa conexión' : 'Sin conexión · cambio no guardado');
+    } finally {
+      if (confirmBtn) confirmBtn.disabled = false;
+    }
+    return;
   }
+
   closeBs(); renderChips(); renderList(); renderHub();
 }
 
@@ -813,6 +1061,49 @@ function showToast(type, text){
   if(toastTimeout) clearTimeout(toastTimeout);
   toastTimeout = setTimeout(()=>toast.classList.remove('show'), 3000);
 }
+
+/* ═════ BOOTSTRAP v1.0 ═════ */
+console.log('[v1.0] BKS Bar Manager · A.1 production · GAS=' + CFG.GAS_URL.substring(0,60) + '…');
+
+(async function bootstrap(){
+  const restored = await tryRestoreSession();
+  if (!restored) {
+    showView('viewPin');
+  }
+})();
+
+/* Auto-refresh lista in background ogni 60s · solo in view list o hub */
+setInterval(async function(){
+  if (!lastSavedPin || STATE.loading) return;
+  const visibleView = document.querySelector('.view.active');
+  if (!visibleView) return;
+  const id = visibleView.id;
+  if (id !== 'viewHub' && id !== 'viewList') return;
+  // Refresh silenzioso · no toast, no skeleton
+  try {
+    const r = await gasGet('adminListProducts', { pin: lastSavedPin });
+    if (r && r.ok) {
+      PRODUCTS = (r.products || []).map(p => normalizeProduct(p));
+      RITMO_ACTUAL_ID = r.ritmo_actual_id || null;
+      STATE.lastListFetchTs = Date.now();
+      if (id === 'viewHub') renderHub();
+      else if (id === 'viewList') { renderChips(); renderList(); }
+    }
+  } catch(e) { /* silenzioso · prossimo tick riprova */ }
+}, CFG.AUTO_REFRESH_MS);
+
+/* Refresh quando l'utente torna sulla pagina (es. da background) */
+document.addEventListener('visibilitychange', function(){
+  if (document.visibilityState === 'visible' && lastSavedPin) {
+    const visibleView = document.querySelector('.view.active');
+    if (visibleView && (visibleView.id === 'viewHub' || visibleView.id === 'viewList')) {
+      loadProducts().then(() => {
+        if (visibleView.id === 'viewHub') renderHub();
+        else { renderChips(); renderList(); }
+      });
+    }
+  }
+});
 </script>
 </body>
 </html>
