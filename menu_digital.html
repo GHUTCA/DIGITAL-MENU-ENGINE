@@ -1759,8 +1759,9 @@ body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
 #bienvenidaSplash .bv-hero-img{
   position:absolute; inset:0;
   width:100%; height:100%;
-  object-fit:cover;
-  object-position:center 45%;
+  object-fit:contain;        /* v1.22 · era cover · poster mai tagliati */
+  object-position:center center;  /* v1.22 · era center 45% */
+  background:var(--bv-surface, #1F1F38);  /* v1.22 · bande invisibili */
 }
 /* v1.22 · S13 · POSTER MODE (rilevamento automatico foto verticali)
    Se la foto è più alta che larga (poster editoriale tipo Happy Hour
