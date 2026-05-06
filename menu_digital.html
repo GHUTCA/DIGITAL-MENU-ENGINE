@@ -4356,17 +4356,35 @@ function showBienvenidaSplash(){
   const splashEl = document.getElementById('bienvenidaSplash');
   const heroImg = document.getElementById('bvHeroImg');
   splashEl.classList.remove('no-photo');     // reset per casi multipli (improbabile ma safe)
+  splashEl.classList.remove('is-poster');    // v1.22 · reset poster mode
 
-  // v1.22 · S13 · OVERRIDE POSTER MODE
-  // Quando la franja ha override_activo=TRUE la foto è un poster editoriale
-  // composto (claim + prezzi + grafica · es Happy Hour 2x1 di Paloma).
-  // Il CSS .is-override-poster .bv-hero-img usa object-fit:contain per non
-  // tagliare mai il poster. Le foto base 4-fasce restano in cover come prima.
-  if(franja.override_activo){
-    splashEl.classList.add('is-override-poster');
-    console.log('[v1.22] Bienvenida override poster · object-fit:contain attivo');
+  if(franja.foto_url){
+    heroImg.src = franja.foto_url;
+    heroImg.onerror = ()=>{
+      heroImg.style.display = 'none';
+      splashEl.classList.add('no-photo');
+      splashEl.classList.remove('is-poster');
+      console.log('[v1.13] Bienvenida foto failed to load · activating no-photo mode');
+    };
+    heroImg.onload = ()=>{
+      heroImg.style.display = '';            // reset display nel caso fosse stato nascosto prima
+      splashEl.classList.remove('no-photo');
+      // v1.22 · S13 · rilevamento poster automatico
+      // Se foto verticale (naturalHeight > naturalWidth × 1.1) → poster mode
+      // Soglia 1.1 per tollerare quadrati senza falsi positivi.
+      const w = heroImg.naturalWidth || 0;
+      const h = heroImg.naturalHeight || 0;
+      if(w > 0 && h > w * 1.1){
+        splashEl.classList.add('is-poster');
+        console.log('[v1.22] Bienvenida poster mode · foto ' + w + '×' + h + ' (verticale) · contain attivo');
+      } else {
+        splashEl.classList.remove('is-poster');
+        console.log('[v1.22] Bienvenida foto ' + w + '×' + h + ' (orizzontale/quadrata) · cover standard');
+      }
+    };
   } else {
-    splashEl.classList.remove('is-override-poster');
+    heroImg.style.display = 'none';
+    splashEl.classList.add('no-photo');     // foto vuota in Sheet → modalità no-photo da subito
   }
 
   if(franja.foto_url){
