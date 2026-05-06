@@ -11,7 +11,14 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.21 · 30-apr-2026 · Sessione S12
+     menu_digital.html · v1.22 · 06-may-2026 · Sessione S13
+     CHANGELOG v1.21 → v1.22: BIENVENIDA splash · object-fit:contain
+     · solo per override stagionali (override_activo=TRUE) · poster
+     editoriale (es. Happy Hour Paloma) ora visibile per intero, niente
+     più crop. Foto base 4-fasce restano cover. CSS-only via classe
+     is-override-poster aggiunta da renderBienvenida() quando override
+     valido. Bg hero usa --bv-surface fascia attiva → bande invisibili.
+     ────────────────────────────────────────────────────────────────────
      CHANGELOG v1.20 → v1.21: filtro p.agotado=true in renderMenu()
      · admin BKS Bar Manager · prodotti messi in 86 spariscono dal menu
      ════════════════════════════════════════════════════════════════════
@@ -1754,6 +1761,19 @@ body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
   width:100%; height:100%;
   object-fit:cover;
   object-position:center 45%;
+}
+/* v1.22 · S13 · OVERRIDE POSTER MODE
+   Quando la franja ha override_activo=TRUE, la foto è un POSTER editoriale
+   (es Happy Hour con claim, prezzi e pittogrammi composti dal grafico).
+   In quei casi NON si deve mai croppare: passo a object-fit:contain così
+   il poster è sempre visibile per intero. Le bande residue prendono il
+   colore --bv-surface della fascia attiva (cremoso DIA, scuro NOCHE) →
+   invisibili contro lo sfondo dello splash.
+   Le foto base 4-fasce (cerrado/almuerzo/tarde/noche · scatti orizzontali
+   pensati per l'hero box) restano in object-fit:cover come prima. */
+#bienvenidaSplash.is-override-poster .bv-hero-img{
+  object-fit:contain;
+  object-position:center center;
 }
 body[data-fascia="ALMUERZO"] #bienvenidaSplash .bv-hero-img,
 body[data-fascia="TARDE"]    #bienvenidaSplash .bv-hero-img{
@@ -4324,6 +4344,18 @@ function showBienvenidaSplash(){
   const splashEl = document.getElementById('bienvenidaSplash');
   const heroImg = document.getElementById('bvHeroImg');
   splashEl.classList.remove('no-photo');     // reset per casi multipli (improbabile ma safe)
+
+  // v1.22 · S13 · OVERRIDE POSTER MODE
+  // Quando la franja ha override_activo=TRUE la foto è un poster editoriale
+  // composto (claim + prezzi + grafica · es Happy Hour 2x1 di Paloma).
+  // Il CSS .is-override-poster .bv-hero-img usa object-fit:contain per non
+  // tagliare mai il poster. Le foto base 4-fasce restano in cover come prima.
+  if(franja.override_activo){
+    splashEl.classList.add('is-override-poster');
+    console.log('[v1.22] Bienvenida override poster · object-fit:contain attivo');
+  } else {
+    splashEl.classList.remove('is-override-poster');
+  }
 
   if(franja.foto_url){
     heroImg.src = franja.foto_url;
