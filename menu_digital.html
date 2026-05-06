@@ -1762,6 +1762,18 @@ body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
   object-fit:cover;
   object-position:center 45%;
 }
+/* v1.22 · S13 · POSTER MODE (rilevamento automatico foto verticali)
+   Se la foto è più alta che larga (poster editoriale tipo Happy Hour
+   con claim/prezzi/grafica), JS aggiunge .is-poster e passa a contain
+   per non croppare mai. Le foto base orizzontali Paloma restano cover.
+   Bg --bv-surface rende invisibili eventuali bande laterali. */
+#bienvenidaSplash.is-poster .bv-hero{
+  background:var(--bv-surface, #1F1F38);
+}
+#bienvenidaSplash.is-poster .bv-hero-img{
+  object-fit:contain;
+  object-position:center center;
+}
 /* v1.22 · S13 · OVERRIDE POSTER MODE
    Quando la franja ha override_activo=TRUE, la foto è un POSTER editoriale
    (es Happy Hour con claim, prezzi e pittogrammi composti dal grafico).
