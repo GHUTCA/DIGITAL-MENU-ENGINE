@@ -1697,12 +1697,24 @@ body[data-fascia="NOCHE"]   #bienvenidaSplash{
 }
 
 /* HERO foto · 50vh diurno · 60vh notturno (NOCHE è più cinematica) */
-#bienvenidaSplash .bv-hero{
-  position:relative;
-  flex:0 0 50vh;
-  overflow:hidden;
-  background:var(--bv-surface, #1F1F38);
-  transition:flex-basis 0.4s ease;
+/* v1.22 · S13 · POSTER MODE con sfondo blur foto stessa
+   Strategia ibrida: hero ha 2 layer, layer 1 blur pesante in cover (riempie),
+   layer 2 poster intero in contain (sopra). Niente bande piatte, look editoriale. */
+#bienvenidaSplash .bv-hero-img{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:contain;
+  object-position:center center;
+  z-index:2;
+}
+#bienvenidaSplash .bv-hero-bg{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  object-position:center center;
+  filter:blur(28px) saturate(1.2) brightness(0.65);
+  transform:scale(1.15);  /* evita bordi blur visibili */
+  z-index:1;
 }
 body[data-fascia="NOCHE"] #bienvenidaSplash .bv-hero,
 body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
@@ -2763,6 +2775,7 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
 <!-- ── BIENVENIDA SPLASH (v1.13 · S6) ── solo se !MESA_ID -->
 <div id="bienvenidaSplash">
   <div class="bv-hero">
+    <img class="bv-hero-bg" id="bvHeroBg" alt="" aria-hidden="true" />
     <img class="bv-hero-img" id="bvHeroImg" alt="" />
     <div class="bv-gradient"></div>
     <div class="bv-brand" id="bvBrand">BKS</div>
@@ -4361,6 +4374,7 @@ function showBienvenidaSplash(){
 
   if(franja.foto_url){
     heroImg.src = franja.foto_url;
+    document.getElementById('bvHeroBg').src = franja.foto_url;  // v1.22 · sfondo blur stessa foto
     heroImg.onerror = ()=>{
       heroImg.style.display = 'none';
       splashEl.classList.add('no-photo');
