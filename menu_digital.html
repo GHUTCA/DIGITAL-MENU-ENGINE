@@ -11,14 +11,7 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.22 · 06-may-2026 · Sessione S13
-     CHANGELOG v1.21 → v1.22: BIENVENIDA splash · object-fit:contain
-     · solo per override stagionali (override_activo=TRUE) · poster
-     editoriale (es. Happy Hour Paloma) ora visibile per intero, niente
-     più crop. Foto base 4-fasce restano cover. CSS-only via classe
-     is-override-poster aggiunta da renderBienvenida() quando override
-     valido. Bg hero usa --bv-surface fascia attiva → bande invisibili.
-     ────────────────────────────────────────────────────────────────────
+     menu_digital.html · v1.21 · 30-apr-2026 · Sessione S12
      CHANGELOG v1.20 → v1.21: filtro p.agotado=true in renderMenu()
      · admin BKS Bar Manager · prodotti messi in 86 spariscono dal menu
      ════════════════════════════════════════════════════════════════════
@@ -1697,23 +1690,12 @@ body[data-fascia="NOCHE"]   #bienvenidaSplash{
 }
 
 /* HERO foto · 50vh diurno · 60vh notturno (NOCHE è più cinematica) */
-/* v1.22 · S13 · POSTER MODE con sfondo blur foto stessa
-   Strategia ibrida: hero ha 2 layer, layer 1 blur pesante in cover (riempie),
-   layer 2 poster intero in contain (sopra). Niente bande piatte, look editoriale. */
-#bienvenidaSplash .bv-hero-img{
-  position:absolute; inset:0;
-  width:100%; height:100%;
-  object-fit:cover;
-  object-position:center top;   /* v1.22 · era center 45% · poster ancorato in alto */
-}
-#bienvenidaSplash .bv-hero-bg{
-  position:absolute; inset:0;
-  width:100%; height:100%;
-  object-fit:cover;
-  object-position:center center;
-  filter:blur(28px) saturate(1.2) brightness(0.65);
-  transform:scale(1.15);  /* evita bordi blur visibili */
-  z-index:1;
+#bienvenidaSplash .bv-hero{
+  position:relative;
+  flex:0 0 50vh;
+  overflow:hidden;
+  background:var(--bv-surface, #1F1F38);
+  transition:flex-basis 0.4s ease;
 }
 body[data-fascia="NOCHE"] #bienvenidaSplash .bv-hero,
 body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
@@ -1728,13 +1710,13 @@ body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
    Desktop ≥481px mantiene 50vh/60vh originali (foto cinematografica). */
 @media (max-width:480px){
   #bienvenidaSplash .bv-hero{
-    flex:0 0 42vh;       /* v1.22 · era 38vh · +5mm respiro per poster verticali */
-    flex:0 0 42dvh;
+    flex:0 0 38vh;
+    flex:0 0 38dvh;     /* override per browser che supportano dvh */
   }
   body[data-fascia="NOCHE"] #bienvenidaSplash .bv-hero,
   body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
-    flex:0 0 46vh;       /* v1.22 · era 42vh · proporzione mantenuta */
-    flex:0 0 46dvh;
+    flex:0 0 42vh;
+    flex:0 0 42dvh;     /* notte un filo più alta · meno testo sotto */
   }
 }
 
@@ -1770,34 +1752,8 @@ body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
 #bienvenidaSplash .bv-hero-img{
   position:absolute; inset:0;
   width:100%; height:100%;
-  object-fit:contain;        /* v1.22 · era cover · poster mai tagliati */
-  object-position:center center;  /* v1.22 · era center 45% */
-  background:var(--bv-surface, #1F1F38);  /* v1.22 · bande invisibili */
-}
-/* v1.22 · S13 · POSTER MODE (rilevamento automatico foto verticali)
-   Se la foto è più alta che larga (poster editoriale tipo Happy Hour
-   con claim/prezzi/grafica), JS aggiunge .is-poster e passa a contain
-   per non croppare mai. Le foto base orizzontali Paloma restano cover.
-   Bg --bv-surface rende invisibili eventuali bande laterali. */
-#bienvenidaSplash .bv-hero{
-  background:var(--bv-surface, #1F1F38);
-}
-#bienvenidaSplash .bv-hero-img{
-  object-fit:contain;
-  object-position:center center;
-}
-/* v1.22 · S13 · OVERRIDE POSTER MODE
-   Quando la franja ha override_activo=TRUE, la foto è un POSTER editoriale
-   (es Happy Hour con claim, prezzi e pittogrammi composti dal grafico).
-   In quei casi NON si deve mai croppare: passo a object-fit:contain così
-   il poster è sempre visibile per intero. Le bande residue prendono il
-   colore --bv-surface della fascia attiva (cremoso DIA, scuro NOCHE) →
-   invisibili contro lo sfondo dello splash.
-   Le foto base 4-fasce (cerrado/almuerzo/tarde/noche · scatti orizzontali
-   pensati per l'hero box) restano in object-fit:cover come prima. */
-#bienvenidaSplash.is-override-poster .bv-hero-img{
-  object-fit:contain;
-  object-position:center center;
+  object-fit:cover;
+  object-position:center 45%;
 }
 body[data-fascia="ALMUERZO"] #bienvenidaSplash .bv-hero-img,
 body[data-fascia="TARDE"]    #bienvenidaSplash .bv-hero-img{
@@ -2774,7 +2730,6 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
 <!-- ── BIENVENIDA SPLASH (v1.13 · S6) ── solo se !MESA_ID -->
 <div id="bienvenidaSplash">
   <div class="bv-hero">
-    <img class="bv-hero-bg" id="bvHeroBg" alt="" aria-hidden="true" />
     <img class="bv-hero-img" id="bvHeroImg" alt="" />
     <div class="bv-gradient"></div>
     <div class="bv-brand" id="bvBrand">BKS</div>
@@ -4369,37 +4324,6 @@ function showBienvenidaSplash(){
   const splashEl = document.getElementById('bienvenidaSplash');
   const heroImg = document.getElementById('bvHeroImg');
   splashEl.classList.remove('no-photo');     // reset per casi multipli (improbabile ma safe)
-  splashEl.classList.remove('is-poster');    // v1.22 · reset poster mode
-
-  if(franja.foto_url){
-    heroImg.src = franja.foto_url;
-    document.getElementById('bvHeroBg').src = franja.foto_url;  // v1.22 · sfondo blur stessa foto
-    heroImg.onerror = ()=>{
-      heroImg.style.display = 'none';
-      splashEl.classList.add('no-photo');
-      splashEl.classList.remove('is-poster');
-      console.log('[v1.13] Bienvenida foto failed to load · activating no-photo mode');
-    };
-    heroImg.onload = ()=>{
-      heroImg.style.display = '';            // reset display nel caso fosse stato nascosto prima
-      splashEl.classList.remove('no-photo');
-      // v1.22 · S13 · rilevamento poster automatico
-      // Se foto verticale (naturalHeight > naturalWidth × 1.1) → poster mode
-      // Soglia 1.1 per tollerare quadrati senza falsi positivi.
-      const w = heroImg.naturalWidth || 0;
-      const h = heroImg.naturalHeight || 0;
-      if(w > 0 && h > w * 1.1){
-        splashEl.classList.add('is-poster');
-        console.log('[v1.22] Bienvenida poster mode · foto ' + w + '×' + h + ' (verticale) · contain attivo');
-      } else {
-        splashEl.classList.remove('is-poster');
-        console.log('[v1.22] Bienvenida foto ' + w + '×' + h + ' (orizzontale/quadrata) · cover standard');
-      }
-    };
-  } else {
-    heroImg.style.display = 'none';
-    splashEl.classList.add('no-photo');     // foto vuota in Sheet → modalità no-photo da subito
-  }
 
   if(franja.foto_url){
     heroImg.src = franja.foto_url;
