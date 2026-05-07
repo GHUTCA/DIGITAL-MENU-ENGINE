@@ -1912,13 +1912,14 @@ body[data-fascia="CERRADO"] #bienvenidaSplash .bv-noche-stars{
 }
 body[data-fascia="NOCHE"]   #bienvenidaSplash .bv-fascia-name,
 body[data-fascia="CERRADO"] #bienvenidaSplash .bv-fascia-name{
-  background:linear-gradient(90deg, #ffffff 0%, #ffffff 40%, #D4A574 50%, #ffffff 60%, #ffffff 100%);
+  color:#ffffff;
+  position:relative;
+  background:linear-gradient(90deg, transparent 0%, transparent 40%, rgba(255,216,155,0.95) 50%, transparent 60%, transparent 100%);
   background-size:200% auto;
+  background-clip:text;
   -webkit-background-clip:text;
-          background-clip:text;
-  -webkit-text-fill-color:transparent;
-          color:transparent;
-  animation:bv-noche-shimmer 3.5s linear infinite;
+  animation:bv-noche-shimmer 3s linear infinite;
+  text-shadow:0 0 12px rgba(212,165,116,0.25);
 }
 
 /* 3 stelline scintillanti posizionate attorno al testo NOCHE */
