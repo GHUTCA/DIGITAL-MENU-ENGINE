@@ -1888,6 +1888,75 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-dj{display:flex}
 body[data-fascia="NOCHE"] #bienvenidaSplash .bv-fascia-name{
   font-size:24px; text-transform:uppercase;
 }
+/* v1.22 · S13 · Animazione NOCHE · shimmer dorato + 3 stelline scintillanti
+   Solo NOCHE/CERRADO (palette dark) · DIA/TARDE non animano (stride col tono lounge diurno).
+   Tutto CSS-only · GPU-accelerated · zero impatto su scroll/click. */
+
+/* Container stelle · nascosto di default, visibile solo NOCHE/CERRADO */
+.bv-noche-stars{display:none;}
+body[data-fascia="NOCHE"]   #bienvenidaSplash .bv-noche-stars,
+body[data-fascia="CERRADO"] #bienvenidaSplash .bv-noche-stars{
+  display:block;
+  position:absolute;
+  top:0;
+  left:0;
+  width:160px;
+  height:50px;
+  pointer-events:none;
+}
+
+/* Shimmer dorato sul testo NOCHE · onda di luce ogni 3.5s */
+@keyframes bv-noche-shimmer{
+  0%   {background-position:-200% center;}
+  100% {background-position: 200% center;}
+}
+body[data-fascia="NOCHE"]   #bienvenidaSplash .bv-fascia-name,
+body[data-fascia="CERRADO"] #bienvenidaSplash .bv-fascia-name{
+  background:linear-gradient(90deg, #ffffff 0%, #ffffff 40%, #D4A574 50%, #ffffff 60%, #ffffff 100%);
+  background-size:200% auto;
+  -webkit-background-clip:text;
+          background-clip:text;
+  -webkit-text-fill-color:transparent;
+          color:transparent;
+  animation:bv-noche-shimmer 3.5s linear infinite;
+}
+
+/* 3 stelline scintillanti posizionate attorno al testo NOCHE */
+.bv-star{
+  position:absolute;
+  color:#D4A574;
+  -webkit-text-fill-color:#D4A574;
+  pointer-events:none;
+  font-weight:400;
+  display:inline-block;
+}
+.bv-star-1{top:-2px; left:115px; font-size:11px; animation:bv-twinkle-1 2.4s ease-in-out infinite;}
+.bv-star-2{top:18px; left:130px; font-size:8px;  animation:bv-twinkle-2 3.1s ease-in-out infinite 0.6s;}
+.bv-star-3{top:34px; left:120px; font-size:9px;  animation:bv-twinkle-3 2.7s ease-in-out infinite 1.2s;}
+
+@keyframes bv-twinkle-1{
+  0%, 100% {opacity:0.2; transform:scale(0.6);}
+  50%      {opacity:1;   transform:scale(1.1);}
+}
+@keyframes bv-twinkle-2{
+  0%, 100% {opacity:0.15; transform:scale(0.5);}
+  50%      {opacity:0.95; transform:scale(1);}
+}
+@keyframes bv-twinkle-3{
+  0%, 100% {opacity:0.25; transform:scale(0.7);}
+  50%      {opacity:1;    transform:scale(1.15);}
+}
+
+/* Reduced motion · rispetta utenti con preferenza accessibilità */
+@media (prefers-reduced-motion: reduce){
+  body[data-fascia="NOCHE"]   #bienvenidaSplash .bv-fascia-name,
+  body[data-fascia="CERRADO"] #bienvenidaSplash .bv-fascia-name{animation:none;}
+  .bv-star{animation:none; opacity:0.7;}
+}
+
+/* Il container parent .bv-status-row ora deve essere position:relative
+   così le stelline absolute si posizionano rispetto a questa riga. */
+#bienvenidaSplash .bv-status-row{position:relative;}
 #bienvenidaSplash .bv-time{
   font-size:11px; letter-spacing:1.4px; text-transform:uppercase;
   color:var(--bv-text-mute); font-weight:500;
@@ -2745,6 +2814,7 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
   <div class="bv-status">
     <div class="bv-status-row">
       <div class="bv-fascia-name" id="bvFasciaName">—</div>
+      <div class="bv-noche-stars" aria-hidden="true"><span class="bv-star bv-star-1">✦</span><span class="bv-star bv-star-2">✧</span><span class="bv-star bv-star-3">✦</span></div>
       <div class="bv-time" id="bvTime">—</div>
     </div>
     <div class="bv-status-line" id="bvStatusLine">—</div>
