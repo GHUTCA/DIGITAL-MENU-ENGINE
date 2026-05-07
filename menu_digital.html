@@ -4885,13 +4885,10 @@ function renderCarteleraMode1(djs){
     `;
   }).join('');
 
-  // Footer · "padron de la casa" se Comandante DJ presente nei dati
-  const hasComandante = djs.some(d => d.dj_id === 'CDJ' || /comandante/i.test(d.nombre || ''));
-  const footerHtml = hasComandante
-    ? `<div class="cart-mode1-footer">
-         <div class="cart-mode1-footer-text"><strong>Comandante DJ</strong> es padrón de la casa</div>
-       </div>`
-    : '';
+  // v1.22 · S13 · Footer cartelera · slogan editoriale fisso (era "padron de la casa" hardcoded)
+  const footerHtml = `<div class="cart-mode1-footer">
+       <div class="cart-mode1-footer-text">El que pincha esta noche · <em>escribe el guión</em></div>
+     </div>`;
 
   return `
     <div class="cart-mode1-hero">
