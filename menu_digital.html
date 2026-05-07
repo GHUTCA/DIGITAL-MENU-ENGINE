@@ -1703,9 +1703,8 @@ body[data-fascia="NOCHE"]   #bienvenidaSplash{
 #bienvenidaSplash .bv-hero-img{
   position:absolute; inset:0;
   width:100%; height:100%;
-  object-fit:contain;
-  object-position:center center;
-  z-index:2;
+  object-fit:cover;
+  object-position:center top;   /* v1.22 · era center 45% · poster ancorato in alto */
 }
 #bienvenidaSplash .bv-hero-bg{
   position:absolute; inset:0;
@@ -1729,13 +1728,13 @@ body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
    Desktop ≥481px mantiene 50vh/60vh originali (foto cinematografica). */
 @media (max-width:480px){
   #bienvenidaSplash .bv-hero{
-    flex:0 0 38vh;
-    flex:0 0 38dvh;     /* override per browser che supportano dvh */
+    flex:0 0 42vh;       /* v1.22 · era 38vh · +5mm respiro per poster verticali */
+    flex:0 0 42dvh;
   }
   body[data-fascia="NOCHE"] #bienvenidaSplash .bv-hero,
   body[data-fascia="CERRADO"] #bienvenidaSplash .bv-hero{
-    flex:0 0 42vh;
-    flex:0 0 42dvh;     /* notte un filo più alta · meno testo sotto */
+    flex:0 0 46vh;       /* v1.22 · era 42vh · proporzione mantenuta */
+    flex:0 0 46dvh;
   }
 }
 
