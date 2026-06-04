@@ -719,7 +719,7 @@ function openPriceList(){ STATE.listMode='price'; enterList(); }
 function openVentasDashboard(){
   if(STATE.role!=='gerente'){ showToast('error','Solo gerente'); return; }
   const params = new URLSearchParams({ role: STATE.role, user: STATE.user||'' });
-  window.open('index_BKS.html?' + params.toString(), '_blank', 'noopener');
+  window.open('https://ghutca.github.io/BKS-CONTROL/?' + params.toString(), '_blank', 'noopener');
 }
 
 function enterList(){
