@@ -417,7 +417,7 @@ const STATE = { user:null, role:null, pin:'', failedAttempts:0, currentCat:'all'
 
 /* ═════ CONFIG BACKEND v1.0 ═════ */
 const CFG = {
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbzZkS3bBaYc34uJ6wXP9FG13i58-NT0FJp964vqkUYbRObUxryeRb9l_Fz24kb42f5t/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzS3bBaYc34uJ6wXP9FG13i58-NT0FJp964vqkUYbRObUxryeRb9I_Fz24kb42f5t/exec',
   LOCAL: 'BKS',
   // sessionStorage keys
   SK_PIN: 'bks_admin_pin_v1',
@@ -678,6 +678,10 @@ function renderHub(){
   if(isOp){ html += card({ icon:iconAlert(), iconClass:'warn', title:'Reportar error precio', meta:'Precio diferente vs ALOHA', onclick:'openReportList()', active:true }); }
   if(isGerente){ const rc = reports.length; html += card({ icon:iconDollar(), iconClass:'gold', title:'Cambiar precio', meta:rc>0?`${rc} reportes pendientes`:'Editar precios del menú', counter:rc, counterClass:rc>0?'warn':'zero', onclick:'openPriceList()', active:true, hasActive:rc>0 }); }
   if(isGerente){
+    html += `<div class="hub-section-label">Control & ventas</div>`;
+    html += card({ icon:iconChart(), iconClass:'gold', title:'Ventas / Control', meta:'Dashboard · objetivos · márgenes', onclick:'openVentasDashboard()', active:true });
+  }
+  if(isGerente){
     html += `<div class="hub-section-label">Estratégicas · Próximamente</div>`;
     html += card({ icon:iconFlame(), title:'Override estacional', meta:'BBQ brasileño, Halloween, etc.', soon:true });
     html += card({ icon:iconTag(), title:'Crear promo', meta:'2x1, descuentos, combos', soon:true });
@@ -694,6 +698,7 @@ function card(o){
 }
 
 /* ICONS */
+const iconChart = ()=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`;
 const iconNoSign = ()=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>`;
 const iconStar = ()=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
 const iconAlert = ()=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
@@ -711,6 +716,11 @@ function open86View(){ STATE.listMode='86'; enterList(); }
 function openPushList(){ STATE.listMode='push'; enterList(); }
 function openReportList(){ STATE.listMode='report'; enterList(); }
 function openPriceList(){ STATE.listMode='price'; enterList(); }
+function openVentasDashboard(){
+  if(STATE.role!=='gerente'){ showToast('error','Solo gerente'); return; }
+  const params = new URLSearchParams({ role: STATE.role, user: STATE.user||'' });
+  window.open('index_BKS.html?' + params.toString(), '_blank', 'noopener');
+}
 
 function enterList(){
   STATE.currentCat = (STATE.listMode==='price' && getReports().length>0)?'_reports':'all';
