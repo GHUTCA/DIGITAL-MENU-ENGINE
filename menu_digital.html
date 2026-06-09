@@ -389,26 +389,28 @@ body.theme-dark[data-fascia-menu="dia"] #carteleraSheet .cart-mode1-footer-text 
    vibrante perché contrasto cromatico (non solo luminosità).
    ════════════════════════════════════════════════════════════════════ */
 body.theme-dark[data-fascia-menu="tarde"] {
-  --brand-bg: #1F0F1F;
-  --brand-surface: #2A1530;
-  --brand-surface-card: #33183A;
-  --brand-text: #F2E9F0;
-  --brand-text-muted: rgba(242,233,240,0.62);
+  /* PROVA calypso · v1.23 · S13 · TARDE virata cyan/teal (era plum #1F0F1F).
+     Accent rosso #E94560 DNA brand INVARIATO. Per tornare al viola: ripristinare i valori plum. */
+  --brand-bg: #06181C;
+  --brand-surface: #0C262C;
+  --brand-surface-card: #103138;
+  --brand-text: #E9F6F7;
+  --brand-text-muted: rgba(233,246,247,0.62);
   --brand-border: rgba(255,255,255,0.06);
   --brand-border-strong: rgba(255,255,255,0.12);
   --brand-accent-line: rgba(233,69,96,0.42);
   --brand-accent-line-strong: rgba(233,69,96,0.58);
-  --rhythm-bg: #2A1530;
-  --rhythm-label: rgba(242,233,240,0.45);
+  --rhythm-bg: #0C262C;
+  --rhythm-label: rgba(233,246,247,0.45);
   --rhythm-chip-bg: rgba(255,255,255,0.04);
-  --rhythm-chip-text: rgba(242,233,240,0.55);
-  --group-bg: #2A1530;
-  --group-inactive-bg: #33183A;
-  --group-inactive-text: rgba(242,233,240,0.72);
-  --card-shadow: 0 2px 12px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.02);
-  --cross-sell-bg: #3A1A42;
-  --cross-sell-border: rgba(233,69,96,0.22);
-  --faja-cartelera-bg: #2A1530;
+  --rhythm-chip-text: rgba(233,246,247,0.55);
+  --group-bg: #0C262C;
+  --group-inactive-bg: #103138;
+  --group-inactive-text: rgba(233,246,247,0.72);
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.35), 0 0 0 1px rgba(17,186,201,0.05);
+  --cross-sell-bg: #0E2E35;
+  --cross-sell-border: rgba(17,186,201,0.28);
+  --faja-cartelera-bg: #0C262C;
 }
 
 /* v1.16 · S8 · DIA · accent del badge agotado leggibile su bg chiaro */
@@ -1190,6 +1192,15 @@ body.theme-dark .cat-header-count{color:rgba(255,255,255,0.4)}
   transition:transform var(--transition),background var(--transition);
 }
 .card-call-btn:active{transform:scale(0.92);background:rgba(233,69,96,0.25)}
+.card-call-btn.is-disabled{
+  background:rgba(148,163,184,0.10);
+  border-color:rgba(148,163,184,0.35);
+  color:var(--brand-text-muted);
+  opacity:0.5;
+  cursor:default;
+  pointer-events:none;
+}
+.card-call-btn.is-disabled:active{transform:none;background:rgba(148,163,184,0.10)}
 body.theme-dark .card-call-btn{
   background:rgba(233,69,96,0.18);
   border-color:rgba(233,69,96,0.5);
@@ -1569,6 +1580,16 @@ body[data-vetrina="true"] #mainContent { padding-bottom: 24px !important; }
   padding:0;
 }
 .bnav-fab:active{transform:scale(0.92)}
+.bnav-fab.is-disabled{
+  background:rgba(148,163,184,0.22);
+  color:rgba(255,255,255,0.45);
+  box-shadow:none;
+  animation:none;
+  cursor:default;
+  pointer-events:none;
+}
+.bnav-fab.is-disabled:active{transform:none}
+.bnav-fab-label.is-disabled{color:var(--brand-text-muted);opacity:0.6}
 .bnav-fab-icon{font-size:24px;line-height:1}
 .bnav-fab-label{font-size:10px;font-weight:600;color:var(--brand-accent);letter-spacing:0.3px;}
 body.theme-dark .bnav-fab-label{color:#ff6b8a}
@@ -2941,10 +2962,10 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
       <span class="bnav-icon">🏠</span><span data-i18n="nav_menu">Menú</span>
     </button>
     <div class="bnav-fab-wrap">
-      <button class="bnav-fab" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero" data-i18n-aria="call_waiter_btn">
+      <button class="bnav-fab is-disabled" id="bnavFab" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero" data-i18n-aria="call_waiter_btn">
         <span class="bnav-fab-icon">🔔</span>
       </button>
-      <span class="bnav-fab-label" data-i18n="nav_call">Llamar</span>
+      <span class="bnav-fab-label is-disabled" id="bnavFabLabel" data-i18n="nav_call">Llamar</span>
     </div>
     <button class="bnav-btn" onclick="showToastMsg(getLang('scan_member'))">
       <span class="bnav-icon">💳</span><span data-i18n="nav_club">Club</span>
@@ -3571,6 +3592,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   //    che contiene valori inquinati da test precedenti (it/de/etc).
   //    La nuova chiave 'menu_lang_user_choice' viene scritta SOLO da setLang().
   purgeOldLangKey();
+
+  // v1.23 · Se il llamar mesero è abilitato, riattiva la FAB (di default è grigia/inattiva).
+  if(LLAMAR_MESERO_ENABLED){
+    const fab = document.getElementById('bnavFab');
+    const fabLabel = document.getElementById('bnavFabLabel');
+    if(fab) fab.classList.remove('is-disabled');
+    if(fabLabel) fabLabel.classList.remove('is-disabled');
+  }
 
   // 1) Splash neutro IMMEDIATO (mai brand sbagliato)
   applyBrand(SPLASH_DEFAULT);
@@ -5369,17 +5398,18 @@ function openDetail(id){
           ${prices.orig ? `<span class="sheet-price-orig">${prices.orig}</span>` : ''}
           <span class="sheet-price">${prices.main}</span>
         </div>
-        ${!p.agotado ? `
+        ${!p.agotado ? (LLAMAR_MESERO_ENABLED ? `
           <button class="card-call-btn" style="width:48px;height:48px;font-size:22px"
                   onclick="closeDetail();setTimeout(()=>onCallWaiterForProduct('${p.id}'),320)"
                   aria-label="Llamar mesero">🔔</button>
-        ` : ''}
+        ` : `
+          <button class="card-call-btn is-disabled" style="width:48px;height:48px;font-size:22px"
+                  aria-hidden="true" tabindex="-1">🔔</button>
+        `) : ''}
       </div>
-      ${!p.agotado && (LLAMAR_MESERO_ENABLED ? MESA_ID : true) ? `
+      ${!p.agotado && LLAMAR_MESERO_ENABLED && MESA_ID ? `
         <div style="text-align:center;font-size:12px;color:var(--brand-text-muted);margin:-8px 0 16px;letter-spacing:0.3px">
-          ${LLAMAR_MESERO_ENABLED
-            ? (getLang('call_caption_product') || 'Toca 🔔 para llamar mesero por este producto')
-            : (getLang('call_coming_soon') || 'Pronto disponible')}
+          ${getLang('call_caption_product') || 'Toca 🔔 para llamar mesero por este producto'}
         </div>
       ` : ''}
       </div>
@@ -6120,10 +6150,7 @@ function closeConfirmSheet(){
 }
 
 function onCallWaiterForProduct(prodId){
-  if(!LLAMAR_MESERO_ENABLED){
-    showToastMsg(getLang('call_coming_soon') || 'Pronto disponible');
-    return;
-  }
+  if(!LLAMAR_MESERO_ENABLED) return;
   if(!MESA_ID){
     showToastMsg(getLang('call_no_mesa') || 'Acércate a un mesero para ordenar');
     return;
@@ -6144,10 +6171,7 @@ function onPedirDirecto(prodId){
 }
 
 function onCallWaiterGeneric(){
-  if(!LLAMAR_MESERO_ENABLED){
-    showToastMsg(getLang('call_coming_soon') || 'Pronto disponible');
-    return;
-  }
+  if(!LLAMAR_MESERO_ENABLED) return;
   if(!MESA_ID){
     showToastMsg(getLang('call_no_mesa') || 'Acércate a un mesero para ordenar');
     return;
