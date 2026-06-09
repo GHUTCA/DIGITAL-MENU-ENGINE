@@ -393,27 +393,31 @@ body.theme-dark[data-fascia-menu="tarde"] {
      Fondi più luminosi e saturi verso il cyan (meno petrolio/verde scuro),
      bordi e chip carichi così il 3125 è protagonista.
      Accent rosso #E94560 DNA brand INVARIATO. Per tornare al viola: ripristinare i valori plum. */
-  --brand-bg: #07333C;
-  --brand-surface: #0C4753;
-  --brand-surface-card: #0F5563;
-  --brand-text: #EAFBFE;
-  --brand-text-muted: rgba(234,251,254,0.66);
-  --brand-border: rgba(0,174,199,0.28);
-  --brand-border-strong: rgba(0,174,199,0.45);
+  --brand-bg: #0A4A57;
+  --brand-surface: #0F6171;
+  --brand-surface-card: #137486;
+  --brand-text: #EFFCFE;
+  --brand-text-muted: rgba(239,252,254,0.70);
+  --brand-border: rgba(0,174,199,0.32);
+  --brand-border-strong: rgba(0,174,199,0.50);
   --brand-accent-line: rgba(233,69,96,0.42);
   --brand-accent-line-strong: rgba(233,69,96,0.58);
-  --rhythm-bg: #0C4753;
-  --rhythm-label: rgba(234,251,254,0.5);
-  --rhythm-chip-bg: rgba(0,174,199,0.18);
-  --rhythm-chip-text: rgba(234,251,254,0.7);
-  --group-bg: #0C4753;
-  --group-inactive-bg: #0F5563;
-  --group-inactive-text: rgba(234,251,254,0.78);
-  --card-shadow: 0 2px 14px rgba(0,0,0,0.30), 0 0 0 1px rgba(0,174,199,0.18);
-  --cross-sell-bg: #0E5060;
-  --cross-sell-border: rgba(0,174,199,0.50);
-  --faja-cartelera-bg: #0C4753;
+  --rhythm-bg: #0F6171;
+  --rhythm-label: rgba(239,252,254,0.55);
+  --rhythm-chip-bg: rgba(0,174,199,0.22);
+  --rhythm-chip-text: rgba(239,252,254,0.75);
+  --group-bg: #0F6171;
+  --group-inactive-bg: #137486;
+  --group-inactive-text: rgba(239,252,254,0.82);
+  --card-shadow: 0 2px 14px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,174,199,0.20);
+  --cross-sell-bg: #126A7C;
+  --cross-sell-border: rgba(0,174,199,0.55);
+  --faja-cartelera-bg: #0F6171;
 }
+
+/* PROVA calypso v2 · TARDE · prezzo scheda dettaglio in bianco-crema
+   (il rosso #ff6b8a annegava sul fondo cyan chiaro). Solo TARDE · DIA/NOCHE invariati. */
+body.theme-dark[data-fascia-menu="tarde"] .sheet-price { color:#F4FBFC; }
 
 /* v1.16 · S8 · DIA · accent del badge agotado leggibile su bg chiaro */
 body.theme-dark[data-fascia-menu="dia"] .badge-popular  { background:rgba(245,158,11,0.18); color:#9a6700 }
