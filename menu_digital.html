@@ -2798,7 +2798,7 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
       <div class="bv-dj-avatar" id="bvDjAvatar">🎧</div>
       <div class="bv-dj-info">
         <div class="bv-dj-eyebrow" id="bvDjEyebrow">En cabina</div>
-        <div class="bv-dj-name" id="bvDjName">Comandante DJ</div>
+        <div class="bv-dj-name" id="bvDjName"></div>
       </div>
     </div>
   </div>
@@ -3076,10 +3076,11 @@ const RHYTHM_SLOGANS_BKS = {
    stessa cadenza di getRitmos (60s). Per ora hardcodato così
    vediamo il design vivere prima di costruire il backend.
    ────────────────────────────────────────────────────────────── */
-let CURRENT_DJ_BKS = {
-  nombre: 'Comandante DJ',
-  hasta:  null,
-};
+/* v1.23 · S13 · Decisione Alberto: NESSUN DJ di default.
+   Se l'agenda DJS_AGENDA non ha un DJ che suona ORA → cabina nascosta.
+   Se c'è un DJ reale per giorno+ora → resolveDjActual() lo popola.
+   (Prima era hardcoded 'Comandante DJ' come padrone di casa permanente.) */
+let CURRENT_DJ_BKS = null;
 
 /* ════════════════════════════════════════════════════
    MULTI-LANGUAGE STRINGS
@@ -4562,12 +4563,18 @@ document.getElementById('bvPropEyebrow').textContent = saludo || (lang === 'pt' 
     sloganEl.style.display = 'none';
   }
 
-  // DJ ribbon (NOCHE) · prende da CURRENT_DJ_BKS se risolvibile
+  // DJ ribbon (NOCHE) · v1.23 · mostra SOLO se c'è un DJ reale in agenda ora.
+  // Niente più default 'Comandante DJ': se nessuno suona, la cabina sparisce.
   if(franja.id === 'NOCHE'){
-    const djName = (typeof CURRENT_DJ_BKS !== 'undefined' && CURRENT_DJ_BKS && CURRENT_DJ_BKS.nombre)
-                    ? CURRENT_DJ_BKS.nombre : 'Comandante DJ';
-    document.getElementById('bvDjName').textContent = djName;
-    document.getElementById('bvDjEyebrow').textContent = lang === 'pt' ? 'Na cabine' : 'En cabina';
+    const djEl = document.getElementById('bvDj');
+    const hasDj = (typeof CURRENT_DJ_BKS !== 'undefined' && CURRENT_DJ_BKS && CURRENT_DJ_BKS.nombre);
+    if(hasDj){
+      document.getElementById('bvDjName').textContent = CURRENT_DJ_BKS.nombre;
+      document.getElementById('bvDjEyebrow').textContent = lang === 'pt' ? 'Na cabine' : 'En cabina';
+      if(djEl) djEl.style.display = '';
+    } else {
+      if(djEl) djEl.style.display = 'none';
+    }
   }
 
   // CTA label
