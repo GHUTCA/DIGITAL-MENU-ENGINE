@@ -4545,6 +4545,7 @@ function setupCrossSellScrollWatcher(){
 
 let BIENVENIDA_DATA = null;       // payload completo getBienvenida
 let BIENVENIDA_SHOWN = false;     // flag: lo splash è stato mostrato in questa sessione?
+let BIENVENIDA_CTA_TARGET = '';   // v1.24 · S14 · gruppo da pre-selezionare al tocco del CTA (da Sheet CTA_Target)
 
 async function loadBienvenida(){
   // No mesa = QR vetrina → mostra splash. Con mesa = QR tavolo → skip (S7+)
@@ -4597,6 +4598,8 @@ function showBienvenidaSplash(){
   const propDet = useT ? franja.pt.propuesta_detalle: franja.propuesta_detalle;
   const propExt = useT ? franja.pt.propuesta_extra : franja.propuesta_extra;
   const ctaLab  = useT ? franja.pt.cta_label       : franja.cta_label;
+  // v1.24 · S14 · CTA target · letto da Sheet (CTA_Target / CTA_Target_PT) · PT fallback a ES
+  BIENVENIDA_CTA_TARGET = (useT && franja.pt.cta_target) ? franja.pt.cta_target : (franja.cta_target || '');
 
   // Imposta data-fascia su body → attiva palette CSS
   document.body.setAttribute('data-fascia', franja.id);
@@ -4847,6 +4850,33 @@ function dismissBienvenida(){
     // Rimuovo data-fascia dal body (palette dinamica del menu è S7, qui solo splash)
     document.body.removeAttribute('data-fascia');
   }, 500);
+  // v1.24 · S14 · atterraggio CTA · pre-seleziona il gruppo promesso dallo splash
+  applyBienvenidaCtaTarget();
+}
+
+// v1.24 · S14 · CTA_Target da Sheet · lo splash atterra sullo scaffale giusto.
+// Target validi: '__PROMOS__', '__ALMUERZO__', o una chiave di CATEGORY_GROUPS
+// (es 'Comida', 'Barra', 'Dolci'). Vuoto/sconosciuto = comportamento storico.
+// Guardie: mai atterrare su uno scaffale vuoto (promessa senza merce → menu normale).
+function applyBienvenidaCtaTarget(){
+  const target = BIENVENIDA_CTA_TARGET || '';
+  BIENVENIDA_CTA_TARGET = '';
+  if(!target) return;
+  const isVirtual = (target === '__PROMOS__' || target === '__ALMUERZO__');
+  const isGroup = !!(CATEGORY_GROUPS && Object.prototype.hasOwnProperty.call(CATEGORY_GROUPS, target));
+  if(!isVirtual && !isGroup){
+    console.warn('[v1.24] CTA_Target sconosciuto: "' + target + '" · ignorato');
+    return;
+  }
+  if(target === '__PROMOS__' && (!PROMOS_ACTIVAS || PROMOS_ACTIVAS.length === 0)) return;
+  if(target === '__ALMUERZO__'){
+    const n = ALL_PRODUCTS.filter(p =>
+      PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && !p.agotado && productInFaja(p)
+    ).length;
+    if(n === 0) return;
+  }
+  if(CURRENT_GROUP !== target) setGroup(target);
+  console.log('[v1.24] CTA target applicato → ' + target);
 }
 
 /* ════════════════════════════════════════════════════
