@@ -3715,6 +3715,9 @@ let PROD_TO_PROMO    = {};
 // Mappa prod_origen → [prod_id,...] delle regole CROSS_SELL attive ADESSO (filtrate server-side per ora/giorno).
 let CROSSSELL_MAP    = {};
 let CROSSSELL_POLL_TIMER = null;
+// v1.23 · S13fix · prezzo per fascia · mappa prod_id → {precio, tipo} attiva ADESSO (GAS filtra)
+let PRECIOS_REGLA_MAP = {};
+let PRECIOS_REGLA_POLL_TIMER = null;
 
 /* v1.12 · S5 · Cross-sell strip + DJ agenda
    ────────────────────────────────────────── */
@@ -3835,6 +3838,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // v1.23 · S13fix · carrello-intenzione · carica da sessionStorage + cintura 45min
   loadCart();
   updateCartBadge();
+  // v1.23 · S13fix · prezzo per fascia · load al boot + poll 60s (tutti i local)
+  loadPreciosRegla();
+  if(!PRECIOS_REGLA_POLL_TIMER){
+    PRECIOS_REGLA_POLL_TIMER = setInterval(loadPreciosRegla, 60000);
+  }
   hideLoading();
 
   // v1.13 · S6 · attendo bienvenida (era parallela al menu) e mostro splash se applicabile
@@ -5409,6 +5417,12 @@ function formatPriceWithSymbol(n){
 function getDisplayPrice(p){
   if(ACTIVE_MEMBER && p.precio_member)
     return { main: formatPrice(p.precio_member), orig: formatPrice(p.precio) };
+  // v1.23 · S13fix · prezzo per fascia (PRECIOS_REGLA) · regola attiva ADESSO sovrascrive base,
+  // mostra barrato (prezzo base) + nuovo. Priorità: member > regola-fascia > base.
+  const regla = PRECIOS_REGLA_MAP[p.id];
+  if(regla && regla.precio > 0 && parsePrice(regla.precio) !== parsePrice(p.precio)){
+    return { main: formatPrice(regla.precio), orig: formatPrice(p.precio) };
+  }
   return { main: formatPrice(p.precio), orig: null };
 }
 
@@ -5549,7 +5563,14 @@ function openDetail(id){
   // Il prezzo qui è isolato e grande · disambiguazione utile, niente sovraccarico visivo.
   const prices = ACTIVE_MEMBER && p.precio_member
     ? { main: formatPriceWithSymbol(p.precio_member), orig: formatPriceWithSymbol(p.precio) }
-    : { main: formatPriceWithSymbol(p.precio), orig: null };
+    : (() => {
+        // v1.23 · S13fix · prezzo per fascia anche nella scheda dettaglio
+        const regla = PRECIOS_REGLA_MAP[p.id];
+        if(regla && regla.precio > 0 && parsePrice(regla.precio) !== parsePrice(p.precio)){
+          return { main: formatPriceWithSymbol(regla.precio), orig: formatPriceWithSymbol(p.precio) };
+        }
+        return { main: formatPriceWithSymbol(p.precio), orig: null };
+      })();
   const badges  = buildBadges(p, true);
   const detailPromo = PROD_TO_PROMO[p.id] || null;
   const detailIs2x1 = detailPromo && (detailPromo.tipo === '2x1' || detailPromo.tipo === 'multiplo');
@@ -5884,6 +5905,24 @@ async function loadCrossSell(){
     });
     CROSSSELL_MAP = map;
   } catch(e){ console.warn('[v1.23] loadCrossSell failed:', e.message); }
+}
+
+/* v1.23 · S13fix · PREZZO PER FASCIA ORARIA (PRECIOS_REGLA)
+   ────────────────────────────────────────────────────────────────────
+   Endpoint GAS: action=getPreciosRegla · ritorna {prod_id: {precio,tipo}}
+   delle regole attive ADESSO (GAS filtra ora+giorno+date).
+   getDisplayPrice sovrascrive il prezzo base col prezzo-regola quando attivo.
+   Es: Risotto base 15.000 · a pranzo feriale 11.990 (mostra barrato + nuovo). */
+async function loadPreciosRegla(){
+  if(!BRAND.gas_url && !GAS_URL) return;
+  try {
+    const url = `${BRAND.gas_url || GAS_URL}?action=getPreciosRegla&local=${LOCAL_ID}&t=${Date.now()}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if(!data || !data.ok) return;
+    PRECIOS_REGLA_MAP = data.reglas || {};
+    renderMenu();  // re-render per applicare prezzi aggiornati
+  } catch(e){ console.warn('[v1.23] loadPreciosRegla failed:', e.message); }
 }
 
 /* ════════════════════════════════════════════════════
