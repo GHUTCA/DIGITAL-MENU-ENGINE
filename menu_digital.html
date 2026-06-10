@@ -1265,6 +1265,9 @@ body.feature-pedir-directo .card-pedir-btn{display:flex}
 .cart-recap-sub{font-size:13px;color:var(--brand-text-muted);margin-bottom:16px;line-height:1.5;}
 .cart-recap-list{text-align:left;background:var(--brand-surface-card,rgba(0,0,0,0.04));border-radius:12px;padding:14px 16px;margin-bottom:18px;}
 .cart-recap-item{display:flex;justify-content:space-between;font-size:14px;color:var(--brand-text);padding:4px 0;}
+/* v1.23 · S13fix · badge "incluye entrada+bebida+postre" · appare solo in fascia prezzo almuerzo */
+.almuerzo-incluye{display:flex;align-items:center;gap:8px;background:rgba(233,69,96,0.10);border:1px solid var(--brand-accent-line,rgba(233,69,96,0.30));color:var(--brand-accent);font-size:13px;font-weight:600;line-height:1.35;padding:10px 14px;border-radius:12px;margin:0 0 14px;}
+body.theme-dark[data-fascia-menu="dia"] .almuerzo-incluye{background:rgba(233,69,96,0.08);color:#993556;}
 body.theme-dark[data-fascia-menu="dia"] .cart-title,
 body.theme-dark[data-fascia-menu="dia"] .cart-row-name,
 body.theme-dark[data-fascia-menu="dia"] .cart-qty-num,
@@ -3723,6 +3726,7 @@ let PRECIOS_REGLA_POLL_TIMER = null;
    ────────────────────────────────────────── */
 let SUGERENCIA_ACTIVA       = true;            // master switch da PARAMETROS.sugerencia_activa
 let SUGERENCIA_FRASE_DEFAULT = '';             // override Sheet PARAMETROS.sugerencia_frase_default
+let ALMUERZO_INCLUYE_TXT = '';                 // v1.23 · S13fix · testo extra incluso menù almuerzo (PARAMETROS.almuerzo_incluye)
 let CURRENT_CROSSSELL_TARGET = null;           // prodotto target attualmente mostrato in strip (per evitare re-render uguale)
 let CROSSSELL_DEBOUNCE_TIMER = null;           // debounce 200ms per real-time observer
 let DJS_AGENDA              = [];              // [{dj_id, nombre, dia, hora_ini, hora_fin, foto_url, bio_corta, instagram, activo}]
@@ -4155,6 +4159,8 @@ async function loadFromSheet(timeoutMs){
   // Vuoto/falsy in Sheet → fallback ai default safety: attiva, frase tradotta da i18n.
   SUGERENCIA_ACTIVA = (String(cfg.sugerencia_activa||'TRUE').toUpperCase() !== 'FALSE');
   SUGERENCIA_FRASE_DEFAULT = (cfg.sugerencia_frase_default||'').trim();
+  // v1.23 · S13fix · testo "incluye entrada+bebida+postre" del menù almuerzo · da PARAMETROS
+  ALMUERZO_INCLUYE_TXT = (cfg.almuerzo_incluye||'').trim();
 
   // STEP 2 · CSV URL
   const dataSource = cfgResp.dataSource || 'visor';
@@ -5622,6 +5628,9 @@ function openDetail(id){
                   aria-label="Llamar mesero">🔔</button>
         ` : '') : ''}
       </div>
+      ${(PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && ALMUERZO_INCLUYE_TXT) ? `
+        <div class="almuerzo-incluye">🍽️ ${ALMUERZO_INCLUYE_TXT}</div>
+      ` : ''}
       ${!p.agotado ? `
         <button class="cart-agregar-btn" id="agregarBtn-${p.id}"
                 onclick="addToCart('${p.id}')">
