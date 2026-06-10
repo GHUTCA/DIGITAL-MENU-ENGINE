@@ -3686,18 +3686,31 @@ function applyBrand(b){
   //   2. localStorage 'menu_lang_user_choice' — scelta esplicita cliente
   //   3. brand.default_lang dal GAS — lingua predefinita del locale
   //   4. 'es' fallback finale
+  // v1.24 · S14 · gradino 2.5: navigator.language del telefono
+  //   Il turista brasiliano (browser pt-BR) riceve il menu in PT senza toccare
+  //   il selettore. Vale per tutte le 8 lingue supportate. La scelta esplicita
+  //   del cliente (localStorage) continua a vincere sul browser.
   const urlLang = URL_PARAMS.get('lang');
   let userChoice = null;
   try { userChoice = localStorage.getItem('menu_lang_user_choice'); } catch(e){}
+  let browserLang = null;
+  try {
+    const nav = (navigator.language || (navigator.languages || [])[0] || '').toLowerCase();
+    const prefix = nav.split('-')[0];   // 'pt-BR' → 'pt' · 'zh-CN' → 'zh'
+    if(TRANSLATIONS[prefix]) browserLang = prefix;
+  } catch(e){}
   if(urlLang && TRANSLATIONS[urlLang]){
     LANG_CODE = urlLang;
   } else if(userChoice && TRANSLATIONS[userChoice]){
     LANG_CODE = userChoice;
+  } else if(browserLang){
+    LANG_CODE = browserLang;
   } else if(BRAND.default_lang && TRANSLATIONS[BRAND.default_lang]){
     LANG_CODE = BRAND.default_lang;
   } else {
     LANG_CODE = 'es';
   }
+  console.log('[v1.24] lang=' + LANG_CODE + ' · url=' + (urlLang||'-') + ' · choice=' + (userChoice||'-') + ' · browser=' + (browserLang||'-'));
 }
 
 /* ════════════════════════════════════════════════════
