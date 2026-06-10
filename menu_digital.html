@@ -1229,10 +1229,47 @@ body.feature-pedir-directo .card-pedir-btn{display:flex}
 /* CONFIRM SHEET */
 #confirmOverlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.55);opacity:0;transition:opacity 0.25s ease;}
 #confirmOverlay.open{display:block;opacity:1}
+#cartOverlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.55);opacity:0;transition:opacity 0.25s ease;}
+#cartOverlay.open{display:block;opacity:1}
 #confirmSheet{position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:480px;z-index:401;background:var(--brand-surface);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,0.25);transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);}
 #confirmSheet.open{transform:translate(-50%,0)}
 .confirm-handle{width:36px;height:4px;border-radius:2px;background:var(--brand-border);margin:0 auto 16px;}
 .confirm-icon{width:56px;height:56px;border-radius:50%;background:rgba(233,69,96,0.12);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px;}
+/* v1.23 · S13fix · CARRITO (carrello-intenzione) ───────────────────────── */
+.bnav-badge{position:absolute;top:0;right:calc(50% - 22px);min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--brand-accent);color:#fff;font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center;line-height:1;}
+.bnav-badge.show{display:flex;}
+.cart-agregar-btn{flex:1;padding:14px;border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;border:none;cursor:pointer;background:var(--brand-accent);color:#fff;transition:transform var(--transition),background var(--transition);display:flex;align-items:center;justify-content:center;gap:8px;}
+.cart-agregar-btn:active{transform:scale(0.97);}
+.cart-agregar-btn.added{background:var(--success,#3DAA68);}
+#cartSheet{position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:480px;z-index:401;background:var(--brand-surface);border-radius:20px 20px 0 0;max-height:85dvh;overflow-y:auto;padding:20px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,0.25);transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);}
+#cartSheet.open{transform:translate(-50%,0);}
+.cart-title{font-family:'Fraunces',serif;font-size:22px;font-weight:300;color:var(--brand-text);margin-bottom:4px;}
+.cart-subtitle{font-size:12px;color:var(--brand-text-muted);margin-bottom:18px;}
+.cart-empty{text-align:center;color:var(--brand-text-muted);font-size:14px;padding:30px 0;}
+.cart-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--brand-border);}
+.cart-row-info{flex:1;min-width:0;}
+.cart-row-name{font-size:14px;font-weight:500;color:var(--brand-text);line-height:1.3;}
+.cart-row-price{font-size:13px;font-weight:700;color:var(--brand-accent);margin-top:2px;}
+.cart-row-qty{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.cart-qty-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--brand-border-strong);background:transparent;color:var(--brand-text);font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.cart-qty-btn:active{transform:scale(0.9);}
+.cart-qty-num{font-size:14px;font-weight:600;color:var(--brand-text);min-width:16px;text-align:center;}
+.cart-total-row{display:flex;justify-content:space-between;align-items:baseline;margin:18px 0;font-size:16px;}
+.cart-total-label{color:var(--brand-text-muted);font-weight:500;}
+.cart-total-val{font-size:24px;font-weight:700;color:var(--brand-accent);}
+.cart-listo-btn{width:100%;padding:16px;border-radius:14px;border:none;background:var(--brand-accent);color:#fff;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:transform var(--transition);}
+.cart-listo-btn:active{transform:scale(0.98);}
+.cart-recap{text-align:center;padding:10px 0 4px;}
+.cart-recap-check{font-size:44px;margin-bottom:8px;}
+.cart-recap-title{font-family:'Fraunces',serif;font-size:22px;font-weight:300;color:var(--brand-text);margin-bottom:6px;}
+.cart-recap-sub{font-size:13px;color:var(--brand-text-muted);margin-bottom:16px;line-height:1.5;}
+.cart-recap-list{text-align:left;background:var(--brand-surface-card,rgba(0,0,0,0.04));border-radius:12px;padding:14px 16px;margin-bottom:18px;}
+.cart-recap-item{display:flex;justify-content:space-between;font-size:14px;color:var(--brand-text);padding:4px 0;}
+body.theme-dark[data-fascia-menu="dia"] .cart-title,
+body.theme-dark[data-fascia-menu="dia"] .cart-row-name,
+body.theme-dark[data-fascia-menu="dia"] .cart-qty-num,
+body.theme-dark[data-fascia-menu="dia"] .cart-recap-title,
+body.theme-dark[data-fascia-menu="dia"] .cart-recap-item{color:var(--brand-text);}
 .confirm-title{font-size:18px;font-weight:600;color:var(--brand-text);text-align:center;margin-bottom:6px;line-height:1.3;}
 .confirm-subtitle{font-size:13px;color:var(--brand-text-muted);text-align:center;margin-bottom:20px;}
 .confirm-actions{display:flex;gap:10px;}
@@ -2998,6 +3035,13 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
 <!-- v1.11 · stickyCallBar (FAB flottante in basso-dx) · RIMOSSO.
      La campanella vive ora come FAB integrato CENTRALE nella bottom-nav. -->
 
+<!-- ── CARRITO SHEET · v1.23 S13fix · carrello-intenzione ── -->
+<div id="cartOverlay" onclick="closeCart()"></div>
+<div id="cartSheet" role="dialog" aria-modal="true" aria-label="Mi pedido">
+  <div class="confirm-handle"></div>
+  <div id="cartSheetContent"><!-- popolato da renderCart() --></div>
+</div>
+
 <!-- ── BOTTOM NAV (v1.11 · 3 voci con FAB centrale Llamar) ── -->
 <div id="bottomNav">
   <div class="bnav-inner">
@@ -3010,8 +3054,9 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
       </button>
       <span class="bnav-fab-label is-disabled" id="bnavFabLabel" data-i18n="nav_call">Llamar</span>
     </div>
-    <button class="bnav-btn" onclick="showToastMsg(getLang('scan_member'))">
-      <span class="bnav-icon">💳</span><span data-i18n="nav_club">Club</span>
+    <button class="bnav-btn" style="position:relative" onclick="openCart()">
+      <span class="bnav-icon">🛒</span><span data-i18n="nav_cart">Mi Pedido</span>
+      <span class="bnav-badge" id="cartBadge">0</span>
     </button>
   </div>
 </div>
@@ -3113,6 +3158,13 @@ const TRANSLATIONS = {
   es:{
     loading:'Cargando menú...',
     nav_menu:'Menú', nav_search:'Buscar', nav_club:'Club', nav_call:'Llamar',
+    nav_cart:'Mi Pedido',
+    cart_add:'Agregar a mi pedido', cart_added:'Agregado', cart_title:'Mi Pedido',
+    cart_subtitle:'Revisa tu selección y muéstrasela al mesero.',
+    cart_empty:'Aún no agregaste nada. Explora el menú y arma tu pedido.',
+    cart_total:'Total', cart_listo:'Listo · mostrar al mesero',
+    cart_recap_title:'¡Pedido listo!', cart_recap_sub:'Muestra esta lista al mesero para ordenar.',
+    cart_close:'Cerrar',
     all_day:'Todo el día',
     breakfast:'Desayuno', lunch:'Almuerzo', snack:'Merienda', dinner:'Cena',
     agotado:'Agotado', nuevo:'Nuevo', popular:'Popular',
@@ -3731,6 +3783,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if(!CROSSSELL_POLL_TIMER){
     CROSSSELL_POLL_TIMER = setInterval(loadCrossSell, 60000);
   }
+  // v1.23 · S13fix · carrello-intenzione · carica da sessionStorage + cintura 45min
+  loadCart();
+  updateCartBadge();
   hideLoading();
 
   // v1.13 · S6 · attendo bienvenida (era parallela al menu) e mostro splash se applicabile
@@ -5495,13 +5550,16 @@ function openDetail(id){
           <button class="card-call-btn" style="width:48px;height:48px;font-size:22px"
                   onclick="closeDetail();setTimeout(()=>onCallWaiterForProduct('${p.id}'),320)"
                   aria-label="Llamar mesero">🔔</button>
-        ` : `
-          <button class="card-call-btn is-disabled" style="width:48px;height:48px;font-size:22px"
-                  aria-hidden="true" tabindex="-1">🔔</button>
-        `) : ''}
+        ` : '') : ''}
       </div>
+      ${!p.agotado ? `
+        <button class="cart-agregar-btn" id="agregarBtn-${p.id}"
+                onclick="addToCart('${p.id}')">
+          <span>＋</span><span>${getLang('cart_add') || 'Agregar a mi pedido'}</span>
+        </button>
+      ` : ''}
       ${!p.agotado && LLAMAR_MESERO_ENABLED && MESA_ID ? `
-        <div style="text-align:center;font-size:12px;color:var(--brand-text-muted);margin:-8px 0 16px;letter-spacing:0.3px">
+        <div style="text-align:center;font-size:12px;color:var(--brand-text-muted);margin:10px 0 0;letter-spacing:0.3px">
           ${getLang('call_caption_product') || 'Toca 🔔 para llamar mesero por este producto'}
         </div>
       ` : ''}
@@ -5777,6 +5835,175 @@ async function loadCrossSell(){
     });
     CROSSSELL_MAP = map;
   } catch(e){ console.warn('[v1.23] loadCrossSell failed:', e.message); }
+}
+
+/* ════════════════════════════════════════════════════
+   v1.23 · S13fix · CARRITO-INTENZIONE
+   ────────────────────────────────────────────────────
+   Cattura l'intenzione d'acquisto del cliente (≠ vendita ALOHA).
+   Storage: sessionStorage (per-dispositivo, muore con la scheda).
+   Reset: (1) "Listo" svuota dopo salvataggio · (2) scheda chiusa ·
+          (3) cintura 45min · carrello fermo da >45min → auto-svuota al boot.
+   Salva su GAS tab CARRITOS solo quando il cliente preme "Listo".
+   ════════════════════════════════════════════════════ */
+const CART_KEY = 'bks_carrito';
+const CART_TTL_MS = 45 * 60 * 1000;   // 45 min cintura sicurezza
+let CART = { items: [], updated_ts: 0, gancho_origen: '' };
+
+function loadCart(){
+  try {
+    const raw = sessionStorage.getItem(CART_KEY);
+    if(!raw){ CART = { items: [], updated_ts: 0, gancho_origen: '' }; return; }
+    const parsed = JSON.parse(raw);
+    // Cintura 45min: se fermo da troppo → svuota
+    if(parsed.updated_ts && (Date.now() - parsed.updated_ts > CART_TTL_MS)){
+      sessionStorage.removeItem(CART_KEY);
+      CART = { items: [], updated_ts: 0, gancho_origen: '' };
+      return;
+    }
+    CART = { items: parsed.items || [], updated_ts: parsed.updated_ts || 0, gancho_origen: parsed.gancho_origen || '' };
+  } catch(e){ CART = { items: [], updated_ts: 0, gancho_origen: '' }; }
+}
+
+function saveCart(){
+  CART.updated_ts = Date.now();
+  try { sessionStorage.setItem(CART_KEY, JSON.stringify(CART)); } catch(e){ /* sessionStorage pieno/bloccato */ }
+  updateCartBadge();
+}
+
+function updateCartBadge(){
+  const badge = document.getElementById('cartBadge');
+  if(!badge) return;
+  const count = CART.items.reduce((s,i)=> s + (i.qty||1), 0);
+  badge.textContent = count;
+  badge.classList.toggle('show', count > 0);
+}
+
+function addToCart(prodId){
+  const p = ALL_PRODUCTS.find(x => x.id === prodId);
+  if(!p) return;
+  // Primo prodotto aggiunto = gancho_origen (punto d'ingresso del loop)
+  if(CART.items.length === 0) CART.gancho_origen = prodId;
+  const existing = CART.items.find(i => i.id === prodId);
+  if(existing){ existing.qty = (existing.qty||1) + 1; }
+  else { CART.items.push({ id: prodId, nombre: p.nombre, precio: parsePrice(p.precio), qty: 1 }); }
+  saveCart();
+  // Feedback visivo sul bottone
+  const btn = document.getElementById('agregarBtn-' + prodId);
+  if(btn){
+    btn.classList.add('added');
+    btn.innerHTML = '<span>✓</span><span>' + (getLang('cart_added') || 'Agregado') + '</span>';
+    setTimeout(()=>{
+      btn.classList.remove('added');
+      btn.innerHTML = '<span>＋</span><span>' + (getLang('cart_add') || 'Agregar a mi pedido') + '</span>';
+    }, 1100);
+  }
+}
+
+function cartChangeQty(prodId, delta){
+  const it = CART.items.find(i => i.id === prodId);
+  if(!it) return;
+  it.qty = (it.qty||1) + delta;
+  if(it.qty <= 0) CART.items = CART.items.filter(i => i.id !== prodId);
+  if(CART.items.length === 0) CART.gancho_origen = '';
+  saveCart();
+  renderCart();
+}
+
+function openCart(){
+  renderCart();
+  document.getElementById('cartOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('cartSheet').classList.add('open'), 10);
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCart(){
+  document.getElementById('cartSheet').classList.remove('open');
+  document.getElementById('cartOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function renderCart(){
+  const el = document.getElementById('cartSheetContent');
+  if(!el) return;
+  if(CART.items.length === 0){
+    el.innerHTML = `
+      <div class="cart-title">${getLang('cart_title') || 'Mi Pedido'}</div>
+      <div class="cart-empty">${getLang('cart_empty') || 'Aún no agregaste nada. Explora el menú y arma tu pedido.'}</div>`;
+    return;
+  }
+  const total = CART.items.reduce((s,i)=> s + i.precio * (i.qty||1), 0);
+  el.innerHTML = `
+    <div class="cart-title">${getLang('cart_title') || 'Mi Pedido'}</div>
+    <div class="cart-subtitle">${getLang('cart_subtitle') || 'Revisa tu selección y muéstrasela al mesero.'}</div>
+    ${CART.items.map(i => `
+      <div class="cart-row">
+        <div class="cart-row-info">
+          <div class="cart-row-name">${toTitleCase(i.nombre)}</div>
+          <div class="cart-row-price">${formatPrice(i.precio * (i.qty||1))}</div>
+        </div>
+        <div class="cart-row-qty">
+          <button class="cart-qty-btn" onclick="cartChangeQty('${i.id}',-1)" aria-label="−">−</button>
+          <span class="cart-qty-num">${i.qty||1}</span>
+          <button class="cart-qty-btn" onclick="cartChangeQty('${i.id}',1)" aria-label="+">＋</button>
+        </div>
+      </div>
+    `).join('')}
+    <div class="cart-total-row">
+      <span class="cart-total-label">${getLang('cart_total') || 'Total'}</span>
+      <span class="cart-total-val">${formatPriceWithSymbol(total)}</span>
+    </div>
+    <button class="cart-listo-btn" onclick="cartListo()">${getLang('cart_listo') || 'Listo · mostrar al mesero'}</button>`;
+}
+
+function cartListo(){
+  if(CART.items.length === 0) return;
+  const total = CART.items.reduce((s,i)=> s + i.precio * (i.qty||1), 0);
+  const snapshot = { items: CART.items.slice(), total: total, gancho_origen: CART.gancho_origen };
+  // Salva intenzione su GAS (fire-and-forget · non blocca la UX)
+  submitCarrito(snapshot);
+  // Mostra recap + svuota
+  renderCartRecap(snapshot);
+  CART = { items: [], updated_ts: 0, gancho_origen: '' };
+  sessionStorage.removeItem(CART_KEY);
+  updateCartBadge();
+}
+
+function renderCartRecap(snap){
+  const el = document.getElementById('cartSheetContent');
+  if(!el) return;
+  el.innerHTML = `
+    <div class="cart-recap">
+      <div class="cart-recap-check">✅</div>
+      <div class="cart-recap-title">${getLang('cart_recap_title') || '¡Pedido listo!'}</div>
+      <div class="cart-recap-sub">${getLang('cart_recap_sub') || 'Muestra esta lista al mesero para ordenar.'}</div>
+      <div class="cart-recap-list">
+        ${snap.items.map(i => `<div class="cart-recap-item"><span>${(i.qty||1)}× ${toTitleCase(i.nombre)}</span><span>${formatPrice(i.precio*(i.qty||1))}</span></div>`).join('')}
+        <div class="cart-recap-item" style="border-top:1px solid var(--brand-border);margin-top:6px;padding-top:8px;font-weight:700"><span>${getLang('cart_total')||'Total'}</span><span>${formatPriceWithSymbol(snap.total)}</span></div>
+      </div>
+      <button class="cart-listo-btn" onclick="closeCart()">${getLang('cart_close')||'Cerrar'}</button>
+    </div>`;
+}
+
+function submitCarrito(snap){
+  if(!BRAND.gas_url && !GAS_URL) return;
+  const payload = {
+    action: 'submitCarrito',
+    local: LOCAL_ID,
+    mesa: MESA_ID || '',
+    ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
+    gancho_origen: snap.gancho_origen || '',
+    total: snap.total,
+    items_json: JSON.stringify(snap.items.map(i => ({ id:i.id, nombre:i.nombre, precio:i.precio, qty:i.qty||1 }))),
+    ts: Date.now(),
+  };
+  try {
+    fetch(BRAND.gas_url || GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // evita CORS preflight (pattern gasPost)
+      body: JSON.stringify(payload),
+    }).catch(e => console.warn('[v1.23] submitCarrito failed:', e.message));
+  } catch(e){ console.warn('[v1.23] submitCarrito exception:', e.message); }
 }
 
 /* v1.12 · S5 · DJS_AGENDA · poll DJ ogni 60s, calcola DJ attivo per giorno+ora
