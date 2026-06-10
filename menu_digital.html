@@ -3603,6 +3603,10 @@ let PROMOS_ACTIVAS   = [];
 let RITMO_FILTER_ON  = true;
 let RITMO_POLL_TIMER = null;
 let PROD_TO_PROMO    = {};
+// v1.23 · S13fix · cross-sell scheda per fascia (sostituisce vecchio Upsell_IDs).
+// Mappa prod_origen → [prod_id,...] delle regole CROSS_SELL attive ADESSO (filtrate server-side per ora/giorno).
+let CROSSSELL_MAP    = {};
+let CROSSSELL_POLL_TIMER = null;
 
 /* v1.12 · S5 · Cross-sell strip + DJ agenda
    ────────────────────────────────────────── */
@@ -3714,6 +3718,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // CSS variables corrette (es slogan color in DIA).
   startFasciaMenuPolling();
   startRhythmPolling();
+  // v1.23 · S13fix · cross-sell scheda · load al boot + poll 60s (vale per TUTTI i local,
+  // non solo BKS · startRhythmPolling è theme-dark-only, questo no).
+  loadCrossSell();
+  if(!CROSSSELL_POLL_TIMER){
+    CROSSSELL_POLL_TIMER = setInterval(loadCrossSell, 60000);
+  }
   hideLoading();
 
   // v1.13 · S6 · attendo bienvenida (era parallela al menu) e mostro splash se applicabile
@@ -5437,7 +5447,10 @@ function openDetail(id){
   const imgHtml = p.imagen
     ? `<div class="sheet-img"><img src="${p.imagen}" alt="${p.nombre}" onerror="this.style.display='none';this.parentElement.style.background='${_catColor(p.categoria)}'"></div>`
     : `<div class="sheet-img-ph" style="background:${_catColor(p.categoria)}">${catEmoji}</div>`;
-  const upsellIds = (p.upsell_ids||'').split(',').map(x=>x.trim()).filter(Boolean);
+  // v1.23 · S13fix · SOSTITUZIONE NETTA · cross-sell da CROSSSELL_MAP (per fascia oraria),
+  // non più dal vecchio campo p.upsell_ids (deprecato · non più letto).
+  // CROSSSELL_MAP contiene solo le regole attive ADESSO (GAS filtra per ora+giorno).
+  const upsellIds = CROSSSELL_MAP[p.id] || [];
   const upsellProds = upsellIds.map(id=>ALL_PRODUCTS.find(x=>x.id===id)).filter(Boolean);
   let upsellHtml = '';
   if(upsellProds.length > 0){
@@ -5734,6 +5747,29 @@ async function loadPromos(){
     renderGroups();
     renderMenu();
   } catch(e){ console.warn('[v1.10] loadPromos failed:', e.message); }
+}
+
+/* v1.23 · S13fix · CROSS-SELL scheda per fascia oraria
+   ────────────────────────────────────────────────────────────────────
+   Endpoint GAS: action=getCrossSell · ritorna le regole attive ADESSO
+   (il GAS filtra già per ora+giorno correnti del local).
+   Popola CROSSSELL_MAP { prod_origen → [prod_id,...] }.
+   Usato da openDetail per la sezione "También te puede gustar".
+   Multi-local: se il local non ha tab CROSS_SELL, reglas arriva vuoto → mappa vuota.
+   Poll 60s come ritmos/promos: una regola può entrare/uscire di fascia. */
+async function loadCrossSell(){
+  if(!BRAND.gas_url && !GAS_URL) return;
+  try {
+    const url = `${BRAND.gas_url || GAS_URL}?action=getCrossSell&local=${LOCAL_ID}&t=${Date.now()}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if(!data || !data.ok) return;
+    const map = {};
+    (data.reglas || []).forEach(rg => {
+      if(rg.prod_origen && Array.isArray(rg.prod_ids)) map[rg.prod_origen] = rg.prod_ids;
+    });
+    CROSSSELL_MAP = map;
+  } catch(e){ console.warn('[v1.23] loadCrossSell failed:', e.message); }
 }
 
 /* v1.12 · S5 · DJS_AGENDA · poll DJ ogni 60s, calcola DJ attivo per giorno+ora
