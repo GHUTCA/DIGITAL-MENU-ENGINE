@@ -843,6 +843,10 @@ body.theme-dark .cat-header-count {
 
 .group-chip-promos { background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(233,69,96,0.15)) !important; border: 1px solid rgba(251,191,36,0.35) !important; animation: goldPulse 2.5s ease-in-out infinite; }
 .group-chip-promos.active { background: linear-gradient(135deg, #fbbf24, #d97706) !important; color: #fff !important; border-color: #fbbf24 !important; animation: none; }
+/* v1.23 · S13fix · chip "Menú del Día" · verde caldo, distinto dal promos dorato */
+.group-chip-almuerzo { background: linear-gradient(135deg, rgba(61,170,104,0.16), rgba(212,165,116,0.14)) !important; border: 1px solid rgba(61,170,104,0.35) !important; }
+.group-chip-almuerzo.active { background: linear-gradient(135deg, #3DAA68, #2e8a52) !important; color: #fff !important; border-color: #3DAA68 !important; }
+body.theme-dark .group-chip-almuerzo { color: rgba(255,255,255,0.85); }
 @keyframes goldPulse { 0%,100% { box-shadow: 0 0 0 rgba(251,191,36,0); } 50% { box-shadow: 0 0 14px rgba(251,191,36,0.4); } }
 body.theme-dark .group-chip-promos { color: rgba(255,255,255,0.85); }
 body.theme-dark .product-card.has-promo { border-color: rgba(251,191,36,0.45); box-shadow: 0 0 0 1px rgba(251,191,36,0.15), 0 4px 20px rgba(251,191,36,0.10); }
@@ -3161,7 +3165,7 @@ const TRANSLATIONS = {
   es:{
     loading:'Cargando menú...',
     nav_menu:'Menú', nav_search:'Buscar', nav_club:'Club', nav_call:'Llamar',
-    nav_cart:'Mi Pedido',
+    nav_cart:'Mi Pedido', group_almuerzo:'Menú del Día',
     cart_add:'Agregar a mi pedido', cart_added:'Agregado', cart_title:'Mi Pedido',
     cart_subtitle:'Revisa tu selección y muéstrasela al mesero.',
     cart_empty:'Aún no agregaste nada. Explora el menú y arma tu pedido.',
@@ -3219,7 +3223,7 @@ const TRANSLATIONS = {
   en:{
     loading:'Loading menu...',
     nav_menu:'Menu', nav_search:'Search', nav_club:'Club', nav_call:'Call',
-    nav_cart:'My Order',
+    nav_cart:'My Order', group_almuerzo:'Lunch Menu',
     cart_add:'Add to my order', cart_added:'Added', cart_title:'My Order',
     cart_subtitle:'Review your selection and show it to the waiter.',
     cart_empty:'Nothing added yet. Explore the menu and build your order.',
@@ -3272,7 +3276,7 @@ const TRANSLATIONS = {
   pt:{
     loading:'Carregando cardápio...',
     nav_menu:'Cardápio', nav_search:'Buscar', nav_club:'Clube', nav_call:'Chamar',
-    nav_cart:'Meu Pedido',
+    nav_cart:'Meu Pedido', group_almuerzo:'Menu do Dia',
     cart_add:'Adicionar ao meu pedido', cart_added:'Adicionado', cart_title:'Meu Pedido',
     cart_subtitle:'Revise sua seleção e mostre ao garçom.',
     cart_empty:'Você ainda não adicionou nada. Explore o cardápio e monte seu pedido.',
@@ -3325,7 +3329,7 @@ const TRANSLATIONS = {
   it:{
     loading:'Caricamento menu...',
     nav_menu:'Menu', nav_search:'Cerca', nav_club:'Club', nav_call:'Chiama',
-    nav_cart:'Il mio ordine',
+    nav_cart:'Il mio ordine', group_almuerzo:'Menù del Giorno',
     cart_add:'Aggiungi al mio ordine', cart_added:'Aggiunto', cart_title:'Il mio ordine',
     cart_subtitle:'Controlla la tua selezione e mostrala al cameriere.',
     cart_empty:'Non hai ancora aggiunto nulla. Esplora il menu e componi il tuo ordine.',
@@ -3378,7 +3382,7 @@ const TRANSLATIONS = {
   de:{
     loading:'Menü wird geladen...',
     nav_menu:'Speisekarte', nav_search:'Suchen', nav_club:'Club', nav_call:'Rufen',
-    nav_cart:'Meine Bestellung',
+    nav_cart:'Meine Bestellung', group_almuerzo:'Mittagsmenü',
     cart_add:'Zur Bestellung hinzufügen', cart_added:'Hinzugefügt', cart_title:'Meine Bestellung',
     cart_subtitle:'Überprüfe deine Auswahl und zeige sie dem Kellner.',
     cart_empty:'Noch nichts hinzugefügt. Stöbere im Menü und stelle deine Bestellung zusammen.',
@@ -3431,7 +3435,7 @@ const TRANSLATIONS = {
   fr:{
     loading:'Chargement du menu...',
     nav_menu:'Menu', nav_search:'Rechercher', nav_club:'Club', nav_call:'Appeler',
-    nav_cart:'Ma commande',
+    nav_cart:'Ma commande', group_almuerzo:'Menu du Jour',
     cart_add:'Ajouter à ma commande', cart_added:'Ajouté', cart_title:'Ma commande',
     cart_subtitle:'Vérifie ta sélection et montre-la au serveur.',
     cart_empty:'Rien ajouté pour l\'instant. Explore le menu et compose ta commande.',
@@ -3484,7 +3488,7 @@ const TRANSLATIONS = {
   zh:{
     loading:'菜单加载中...',
     nav_menu:'菜单', nav_search:'搜索', nav_club:'会员', nav_call:'呼叫',
-    nav_cart:'我的点单',
+    nav_cart:'我的点单', group_almuerzo:'今日午餐',
     cart_add:'加入我的点单', cart_added:'已添加', cart_title:'我的点单',
     cart_subtitle:'确认你的选择并出示给服务员。',
     cart_empty:'还没有添加任何东西。浏览菜单，开始点单吧。',
@@ -3537,7 +3541,7 @@ const TRANSLATIONS = {
   ja:{
     loading:'メニュー読み込み中...',
     nav_menu:'メニュー', nav_search:'検索', nav_club:'クラブ', nav_call:'呼び出し',
-    nav_cart:'マイオーダー',
+    nav_cart:'マイオーダー', group_almuerzo:'ランチメニュー',
     cart_add:'注文に追加', cart_added:'追加しました', cart_title:'マイオーダー',
     cart_subtitle:'選択内容を確認してスタッフにお見せください。',
     cart_empty:'まだ何も追加されていません。メニューを見て注文を組み立てましょう。',
@@ -4306,6 +4310,8 @@ function renderCatTabs(){
 
 function getVisibleCategories(){
   if(!CATEGORY_GROUPS || !CURRENT_GROUP) return ALL_CATEGORIES;
+  // Gruppi virtuali (promos, almuerzo): prodotti sparsi su più categorie → mostra tutte, il filtro prodotti le raccoglie
+  if(CURRENT_GROUP === '__PROMOS__' || CURRENT_GROUP === '__ALMUERZO__') return ALL_CATEGORIES;
   const group = CATEGORY_GROUPS[CURRENT_GROUP];
   if(!group || !group.cats) return ALL_CATEGORIES;
   return ALL_CATEGORIES.filter(c => group.cats.includes(c.id));
@@ -4315,9 +4321,13 @@ function renderGroups(){
   const wrap = document.getElementById('groupBar');
   const grid = document.getElementById('groupGrid');
   const promosCount = (PROMOS_ACTIVAS || []).length;
-  if(!CATEGORY_GROUPS && promosCount === 0){ wrap.classList.remove('show'); return; }
+  // v1.23 · S13fix · conta prodotti "Menú del Día" (regola-prezzo almuerzo attiva ADESSO)
+  const almuerzoChipCount = ALL_PRODUCTS.filter(p =>
+    PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && !p.agotado && productInFaja(p)
+  ).length;
+  if(!CATEGORY_GROUPS && promosCount === 0 && almuerzoChipCount === 0){ wrap.classList.remove('show'); return; }
   const groupKeys = CATEGORY_GROUPS ? Object.keys(CATEGORY_GROUPS) : [];
-  if(groupKeys.length < 2 && promosCount === 0){ wrap.classList.remove('show'); return; }
+  if(groupKeys.length < 2 && promosCount === 0 && almuerzoChipCount === 0){ wrap.classList.remove('show'); return; }
   const countByGroup = {};
   groupKeys.forEach(gk => {
     const cats = CATEGORY_GROUPS[gk].cats || [];
@@ -4328,7 +4338,7 @@ function renderGroups(){
   const promoProdsSet = new Set();
   (PROMOS_ACTIVAS || []).forEach(p => (p.prod_ids||[]).forEach(pid => promoProdsSet.add(pid)));
   const promoProductsCount = promoProdsSet.size;
-  const totalChips = groupKeys.length + (promosCount > 0 ? 1 : 0);
+  const totalChips = groupKeys.length + (promosCount > 0 ? 1 : 0) + (almuerzoChipCount > 0 ? 1 : 0);
   grid.className = 'group-grid g-' + totalChips;
   let html = groupKeys.map(gk=>{
     const g = CATEGORY_GROUPS[gk];
@@ -4351,6 +4361,19 @@ function renderGroups(){
         <span class="group-chip-emoji">🎁</span>
         <span class="group-chip-name">${getGroupName('promos')}</span>
         <span class="group-chip-count">${promoProductsCount}</span>
+      </button>`;
+  }
+  // v1.23 · S13fix · chip "Menú del Día" · prodotti con regola-prezzo almuerzo attiva ADESSO
+  const almuerzoProdsCount = ALL_PRODUCTS.filter(p =>
+    PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && !p.agotado && productInFaja(p)
+  ).length;
+  if(almuerzoProdsCount > 0){
+    const isActive = CURRENT_GROUP === '__ALMUERZO__';
+    html += `
+      <button class="group-chip group-chip-almuerzo${isActive?' active':''}" onclick="setGroup('__ALMUERZO__')">
+        <span class="group-chip-emoji">🍽️</span>
+        <span class="group-chip-name">${getLang('group_almuerzo') || 'Menú del Día'}</span>
+        <span class="group-chip-count">${almuerzoProdsCount}</span>
       </button>`;
   }
   grid.innerHTML = html;
@@ -5448,6 +5471,9 @@ function renderMenu(){
   const ritmoFilterActive = RITMO_FILTER_ON && RITMO_ACTUAL && RITMO_ACTUAL.prod_ids && RITMO_ACTUAL.prod_ids.length > 0;
   const ritmoProdSet = ritmoFilterActive ? new Set(RITMO_ACTUAL.prod_ids) : null;
   const promosGroupActive = CURRENT_GROUP === '__PROMOS__';
+  // v1.23 · S13fix · gruppo virtuale "Menú del Día" · prodotti con regola-prezzo almuerzo attiva ADESSO
+  const almuerzoGroupActive = CURRENT_GROUP === '__ALMUERZO__';
+  const isAlmuerzoProd = (pid)=> PRECIOS_REGLA_MAP[pid] && PRECIOS_REGLA_MAP[pid].tipo === 'almuerzo';
   // v1.11 · SEARCH_QUERY non filtra più il menu di sotto · vive isolata nell'overlay full-screen.
   // Questo evita stati ambigui (chiudo overlay con query attiva → menu filtrato senza UI di feedback).
   FILTERED = ALL_PRODUCTS.filter(p=>{
@@ -5455,8 +5481,11 @@ function renderMenu(){
     const inFaja = productInFaja(p);
     const inGroup = promosGroupActive
       ? !!PROD_TO_PROMO[p.id]
-      : visibleCatIds.includes(p.categoria);
-    const inRitmo = !ritmoFilterActive || ritmoProdSet.has(p.id);
+      : almuerzoGroupActive
+        ? isAlmuerzoProd(p.id)
+        : visibleCatIds.includes(p.categoria);
+    // Il filtro ritmo NON si applica al gruppo almuerzo (il menù del día è governato dalla regola-prezzo, non dai ritmi serali)
+    const inRitmo = almuerzoGroupActive ? true : (!ritmoFilterActive || ritmoProdSet.has(p.id));
     return inFaja && inGroup && inRitmo;
   });
   if(FILTERED.length === 0){
