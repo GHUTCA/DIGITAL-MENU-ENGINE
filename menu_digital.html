@@ -4049,6 +4049,11 @@ async function loadFromSheet(timeoutMs){
     // v1.12 · S5 · cross-sell strip
     sugerencia_categoria:    (r[19]||'').toLowerCase().trim(),  // ID categoria target (es. 'spritz')
     es_sugerencia_destacada: r[20]==='TRUE',                    // se TRUE, hero della sua categoria
+    // v1.23 · S13 · descrizioni multilingua (colonne Descripcion_XX) · fallback a ES (r[3])
+    desc_i18n: {
+      en: r[33]||'', pt: r[34]||'', it: r[35]||'',
+      de: r[36]||'', fr: r[37]||'', zh: r[38]||'', ja: r[39]||'',
+    },
   })).filter(p=>p.id && p.activo && p.menu_visible!==false);
 
   if(parsed.length === 0){
@@ -5335,6 +5340,16 @@ function renderMenu(){
   wrap.innerHTML = html;
 }
 
+// v1.23 · S13 · descrizione prodotto nella lingua attiva · fallback a ES se vuota.
+// ES è il campo base p.descripcion. Le altre 7 lingue vivono in p.desc_i18n.
+function getProductDesc(p){
+  if(!p) return '';
+  const lang = (typeof LANG_CODE !== 'undefined') ? LANG_CODE : 'es';
+  if(lang === 'es') return p.descripcion || '';
+  const t = p.desc_i18n && p.desc_i18n[lang];
+  return (t && t.trim()) ? t : (p.descripcion || '');
+}
+
 function renderProductCard(p){
   const promo   = PROD_TO_PROMO[p.id] || null;
   const badges  = buildBadges(p);
@@ -5375,7 +5390,7 @@ function renderProductCard(p){
             ${promoPriceOrig ? `<span class="card-price-orig">${promoPriceOrig}</span>` : ''}${promoPriceMain}
           </div>
         </div>
-        ${p.descripcion ? `<div class="card-desc">${p.descripcion}</div>` : ''}
+        ${getProductDesc(p) ? `<div class="card-desc">${getProductDesc(p)}</div>` : ''}
         ${badgesHtml}
       </div>
       ${p.agotado ? `<div class="agotado-overlay"><span class="agotado-label">${getLang('agotado')}</span></div>` : ''}
@@ -5424,7 +5439,7 @@ function openDetail(id){
     <div class="sheet-body">
       ${badges ? `<div class="sheet-badges">${badges}</div>` : ''}
       <div class="sheet-name">${toTitleCase(p.nombre)}</div>
-      <div class="sheet-desc">${p.descripcion}</div>
+      <div class="sheet-desc">${getProductDesc(p)}</div>
       <div class="sheet-price-row">
         <div>
           ${prices.orig ? `<span class="sheet-price-orig">${prices.orig}</span>` : ''}
@@ -5547,6 +5562,7 @@ function renderSearchOverlayResults(){
     if(p.agotado) return false;
     return p.nombre.toLowerCase().includes(q) ||
            (p.descripcion||'').toLowerCase().includes(q) ||
+           (getProductDesc(p)||'').toLowerCase().includes(q) ||
            (p.badges||'').toLowerCase().includes(q);
   }).slice(0, 30); // hard cap a 30 risultati
 
@@ -5567,7 +5583,7 @@ function renderSearchOverlayResults(){
       : `<span class="search-overlay-result-img-ph">${catEmoji}</span>`;
     const prices = getDisplayPrice(p);
     const nameHi = highlightMatch(toTitleCase(p.nombre), q);
-    const descHi = p.descripcion ? highlightMatch(p.descripcion, q) : '';
+    const descHi = getProductDesc(p) ? highlightMatch(getProductDesc(p), q) : '';
     return `
       <div class="search-overlay-result-item" onclick="onSearchResultTap('${p.id}')">
         <div class="search-overlay-result-img">${imgHtml}</div>
