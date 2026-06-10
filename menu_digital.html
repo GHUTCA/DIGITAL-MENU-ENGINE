@@ -4896,8 +4896,11 @@ function renderCarteleraMode1(djs){
       ? `<span class="cart-sesh-live-badge"><span class="cart-live-dot"></span>EN VIVO</span>`
       : '';
 
-    // v1.23 · S13 · evidenzia il venerdì (match "V" o "VIE" nel campo dia)
-    const isFriday = /(^|,)\s*(V|VIE|VIERNES)\s*(,|$)/i.test(dj.dia || '');
+    // v1.23 · S13 · evidenzia il venerdì · robusto su entrambi i campi:
+    // dia (lettera "V") e dias_visible (testo "VIE"/"VIERNES"/"6TA FEIRA").
+    const _diaRaw = ((dj.dia || '') + ' ' + (dj.dias_visible || '')).toUpperCase();
+    const isFriday = /(^|[\s,])(V|VIE|VIER|VIERNES)([\s,]|$)/.test(' ' + (dj.dia || '').toUpperCase() + ' ')
+                  || /VIE|VIERNES|6TA\s*FEIRA|6ª?\s*FEIRA/.test(_diaRaw);
 
     return `
       <div class="cart-sesh-row${dj.en_vivo ? ' live' : ''}${isFriday ? ' friday' : ''}">
