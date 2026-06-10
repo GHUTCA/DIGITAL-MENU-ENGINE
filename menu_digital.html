@@ -438,6 +438,13 @@ body.theme-dark[data-fascia-menu="dia"] .card-price,
 body.theme-dark[data-fascia-menu="dia"] .cat-header-name,
 body.theme-dark[data-fascia-menu="dia"] .sheet-name { color: var(--brand-text); }
 body.theme-dark[data-fascia-menu="dia"] .sheet-desc { color: rgba(42,31,26,0.65); }
+/* v1.23 · S13fix · AM/DIA · prezzo scheda dettaglio · ereditava bianco-crema globale
+   (invisibile sul fondo crema #F0E9DD). Forzo accent rosso, coerente con .card-price. */
+body.theme-dark[data-fascia-menu="dia"] .sheet-price { color: var(--brand-accent); }
+body.theme-dark[data-fascia-menu="dia"] .sheet-price-orig { color: rgba(42,31,26,0.45); }
+body.theme-dark[data-fascia-menu="dia"] .upsell-price { color: var(--brand-accent); }
+body.theme-dark[data-fascia-menu="dia"] .upsell-name { color: var(--brand-text); }
+body.theme-dark[data-fascia-menu="dia"] .upsell-title { color: rgba(42,31,26,0.55); }
 body.theme-dark[data-fascia-menu="dia"] .cat-tab { color: rgba(42,31,26,0.50); }
 body.theme-dark[data-fascia-menu="dia"] .cat-tab.active { color: var(--brand-text); }
 body.theme-dark[data-fascia-menu="dia"] .bnav-btn { color: rgba(42,31,26,0.55); }
