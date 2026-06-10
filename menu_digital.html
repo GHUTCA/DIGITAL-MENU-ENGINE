@@ -852,6 +852,10 @@ body.theme-dark .group-chip-promos { color: rgba(255,255,255,0.85); }
 body.theme-dark .product-card.has-promo { border-color: rgba(251,191,36,0.45); box-shadow: 0 0 0 1px rgba(251,191,36,0.15), 0 4px 20px rgba(251,191,36,0.10); }
 body.theme-dark .product-card.has-promo:active { border-color: #fbbf24; box-shadow: 0 0 0 2px rgba(251,191,36,0.4); }
 .product-card.has-promo .card-img-wrap { background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(233,69,96,0.10)); }
+/* v1.23 · S13fix · cornice card "Menú del Día" · verde, distinta dal promo dorato */
+.product-card.has-almuerzo { border-color: rgba(61,170,104,0.45); box-shadow: 0 0 0 1px rgba(61,170,104,0.12), 0 4px 16px rgba(61,170,104,0.08); }
+.product-card.has-almuerzo:active { border-color: #3DAA68; box-shadow: 0 0 0 2px rgba(61,170,104,0.4); }
+body.theme-dark .product-card.has-almuerzo { border-color: rgba(61,170,104,0.45); box-shadow: 0 0 0 1px rgba(61,170,104,0.15), 0 4px 20px rgba(61,170,104,0.10); }
 
 /* ══════════════════════════════════════════ RESET & BASE ══════════════════════════════════════════ */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -5559,14 +5563,23 @@ function renderProductCard(p){
     ? `<div style="position:absolute;top:-3px;left:-3px;background:#fbbf24;color:#000;padding:2px 5px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:0.3px;z-index:3;line-height:1;border:2px solid var(--brand-surface)">🎁</div>`
     : '';
   const promoClass = promo ? ' has-promo' : '';
+  // v1.23 · S13fix · evidenzia card "Menú del Día" (regola-prezzo almuerzo attiva ADESSO)
+  const isAlmuerzoActivo = PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo';
+  const almuerzoFlag = isAlmuerzoActivo
+    ? `<div style="position:absolute;top:-3px;right:-3px;background:#3DAA68;color:#fff;padding:2px 5px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:0.3px;z-index:3;line-height:1;border:2px solid var(--brand-surface)">🍽️</div>`
+    : '';
+  const almuerzoBadge = isAlmuerzoActivo
+    ? `<span class="badge" style="background:rgba(61,170,104,0.18);color:#2e8a52;font-weight:700">🍽️ ${getLang('group_almuerzo')||'Menú del Día'}</span>`
+    : '';
+  const almuerzoClass = isAlmuerzoActivo ? ' has-almuerzo' : '';
   // v1.23 · S13 · tipo '2x1' o 'multiplo' = stesso prodotto, paga 1 ricevi 2.
   // NON sostituisce il prezzo (resta quello vero del prodotto) · mostra solo badge 2x1.
   // Altri tipi (combo/tabla) = prezzo fisso promo che sostituisce il prezzo.
   const isDosPorUno = promo && (promo.tipo === '2x1' || promo.tipo === 'multiplo');
   const promoPriceMain = (promo && !isDosPorUno) ? formatPrice(promo.precio_final) : prices.main;
   const promoPriceOrig = (promo && !isDosPorUno) ? formatPrice(p.precio) : prices.orig;
-  const badgesHtml = (promo || badges)
-    ? `<div class="card-badges">${promoBadge}${badges || ''}</div>`
+  const badgesHtml = (promo || badges || almuerzoBadge)
+    ? `<div class="card-badges">${almuerzoBadge}${promoBadge}${badges || ''}</div>`
     : '';
   // v1.11 · dot NUEVO sull'angolo top-right della foto (sostituisce bordo verde animato)
   const nuevoDot = isNew && !p.agotado
@@ -5574,8 +5587,8 @@ function renderProductCard(p){
     : '';
   // v1.11 · layout Strada C · nome+prezzo top, descrizione 2 righe sotto
   return `
-    <div class="product-card${p.agotado?' agotado':''}${isNew?' nuevo-highlight':''}${promoClass}" data-id="${p.id}" onclick="openDetail('${p.id}')">
-      <div class="card-img-wrap">${imgHtml}${promoFlag}${nuevoDot}</div>
+    <div class="product-card${p.agotado?' agotado':''}${isNew?' nuevo-highlight':''}${promoClass}${almuerzoClass}" data-id="${p.id}" onclick="openDetail('${p.id}')">
+      <div class="card-img-wrap">${imgHtml}${promoFlag}${almuerzoFlag}${nuevoDot}</div>
       <div class="card-body">
         <div class="card-top-row">
           <div class="card-name${p.agotado?' agotado-text':''}">${toTitleCase(p.nombre)}</div>
@@ -5660,7 +5673,7 @@ function openDetail(id){
       ${(PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && ALMUERZO_INCLUYE_TXT) ? `
         <div class="almuerzo-incluye">🍽️ ${ALMUERZO_INCLUYE_TXT}</div>
       ` : ''}
-      ${!p.agotado ? `
+      ${!p.agotado && !IS_VETRINA ? `
         <button class="cart-agregar-btn" id="agregarBtn-${p.id}"
                 onclick="addToCart('${p.id}')">
           <span>＋</span><span>${getLang('cart_add') || 'Agregar a mi pedido'}</span>
