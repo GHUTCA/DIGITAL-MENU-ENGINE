@@ -11,7 +11,12 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.28 · 11-jun-2026 · Sessione S15 (post go-live)
+     menu_digital.html · v1.29 · 11-jun-2026 · Sessione S15 (post go-live)
+     CHANGELOG v1.28 → v1.29 (S15):
+     · Disco cabina → VINILE vero (CSS-only · decisione mockup opzione A): solchi
+       repeating-radial-gradient + etichetta rossa con foro + riflesso · rotazione 8s
+       · applicato a faja-cart-disc (teaser cartelera) E dj-disc (fallback header) ·
+       il caso foto DJ resta invariato · click/animazioni glow invariati
      CHANGELOG v1.27 → v1.28 (S15):
      · Bottoni ✕ chiusura (cartelera .cart-close + scheda DJ .dj-sheet-close) ora
        chip scrim scuro con blur · leggibili su qualsiasi foto · varianti light/dia
@@ -826,12 +831,24 @@ body.theme-dark .cat-header-count {
 /* v1.10 · DJ disc · disco rotante che firma il "DJ sta suonando ora"
    v1.12 c5b · da 24px a 32px per maggiore visibilità in microbar */
 .dj-disc{
+  /* v1.29 · S15 · vinile (stessa ricetta della faja · tutta la famiglia) · 8s come deciso */
   width:32px;height:32px;border-radius:50%;
-  background:radial-gradient(circle,rgba(233,69,96,0.45) 35%,#1A1A2E 35%,#1A1A2E 38%,rgba(255,255,255,0.18) 40%,#1A1A2E 90%);
+  background: repeating-radial-gradient(circle, #1a1a24 0 1.3px, #0a0a12 1.3px 2.7px);
   border:1px solid rgba(255,255,255,0.18);
   flex-shrink:0;
-  animation:djSpin 3s linear infinite;
+  position:relative;overflow:hidden;
+  animation:djSpin 8s linear infinite;
   filter:drop-shadow(0 0 4px rgba(233,69,96,0.35));
+}
+.dj-disc::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(135deg,rgba(255,255,255,0.20),transparent 42%);
+}
+.dj-disc::after{
+  content:'';position:absolute;top:50%;left:50%;
+  width:12px;height:12px;border-radius:50%;
+  background:radial-gradient(circle,#0a0a12 0 19%,var(--brand-accent) 19% 100%);
+  transform:translate(-50%,-50%);
 }
 @keyframes djSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
@@ -2449,10 +2466,12 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
   max-width:480px; margin:0 auto;
 }
 .faja-cart-disc{
+  /* v1.29 · S15 · VINILE vero (era CD generico) · solchi repeating-radial +
+     etichetta rossa con foro + riflesso · decisione mockup opzione A */
   flex:0 0 38px;
   width:38px; height:38px;
   border-radius:50%;
-  background: radial-gradient(circle, #2a1a22 0%, #0a0a14 65%);
+  background: repeating-radial-gradient(circle, #1a1a24 0 1.4px, #0a0a12 1.4px 3px);
   border:1.5px solid var(--brand-accent);
   box-shadow: 0 0 0 3px rgba(233,69,96,0.10), 0 0 14px rgba(233,69,96,0.40);
   position:relative; overflow:hidden;
@@ -2462,16 +2481,18 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
 }
 .faja-cart-disc:active{transform:scale(0.92)}
 .faja-cart-disc::before{
-  content:''; position:absolute; inset:6px;
+  /* riflesso di luce sul vinile */
+  content:''; position:absolute; inset:0;
   border-radius:50%;
-  border:1px solid rgba(233,69,96,0.25);
+  background: linear-gradient(135deg, rgba(255,255,255,0.22), transparent 42%);
 }
 .faja-cart-disc::after{
+  /* etichetta rossa con foro centrale */
   content:''; position:absolute; top:50%; left:50%;
-  width:8px; height:8px; border-radius:50%;
-  background: var(--brand-accent);
+  width:15px; height:15px; border-radius:50%;
+  background: radial-gradient(circle, #0a0a12 0 19%, var(--brand-accent) 19% 100%);
   transform: translate(-50%,-50%);
-  box-shadow: 0 0 6px rgba(233,69,96,0.8);
+  box-shadow: 0 0 6px rgba(233,69,96,0.7);
 }
 @keyframes fajaCartDiscSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes fajaCartDiscGlow{
