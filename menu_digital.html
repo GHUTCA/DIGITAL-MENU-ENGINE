@@ -11,7 +11,11 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.29 · 11-jun-2026 · Sessione S15 (post go-live)
+     menu_digital.html · v1.30 · 11-jun-2026 · Sessione S16
+     CHANGELOG v1.29 → v1.30 (S16):
+     · Splash loading: logo immagine da PARAMETROS.splash_logo_url (nuova chiave Sheet ·
+       zero deploy GAS · getConfig la passa già). mix-blend-mode:screen → nero del JPG
+       trasparente sul navy. onerror → fallback emoji+nome. Vuota = comportamento storico.
      CHANGELOG v1.28 → v1.29 (S15):
      · Disco cabina → VINILE vero (CSS-only · decisione mockup opzione A): solchi
        repeating-radial-gradient + etichetta rossa con foro + riflesso · rotazione 8s
@@ -909,6 +913,11 @@ a{text-decoration:none;color:inherit}
 #loadingScreen{position:fixed;inset:0;z-index:999;background:var(--brand-primary);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity 0.5s ease;}
 #loadingScreen.out{opacity:0;pointer-events:none}
 .ld-logo{font-family:'Fraunces',serif;font-size:36px;font-weight:300;color:#fff;letter-spacing:-1px;}
+/* v1.30 · S16 · splash logo immagine da PARAMETROS.splash_logo_url ·
+   mix-blend-mode:screen = il nero del JPG diventa trasparente sul navy
+   dello splash → niente riquadro nero visibile, il neon "galleggia".
+   Vuoto in Sheet = fallback emoji+nome invariato (multilocal pulito). */
+.ld-logo-img{width:min(70vw,280px);height:auto;mix-blend-mode:screen;pointer-events:none;}
 .ld-logo span{color:var(--brand-accent)}
 .ld-bar-wrap{width:120px;height:1px;background:rgba(255,255,255,0.15)}
 .ld-bar{height:1px;background:var(--brand-accent);width:0%;transition:width 0.4s ease}
@@ -3713,6 +3722,7 @@ function toTitleCase(str){
 let BRAND = {
   name:'Menú',
   logo_url:'',
+  splash_logo_url:'',  /* v1.30 · S16 · logo immagine schermata caricamento · da PARAMETROS */
   logo_emoji:'✦',
   favicon_url:'',
   color_primary:'#1A1A2E',
@@ -3751,7 +3761,24 @@ function applyBrand(b){
     const col = encodeURIComponent(BRAND.color_primary || '#1A1A2E');
     faviconTag.href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='${col}'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>${enc}</text></svg>`;
   }
-  document.getElementById('ldBrand').innerHTML = `<span>${BRAND.logo_emoji}</span> ${BRAND.name}`;
+  // v1.30 · S16 · splash logo immagine da Sheet (PARAMETROS.splash_logo_url).
+  // Se popolata → <img> con blend screen (nero→trasparente sul navy).
+  // onerror (ibb giù, URL rotto) → fallback emoji+nome, lo splash non resta mai vuoto.
+  // Vuota → comportamento storico invariato (PINSA e altri locali non vedono nulla di nuovo).
+  // Costruito in DOM puro (niente onerror inline = niente inferno di quoting).
+  const ldBrandEl = document.getElementById('ldBrand');
+  const ldFallbackHtml = `<span>${BRAND.logo_emoji}</span> ${BRAND.name}`;
+  if(BRAND.splash_logo_url){
+    const ldImg = document.createElement('img');
+    ldImg.className = 'ld-logo-img';
+    ldImg.alt = BRAND.name;
+    ldImg.onerror = () => { ldBrandEl.innerHTML = ldFallbackHtml; };
+    ldImg.src = BRAND.splash_logo_url;
+    ldBrandEl.innerHTML = '';
+    ldBrandEl.appendChild(ldImg);
+  } else {
+    ldBrandEl.innerHTML = ldFallbackHtml;
+  }
   // v1.10 · Risoluzione lingua post-brand:
   //   1. ?lang=xx URL (deliberato chi ha fatto il QR) — vince su tutto
   //   2. localStorage 'menu_lang_user_choice' — scelta esplicita cliente
@@ -4222,6 +4249,7 @@ async function loadFromSheet(timeoutMs){
   applyBrand({
     name:            cfg.brand_name         || KNOWN_LOCALS[LOCAL_ID]?.name || LOCAL_ID,
     logo_url:        cfg.brand_logo_url     || '',
+    splash_logo_url: (cfg.splash_logo_url   || '').trim(),  /* v1.30 · S16 · splash neon BKS · vuota = emoji+nome */
     logo_emoji:      cfg.brand_logo_emoji   || KNOWN_LOCALS[LOCAL_ID]?.logo_emoji || '🍽️',
     favicon_url:     cfg.brand_favicon_url  || '',
     color_primary:   cfg.color_primary      || BRAND.color_primary,
