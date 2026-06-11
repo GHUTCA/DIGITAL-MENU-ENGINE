@@ -11,7 +11,15 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.22 (+fix v1.23 in corso) · 06-may-2026 · Sessione S13
+     menu_digital.html · v1.25 · 11-jun-2026 · Sessione S15 (post go-live)
+     CHANGELOG v1.24 → v1.25 (S15):
+     · Instagram follow del locale · chiave PARAMETROS instagram_url (vuota = elemento
+       assente · zero hardcode · multilocal-ready) · elemento "Síguenos · @handle" nel
+       footer cartelera (mode1 DJ + mode2 editorial + mode2 auto_contained · tutti i
+       casi della famiglia, lezione S13) · riusa formatIgHandle/openInstagram dei DJ (S5)
+     · Tracking tap: beacon trackProduct con prod_id __INSTAGRAM__ · zero modifiche GAS
+     · Etichetta in 8 lingue via IG_FOLLOW_LABEL (dizionario locale alla feature)
+     v1.24 · S14 · navigator.language nella catena lingua + CTA_Target da Sheet
      v1.23 · S13fix · bottone ✕ chiusura scheda dettaglio (+ handle cliccabile)
      CHANGELOG v1.21 → v1.22: BIENVENIDA splash · object-fit:contain
      · solo per override stagionali (override_activo=TRUE) · poster
@@ -2701,6 +2709,21 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
 }
 @keyframes cartLivePulse{0%,100%{opacity:1}50%{opacity:0.4}}
 
+/* v1.25 · S15 · Instagram follow del locale · footer cartelera (tutti i modi) */
+.cart-ig-follow{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  margin:14px 22px 6px; padding:11px 16px;
+  border:1px solid rgba(212,165,116,0.35); border-radius:12px;
+  color:#D4A574; font-size:13px; cursor:pointer;
+  background:rgba(212,165,116,0.07);
+  -webkit-tap-highlight-color:transparent;
+}
+.cart-ig-follow:active{background:rgba(212,165,116,0.16);}
+.cart-ig-follow svg{flex:0 0 auto;}
+.cart-ig-follow strong{font-weight:600;}
+body:not(.theme-dark) .cart-ig-follow{
+  color:#A66E3F; border-color:rgba(166,110,63,0.4); background:rgba(166,110,63,0.06);
+}
 .cart-mode1-footer{
   padding: 16px 22px 0;
   text-align:center;
@@ -4159,6 +4182,7 @@ async function loadFromSheet(timeoutMs){
     currency:        cfg.currency           || 'CLP',
     currency_symbol: cfg.currency_symbol    || '$',
     default_lang:    cfg.default_lang       || 'es',
+    instagram_url:   (cfg.instagram_url || '').trim(),  /* v1.25 · S15 · IG follow · vuoto = elemento assente */
     gas_url:         GAS_URL,
     nuevo_dias:      parseInt(cfg.nuevo_dias) || 14,
   });
@@ -5175,6 +5199,7 @@ function renderCarteleraMode1(djs){
       ${rowsHtml || '<div style="padding:20px;text-align:center;color:rgba(255,255,255,0.5);font-style:italic">Cartelera vacía · vuelve pronto</div>'}
     </div>
     ${footerHtml}
+    ${buildIgFollowHtml()}
   `;
 }
 
@@ -5209,6 +5234,7 @@ function renderCarteleraMode2(evento){
       <div class="cart-mode2-hero" data-render="auto_contained">
         ${fotoSrc ? `<img src="${escapeHtml(fotoSrc)}" alt="${escapeHtml(titulo)}" onerror="this.style.display='none'">` : ''}
       </div>
+      ${buildIgFollowHtml()}
     `;
   }
 
@@ -5236,6 +5262,7 @@ function renderCarteleraMode2(evento){
       </div>
     </div>
     ${footer ? `<div class="cart-mode2-footer"><div class="cart-mode1-footer-text">${escapeHtml(footer)}</div></div>` : ''}
+    ${buildIgFollowHtml()}
   `;
 }
 
@@ -5271,6 +5298,44 @@ function openInstagram(raw){
   }
   s = s.replace(/^@+/, '');
   window.open('https://instagram.com/' + s, '_blank');
+}
+
+/* v1.25 · S15 · Instagram follow del LOCALE (da PARAMETROS instagram_url).
+   Etichetta in 8 lingue · dizionario locale alla feature (diff minimo · una sola
+   fonte da curare). Riusa formatIgHandle/openInstagram già esistenti per i DJ. */
+const IG_FOLLOW_LABEL = {
+  es:'Síguenos', en:'Follow us', pt:'Siga a gente', it:'Seguici',
+  de:'Folge uns', fr:'Suivez-nous', zh:'关注我们', ja:'フォローする'
+};
+function buildIgFollowHtml(){
+  const url = (BRAND.instagram_url || '').trim();
+  if(!url) return '';                          // cella PARAMETROS vuota = feature spenta
+  const handle = formatIgHandle(url);
+  if(!handle || handle === '@') return '';
+  const label = IG_FOLLOW_LABEL[LANG_CODE] || IG_FOLLOW_LABEL.es;
+  return `
+    <div class="cart-ig-follow" onclick="openBrandInstagram()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/>
+        <circle cx="12" cy="12" r="4.5"/>
+        <circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/>
+      </svg>
+      <span>${label} · <strong>${escapeHtml(handle)}</strong></span>
+    </div>`;
+}
+function openBrandInstagram(){
+  const url = (BRAND.instagram_url || '').trim();
+  if(!url) return;
+  // KPI feature: tap = proxy del follow · beacon col pattern trackProduct esistente
+  // prod_id __INSTAGRAM__ filtrabile nelle VISTAS · zero modifiche GAS (v1.25 · S15)
+  try{
+    if(BRAND.gas_url){
+      navigator.sendBeacon(BRAND.gas_url, JSON.stringify({
+        action:'trackProduct', local:LOCAL_ID, prod_id:'__INSTAGRAM__', mesa:MESA_ID, ts:Date.now()
+      }));
+    }
+  }catch(e){ /* il tracking non deve mai bloccare l'apertura */ }
+  openInstagram(url);
 }
 
 // Fallback se getCurrentLang non esiste · ritorna 'es' di default
