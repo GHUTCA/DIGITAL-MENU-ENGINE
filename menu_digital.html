@@ -11,7 +11,12 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.30 · 11-jun-2026 · Sessione S16
+     menu_digital.html · v1.31 · 11-jun-2026 · Sessione S16
+     CHANGELOG v1.30 → v1.31 (S16):
+     · Splash: neon CSS puro a t=0 da KNOWN_LOCALS.splash_neon (BKS · Outfit + glow
+       text-shadow). Un solo logo dal primo paint al menu · elimina il doppio logo
+       (vecchio 2s → immagine 0.5s). Priorità: neon > splash_logo_url > emoji+nome.
+       Deroga hardcode documentata: t=0 non può venire dallo Sheet per definizione.
      CHANGELOG v1.29 → v1.30 (S16):
      · Splash loading: logo immagine da PARAMETROS.splash_logo_url (nuova chiave Sheet ·
        zero deploy GAS · getConfig la passa già). mix-blend-mode:screen → nero del JPG
@@ -918,6 +923,29 @@ a{text-decoration:none;color:inherit}
    dello splash → niente riquadro nero visibile, il neon "galleggia".
    Vuoto in Sheet = fallback emoji+nome invariato (multilocal pulito). */
 .ld-logo-img{width:min(70vw,280px);height:auto;mix-blend-mode:screen;pointer-events:none;}
+/* v1.31 · S16 · neon splash CSS puro · renderizzato a t=0 da KNOWN_LOCALS (zero rete).
+   Font Outfit (già caricato) ≈ tipografia del logo neon. Glow = text-shadow stratificato.
+   Colore guida iniettato via --ld-neon (da splash_neon.color). */
+.ld-neon{display:flex;flex-direction:column;align-items:center;gap:14px;}
+.ld-neon-main{
+  font-family:'Outfit',sans-serif;font-weight:600;font-size:74px;line-height:1;
+  letter-spacing:8px;margin-right:-8px;color:#EAFDFF;
+  text-shadow:
+    0 0 3px rgba(255,255,255,0.95),
+    0 0 9px var(--ld-neon,#3FE0F0),
+    0 0 22px var(--ld-neon,#3FE0F0),
+    0 0 48px var(--ld-neon,#3FE0F0),
+    0 0 90px rgba(63,224,240,0.45);
+}
+.ld-neon-tag{
+  font-family:'Outfit',sans-serif;font-weight:400;font-size:11px;
+  letter-spacing:3.5px;margin-right:-3.5px;color:#fff;white-space:nowrap;
+  text-shadow:0 0 3px rgba(255,255,255,0.85),0 0 12px rgba(255,255,255,0.5);
+}
+.ld-neon-tag .ld-neon-dot{
+  color:var(--ld-neon,#3FE0F0);
+  text-shadow:0 0 5px var(--ld-neon,#3FE0F0),0 0 14px var(--ld-neon,#3FE0F0);
+}
 .ld-logo span{color:var(--brand-accent)}
 .ld-bar-wrap{width:120px;height:1px;background:rgba(255,255,255,0.15)}
 .ld-bar{height:1px;background:var(--brand-accent);width:0%;transition:width 0.4s ease}
@@ -3199,6 +3227,12 @@ const KNOWN_LOCALS = {
     color_primary: '#0D0D1A',
     color_accent:  '#E94560',
     theme_mode:    'dark',
+    /* v1.31 · S16 · neon splash CSS a t=0 · DEROGA DOCUMENTATA al "niente hardcode":
+       il primo paint avviene PRIMA di qualsiasi risposta GAS, quindi per definizione
+       non può essere curato da Sheet. KNOWN_LOCALS è già il safety-net di boot
+       (name/emoji/theme) · il neon è la stessa classe di dato. Ha priorità su
+       splash_logo_url (che resta la via Sheet-curabile per locali senza neon). */
+    splash_neon:   { text:'BKS', tagline:'BPM · COCKTAILS · SAPORE', color:'#3FE0F0' },
   },
   // 'RIESCO':  { name:'PINSA Riesco', logo_emoji:'🌿', ... },
   // 'EXO':     { name:'EXO',          logo_emoji:'⚡', ... },
@@ -3768,7 +3802,20 @@ function applyBrand(b){
   // Costruito in DOM puro (niente onerror inline = niente inferno di quoting).
   const ldBrandEl = document.getElementById('ldBrand');
   const ldFallbackHtml = `<span>${BRAND.logo_emoji}</span> ${BRAND.name}`;
-  if(BRAND.splash_logo_url){
+  // v1.31 · S16 · priorità: splash_neon (CSS · t=0 · un solo logo dal primo paint)
+  //                > splash_logo_url (immagine Sheet · arriva con la config)
+  //                > emoji+nome (storico).
+  // applyBrand gira 2 volte (boot KNOWN_LOCALS · poi config GAS): col neon entrambe
+  // producono HTML identico → nessun cambio visivo, niente doppio logo.
+  if(BRAND.splash_neon){
+    const n = BRAND.splash_neon;
+    const tagHtml = (n.tagline||'').replace(/·/g,'<span class="ld-neon-dot">·</span>');
+    const neonHtml = `<div class="ld-neon" style="--ld-neon:${n.color||'#3FE0F0'}">
+      <div class="ld-neon-main">${n.text||BRAND.name}</div>
+      ${tagHtml?`<div class="ld-neon-tag">${tagHtml}</div>`:''}
+    </div>`;
+    if(ldBrandEl.innerHTML !== neonHtml) ldBrandEl.innerHTML = neonHtml;
+  } else if(BRAND.splash_logo_url){
     const ldImg = document.createElement('img');
     ldImg.className = 'ld-logo-img';
     ldImg.alt = BRAND.name;
