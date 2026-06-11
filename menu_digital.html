@@ -11,7 +11,14 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.25 · 11-jun-2026 · Sessione S15 (post go-live)
+     menu_digital.html · v1.26 · 11-jun-2026 · Sessione S15 (post go-live)
+     CHANGELOG v1.25 → v1.26 (S15):
+     · Footer cartelera mode1 da PARAMETROS cartelera_footer (era hardcoded
+       "Comandante DJ es padrón de la casa" da S5 · il fix S13 si era perso nel
+       riordino versioni) · cella vuota = niente footer · multilocal-ready
+     · Giorni DJ nella lingua attiva: formatDjDays() ES/PT (altre lingue fallback ES)
+       · usato in card cartelera + próximas sesiones scheda DJ (tutti i casi famiglia)
+       · replica logica GAS _formatDiasVisible · zero modifiche backend
      CHANGELOG v1.24 → v1.25 (S15):
      · Instagram follow del locale · chiave PARAMETROS instagram_url (vuota = elemento
        assente · zero hardcode · multilocal-ready) · elemento "Síguenos · @handle" nel
@@ -4183,6 +4190,7 @@ async function loadFromSheet(timeoutMs){
     currency_symbol: cfg.currency_symbol    || '$',
     default_lang:    cfg.default_lang       || 'es',
     instagram_url:   (cfg.instagram_url || '').trim(),  /* v1.25 · S15 · IG follow · vuoto = elemento assente */
+    cartelera_footer:(cfg.cartelera_footer || '').trim(), /* v1.26 · S15 · footer cartelera da Sheet · vuoto = niente footer */
     gas_url:         GAS_URL,
     nuevo_dias:      parseInt(cfg.nuevo_dias) || 14,
   });
@@ -5141,6 +5149,35 @@ function renderCarteleraSheet(data, forceMode1){
   }
 }
 
+/* v1.26 · S15 · giorni DJ nella lingua attiva · ES default, PT per brasiliani,
+   altre 6 lingue fallback ES (coerente con strategia splash ES/PT).
+   Accetta array ['X','J'] (da getCartelera) o CSV "X,J" (da getDJsAgenda).
+   Replica la logica GAS _formatDiasVisible: 1 giorno = nome pieno ·
+   7 giorni = "Lun—Dom" · consecutivi = "Mié—Dom" · sparsi = "Mié · Jue". */
+const DJ_DAYS_I18N = {
+  es:{ L:['Lun','Lunes'], M:['Mar','Martes'], X:['Mié','Miércoles'], J:['Jue','Jueves'],
+       V:['Vie','Viernes'], S:['Sáb','Sábado'], D:['Dom','Domingo'] },
+  pt:{ L:['Seg','Segunda'], M:['Ter','Terça'], X:['Qua','Quarta'], J:['Qui','Quinta'],
+       V:['Sex','Sexta'], S:['Sáb','Sábado'], D:['Dom','Domingo'] }
+};
+function formatDjDays(diasInput){
+  let arr = Array.isArray(diasInput)
+    ? diasInput
+    : (diasInput || '').toString().toUpperCase().split(',').map(s=>s.trim()).filter(Boolean);
+  if(arr.length === 0) return '';
+  const map = DJ_DAYS_I18N[LANG_CODE] || DJ_DAYS_I18N.es;
+  const todos = ['L','M','X','J','V','S','D'];
+  arr = arr.filter(d => map[d]);
+  if(arr.length === 0) return '';
+  if(arr.length === 1) return map[arr[0]][1];
+  if(arr.length === 7) return map.L[0] + '—' + map.D[0];
+  const idx = arr.map(d => todos.indexOf(d)).sort((a,b)=>a-b);
+  let consec = true;
+  for(let i=1;i<idx.length;i++){ if(idx[i] !== idx[i-1]+1){ consec=false; break; } }
+  if(consec && idx.length >= 2) return map[todos[idx[0]]][0] + '—' + map[todos[idx[idx.length-1]]][0];
+  return arr.map(d => map[d][0]).join(' · ');
+}
+
 // ─── MODO 1 · default settimana ──────────────────────────────────────────
 function renderCarteleraMode1(djs){
   // Costruisco righe sessione per ogni DJ attivo
@@ -5170,7 +5207,7 @@ function renderCarteleraMode1(djs){
         <div class="cart-sesh-avatar">${avatarHtml}</div>
         <div class="cart-sesh-info">
           <div class="cart-sesh-name">${escapeHtml(dj.nombre || '—')}</div>
-          <div class="cart-sesh-days">${escapeHtml(dj.dias_visible || '')}</div>
+          <div class="cart-sesh-days">${escapeHtml(formatDjDays(dj.dias || dj.dias_visible || dj.dia) || dj.dias_visible || '')}</div>
         </div>
         ${igHtml}
         <div class="cart-sesh-time">${escapeHtml(dj.hora_ini || '')} — ${escapeHtml(dj.hora_fin || '')}${liveBadge}</div>
@@ -5179,10 +5216,13 @@ function renderCarteleraMode1(djs){
   }).join('');
 
   // Footer · "padron de la casa" se Comandante DJ presente nei dati
-  const hasComandante = djs.some(d => d.dj_id === 'CDJ' || /comandante/i.test(d.nombre || ''));
-  const footerHtml = hasComandante
+  // v1.26 · S15 · footer da PARAMETROS cartelera_footer · vuoto = niente footer.
+  // Era hardcoded "Comandante DJ es padrón de la casa" condizionato a presenza CDJ
+  // (debito da S5 · il fix S13 si era perso nel riordino versioni · zero-hardcode rule).
+  const footerTxt = (BRAND.cartelera_footer || '').trim();
+  const footerHtml = footerTxt
     ? `<div class="cart-mode1-footer">
-         <div class="cart-mode1-footer-text"><strong>Comandante DJ</strong> es padrón de la casa</div>
+         <div class="cart-mode1-footer-text">${escapeHtml(footerTxt)}</div>
        </div>`
     : '';
 
@@ -6416,7 +6456,7 @@ function renderProximasSesiones(currentDjId){
     .slice(0, 3);
   if(proximas.length === 0) return '';
   const items = proximas.map(d => {
-    const days = d.dia ? d.dia.replace(/,/g, '/') : '';
+    const days = formatDjDays(d.dia); // v1.26 · S15 · era lettere crude X/J/S
     const time = (d.hora_ini && d.hora_fin) ? `${d.hora_ini}-${d.hora_fin}` : '';
     const when = [days, time].filter(Boolean).join(' · ');
     return `
