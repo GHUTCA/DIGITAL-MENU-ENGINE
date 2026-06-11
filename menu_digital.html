@@ -11,7 +11,11 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.26 · 11-jun-2026 · Sessione S15 (post go-live)
+     menu_digital.html · v1.27 · 11-jun-2026 · Sessione S15 (post go-live)
+     CHANGELOG v1.26 → v1.27 (S15):
+     · Card DJ in cartelera ora cliccabile → apre la scheda DJ di quella riga
+       (openDjSheet accetta DJ esplicito · default resta il DJ in cabina per il
+       disco header · retrocompat totale) · chevron › come affordance + feedback tap
      CHANGELOG v1.25 → v1.26 (S15):
      · Footer cartelera mode1 da PARAMETROS cartelera_footer (era hardcoded
        "Comandante DJ es padrón de la casa" da S5 · il fix S13 si era perso nel
@@ -2597,6 +2601,13 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
 }
 
 .cart-mode1-sessions{padding: 16px 18px 6px}
+/* v1.27 · S15 · card DJ cliccabile · affordance chevron + feedback tap */
+.cart-sesh-row{cursor:pointer; -webkit-tap-highlight-color:transparent;}
+.cart-sesh-row:active{transform:scale(0.985); transition:transform .08s;}
+.cart-sesh-chevron{
+  flex:0 0 auto; margin-left:6px; font-size:18px; line-height:1;
+  color:rgba(127,127,127,0.55); font-weight:600;
+}
 .cart-sesh-row{
   display:flex; align-items:center; gap:10px;
   padding: 10px 12px;
@@ -5178,11 +5189,19 @@ function formatDjDays(diasInput){
   return arr.map(d => map[d][0]).join(' · ');
 }
 
+// v1.27 · S15 · tap sulla card cartelera → scheda DJ di QUELLA riga
+let CARTELERA_DJS_RENDERED = [];
+function openDjSheetFromCartelera(i){
+  const dj = (CARTELERA_DJS_RENDERED || [])[i];
+  if(dj) openDjSheet(dj);
+}
+
 // ─── MODO 1 · default settimana ──────────────────────────────────────────
 function renderCarteleraMode1(djs){
   // Costruisco righe sessione per ogni DJ attivo
   // dj.foto_url presente → <img>, altrimenti iniziali (max 2 char dal nome)
-  const rowsHtml = djs.map(dj => {
+  CARTELERA_DJS_RENDERED = djs;  // v1.27 · S15 · lookup per tap sulla card
+  const rowsHtml = djs.map((dj, djIdx) => {
     const initials = (dj.nombre || '?').trim().split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase();
     const avatarHtml = dj.foto_url && dj.foto_url.startsWith('http')
       ? `<img src="${escapeHtml(dj.foto_url)}" alt="${escapeHtml(dj.nombre)}" onerror="this.parentElement.innerHTML='<div class=\\'cart-sesh-avatar-initials\\'>${initials}</div>'">`
@@ -5203,7 +5222,7 @@ function renderCarteleraMode1(djs){
                   || /VIE|VIERNES|6TA\s*FEIRA|6ª?\s*FEIRA/.test(_diaRaw);
 
     return `
-      <div class="cart-sesh-row${dj.en_vivo ? ' live' : ''}${isFriday ? ' friday' : ''}">
+      <div class="cart-sesh-row${dj.en_vivo ? ' live' : ''}${isFriday ? ' friday' : ''}" onclick="openDjSheetFromCartelera(${djIdx})" role="button" aria-label="Ver detalle DJ">
         <div class="cart-sesh-avatar">${avatarHtml}</div>
         <div class="cart-sesh-info">
           <div class="cart-sesh-name">${escapeHtml(dj.nombre || '—')}</div>
@@ -5211,6 +5230,7 @@ function renderCarteleraMode1(djs){
         </div>
         ${igHtml}
         <div class="cart-sesh-time">${escapeHtml(dj.hora_ini || '')} — ${escapeHtml(dj.hora_fin || '')}${liveBadge}</div>
+        <span class="cart-sesh-chevron" aria-hidden="true">›</span>
       </div>
     `;
   }).join('');
@@ -6360,9 +6380,11 @@ function parseHHMMtoMin(s){
 
 // v1.12 · S5 · openDjSheet · scheda DJ bottom-sheet con foto, bio, instagram,
 // próximas sesiones (max 3) e snapshot ahora en cabina (slogan + BPM).
-function openDjSheet(){
-  if(!CURRENT_DJ_BKS) return;
-  const dj = CURRENT_DJ_BKS;
+function openDjSheet(djArg){
+  // v1.27 · S15 · accetta un DJ esplicito (card cartelera) · default = DJ in cabina
+  // (disco header chiama senza argomenti · comportamento storico invariato)
+  const dj = djArg || CURRENT_DJ_BKS;
+  if(!dj) return;
   const content = document.getElementById('djSheetContent');
   const sheet = document.getElementById('djSheet');
   const overlay = document.getElementById('djOverlay');
