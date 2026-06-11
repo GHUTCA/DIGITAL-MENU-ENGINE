@@ -11,7 +11,11 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.27 · 11-jun-2026 · Sessione S15 (post go-live)
+     menu_digital.html · v1.28 · 11-jun-2026 · Sessione S15 (post go-live)
+     CHANGELOG v1.27 → v1.28 (S15):
+     · Bottoni ✕ chiusura (cartelera .cart-close + scheda DJ .dj-sheet-close) ora
+       chip scrim scuro con blur · leggibili su qualsiasi foto · varianti light/dia
+       allineate allo stesso chip (CSS-only)
      CHANGELOG v1.26 → v1.27 (S15):
      · Card DJ in cartelera ora cliccabile → apre la scheda DJ di quella riga
        (openDjSheet accetta DJ esplicito · default resta il DJ in cabina per il
@@ -309,8 +313,8 @@ body.theme-dark[data-fascia-menu="dia"] .confirm-btn-cancel:active {
 /* Patch C-bis 5 · BONUS · X chiusura scheda DJ bottom-sheet (stesso pattern)
    Il djSheet ha la stessa struttura della cartelera, stesso bug in DIA. */
 body.theme-dark[data-fascia-menu="dia"] #djSheet .dj-sheet-close {
-  background: rgba(42,31,26,0.08);
-  color: rgba(42,31,26,0.75);
+  background: rgba(10,10,20,0.55); /* v1.28 · chip unico su foto */
+  color: #fff;
 }
 body.theme-dark[data-fascia-menu="dia"] #djSheet .dj-sheet-close:active {
   background: rgba(42,31,26,0.16);
@@ -1488,13 +1492,16 @@ body.theme-dark #djSheet{
   border-radius: 4px;
 }
 .dj-sheet-close{
+  /* v1.28 · S15 · chip scrim scuro · leggibile su QUALSIASI foto (era quasi invisibile) */
   position:absolute;top:14px;right:18px;
-  width:28px;height:28px;border-radius:50%;
-  background:rgba(255,255,255,0.08);
-  color:rgba(255,255,255,0.7);
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(10,10,20,0.55);
+  backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+  color:#fff;
   display:flex;align-items:center;justify-content:center;
-  font-size:14px;cursor:pointer;
-  border:none;
+  font-size:15px;cursor:pointer;
+  border:1px solid rgba(255,255,255,0.18);
+  z-index:12;
 }
 .dj-sheet-close:active{background:rgba(255,255,255,0.15);}
 /* light mode (eventuale Candelaria futuro · per ora microbar è solo BKS dark) */
@@ -1504,7 +1511,7 @@ body:not(.theme-dark) .dj-sheet-bio{color:rgba(0,0,0,0.65);}
 body:not(.theme-dark) .dj-sheet-instagram{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1);color:var(--brand-text);}
 body:not(.theme-dark) .dj-sheet-next-item{background:rgba(0,0,0,0.02);border-color:rgba(0,0,0,0.06);}
 body:not(.theme-dark) .dj-sheet-next-name{color:var(--brand-text);}
-body:not(.theme-dark) .dj-sheet-close{background:rgba(0,0,0,0.06);color:rgba(0,0,0,0.6);}
+body:not(.theme-dark) .dj-sheet-close{background:rgba(10,10,20,0.55);color:#fff;} /* v1.28 · chip unico */
 .sheet-img{width:100%;height:220px;background:var(--brand-bg);object-fit:cover;position:relative;}
 .sheet-img img{width:100%;height:100%;object-fit:cover}
 .sheet-img-ph{width:100%;height:220px;display:flex;align-items:center;justify-content:center;background:var(--brand-bg);font-size:64px;opacity:0.15;}
@@ -2550,12 +2557,14 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
   margin: 0 auto 14px;
 }
 #carteleraSheet .cart-close{
+  /* v1.28 · S15 · chip scrim scuro · era bianco 10% su foto hero = quasi invisibile */
   position:absolute; top:14px; right:14px;
   width:32px; height:32px; border-radius:50%;
-  background: rgba(255,255,255,0.10);
+  background: rgba(10,10,20,0.55);
+  backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
   display:flex; align-items:center; justify-content:center;
-  font-size:13px; color: rgba(255,255,255,0.55);
-  cursor:pointer; border:none;
+  font-size:15px; color:#fff;
+  cursor:pointer; border:1px solid rgba(255,255,255,0.18);
   z-index:10;
 }
 
