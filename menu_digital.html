@@ -2606,13 +2606,24 @@ body.theme-dark[data-fascia-menu="dia"] .faja-bks-arrow{ color: rgba(42,31,26,0.
 
 .evt-ico{ width:20px; height:20px; flex:0 0 20px; position:relative; color: var(--evt-pill-accent,#2bd4a0); }
 .evt-ico.futbol{
-  border-radius:50%; background:#f4f4f4; border:1px solid currentColor;
+  border-radius:50%; background:#f4f4f4; border:1.5px solid #16161e;
   overflow:hidden; animation: evtSpin 9s linear infinite;
+  box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.15);
 }
 .evt-ico.futbol::before{
-  content:''; position:absolute; top:50%; left:50%; width:7px; height:7px;
-  background:#16161e; transform:translate(-50%,-50%);
-  clip-path:polygon(50% 0,95% 35%,78% 90%,22% 90%,5% 35%);
+  content:''; position:absolute; top:50%; left:50%;
+  width:6px; height:6px; background:#16161e;
+  transform:translate(-50%,-50%) rotate(15deg);
+  clip-path:polygon(50% 0,100% 38%,82% 100%,18% 100%,0 38%);
+}
+.evt-ico.futbol::after{
+  content:''; position:absolute; inset:0;
+  background:
+    radial-gradient(circle at 50% -8%, #16161e 0 2px, transparent 2.5px),
+    radial-gradient(circle at 92% 42%, #16161e 0 2px, transparent 2.5px),
+    radial-gradient(circle at 8% 42%, #16161e 0 2px, transparent 2.5px),
+    radial-gradient(circle at 72% 96%, #16161e 0 2px, transparent 2.5px),
+    radial-gradient(circle at 28% 96%, #16161e 0 2px, transparent 2.5px);
 }
 .evt-ico.botella::before{
   content:''; position:absolute; left:50%; top:1px; transform:translateX(-50%);
