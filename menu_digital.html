@@ -5240,10 +5240,8 @@ function renderCarteleraBksSlot(){
     ? `style="--bks-gold:${color}; --bks-gold-dim:${color}1F; --bks-gold-border:${color}73;"`
     : '';
 
-  // Thumb · foto se c'è, altrimenti monogramma "B"
-  const thumb = (b.foto_url && b.foto_url.startsWith('http'))
-    ? `<img src="${escapeHtml(b.foto_url)}" alt="" onerror="this.style.display='none';this.parentNode.innerHTML='<span class=&quot;faja-bks-mono&quot;>B</span>'">`
-    : `<span class="faja-bks-mono">B</span>`;
+  // S16 fix · thumb SEMPRE monogramma "B" (mai il ritaglio del poster Foto_URL)
+  const thumb = `<span class="faja-bks-mono">B</span>`;
 
   return `
     <div class="faja-bks-mode" ${styleVar}
@@ -5350,14 +5348,32 @@ async function loadCartelera(force){
   return CARTELERA_DATA;
 }
 
-/* S16 · aperture dei due slot nuovi · riusano il bottom-sheet cartelera esistente.
-   BKS → vista lista DJ (modo 1, "la música manda" è il cuore della cartelera).
-   Eventos → vista poster evento (modo 2). */
+/* S16 fix · aperture slot · ognuno apre il PROPRIO poster (non la lista DJ).
+   Riusa il bottom-sheet cartelera + renderCarteleraMode2 (poster puro)
+   passando l'oggetto giusto (cartelera_bks o cartelera_eventos).
+   Gli oggetti hanno gli stessi campi che mode2 si aspetta: foto_url,
+   titulo_es, eyebrow_es, subtitulo_es, horario_visible. */
+function _openCarteleraPoster(slotData){
+  const sheet = document.getElementById('carteleraSheet');
+  const overlay = document.getElementById('carteleraOverlay');
+  const container = document.getElementById('carteleraContent');
+  if(!sheet || !overlay || !container || !slotData) return;
+  const evt = Object.assign({ modo_render: 'auto_contained' }, slotData);
+  container.innerHTML = renderCarteleraMode2(evt);
+  overlay.classList.add('show');
+  requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('show')));
+  document.body.style.overflow = 'hidden';
+  document.body.style.touchAction = 'none';
+}
 function openCarteleraBks(){
-  openCartelera(true);   // forceMode1 · cartelera DJ/semana
+  const d = CARTELERA_DATA && CARTELERA_DATA.cartelera_bks;
+  if(d) _openCarteleraPoster(d);
+  else openCartelera(true);   // fallback · se slot vuoto apre la lista DJ
 }
 function openCarteleraEventos(){
-  openCartelera();       // modo 2 se evento attivo · poster
+  const d = CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos;
+  if(d) _openCarteleraPoster(d);
+  else openCartelera();       // fallback
 }
      
 async function openCartelera(forceMode1){
