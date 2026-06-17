@@ -116,6 +116,9 @@
 :root {
   --brand-primary: #1A1A2E;
   --brand-accent: #E94560;
+  --bks-gold: #E0A93D;
+  --bks-gold-dim: rgba(224,169,61,0.12);
+  --bks-gold-border: rgba(224,169,61,0.45);
   --brand-bg: #F8F8F8;
   --brand-surface: #FFFFFF;
   --brand-text: #2C2C2C;
@@ -2551,6 +2554,113 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
   line-height:1.3;
 }
 
+/* ════════════════════════════════════════════════════════════════════════
+   S16 · HEADER TRE SLOT · poster BKS (oro) + slot evento parametrabile (A+B)
+   ════════════════════════════════════════════════════════════════════════ */
+.faja-bks-mode{
+  display:flex; align-items:center; gap:10px;
+  padding: 4px 16px 6px;
+  max-width:480px; margin:0 auto;
+  cursor:pointer;
+}
+.faja-bks-thumb{
+  flex:0 0 30px; width:30px; height:30px; border-radius:7px;
+  background: var(--bks-gold-dim);
+  border:1px solid var(--bks-gold-border);
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden; position:relative;
+}
+.faja-bks-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+.faja-bks-thumb .faja-bks-mono{
+  font-family:'Fraunces',serif; font-weight:700; font-size:15px;
+  color: var(--bks-gold);
+}
+.faja-bks-content{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; line-height:1; }
+.faja-bks-eyebrow{
+  font-size:9px; font-weight:700; letter-spacing:1.6px;
+  color: var(--bks-gold);
+}
+.faja-bks-text{
+  font-family:'Fraunces',serif; font-size:12.5px; font-style:italic;
+  color: rgba(255,255,255,0.55); line-height:1.25;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+body.theme-dark[data-fascia-menu="dia"] .faja-bks-text{ color: rgba(42,31,26,0.62); }
+.faja-bks-arrow{ color: rgba(255,255,255,0.35); font-size:14px; flex:0 0 auto; }
+body.theme-dark[data-fascia-menu="dia"] .faja-bks-arrow{ color: rgba(42,31,26,0.4); }
+
+.faja-evt-pill{
+  display:flex; align-items:center; gap:5px;
+  background: var(--evt-pill-bg, rgba(43,212,160,0.14));
+  border:1px solid var(--evt-pill-border, rgba(43,212,160,0.4));
+  border-radius:14px; padding:4px 9px;
+  flex:0 0 auto; cursor:pointer;
+  transition: transform 0.15s;
+}
+.faja-evt-pill:active{ transform:scale(0.94); }
+.faja-evt-pill-label{
+  font-size:9.5px; font-weight:700; letter-spacing:0.5px;
+  color: var(--evt-pill-accent, #2bd4a0); white-space:nowrap;
+}
+.faja-evt-emoji{ font-size:15px; line-height:1; }
+
+.evt-ico{ width:20px; height:20px; flex:0 0 20px; position:relative; color: var(--evt-pill-accent,#2bd4a0); }
+.evt-ico.futbol{
+  border-radius:50%; background:#f4f4f4; border:1px solid currentColor;
+  overflow:hidden; animation: evtSpin 9s linear infinite;
+}
+.evt-ico.futbol::before{
+  content:''; position:absolute; top:50%; left:50%; width:7px; height:7px;
+  background:#16161e; transform:translate(-50%,-50%);
+  clip-path:polygon(50% 0,95% 35%,78% 90%,22% 90%,5% 35%);
+}
+.evt-ico.botella::before{
+  content:''; position:absolute; left:50%; top:1px; transform:translateX(-50%);
+  width:5px; height:6px; background:currentColor; border-radius:1px;
+}
+.evt-ico.botella::after{
+  content:''; position:absolute; left:50%; top:6px; transform:translateX(-50%);
+  width:11px; height:13px; background:currentColor; border-radius:3px 3px 2px 2px;
+}
+.evt-ico.corazon::before{
+  content:'♥'; position:absolute; inset:0; display:flex; align-items:center;
+  justify-content:center; color:currentColor; font-size:17px; line-height:1;
+}
+.evt-ico.copa::before{
+  content:''; position:absolute; left:50%; top:1px; transform:translateX(-50%);
+  width:13px; height:8px; background:currentColor;
+  border-radius:0 0 13px 13px / 0 0 9px 9px;
+}
+.evt-ico.copa::after{
+  content:''; position:absolute; left:50%; top:9px; transform:translateX(-50%);
+  width:2px; height:8px; background:currentColor;
+  box-shadow:-4px 9px 0 -3px currentColor, 4px 9px 0 -3px currentColor;
+}
+.evt-ico.micro::before{
+  content:''; position:absolute; left:50%; top:1px; transform:translateX(-50%);
+  width:7px; height:11px; background:currentColor; border-radius:4px;
+}
+.evt-ico.micro::after{
+  content:''; position:absolute; left:50%; top:12px; transform:translateX(-50%);
+  width:2px; height:6px; background:currentColor;
+  box-shadow:-4px 6px 0 -2px currentColor, 4px 6px 0 -2px currentColor;
+}
+.evt-ico.estrella::before{
+  content:'★'; position:absolute; inset:0; display:flex; align-items:center;
+  justify-content:center; color:currentColor; font-size:18px; line-height:1;
+}
+.evt-ico.vinilo{
+  border-radius:50%;
+  background: repeating-radial-gradient(circle,#1a1a24 0 1.4px,#0a0a12 1.4px 3px);
+  border:1px solid currentColor; animation: evtSpin 8s linear infinite;
+}
+.evt-ico.vinilo::after{
+  content:''; position:absolute; top:50%; left:50%; width:7px; height:7px;
+  border-radius:50%; background: radial-gradient(circle,#0a0a12 0 19%,currentColor 19% 100%);
+  transform:translate(-50%,-50%);
+}
+@keyframes evtSpin{ to{ transform:rotate(360deg); } }
+     
 /* v1.15 · S7 · sub-stato A2 · slogan ritmo + BPM discreti su seconda riga
    Quando ritmo BPM attivo ma DJ non presente · info contestuale leggera. */
 .faja-cartA2-info{
@@ -5100,6 +5210,92 @@ function renderFajaEventPill(mode){
   `;
 }
 
+/* ════════════════════════════════════════════════════════════════════════
+   S16 · renderCarteleraBksSlot · striscia poster BKS (oro · sempre visibile)
+   Legge CARTELERA_DATA.cartelera_bks (slot base+override, regola finestra-stretta
+   già applicata server-side). Stringa vuota = niente slot (tab BKS vuota).
+   Header_Color_Hex sovrascrive l'oro default se popolato.
+   ════════════════════════════════════════════════════════════════════════ */
+function renderCarteleraBksSlot(){
+  if(!CARTELERA_DATA || !CARTELERA_DATA.cartelera_bks) return '';
+  const b = CARTELERA_DATA.cartelera_bks;
+
+  const eyebrow = (b.eyebrow_es || 'LA SEMANA BKS');
+  const texto   = (b.subtitulo_es || b.titulo_es || '');
+
+  // Colore custom da Sheet · altrimenti oro default (via CSS var, niente inline)
+  const color = (b.header_color || '').trim();
+  const styleVar = (color && /^#[0-9A-Fa-f]{6}$/.test(color))
+    ? `style="--bks-gold:${color}; --bks-gold-dim:${color}1F; --bks-gold-border:${color}73;"`
+    : '';
+
+  // Thumb · foto se c'è, altrimenti monogramma "B"
+  const thumb = (b.foto_url && b.foto_url.startsWith('http'))
+    ? `<img src="${escapeHtml(b.foto_url)}" alt="" onerror="this.style.display='none';this.parentNode.innerHTML='<span class=&quot;faja-bks-mono&quot;>B</span>'">`
+    : `<span class="faja-bks-mono">B</span>`;
+
+  return `
+    <div class="faja-bks-mode" ${styleVar}
+         onclick="openCarteleraBks()"
+         role="button" tabindex="0"
+         aria-label="${escapeHtml(eyebrow)}"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCarteleraBks();}">
+      <div class="faja-bks-thumb">${thumb}</div>
+      <div class="faja-bks-content">
+        <div class="faja-bks-eyebrow">${escapeHtml(eyebrow)}</div>
+        <div class="faja-bks-text">${escapeHtml(texto)}</div>
+      </div>
+      <span class="faja-bks-arrow">›</span>
+    </div>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   S16 · renderHeaderEventPill · pill-evento parametrabile A+B (es Mundial)
+   Legge CARTELERA_DATA.cartelera_eventos. Vuoto = niente pill (slot spento).
+   Header_Icono (A+B):
+     · nome catalogo CSS ('futbol','botella','corazon','copa','micro',
+       'estrella','vinilo') → icona animata CSS
+     · emoji (⚽🍾❤️) o stringa breve → resa come emoji
+   Header_Color_Hex → colore del pill (vuoto = verde-acqua default).
+   ════════════════════════════════════════════════════════════════════════ */
+const EVT_ICO_CATALOGO = ['futbol','botella','corazon','copa','micro','estrella','vinilo'];
+
+function renderHeaderEventPill(){
+  if(!CARTELERA_DATA || !CARTELERA_DATA.cartelera_eventos) return '';
+  const e = CARTELERA_DATA.cartelera_eventos;
+
+  const label = (e.eyebrow_es || e.titulo_es || '');
+  if(!label) return '';
+
+  // Colore custom · default verde-acqua #2bd4a0
+  const color = (e.header_color || '').trim();
+  const styleVars = (color && /^#[0-9A-Fa-f]{6}$/.test(color))
+    ? `style="--evt-pill-bg:${color}24; --evt-pill-border:${color}66; --evt-pill-accent:${color};"`
+    : '';
+
+  // Icona · catalogo CSS (A) o emoji/testo (B)
+  const ico = (e.header_icono || '').trim();
+  let icoHtml = '';
+  if(ico){
+    if(EVT_ICO_CATALOGO.indexOf(ico.toLowerCase()) >= 0){
+      icoHtml = `<span class="evt-ico ${ico.toLowerCase()}" aria-hidden="true"></span>`;
+    } else if(!ico.startsWith('http')){
+      icoHtml = `<span class="faja-evt-emoji" aria-hidden="true">${escapeHtml(ico)}</span>`;
+    } else {
+      icoHtml = `<img class="evt-ico" src="${escapeHtml(ico)}" alt="" style="border-radius:50%;object-fit:cover" onerror="this.style.display='none'">`;
+    }
+  }
+
+  return `
+    <div class="faja-evt-pill" ${styleVars}
+         onclick="event.stopPropagation();openCarteleraEventos()"
+         role="button" tabindex="0"
+         aria-label="${escapeHtml(label)}"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCarteleraEventos();}">
+      ${icoHtml}
+      <span class="faja-evt-pill-label">${escapeHtml(label)}</span>
+    </div>`;
+}
      
 async function loadCartelera(force){
   if(CARTELERA_LOADING) return CARTELERA_DATA;
@@ -5143,6 +5339,16 @@ async function loadCartelera(force){
   return CARTELERA_DATA;
 }
 
+/* S16 · aperture dei due slot nuovi · riusano il bottom-sheet cartelera esistente.
+   BKS → vista lista DJ (modo 1, "la música manda" è il cuore della cartelera).
+   Eventos → vista poster evento (modo 2). */
+function openCarteleraBks(){
+  openCartelera(true);   // forceMode1 · cartelera DJ/semana
+}
+function openCarteleraEventos(){
+  openCartelera();       // modo 2 se evento attivo · poster
+}
+     
 async function openCartelera(forceMode1){
   // v1.15 fix · UX immediato: mostra sheet con skeleton mentre fetch è in corso.
   // Senza questo, primo tap su GAS freddo restava silenzioso 1-15s.
@@ -6730,9 +6936,11 @@ function renderRhythmBar(){
           <div class="faja-cart-text">${getLang('cartelera_question')}</div>
           ${rhythmInfoHtml}
         </div>
+        ${renderHeaderEventPill()}
       </div>
-      ${renderFajaEventPill('banner')}
-      <div style="margin-top:4px;height:1px;background:linear-gradient(90deg, transparent, var(--brand-accent-line) 30%, var(--brand-accent-line-strong) 50%, var(--brand-accent-line) 70%, transparent);opacity:0.7"></div>`;
+      <div style="margin-top:4px;height:1px;background:linear-gradient(90deg, transparent, var(--brand-accent-line) 30%, var(--brand-accent-line-strong) 50%, var(--brand-accent-line) 70%, transparent);opacity:0.7"></div>
+      ${renderCarteleraBksSlot()}
+      <div style="margin-top:2px;height:1px;background:linear-gradient(90deg, transparent, var(--bks-gold-border) 40%, var(--bks-gold-border) 60%, transparent);opacity:0.5"></div>`;
 
     // Waveform · visibile solo se c'è ritmo (sub-stato A2)
     const wf = fajaBar.querySelector('.rhythm-waveform');
