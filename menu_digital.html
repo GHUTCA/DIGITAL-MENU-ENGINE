@@ -11,7 +11,20 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.31 · 11-jun-2026 · Sessione S16
+     menu_digital.html · v1.32 · 17-jun-2026 · Sessione S16
+     CHANGELOG v1.31 → v1.32 (S16 · REDESIGN HEADER STICKY):
+     · Header+faja FISSI blu-notte (--header-fixed #1A1F2E), sganciati dalla
+       fascia: una sola identità a tutte le ore. Solo il MENU sotto resta
+       dia/tarde/noche. Reset colori faja per neutralizzare override DIA/TARDE.
+     · Logo neon ciano BKS (--header-neon) coerente con lo splash · solo nome
+       (no emoji-pallino) · resta curabile da Sheet via BRAND.name.
+     · Filo arancio (--header-orange-line) sotto il brand · accento, non parete.
+     · Favicon → BKS neon ciano su blu-notte (anche fallback applyBrand).
+     · Layout "C": poster BKS protagonista in alto (icona calendario-estrella
+       SVG al posto del mono "B") + riga 2 pill sotto (renderCarteleraPillRow):
+       Cabina DJ (micro-vinile rosso che gira · lang pill_dj 8L) + pill evento
+       Mundial (micro-pallone che gira · label/colore/icona curati da Sheet).
+       renderHeaderEventPill resta definita ma non più chiamata (legacy).
      CHANGELOG v1.30 → v1.31 (S16):
      · Splash: neon CSS puro a t=0 da KNOWN_LOCALS.splash_neon (BKS · Outfit + glow
        text-shadow). Un solo logo dal primo paint al menu · elimina il doppio logo
@@ -106,7 +119,7 @@
        decorativa rossa elegante + dot acceso pulsante prima del label
        "♪ BKS Rhythm" (sembrava bug, ora sembra design).
      ════════════════════════════════════════════════════════════════════ -->
-<link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1A2E'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>🍽️</text></svg>">
+<link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1F2E'/><text x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Georgia,serif' font-weight='400' font-size='11' letter-spacing='0.5' fill='%23CFF6FF'>BKS</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&display=swap" rel="stylesheet">
 <style>
@@ -115,6 +128,13 @@
    ══════════════════════════════════════════ */
 :root {
   --brand-primary: #1A1A2E;
+  /* S16 · header+faja FISSI blu-notte a tutte le ore (sganciati dalla fascia).
+     Stesso blu-notte dello splash BKS neon → continuità splash↔header.
+     Solo il MENU sotto cambia dia/tarde/noche; questo blocco resta isola. */
+  --header-fixed: #1A1F2E;
+  --header-neon: #CFF6FF;
+  --header-neon-glow: rgba(120,224,255,0.55);
+  --header-orange-line: rgba(232,107,42,0.70);
   --brand-accent: #E94560;
   --bks-gold: #E0A93D;
   --bks-gold-dim: rgba(224,169,61,0.12);
@@ -237,13 +257,18 @@ body.theme-dark[data-fascia-menu="tarde"] .faja-cart-text {
   color: rgba(255,255,255,0.80);
   font-size: 14px;
 }
+/* S16 · faja blu-notte fissa → in DIA i testi del blocco DJ tornano chiari
+   (annulla lo scurimento Patch 2/3 pensato per il vecchio fondo crema) */
+body.theme-dark[data-fascia-menu="dia"] .faja-cart-text {
+  color: rgba(255,255,255,0.62) !important;
+}
 
 /* Patch 3 · sub-stato A2 (slogan ritmo + BPM senza DJ)
    Erano rgba(255,255,255,0.48 / 0.40) → quasi spenti su cremoso.
    In DIA usano brand-text-muted · in TARDE alziamo opacity bianca. */
 body.theme-dark[data-fascia-menu="dia"] .faja-cartA2-slogan,
 body.theme-dark[data-fascia-menu="dia"] .faja-cartA2-bpm {
-  color: var(--brand-text-muted);
+  color: rgba(255,255,255,0.55) !important;
 }
 body.theme-dark[data-fascia-menu="tarde"] .faja-cartA2-slogan {
   color: rgba(255,255,255,0.70);
@@ -536,6 +561,25 @@ body.theme-dark[data-fascia-menu="tarde"] #fajaBar div[style*="color:#fff"],
 body.theme-dark[data-fascia-menu="tarde"] #fajaBar div[style*="color: #fff"] {
   color: var(--brand-text) !important;
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   S16 · FAJA FISSA BLU-NOTTE · neutralizza gli override DIA/TARDE qui sopra.
+   La faja non segue più la fascia (è isola blu-notte), quindi i testi
+   restano SEMPRE chiari · evita testo scuro invisibile su fondo scuro.
+   Viene DOPO i blocchi dia/tarde → vince per ordine di cascata.
+   ════════════════════════════════════════════════════════════════════ */
+body.theme-dark[data-fascia-menu="dia"] #fajaBar div[style*="color:#fff"],
+body.theme-dark[data-fascia-menu="dia"] #fajaBar div[style*="color: #fff"],
+body.theme-dark[data-fascia-menu="tarde"] #fajaBar div[style*="color:#fff"],
+body.theme-dark[data-fascia-menu="tarde"] #fajaBar div[style*="color: #fff"] {
+  color: #fff !important;
+}
+body.theme-dark[data-fascia-menu="dia"] .faja-bks-text,
+body.theme-dark[data-fascia-menu="dia"] .faja-bks-arrow,
+body.theme-dark[data-fascia-menu="tarde"] .faja-bks-text,
+body.theme-dark[data-fascia-menu="tarde"] .faja-bks-arrow{ color: rgba(255,255,255,0.55); }
+body.theme-dark[data-fascia-menu="dia"] .faja-bks-arrow,
+body.theme-dark[data-fascia-menu="tarde"] .faja-bks-arrow{ color: rgba(255,255,255,0.35); }
 
 /* v1.16 · S8 · DIA · faja CASO A wrapper bg · era hardcoded surface */
 body.theme-dark[data-fascia-menu="dia"] .faja-cart-wrapper,
@@ -993,11 +1037,11 @@ a{text-decoration:none;color:inherit}
 }
 
 /* ══════════════════════════════════════════ HEADER ══════════════════════════════════════════ */
-#header{position:sticky;top:0;z-index:100;background:var(--brand-primary);color:#fff;}
+#header{position:sticky;top:0;z-index:100;background:var(--header-fixed);color:#fff;}
 .header-inner{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:54px;max-width:480px;margin:0 auto;}
 .brand-logo-wrap{display:flex;align-items:center;gap:10px}
 .brand-logo-img{height:32px;width:auto;border-radius:4px}
-.brand-logo-text{font-family:'Fraunces',serif;font-size:20px;font-weight:300;letter-spacing:-0.5px;color:#fff;}
+.brand-logo-text{font-family:'Fraunces',serif;font-size:21px;font-weight:400;letter-spacing:2.5px;color:var(--header-neon);text-shadow:0 0 6px var(--header-neon-glow),0 0 1px rgba(207,246,255,0.9);}
 .header-right{display:flex;align-items:center;gap:8px}
 /* v1.10 · Header chips equiparati · Mesa + Lingua come fratelli visivi
    Stessa altezza (28px), stesso radius, stessa opacità sfondo.
@@ -1022,7 +1066,7 @@ a{text-decoration:none;color:inherit}
 #memberBanner.show{display:block}
 
 /* ══════════════════════════════════════════ FAJA / RHYTHM ══════════════════════════════════════════ */
-#fajaBar{position:sticky;top:54px;z-index:98;background:var(--rhythm-bg);border-bottom:1px solid var(--brand-border);overflow:hidden;box-shadow:0 1px 0 var(--brand-border);}
+#fajaBar{position:sticky;top:54px;z-index:98;background:var(--header-fixed);border-bottom:1px solid rgba(255,255,255,0.06);overflow:hidden;box-shadow:0 2px 0 var(--header-orange-line), 0 3px 8px rgba(0,0,0,0.25);}
 .rhythm-label{font-size:9px;color:var(--rhythm-label);letter-spacing:2px;text-transform:uppercase;padding:8px 16px 0;max-width:480px;margin:0 auto;display:none;}
 /* v1.10 · rhythm-label rimossa dal flow visibile · resta solo per fallback se serve in futuro */
 body.theme-dark .rhythm-label{display:none}
@@ -2558,13 +2602,13 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
    S16 · HEADER TRE SLOT · poster BKS (oro) + slot evento parametrabile (A+B)
    ════════════════════════════════════════════════════════════════════════ */
 .faja-bks-mode{
-  display:flex; align-items:center; gap:10px;
-  padding: 4px 16px 6px;
+  display:flex; align-items:center; gap:11px;
+  padding: 10px 16px 4px;
   max-width:480px; margin:0 auto;
   cursor:pointer;
 }
 .faja-bks-thumb{
-  flex:0 0 30px; width:30px; height:30px; border-radius:7px;
+  flex:0 0 40px; width:40px; height:40px; border-radius:9px;
   background: var(--bks-gold-dim);
   border:1px solid var(--bks-gold-border);
   display:flex; align-items:center; justify-content:center;
@@ -2575,19 +2619,69 @@ body[data-fascia="NOCHE"] #bienvenidaSplash .bv-prop-currency{
   font-family:'Fraunces',serif; font-weight:700; font-size:15px;
   color: var(--bks-gold);
 }
+.faja-bks-thumb .faja-bks-ico{
+  color: var(--bks-gold); display:flex; align-items:center; justify-content:center;
+}
+.faja-bks-thumb .faja-bks-ico svg{ width:21px; height:21px; display:block; }
 .faja-bks-content{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; line-height:1; }
 .faja-bks-eyebrow{
-  font-size:9px; font-weight:700; letter-spacing:1.6px;
+  font-size:9px; font-weight:700; letter-spacing:1.8px;
   color: var(--bks-gold);
+  margin-bottom:3px;
 }
 .faja-bks-text{
-  font-family:'Fraunces',serif; font-size:12.5px; font-style:italic;
-  color: rgba(255,255,255,0.55); line-height:1.25;
+  font-family:'Fraunces',serif; font-size:14.5px; font-style:italic;
+  color: rgba(255,255,255,0.92); line-height:1.25;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-body.theme-dark[data-fascia-menu="dia"] .faja-bks-text{ color: rgba(42,31,26,0.62); }
-.faja-bks-arrow{ color: rgba(255,255,255,0.35); font-size:14px; flex:0 0 auto; }
-body.theme-dark[data-fascia-menu="dia"] .faja-bks-arrow{ color: rgba(42,31,26,0.4); }
+body.theme-dark[data-fascia-menu="dia"] .faja-bks-text{ color: rgba(255,255,255,0.92); }
+.faja-bks-arrow{ color: rgba(255,255,255,0.4); font-size:15px; flex:0 0 auto; }
+body.theme-dark[data-fascia-menu="dia"] .faja-bks-arrow{ color: rgba(255,255,255,0.4); }
+
+/* ════════════════════════════════════════════════════════════════════════
+   S16 · faja-pill-row · le due pill sotto il poster (DJ + evento) · layout "C"
+   ════════════════════════════════════════════════════════════════════════ */
+.faja-pill-row{
+  display:flex; gap:8px;
+  padding: 6px 16px 12px;
+  max-width:480px; margin:0 auto;
+}
+.faja-pill{
+  flex:1 1 0; min-width:0;
+  display:flex; align-items:center; justify-content:center; gap:7px;
+  padding:8px 6px; border-radius:11px;
+  cursor:pointer; transition: transform 0.15s;
+  background: rgba(232,75,47,0.12);
+  border:1px solid rgba(232,75,47,0.42);
+}
+.faja-pill:active{ transform:scale(0.96); }
+.faja-pill-label{
+  font-size:10.5px; font-weight:600; letter-spacing:0.4px;
+  color:#F0997B; white-space:nowrap;
+}
+/* Pill DJ · micro-vinile rosso che gira */
+.faja-pill-disc{
+  width:15px; height:15px; border-radius:50%; flex:0 0 15px;
+  background: repeating-radial-gradient(circle, #1a1a24 0 1.2px, #0a0a12 1.2px 2.4px);
+  border:1px solid var(--brand-accent);
+  position:relative; overflow:hidden;
+  animation: fajaCartDiscSpin 4s linear infinite;
+}
+.faja-pill-disc::after{
+  content:''; position:absolute; top:50%; left:50%;
+  width:5px; height:5px; border-radius:50%;
+  background: var(--brand-accent); transform:translate(-50%,-50%);
+}
+/* Pill evento (Mundial) · colore curato da Sheet via --evt-pill-* */
+.faja-pill-evt{
+  background: var(--evt-pill-bg, rgba(43,212,160,0.14));
+  border:1px solid var(--evt-pill-border, rgba(43,212,160,0.48));
+}
+.faja-pill-label-evt{ color: var(--evt-pill-accent, #2bd4a0); }
+/* il pallone/icona evento eredita evtSpin già definita su .evt-ico.futbol */
+.faja-pill-evt .evt-ico{ width:15px; height:15px; flex:0 0 15px; }
+.faja-pill-evt .faja-evt-emoji{ font-size:14px; }
+.faja-pill-rhythm{ padding: 0 16px 8px; max-width:480px; margin:0 auto; }
 
 .faja-evt-pill{
   display:flex; align-items:center; gap:5px;
@@ -3448,6 +3542,7 @@ const TRANSLATIONS = {
     rhythm_none:'◯ El ritmo aparece en su momento · relájate y disfruta',
     cartelera_eyebrow:'CARTELERA DE LA SEMANA',
     cartelera_question:'¿Quién toca esta semana?',
+    pill_dj:'Cabina DJ',
     rhythm_no_products:'🔥 {nombre} · sin productos · pídele al mesero',
     rhythm_btn_filter:'✦ Filtro',
     coming_soon:'Próximamente · Pedir directo',
@@ -3503,6 +3598,7 @@ const TRANSLATIONS = {
     rhythm_none:'◯ The rhythm reveals itself in time · relax and enjoy',
     cartelera_eyebrow:'THIS WEEK\'S LINEUP',
     cartelera_question:'Who\'s playing this week?',
+    pill_dj:'DJ Booth',
     rhythm_no_products:'🔥 {nombre} · no products · ask the waiter',
     rhythm_btn_filter:'✦ Filter',
     coming_soon:'Coming soon · Order directly',
@@ -3556,6 +3652,7 @@ const TRANSLATIONS = {
     rhythm_none:'◯ O ritmo aparece no seu momento · relaxe e aproveite',
     cartelera_eyebrow:'PROGRAMAÇÃO DA SEMANA',
     cartelera_question:'Quem toca esta semana?',
+    pill_dj:'Cabine DJ',
     rhythm_no_products:'🔥 {nombre} · sem produtos · pergunte ao garçom',
     rhythm_btn_filter:'✦ Filtro',
     coming_soon:'Em breve · Pedir diretamente',
@@ -3609,6 +3706,7 @@ const TRANSLATIONS = {
     rhythm_none:'◯ Il ritmo si manifesta a suo tempo · rilassati e goditelo',
     cartelera_eyebrow:'PROGRAMMA DELLA SETTIMANA',
     cartelera_question:'Chi suona questa settimana?',
+    pill_dj:'Cabina DJ',
     rhythm_no_products:'🔥 {nombre} · nessun prodotto · chiedi al cameriere',
     rhythm_btn_filter:'✦ Filtro',
     coming_soon:'Prossimamente · Ordina diretto',
@@ -3662,6 +3760,7 @@ const TRANSLATIONS = {
     rhythm_none:'◯ Der Rhythmus kommt zur rechten Zeit · entspann dich und genieß',
     cartelera_eyebrow:'PROGRAMM DER WOCHE',
     cartelera_question:'Wer spielt diese Woche?',
+    pill_dj:'DJ-Kabine',
     rhythm_no_products:'🔥 {nombre} · keine Produkte · frag den Kellner',
     rhythm_btn_filter:'✦ Filter',
     coming_soon:'Bald verfügbar · Direkt bestellen',
@@ -3715,6 +3814,7 @@ const TRANSLATIONS = {
     rhythm_none:'◯ Le rythme arrive en son temps · détends-toi et profite',
     cartelera_eyebrow:'PROGRAMME DE LA SEMAINE',
     cartelera_question:'Qui joue cette semaine?',
+    pill_dj:'Cabine DJ',
     rhythm_no_products:'🔥 {nombre} · pas de produits · demande au serveur',
     rhythm_btn_filter:'✦ Filtre',
     coming_soon:'Bientôt · Commander directement',
@@ -3768,6 +3868,7 @@ const TRANSLATIONS = {
     rhythm_none:'◯ 节奏自有其时 · 放松享受',
     cartelera_eyebrow:'本周节目单',
     cartelera_question:'本周谁来演出？',
+    pill_dj:'DJ台',
     rhythm_no_products:'🔥 {nombre} · 无产品 · 询问服务员',
     rhythm_btn_filter:'✦ 筛选',
     coming_soon:'即将推出 · 直接下单',
@@ -3821,6 +3922,7 @@ const TRANSLATIONS = {
     rhythm_none:'◯ リズムは自然に現れる · ゆったりとお楽しみください',
     cartelera_eyebrow:'今週のラインナップ',
     cartelera_question:'今週は誰が演奏？',
+    pill_dj:'DJブース',
     rhythm_no_products:'🔥 {nombre} · 製品なし · 店員に聞く',
     rhythm_btn_filter:'✦ フィルター',
     coming_soon:'近日公開 · 直接注文',
@@ -3904,7 +4006,9 @@ function applyBrand(b){
     document.getElementById('brandLogoImg').classList.remove('hidden');
     document.getElementById('brandLogoText').classList.add('hidden');
   } else {
-    document.getElementById('brandLogoText').textContent = BRAND.logo_emoji + '\u00A0' + BRAND.name;
+    // S16 · logo neon BKS · solo il nome (curabile da Sheet via BRAND.name),
+    // senza emoji-prefisso. Lo stile neon-ciano è vestito CSS (.brand-logo-text).
+    document.getElementById('brandLogoText').textContent = BRAND.name || 'BKS';
     document.getElementById('brandLogoText').classList.remove('hidden');
     document.getElementById('brandLogoImg').classList.add('hidden');
   }
@@ -3912,9 +4016,8 @@ function applyBrand(b){
   if(BRAND.favicon_url){
     faviconTag.href = BRAND.favicon_url;
   } else {
-    const enc = encodeURIComponent(BRAND.logo_emoji || '🍽️');
-    const col = encodeURIComponent(BRAND.color_primary || '#1A1A2E');
-    faviconTag.href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='${col}'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20'>${enc}</text></svg>`;
+    // S16 · fallback favicon = BKS neon ciano su blu-notte (coerente splash/header)
+    faviconTag.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1F2E'/><text x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Georgia,serif' font-weight='400' font-size='11' letter-spacing='0.5' fill='%23CFF6FF'>BKS</text></svg>";
   }
   // v1.30 · S16 · splash logo immagine da Sheet (PARAMETROS.splash_logo_url).
   // Se popolata → <img> con blend screen (nero→trasparente sul navy).
@@ -5240,8 +5343,9 @@ function renderCarteleraBksSlot(){
     ? `style="--bks-gold:${color}; --bks-gold-dim:${color}1F; --bks-gold-border:${color}73;"`
     : '';
 
-  // S16 fix · thumb SEMPRE monogramma "B" (mai il ritaglio del poster Foto_URL)
-  const thumb = `<span class="faja-bks-mono">B</span>`;
+  // S16 · icona calendario-estrella (la programmazione speciale della settimana)
+  // SVG inline · eredita il colore oro da .faja-bks-ico (currentColor)
+  const thumb = `<span class="faja-bks-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M16 3v4M8 3v4M4 11h16"/><path d="M12 13.2l1 2 2.2.3-1.6 1.5.4 2.2-2-1.05-2 1.05.4-2.2-1.6-1.5 2.2-.3z" fill="currentColor" stroke="none"/></svg></span>`;
 
   return `
     <div class="faja-bks-mode" ${styleVar}
@@ -5304,6 +5408,66 @@ function renderHeaderEventPill(){
       ${icoHtml}
       <span class="faja-evt-pill-label">${escapeHtml(label)}</span>
     </div>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   S16 · renderCarteleraPillRow · riga di 2 pill sotto il poster (layout "C")
+   · Pill DJ (sempre): micro-vinile rosso che gira → apre lista cartelera DJ.
+     Label = lang 'pill_dj' (curabile i18n) · fallback "Cabina DJ".
+   · Pill EVENTO (Mundial, solo se attiva): micro-pallone/icona che gira,
+     label+colore+icona ereditati da CARTELERA_DATA.cartelera_eventos (Sheet).
+   rhythmInfoHtml (sub-stato A2 · slogan/BPM) appeso sotto le pill se presente.
+   ════════════════════════════════════════════════════════════════════════ */
+function renderCarteleraPillRow(rhythmInfoHtml){
+  const djLabel = (typeof LANG_PILL_DJ !== 'undefined' && LANG_PILL_DJ) ||
+                  (getLang('pill_dj') !== 'pill_dj' ? getLang('pill_dj') : 'Cabina DJ');
+
+  const djPill = `
+    <div class="faja-pill faja-pill-dj"
+         onclick="openCartelera(true)"
+         role="button" tabindex="0"
+         aria-label="${escapeHtml(djLabel)}"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCartelera(true);}">
+      <span class="faja-pill-disc" aria-hidden="true"></span>
+      <span class="faja-pill-label">${escapeHtml(djLabel)}</span>
+    </div>`;
+
+  // Pill evento (Mundial) · solo se curata da Sheet · eredita label/colore/icona
+  let evtPill = '';
+  const e = CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos;
+  if(e){
+    const label = (e.eyebrow_es || e.titulo_es || '').trim();
+    if(label){
+      const color = (e.header_color || '').trim();
+      const styleVars = (color && /^#[0-9A-Fa-f]{6}$/.test(color))
+        ? `style="--evt-pill-bg:${color}24; --evt-pill-border:${color}66; --evt-pill-accent:${color};"`
+        : '';
+      const ico = (e.header_icono || '').trim();
+      let icoHtml = '';
+      if(ico){
+        if(EVT_ICO_CATALOGO.indexOf(ico.toLowerCase()) >= 0){
+          icoHtml = `<span class="evt-ico ${ico.toLowerCase()}" aria-hidden="true"></span>`;
+        } else if(!ico.startsWith('http')){
+          icoHtml = `<span class="faja-evt-emoji" aria-hidden="true">${escapeHtml(ico)}</span>`;
+        } else {
+          icoHtml = `<img class="evt-ico" src="${escapeHtml(ico)}" alt="" style="border-radius:50%;object-fit:cover" onerror="this.style.display='none'">`;
+        }
+      }
+      evtPill = `
+        <div class="faja-pill faja-pill-evt" ${styleVars}
+             onclick="openCarteleraEventos()"
+             role="button" tabindex="0"
+             aria-label="${escapeHtml(label)}"
+             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCarteleraEventos();}">
+          ${icoHtml}
+          <span class="faja-pill-label faja-pill-label-evt">${escapeHtml(label)}</span>
+        </div>`;
+    }
+  }
+
+  return `
+    <div class="faja-pill-row">${djPill}${evtPill}</div>
+    ${rhythmInfoHtml ? `<div class="faja-pill-rhythm">${rhythmInfoHtml}</div>` : ''}`;
 }
      
 async function loadCartelera(force){
@@ -6951,23 +7115,8 @@ function renderRhythmBar(){
     }
 
     chipBar.innerHTML = `
-      <div class="faja-cartelera-mode">
-        <div class="faja-cart-disc"
-             onclick="openCartelera(true)"
-             role="button"
-             tabindex="0"
-             aria-label="${getLang('cartelera_eyebrow')}"
-             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCartelera(true);}"></div>
-        <div class="faja-cart-content" onclick="openCartelera(true)">
-          <div class="faja-cart-eyebrow">${getLang('cartelera_eyebrow')}</div>
-          <div class="faja-cart-text">${getLang('cartelera_question')}</div>
-          ${rhythmInfoHtml}
-        </div>
-        ${renderHeaderEventPill()}
-      </div>
-      <div style="margin-top:4px;height:1px;background:linear-gradient(90deg, transparent, var(--brand-accent-line) 30%, var(--brand-accent-line-strong) 50%, var(--brand-accent-line) 70%, transparent);opacity:0.7"></div>
       ${renderCarteleraBksSlot()}
-      <div style="margin-top:2px;height:1px;background:linear-gradient(90deg, transparent, var(--bks-gold-border) 40%, var(--bks-gold-border) 60%, transparent);opacity:0.5"></div>`;
+      ${renderCarteleraPillRow(rhythmInfoHtml)}`;
 
     // Waveform · visibile solo se c'è ritmo (sub-stato A2)
     const wf = fajaBar.querySelector('.rhythm-waveform');
