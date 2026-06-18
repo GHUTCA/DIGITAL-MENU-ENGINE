@@ -11,7 +11,18 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.32 · 17-jun-2026 · Sessione S16
+     menu_digital.html · v1.33 · 18-jun-2026 · Sessione S17
+     CHANGELOG v1.32 → v1.33 (S17 · DJ-TAKEOVER HEADER A RIPOSO):
+     · Header redesign (CASO A: poster "LA SEMANA BKS" + 2 pill Cabina DJ/
+       Mundial + slogan/BPM/waveform in A2) ora SEMPRE attivo, anche mentre
+       suona un DJ. Decisione Alberto: l'header così funziona, non si cambia.
+     · Nuovo flag DJ_TAKEOVER_HEADER (default false) sopra renderRhythmBar():
+       la condizione del CASO A diventa (!CURRENT_DJ_BKS || !DJ_TAKEOVER_HEADER).
+       Il CASO B (avatar+nome DJ protagonisti nell'header) NON è rimosso →
+       resta integro nel ramo else, dormiente. Riattivabile con flag=true.
+     · resolveDjActual() invariato: CURRENT_DJ_BKS continua a calcolarsi →
+       cartelera "Quién toca" e scheda DJ ("AHORA EN CABINA") pienamente vive.
+       Il vinile che gira resta nella pill "Cabina DJ" (faja-pill-disc).
      CHANGELOG v1.31 → v1.32 (S16 · REDESIGN HEADER STICKY):
      · Header+faja FISSI blu-notte (--header-fixed #1A1F2E), sganciati dalla
        fascia: una sola identità a tutte le ore. Solo il MENU sotto resta
@@ -7074,6 +7085,21 @@ function startFasciaMenuPolling(){
   console.log('[v1.17] Fascia menu polling attivo (60s) per', LOCAL_ID);
 }
 
+/* v1.33 · S17 · FLAG DJ-TAKEOVER HEADER (reversibile · zero rimozioni)
+   ────────────────────────────────────────────────────────────────────
+   Decisione Alberto (S17): l'header sticky redesign (CASO A · poster
+   "LA SEMANA BKS" + 2 pill Cabina DJ/Mundial + slogan/BPM/waveform in A2)
+   funziona benissimo e si tiene SEMPRE, anche mentre suona un DJ.
+   Il CASO B (avatar+nome DJ che si impossessano dell'header) viene messo
+   a riposo — NON rimosso: tutto il blocco resta integro più sotto, solo
+   non eseguito finché questo flag è false.
+   · false → header fisso CASO A (comportamento attuale, voluto).
+   · true  → riattiva il takeover DJ nell'header (avatar protagonista).
+   NB: CURRENT_DJ_BKS continua a essere calcolato da resolveDjActual() →
+   le schede cartelera "Quién toca" e la scheda DJ ("AHORA EN CABINA")
+   restano pienamente funzionanti e indipendenti da questo flag. */
+const DJ_TAKEOVER_HEADER = false;
+
 function renderRhythmBar(){
   if(!document.body.classList.contains('theme-dark')) return;
   const fajaBar = document.getElementById('fajaBar');
@@ -7096,8 +7122,10 @@ function renderRhythmBar(){
   //   CASO A2 · no DJ + ritmo att → minimale cartelera + slogan/BPM riga2 + waveform
   //   CASO B  · DJ presente       → faja attuale (avatar + nome + slogan + BPM + waveform)
   // Sostituisce decisione 34 (che usava !RITMO_ACTUAL come driver).
-  if(!CURRENT_DJ_BKS){
-    // ─── CASO A · nessun DJ presente ───
+  // v1.33 · S17 · || !DJ_TAKEOVER_HEADER → forza CASO A anche con DJ in cabina
+  // (header fisso voluto da Alberto · CASO B dormiente nel ramo else, intatto).
+  if(!CURRENT_DJ_BKS || !DJ_TAKEOVER_HEADER){
+    // ─── CASO A · header redesign fisso (nessun DJ, OPPURE takeover disattivato) ───
     // Sub-stato A2: c'è ritmo BPM ma DJ non c'è ancora → mostra slogan/BPM discreti
     let rhythmInfoHtml = '';
     let waveformDisplay = 'none';
@@ -7127,7 +7155,12 @@ function renderRhythmBar(){
       loadCartelera();
     }
   } else {
-     
+    // ═══ CASO B · DORMIENTE da v1.33 (S17) ═══════════════════════════════
+    // Raggiungibile SOLO se DJ_TAKEOVER_HEADER === true (oggi false).
+    // Blocco lasciato integro e funzionante: header DJ-protagonista
+    // (avatar + nome + slogan + BPM + pill evento). Per riattivarlo basta
+    // rimettere il flag a true in cima a renderRhythmBar(). NON cancellare.
+    // ─────────────────────────────────────────────────────────────────────
     // v1.10 · CASO B microbar V1: Comandante DJ sx · slogan corsivo …puntini… centro · BPM dx
     // (NO toggle ALL · v1.10 finale: filtro ritmo è unica realtà · curatela del momento sempre attiva)
     const r = RITMO_ACTUAL;
