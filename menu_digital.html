@@ -5037,6 +5037,19 @@ function showBienvenidaSplash(){
   const proposalEl = document.getElementById('bvProposal');
   const propThumbEl = document.getElementById('bvPropThumb');
   const propThumbImgEl = document.getElementById('bvPropThumbImg');
+  // v1.33 · Emoji thumb per franja (sostituisce 🍸 hardcoded orfano)
+  const BV_FRANJA_EMOJI = {
+    ALMUERZO:'🍽️', HAPPY_HOUR:'🍸', ATARDECER:'🍢',
+    CENA:'🥩', NOCHE:'🍸', CERRADO:'🌙'
+  };
+  const bvEmojiFranja = BV_FRANJA_EMOJI[franja.id] || '🍸';
+  // v1.33 · Scrive emoji nel nodo testo del thumb senza toccare l'<img> fratello.
+  function bvSetThumbEmoji(el, emoji){
+    let txtNode = null;
+    for(const n of el.childNodes){ if(n.nodeType === 3){ txtNode = n; break; } }
+    if(txtNode){ txtNode.nodeValue = emoji; }
+    else { el.appendChild(document.createTextNode(emoji)); }
+  }
   if(franja.override_activo){
     proposalEl.classList.add('is-override');
     document.getElementById('bvPushPill').classList.add('show');
@@ -5063,10 +5076,11 @@ function showBienvenidaSplash(){
   } else {
     proposalEl.classList.remove('is-override');
     document.getElementById('bvPushPill').classList.remove('show');
-    // Reset thumb a emoji default in modalità non-override
+    // v1.33 · Reset thumb a emoji della franja (non più 🍸 fisso)
     propThumbImgEl.style.display = 'none';
     propThumbImgEl.src = '';
     propThumbEl.classList.remove('has-photo');
+    bvSetThumbEmoji(propThumbEl, bvEmojiFranja);
   }
 
 document.getElementById('bvPropEyebrow').textContent = saludo || (lang === 'pt' ? 'Hoje recomendamos' : 'Hoy te recomendamos');
