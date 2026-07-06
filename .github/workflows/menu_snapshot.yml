@@ -1,0 +1,60 @@
+# ══════════════════════════════════════════════════════════════════════
+# GITHUB ACTION · refresh notturno di menu_snapshot.json · 06-jul-2026
+# MODO RESPALDO (piano B incidente 05-lug: Google sospeso → QR nel vuoto)
+#
+# DOVE VA: repo DIGITAL-MENU-ENGINE → file  .github/workflows/menu_snapshot.yml
+#   (da GitHub web: Add file → Create new file → scrivi il percorso completo
+#    ".github/workflows/menu_snapshot.yml" nel nome — le cartelle si creano da sole)
+#
+# COSA FA: ogni notte alle 06:10 Cile scarica getConfig + il CSV pubblicato
+# e ricommitta menu_snapshot.json. Se Google è GIÙ, il job fallisce SENZA
+# danno: resta l'ultima foto buona (che è esattamente il punto).
+# ══════════════════════════════════════════════════════════════════════
+name: menu snapshot (modo respaldo)
+
+on:
+  schedule:
+    - cron: '10 10 * * *'   # 10:10 UTC = 06:10 Chile (invierno) — post-cierre
+  workflow_dispatch: {}      # bottone "Run workflow" per refresh manuale
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Genera menu_snapshot.json
+        run: |
+          set -e
+          GAS='https://script.google.com/macros/s/AKfycbzZkS3bBaYc34uJ6wXP9FG13i58-NT0FJp964vqkUYbRObUxryeRb9l_Fz24kb42f5t/exec'
+          curl -sL --max-time 60 "$GAS?action=getConfig&local=BKS" -o /tmp/cfg.json
+          node -e "
+            const fs=require('fs');
+            const r=JSON.parse(fs.readFileSync('/tmp/cfg.json','utf8'));
+            if(!r.ok) { console.error('getConfig KO'); process.exit(1); }
+            const c=r.config||{};
+            const url=(r.dataSource==='seed'&&c.sheet_csv_url_seed)?c.sheet_csv_url_seed:(c.sheet_csv_url_visor||c.sheet_csv_url);
+            if(!url){ console.error('csv url mancante'); process.exit(1); }
+            fs.writeFileSync('/tmp/csvurl.txt', url);
+          "
+          curl -sL --max-time 60 "$(cat /tmp/csvurl.txt)" -o /tmp/menu.csv
+          node -e "
+            const fs=require('fs');
+            const cfg=JSON.parse(fs.readFileSync('/tmp/cfg.json','utf8'));
+            const csv=fs.readFileSync('/tmp/menu.csv','utf8');
+            if(csv.split('\n').filter(l=>l.trim()).length < 10){ console.error('CSV sospetto — non sovrascrivo'); process.exit(1); }
+            fs.writeFileSync('menu_snapshot.json', JSON.stringify({
+              ts: Date.now(), generado: new Date().toISOString(), local: 'BKS',
+              config: cfg.config||{}, csv: csv }));
+          "
+
+      - name: Commit se cambiato
+        run: |
+          git config user.name 'menu-snapshot-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add menu_snapshot.json
+          git diff --cached --quiet && echo 'snapshot invariato' || git commit -m 'snapshot notturno menú [respaldo]'
+          git push
