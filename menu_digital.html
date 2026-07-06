@@ -11,7 +11,12 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.36 · 18-jun-2026 · Sessione S17
+     menu_digital.html · v1.37 · 18-jun-2026 · Sessione S17
+     CHANGELOG v1.36 → v1.37 (lunes 6-jul noche · prove live, oss. Alberto #2):
+     · COOLDOWN campanello (90s): dopo una llamada, altri tap → toast "el mesero
+       ya fue avisado" invece di accodare — il cliente impaziente non riempie più
+       il mesero di cajas amarillas (lato GAS v3.3.2: un MÍO atiende comunque
+       TUTTE le pendientes della mesa — doppia rete).
      CHANGELOG v1.35 → v1.36 (lunes 6-jul noche · prove live, oss. Alberto):
      · "LO PEDIDO ESTA NOCHE": il telefono ricorda TUTTI i pedidos della sessione
        (PEDIDOS_NOCHE, sessionStorage) — vista stato = attivo in cima + storico
@@ -3567,6 +3572,7 @@ const TRANSLATIONS = {
     pedido_pedir_mas:'Pedir algo más',
     pedido_noche_titulo:'Lo pedido esta noche', pedido_total_noche:'Total de la noche',
     pedido_ya_noche:'Ya pedido esta noche',
+    llamada_cooldown:'🔔 El mesero ya fue avisado · va en camino',
     llamada_hint_pedido:'💡 ¿Sabías que puedes mandarme tu pedido desde el carrito? Llego con todo listo',
     respaldo_banner:'📖 Carta de referencia · pídele al mesero para ordenar',
     push_default_frase:'El recomendado del Comandante',
@@ -3641,6 +3647,7 @@ const TRANSLATIONS = {
     pedido_pedir_mas:'Order something else',
     pedido_noche_titulo:'Ordered tonight', pedido_total_noche:'Tonight’s total',
     pedido_ya_noche:'Already ordered tonight',
+    llamada_cooldown:'🔔 Your waiter is already on the way',
     llamada_hint_pedido:'💡 Did you know you can send me your order from the cart? I arrive with everything ready',
     respaldo_banner:'📖 Reference menu · ask your waiter to order',
     push_default_frase:'The Comandante’s pick',
@@ -7767,6 +7774,20 @@ function scrollToTop(){ window.scrollTo({top:0, behavior:'smooth'}); }
 /* LLAMAR MESERO (v1.7 invariato) */
 let CONFIRM_PAYLOAD = null;
 
+/* v1.37 · cooldown del campanello: il cliente impaziente tocca 10 volte →
+   10 cajas amarillas dal mesero (prove live 06-jul). Dopo una llamada, per
+   90s si risponde "ya viene" invece di accodarne un'altra. */
+const LLAMADA_COOLDOWN_MS = 90000;
+function _llamadaEnCooldown(){
+  try {
+    const ts = parseInt(sessionStorage.getItem('llamada_ts') || '0', 10);
+    return ts && (Date.now() - ts) < LLAMADA_COOLDOWN_MS;
+  } catch(e){ return false; }
+}
+function _llamadaMarcaTs(){
+  try { sessionStorage.setItem('llamada_ts', String(Date.now())); } catch(e){}
+}
+
 function openConfirmSheet({title, subtitle, payload, okLabel}){
   CONFIRM_PAYLOAD = payload;
   document.getElementById('confirmTitle').textContent = title;
@@ -7796,6 +7817,10 @@ function onCallWaiterForProduct(prodId){
     showToastMsg(getLang('call_no_mesa') || 'Acércate a un mesero para ordenar');
     return;
   }
+  if(_llamadaEnCooldown()){   // v1.37
+    showToastMsg(getLang('llamada_cooldown') || '🔔 El mesero ya fue avisado · va en camino');
+    return;
+  }
   const p = ALL_PRODUCTS.find(x=>x.id===prodId);
   if(!p) return;
   openConfirmSheet({
@@ -7815,6 +7840,10 @@ function onCallWaiterGeneric(){
   if(!LLAMAR_MESERO_ENABLED) return;
   if(!MESA_ID){
     showToastMsg(getLang('call_no_mesa') || 'Acércate a un mesero para ordenar');
+    return;
+  }
+  if(_llamadaEnCooldown()){   // v1.37
+    showToastMsg(getLang('llamada_cooldown') || '🔔 El mesero ya fue avisado · va en camino');
     return;
   }
   // v1.32 · comunicazione al momento giusto (spec §5): chi suona il campanello
@@ -7846,6 +7875,7 @@ function notifyWaiter(payload){
   };
   try {
     navigator.sendBeacon(BRAND.gas_url, JSON.stringify(body));
+    _llamadaMarcaTs();   // v1.37 · parte il cooldown
     showToastMsg(getLang('call_sent') || '🔔 Mesero llamado · llega pronto');
   } catch(e) {
     console.warn('[v1.10] notifyWaiter failed:', e);
