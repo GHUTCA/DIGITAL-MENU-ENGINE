@@ -11,7 +11,11 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.34 · 18-jun-2026 · Sessione S17
+     menu_digital.html · v1.35 · 18-jun-2026 · Sessione S17
+     CHANGELOG v1.34 → v1.35 (lunes 6-jul tarde · fix dalla prova generale):
+     · Vista stato pedido: il cliente vede il DETTAGLIO degli items (qty × nombre ·
+       prezzo riga), non solo il totale — "importante que vea todo para controlar"
+       (Alberto, prova generale). Items persistiti in PEDIDO_ACTUAL (sessionStorage).
      CHANGELOG v1.33 → v1.34 (lunes 6-jul · finestra 1 Sprint Comandante):
      · TAP UNICO: "🛎 Enviar pedido y llamar al mesero" nel carrito → enviarPedido
        (GAS v3.3, dedup uuid) + poll getEstadoPedido → "✓ {mesero} va en camino".
@@ -7083,6 +7087,9 @@ async function enviarPedidoDigital(){
     PEDIDO_ACTUAL = {
       uuid: uuid, ts: Date.now(), total: snapshot.total,
       n: items.reduce((s,i)=> s + (i.qty||1), 0),
+      // v1.35 · fix prova generale: il cliente DEVE poter ricontrollare cosa ha
+      // ordinato (non solo il totale) — gli items viaggiano nella vista stato
+      items: items.map(i=>({ nombre:i.nombre, precio:i.precio, qty:i.qty||1 })),
       estado: resp.estado || 'pendiente', mesero: '',
     };
     try { sessionStorage.setItem(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
@@ -7129,7 +7136,8 @@ function renderPedidoEstado(){
       <div class="cart-recap-title">${v.t}</div>
       <div class="cart-recap-sub">${v.s}</div>
       <div class="cart-recap-list">
-        <div class="cart-recap-item"><span>${PA.n} ${getLang('pedido_items')||'productos'} · ${getLang('mesa')||'Mesa'} ${MESA_ID}</span><span>${formatPriceWithSymbol(PA.total)}</span></div>
+        ${(PA.items||[]).map(i => `<div class="cart-recap-item"><span>${(i.qty||1)}× ${toTitleCase(i.nombre)}</span><span>${formatPrice(i.precio*(i.qty||1))}</span></div>`).join('')}
+        <div class="cart-recap-item" style="border-top:1px solid var(--brand-border);margin-top:6px;padding-top:8px;font-weight:700"><span>${getLang('mesa')||'Mesa'} ${MESA_ID} · ${PA.n} ${getLang('pedido_items')||'productos'}</span><span>${formatPriceWithSymbol(PA.total)}</span></div>
       </div>
       ${terminal
         ? `<button class="cart-listo-btn" onclick="cerrarPedidoActual()">${getLang('pedido_pedir_mas') || 'Pedir algo más'}</button>`
