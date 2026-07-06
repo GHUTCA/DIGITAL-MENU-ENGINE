@@ -11,7 +11,15 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.35 · 18-jun-2026 · Sessione S17
+     menu_digital.html · v1.36 · 18-jun-2026 · Sessione S17
+     CHANGELOG v1.35 → v1.36 (lunes 6-jul noche · prove live, oss. Alberto):
+     · "LO PEDIDO ESTA NOCHE": il telefono ricorda TUTTI i pedidos della sessione
+       (PEDIDOS_NOCHE, sessionStorage) — vista stato = attivo in cima + storico
+       items sotto + TOTAL DE LA NOCHE. Carro con items = riga "ya pedido esta
+       noche: N · $X". Refresh one-shot degli stati all'apertura del carro.
+       (Prima si vedeva solo l'ultimo dei 4 ordini — osservazione prove live.)
+     · Split check: per-telefono già implicito (ognuno vede il SUO "esta noche");
+       chips persona + dividir + cuenta mesa server-side → pacchetto lun 13 con pago.
      CHANGELOG v1.34 → v1.35 (lunes 6-jul tarde · fix dalla prova generale):
      · Vista stato pedido: il cliente vede il DETTAGLIO degli items (qty × nombre ·
        prezzo riga), non solo il totale — "importante que vea todo para controlar"
@@ -3557,6 +3565,8 @@ const TRANSLATIONS = {
     pedido_st_problema:'Mejor díselo al mesero', pedido_st_problema_sub:'No pudimos confirmarlo — llama al mesero o acércate a la barra',
     pedido_el_mesero:'El mesero', pedido_camino_toast:'va en camino', pedido_items:'productos',
     pedido_pedir_mas:'Pedir algo más',
+    pedido_noche_titulo:'Lo pedido esta noche', pedido_total_noche:'Total de la noche',
+    pedido_ya_noche:'Ya pedido esta noche',
     llamada_hint_pedido:'💡 ¿Sabías que puedes mandarme tu pedido desde el carrito? Llego con todo listo',
     respaldo_banner:'📖 Carta de referencia · pídele al mesero para ordenar',
     push_default_frase:'El recomendado del Comandante',
@@ -3629,6 +3639,8 @@ const TRANSLATIONS = {
     pedido_st_problema:'Better tell your waiter', pedido_st_problema_sub:'We could not confirm it — call the waiter or go to the bar',
     pedido_el_mesero:'Your waiter', pedido_camino_toast:'is on the way', pedido_items:'items',
     pedido_pedir_mas:'Order something else',
+    pedido_noche_titulo:'Ordered tonight', pedido_total_noche:'Tonight’s total',
+    pedido_ya_noche:'Already ordered tonight',
     llamada_hint_pedido:'💡 Did you know you can send me your order from the cart? I arrive with everything ready',
     respaldo_banner:'📖 Reference menu · ask your waiter to order',
     push_default_frase:'The Comandante’s pick',
@@ -4166,6 +4178,10 @@ let PEDIDO_ACTUAL  = null;       // {uuid, ts, items, total} del pedido inviato 
 let PEDIDO_POLL    = null;       // timer del poll getEstadoPedido
 let MODO_RESPALDO  = false;      // true = carta da snapshot (GAS/CSV giù)
 const PEDIDO_KEY   = 'pedido_actual_v1';
+/* v1.36 · "Lo pedido esta noche": storico dei pedidos di QUESTO telefono
+   (osservazione Alberto, prove live 06-lug: 4 ordini, se ne vedeva solo l'ultimo) */
+let PEDIDOS_NOCHE  = [];
+const PEDIDOS_NOCHE_KEY = 'pedidos_noche_v1';
 
 let ALL_PRODUCTS     = [];
 let ALL_CATEGORIES   = [];
@@ -6927,6 +6943,12 @@ function openCart(){
   document.getElementById('cartOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('cartSheet').classList.add('open'), 10);
   document.body.style.overflow = 'hidden';
+  // v1.36 · rinfresca gli stati dello storico serata (one-shot, poi ri-renderizza)
+  if(PEDIDO_DIGITAL && _nocheValidos().length > 1){
+    _nocheRefrescarEstados().then(()=>{
+      if(document.getElementById('cartSheet')?.classList.contains('open')) renderCart();
+    });
+  }
 }
 
 function closeCart(){
@@ -6941,6 +6963,11 @@ function renderCart(){
   // v1.32 · pedido in corso e carro vuoto → il carro È lo stato del pedido
   if(PEDIDO_ACTUAL && CART.items.length === 0){
     renderPedidoEstado();
+    return;
+  }
+  // v1.36 · niente attivo ma la serata ha storia → "Lo pedido esta noche"
+  if(CART.items.length === 0 && _nocheValidos().length > 0){
+    renderNocheView();
     return;
   }
   if(CART.items.length === 0){
@@ -6970,6 +6997,9 @@ function renderCart(){
       <span class="cart-total-label">${getLang('cart_total') || 'Total'}</span>
       <span class="cart-total-val">${formatPriceWithSymbol(total)}</span>
     </div>
+    ${(PEDIDO_DIGITAL && _nocheValidos().length > 0)
+      ? `<div class="pedido-hint" style="margin-top:6px">🧾 ${getLang('pedido_ya_noche') || 'Ya pedido esta noche'}: ${_nocheValidos().length} · ${formatPriceWithSymbol(_nocheValidos().reduce((s,p)=>s+(p.total||0),0))}</div>`
+      : ''}
     ${(PEDIDO_DIGITAL && MESA_ID)
       ? `<div class="pedido-hint">${getLang('pedido_hint') || '🛎 Nuevo — tu pedido le llega al mesero al tiro'}</div>
          <button class="cart-listo-btn cart-btn-pedido" id="btnEnviarPedido" onclick="cartListo()">${getLang('pedido_btn') || '🛎 Enviar pedido y llamar al mesero'}</button>`
@@ -7092,6 +7122,8 @@ async function enviarPedidoDigital(){
       items: items.map(i=>({ nombre:i.nombre, precio:i.precio, qty:i.qty||1 })),
       estado: resp.estado || 'pendiente', mesero: '',
     };
+    PEDIDOS_NOCHE.push(PEDIDO_ACTUAL);   // v1.36 · entra nello storico della serata
+    _nocheSave();
     try { sessionStorage.setItem(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
     CART = { items: [], updated_ts: 0, gancho_origen: '' };
     sessionStorage.removeItem(CART_KEY);
@@ -7139,10 +7171,67 @@ function renderPedidoEstado(){
         ${(PA.items||[]).map(i => `<div class="cart-recap-item"><span>${(i.qty||1)}× ${toTitleCase(i.nombre)}</span><span>${formatPrice(i.precio*(i.qty||1))}</span></div>`).join('')}
         <div class="cart-recap-item" style="border-top:1px solid var(--brand-border);margin-top:6px;padding-top:8px;font-weight:700"><span>${getLang('mesa')||'Mesa'} ${MESA_ID} · ${PA.n} ${getLang('pedido_items')||'productos'}</span><span>${formatPriceWithSymbol(PA.total)}</span></div>
       </div>
+      ${_nocheHtml(PA.uuid)}
       ${terminal
         ? `<button class="cart-listo-btn" onclick="cerrarPedidoActual()">${getLang('pedido_pedir_mas') || 'Pedir algo más'}</button>`
         : `<button class="cart-listo-btn" onclick="closeCart()">${getLang('cart_close') || 'Cerrar'}</button>`}
     </div>`;
+}
+
+/* ── v1.36 · "Lo pedido esta noche" · storico + totale serata ──────────── */
+function _nocheSave(){
+  try { sessionStorage.setItem(PEDIDOS_NOCHE_KEY, JSON.stringify(PEDIDOS_NOCHE)); } catch(e){}
+}
+function _nocheLoad(){
+  try {
+    const raw = sessionStorage.getItem(PEDIDOS_NOCHE_KEY);
+    if(raw){ const a = JSON.parse(raw); if(Array.isArray(a)) PEDIDOS_NOCHE = a; }
+  } catch(e){}
+}
+const _NOCHE_ICON = { pendiente:'🛎', atendido:'✓', digitado:'⌨', entregado:'🍽', cerrado:'🍽', expirado:'🙋', cancelado:'🙋' };
+function _nocheValidos(){ return PEDIDOS_NOCHE.filter(p => !['expirado','cancelado'].includes(p.estado)); }
+
+// blocco html: gli ALTRI pedidos della serata (escluso quello in vista) + gran totale
+function _nocheHtml(uuidEscluso){
+  const otros = _nocheValidos().filter(p => p.uuid !== uuidEscluso);
+  if(!otros.length) return '';
+  const totalNoche = _nocheValidos().reduce((s,p)=> s + (p.total||0), 0);
+  return `
+    <div class="cart-recap-list" style="margin-top:10px">
+      <div class="cart-recap-item" style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;color:var(--brand-text-muted)"><span>${getLang('pedido_noche_titulo') || 'Lo pedido esta noche'}</span><span></span></div>
+      ${otros.map(p => `
+        ${(p.items||[]).map(i => `<div class="cart-recap-item" style="font-size:13px"><span>${(i.qty||1)}× ${toTitleCase(i.nombre)}</span><span>${formatPrice(i.precio*(i.qty||1))}</span></div>`).join('')}
+        <div class="cart-recap-item" style="font-size:11.5px;color:var(--brand-text-muted);border-bottom:1px dashed var(--brand-border);padding-bottom:6px;margin-bottom:4px"><span>${_NOCHE_ICON[p.estado]||'·'} ${new Date(p.ts).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})}</span><span>${formatPrice(p.total)}</span></div>
+      `).join('')}
+      <div class="cart-recap-item" style="font-weight:700"><span>${getLang('pedido_total_noche') || 'Total de la noche'}</span><span>${formatPriceWithSymbol(totalNoche)}</span></div>
+    </div>`;
+}
+
+// vista "solo storico" (nessun pedido attivo, carro vuoto)
+function renderNocheView(){
+  const el = document.getElementById('cartSheetContent');
+  if(!el) return;
+  el.innerHTML = `
+    <div class="cart-recap">
+      <div class="cart-recap-check">🧾</div>
+      <div class="cart-recap-title">${getLang('pedido_noche_titulo') || 'Lo pedido esta noche'}</div>
+      <div class="cart-recap-sub">${getLang('mesa')||'Mesa'} ${MESA_ID}</div>
+      ${_nocheHtml('__ninguno__')}
+      <button class="cart-listo-btn" onclick="closeCart()">${getLang('cart_close') || 'Cerrar'}</button>
+    </div>`;
+}
+
+// refresh one-shot degli stati non terminali dello storico (all'apertura del carro)
+async function _nocheRefrescarEstados(){
+  const pendenti = _nocheValidos().filter(p => !['entregado','cerrado'].includes(p.estado) && (!PEDIDO_ACTUAL || p.uuid !== PEDIDO_ACTUAL.uuid));
+  for(const p of pendenti.slice(0, 6)){
+    try {
+      const url = (BRAND.gas_url || GAS_URL) + '?action=getEstadoPedido&local=' + encodeURIComponent(LOCAL_ID) + '&uuid=' + encodeURIComponent(p.uuid) + '&t=' + Date.now();
+      const r = await fetchWithTimeout(url, 8000).then(x=>x.json());
+      if(r && r.ok){ p.estado = r.estado || p.estado; p.mesero = r.mesero || p.mesero; }
+    } catch(e){ /* il prossimo giro */ }
+  }
+  _nocheSave();
 }
 
 function cerrarPedidoActual(){
@@ -7166,6 +7255,7 @@ function iniciarPollPedido(){
       PEDIDO_ACTUAL.estado = r.estado || PEDIDO_ACTUAL.estado;
       PEDIDO_ACTUAL.mesero = r.mesero || '';
       try { sessionStorage.setItem(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
+      _nocheSave();   // v1.36 · PEDIDO_ACTUAL vive anche dentro PEDIDOS_NOCHE (stesso oggetto)
       if(cambio){
         if(PEDIDO_ACTUAL.estado === 'atendido'){
           showToastMsg('✓ ' + (PEDIDO_ACTUAL.mesero || (getLang('pedido_el_mesero')||'El mesero')) + ' ' + (getLang('pedido_camino_toast')||'va en camino'));
@@ -7184,16 +7274,20 @@ function detenerPollPedido(){
 
 /* refresh/rientro: il pedido vive in sessionStorage — si riprende da dove era */
 function restaurarPedidoActual(){
+  _nocheLoad();   // v1.36 · lo storico serata torna sempre
   try {
     const raw = sessionStorage.getItem(PEDIDO_KEY);
     if(!raw) return;
     const p = JSON.parse(raw);
     if(!p || !p.uuid) return;
     if(['entregado','cerrado','expirado','cancelado'].includes(p.estado)){
-      sessionStorage.removeItem(PEDIDO_KEY);
+      sessionStorage.removeItem(PEDIDO_KEY);   // terminale: resta solo nello storico
       return;
     }
-    PEDIDO_ACTUAL = p;
+    // v1.36 · l'attivo deve essere LO STESSO oggetto dentro PEDIDOS_NOCHE
+    const enNoche = PEDIDOS_NOCHE.find(x => x.uuid === p.uuid);
+    if(enNoche){ Object.assign(enNoche, p); PEDIDO_ACTUAL = enNoche; }
+    else { PEDIDO_ACTUAL = p; PEDIDOS_NOCHE.push(p); _nocheSave(); }
     iniciarPollPedido();
   } catch(e){}
 }
