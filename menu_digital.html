@@ -11,7 +11,22 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.33 · 18-jun-2026 · Sessione S17
+     menu_digital.html · v1.34 · 18-jun-2026 · Sessione S17
+     CHANGELOG v1.33 → v1.34 (lunes 6-jul · finestra 1 Sprint Comandante):
+     · TAP UNICO: "🛎 Enviar pedido y llamar al mesero" nel carrito → enviarPedido
+       (GAS v3.3, dedup uuid) + poll getEstadoPedido → "✓ {mesero} va en camino".
+       Dietro KILL-SWITCH PARAMETROS.PEDIDO_DIGITAL_ACTIVO (FALSE = comportamento
+       storico "muéstrale al mesero" · flip senza deploy). Override dev ?pedido=on|off.
+       Fallback su errore invio: recap classico, il cliente non resta mai a mani vuote.
+     · Campanella riattivata: LLAMAR_MESERO_ENABLED ora let, segue il kill-switch
+       (era const false dall'epoca "backend non pronto" — il backend ora c'è: v3.3.1).
+     · PUSH del Comandante in carta: badge ★ + frase + primo nella sua categoria
+       (Push_Hasta/Push_Frase da CSV r[23-24]). FORZADO visibile fuori ritmo (r[30]).
+     · MODO RESPALDO (piano B Google, incidente 05-lug): boot fallito → carta da
+       menu_snapshot.json (repo, refresh notturno via GitHub Action) o localStorage
+       (ultima carta buona vista dal device) · banner "carta de referencia" ·
+       campanella/pedido spenti. Il QR non scanna mai più nel vuoto.
+     · Microcopy: hint "🛎 Nuevo" nel carrito + suggerimento pedido nel dialogo llamada.
      CHANGELOG v1.32 → v1.33 (S17 · DJ-TAKEOVER HEADER A RIPOSO):
      · Header redesign (CASO A: poster "LA SEMANA BKS" + 2 pill Cabina DJ/
        Mundial + slogan/BPM/waveform in A2) ora SEMPRE attivo, anche mentre
@@ -36,21 +51,6 @@
        Cabina DJ (micro-vinile rosso che gira · lang pill_dj 8L) + pill evento
        Mundial (micro-pallone che gira · label/colore/icona curati da Sheet).
        renderHeaderEventPill resta definita ma non più chiamata (legacy).
-     CHANGELOG v1.31 → v1.32 (lunes 6-jul · finestra 1 Sprint Comandante):
-     · TAP UNICO: "🛎 Enviar pedido y llamar al mesero" nel carrito → enviarPedido
-       (GAS v3.3, dedup uuid) + poll getEstadoPedido → "✓ {mesero} va en camino".
-       Dietro KILL-SWITCH PARAMETROS.PEDIDO_DIGITAL_ACTIVO (FALSE = comportamento
-       storico "muéstrale al mesero" · flip senza deploy). Override dev ?pedido=on|off.
-       Fallback su errore invio: recap classico, il cliente non resta mai a mani vuote.
-     · Campanella riattivata: LLAMAR_MESERO_ENABLED ora let, segue il kill-switch
-       (era const false dall'epoca "backend non pronto" — il backend ora c'è: v3.3.1).
-     · PUSH del Comandante in carta: badge ★ + frase + primo nella sua categoria
-       (Push_Hasta/Push_Frase da CSV r[23-24]). FORZADO visibile fuori ritmo (r[30]).
-     · MODO RESPALDO (piano B Google, incidente 05-lug): boot fallito → carta da
-       menu_snapshot.json (repo, refresh notturno via GitHub Action) o localStorage
-       (ultima carta buona vista dal device) · banner "carta de referencia" ·
-       campanella/pedido spenti. Il QR non scanna mai più nel vuoto.
-     · Microcopy: hint "🛎 Nuevo" nel carrito + suggerimento pedido nel dialogo llamada.
      CHANGELOG v1.30 → v1.31 (S16):
      · Splash: neon CSS puro a t=0 da KNOWN_LOCALS.splash_neon (BKS · Outfit + glow
        text-shadow). Un solo logo dal primo paint al menu · elimina il doppio logo
