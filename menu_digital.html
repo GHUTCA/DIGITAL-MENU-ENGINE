@@ -36,6 +36,21 @@
        Cabina DJ (micro-vinile rosso che gira · lang pill_dj 8L) + pill evento
        Mundial (micro-pallone che gira · label/colore/icona curati da Sheet).
        renderHeaderEventPill resta definita ma non più chiamata (legacy).
+     CHANGELOG v1.31 → v1.32 (lunes 6-jul · finestra 1 Sprint Comandante):
+     · TAP UNICO: "🛎 Enviar pedido y llamar al mesero" nel carrito → enviarPedido
+       (GAS v3.3, dedup uuid) + poll getEstadoPedido → "✓ {mesero} va en camino".
+       Dietro KILL-SWITCH PARAMETROS.PEDIDO_DIGITAL_ACTIVO (FALSE = comportamento
+       storico "muéstrale al mesero" · flip senza deploy). Override dev ?pedido=on|off.
+       Fallback su errore invio: recap classico, il cliente non resta mai a mani vuote.
+     · Campanella riattivata: LLAMAR_MESERO_ENABLED ora let, segue il kill-switch
+       (era const false dall'epoca "backend non pronto" — il backend ora c'è: v3.3.1).
+     · PUSH del Comandante in carta: badge ★ + frase + primo nella sua categoria
+       (Push_Hasta/Push_Frase da CSV r[23-24]). FORZADO visibile fuori ritmo (r[30]).
+     · MODO RESPALDO (piano B Google, incidente 05-lug): boot fallito → carta da
+       menu_snapshot.json (repo, refresh notturno via GitHub Action) o localStorage
+       (ultima carta buona vista dal device) · banner "carta de referencia" ·
+       campanella/pedido spenti. Il QR non scanna mai più nel vuoto.
+     · Microcopy: hint "🛎 Nuevo" nel carrito + suggerimento pedido nel dialogo llamada.
      CHANGELOG v1.30 → v1.31 (S16):
      · Splash: neon CSS puro a t=0 da KNOWN_LOCALS.splash_neon (BKS · Outfit + glow
        text-shadow). Un solo logo dal primo paint al menu · elimina il doppio logo
@@ -1402,6 +1417,17 @@ body.feature-pedir-directo .card-pedir-btn{display:flex}
 .cart-total-val{font-size:24px;font-weight:700;color:var(--brand-accent);}
 .cart-listo-btn{width:100%;padding:16px;border-radius:14px;border:none;background:var(--brand-accent);color:#fff;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:transform var(--transition);}
 .cart-listo-btn:active{transform:scale(0.98);}
+/* v1.32 · TAP UNICO · il bottone del pedido digitale + hint prima volta */
+.cart-btn-pedido{font-size:17px;letter-spacing:0.2px;box-shadow:0 4px 18px rgba(0,0,0,0.18);}
+.cart-btn-pedido:disabled{opacity:0.6;}
+.pedido-hint{font-size:12px;color:var(--brand-text-muted);text-align:center;margin:2px 0 10px;line-height:1.4;}
+@keyframes pedidoPulse{50%{opacity:0.45;}}
+.pedido-pulse{animation:pedidoPulse 1.4s ease-in-out infinite;}
+/* v1.32 · MODO RESPALDO · barra "carta de referencia" (piano B incidente 05-lug) */
+#respaldoBar{display:none;position:sticky;top:0;z-index:60;background:#8a6d1f;color:#fff;
+  font-size:12.5px;font-weight:600;text-align:center;padding:8px 14px;line-height:1.4;}
+#respaldoBar.show{display:block;}
+body.modo-respaldo .bnav-fab{opacity:0.35;pointer-events:none;}
 .cart-recap{text-align:center;padding:10px 0 4px;}
 .cart-recap-check{font-size:44px;margin-bottom:8px;}
 .cart-recap-title{font-family:'Fraunces',serif;font-size:22px;font-weight:300;color:var(--brand-text);margin-bottom:6px;}
@@ -3176,6 +3202,9 @@ body:not(.theme-dark) .cart-ig-follow{
 </head>
 <body>
 
+<!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
+<div id="respaldoBar"></div>
+
 <!-- ════════════════════════════════════════════════════
      v1.15 · S7 · CARTELERA bottom-sheet
      Si apre tappando il disco rosso in faja CASO A (no DJ live).
@@ -3514,6 +3543,19 @@ const TRANSLATIONS = {
     cart_subtitle:'Revisa tu selección y muéstrasela al mesero.',
     cart_empty:'Aún no agregaste nada. Explora el menú y arma tu pedido.',
     cart_total:'Total', cart_listo:'Listo · mostrar al mesero',
+    /* v1.32 · pedido digital (tap unico) + respaldo */
+    pedido_btn:'🛎 Enviar pedido y llamar al mesero', pedido_hint:'🛎 Nuevo — tu pedido le llega al mesero al tiro',
+    pedido_enviando:'Enviando…', pedido_fallback:'No pude enviarlo — muéstrale esta lista al mesero 🙌',
+    pedido_st_pendiente:'Llamando al mesero…', pedido_st_pendiente_sub:'Tu pedido ya está en el sistema',
+    pedido_st_atendido:'{nombre} va en camino', pedido_st_atendido_sub:'Confirma tu pedido cuando llegue a la mesa',
+    pedido_st_digitado:'En el sistema', pedido_st_digitado_sub:'Cocina y barra ya lo están preparando',
+    pedido_st_entregado:'¡Entregado — buen provecho!', pedido_st_entregado_sub:'Gracias por pedir desde tu mesa',
+    pedido_st_problema:'Mejor díselo al mesero', pedido_st_problema_sub:'No pudimos confirmarlo — llama al mesero o acércate a la barra',
+    pedido_el_mesero:'El mesero', pedido_camino_toast:'va en camino', pedido_items:'productos',
+    pedido_pedir_mas:'Pedir algo más',
+    llamada_hint_pedido:'💡 ¿Sabías que puedes mandarme tu pedido desde el carrito? Llego con todo listo',
+    respaldo_banner:'📖 Carta de referencia · pídele al mesero para ordenar',
+    push_default_frase:'El recomendado del Comandante',
     cart_recap_title:'¡Pedido listo!', cart_recap_sub:'Muestra esta lista al mesero para ordenar.',
     cart_close:'Cerrar',
     all_day:'Todo el día',
@@ -3573,6 +3615,19 @@ const TRANSLATIONS = {
     cart_subtitle:'Review your selection and show it to the waiter.',
     cart_empty:'Nothing added yet. Explore the menu and build your order.',
     cart_total:'Total', cart_listo:'Done · show to waiter',
+    /* v1.32 · digital order (single tap) + fallback */
+    pedido_btn:'🛎 Send order & call the waiter', pedido_hint:'🛎 New — your order reaches the waiter instantly',
+    pedido_enviando:'Sending…', pedido_fallback:'Could not send it — show this list to your waiter 🙌',
+    pedido_st_pendiente:'Calling your waiter…', pedido_st_pendiente_sub:'Your order is already in the system',
+    pedido_st_atendido:'{nombre} is on the way', pedido_st_atendido_sub:'Confirm your order when they reach your table',
+    pedido_st_digitado:'In the system', pedido_st_digitado_sub:'Kitchen and bar are already on it',
+    pedido_st_entregado:'Delivered — enjoy!', pedido_st_entregado_sub:'Thanks for ordering from your table',
+    pedido_st_problema:'Better tell your waiter', pedido_st_problema_sub:'We could not confirm it — call the waiter or go to the bar',
+    pedido_el_mesero:'Your waiter', pedido_camino_toast:'is on the way', pedido_items:'items',
+    pedido_pedir_mas:'Order something else',
+    llamada_hint_pedido:'💡 Did you know you can send me your order from the cart? I arrive with everything ready',
+    respaldo_banner:'📖 Reference menu · ask your waiter to order',
+    push_default_frase:'The Comandante’s pick',
     cart_recap_title:'Order ready!', cart_recap_sub:'Show this list to the waiter to order.',
     cart_close:'Close',
     all_day:'All day',
@@ -4098,7 +4153,15 @@ function applyBrand(b){
    ════════════════════════════════════════════════════ */
 // v1.23 · S13 · Llamar mesero temporaneamente disabilitato (backend mesero non pronto).
 // Per riattivare quando il llamar mesero sarà LIVE: cambiare a true. Zero altre modifiche necessarie.
-const LLAMAR_MESERO_ENABLED = false;
+/* v1.32 · era const false ("backend mesero non pronto") — il backend ora c'è
+   (GAS v3.3.1): diventa let e segue il kill-switch PEDIDO_DIGITAL_ACTIVO */
+let LLAMAR_MESERO_ENABLED = false;
+/* v1.32 · TAP UNICO + MODO RESPALDO */
+let PEDIDO_DIGITAL = false;      // kill-switch da PARAMETROS (+ override ?pedido=on|off)
+let PEDIDO_ACTUAL  = null;       // {uuid, ts, items, total} del pedido inviato (sessionStorage)
+let PEDIDO_POLL    = null;       // timer del poll getEstadoPedido
+let MODO_RESPALDO  = false;      // true = carta da snapshot (GAS/CSV giù)
+const PEDIDO_KEY   = 'pedido_actual_v1';
 
 let ALL_PRODUCTS     = [];
 let ALL_CATEGORIES   = [];
@@ -4203,8 +4266,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadMenuWithRetry();
   } catch(e){
     console.error('[v1.10] loadMenu fatal after retries:', e);
-    showErrorState(e);
-    return;
+    // v1.32 · MODO RESPALDO: prima di arrendersi (schermo 📡 dell'incidente
+    // 05-lug), prova la carta di riserva — snapshot del repo o localStorage.
+    const rescatado = await intentarRespaldo();
+    if(!rescatado){
+      showErrorState(e);
+      return;
+    }
   }
 
   // 6) Brand finale dal GAS (override del KNOWN_LOCALS minimo)
@@ -4218,6 +4286,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderCatTabs();
   renderMenu();
   setupSearch();
+
+  // v1.32 · campanella: il FAB nasce is-disabled nell'HTML (epoca "backend non
+  // pronto") — col kill-switch acceso si sveglia. E se c'è un pedido in corso
+  // (refresh/rientro), riprende il poll dello stato.
+  if(LLAMAR_MESERO_ENABLED){
+    const fab = document.getElementById('bnavFab');
+    if(fab) fab.classList.remove('is-disabled');
+  }
+  if(PEDIDO_DIGITAL) restaurarPedidoActual();
 
   if(MESA_ID){
     document.getElementById('mesaBadge').classList.add('show');
@@ -4528,6 +4605,41 @@ async function loadFromSheet(timeoutMs){
   const cfg = cfgResp.config || {};
   setProgress(40);
 
+  aplicarConfigCliente(cfg);
+  // STEP 2 · CSV URL
+  const dataSource = cfgResp.dataSource || 'visor';
+  const csvUrl = (dataSource === 'seed' && cfg.sheet_csv_url_seed)
+    ? cfg.sheet_csv_url_seed
+    : (cfg.sheet_csv_url_visor || cfg.sheet_csv_url);
+
+  if(!csvUrl){
+    const err = new Error('No sheet_csv_url in PARAMETROS for local=' + LOCAL_ID);
+    err.name = 'AppError';
+    throw err;
+  }
+
+  // STEP 3 · Fetch CSV
+  const csvResp = await fetchWithTimeout(csvUrl + (csvUrl.includes('?') ? '&' : '?') + 't=' + Date.now(), timeoutMs);
+  const text = await csvResp.text();
+  setProgress(70);
+
+  // STEP 4+5 · Parse + categorie · corpo estratto in construirProductos (v1.32:
+  // lo stesso corpo serve il flusso vivo E il MODO RESPALDO — mai due parser)
+  construirProductos(text);
+
+  // v1.32 · RESPALDO layer 2: quest'ultimo menù buono resta nel device.
+  // Se un giorno GAS+CSV muoiono (incidente 05-lug) e lo snapshot del repo
+  // non bastasse, il telefono ha comunque l'ultima carta vista.
+  try {
+    localStorage.setItem('respaldo_' + LOCAL_ID,
+      JSON.stringify({ ts: Date.now(), local: LOCAL_ID, config: cfg, csv: text }));
+  } catch(e){ /* storage pieno · c'è comunque lo snapshot del repo */ }
+
+  setProgress(100);
+}
+
+/* v1.32 · Config → stato cliente · corpo unico per flusso vivo e MODO RESPALDO */
+function aplicarConfigCliente(cfg){
   applyBrand({
     name:            cfg.brand_name         || KNOWN_LOCALS[LOCAL_ID]?.name || LOCAL_ID,
     logo_url:        cfg.brand_logo_url     || '',
@@ -4566,24 +4678,19 @@ async function loadFromSheet(timeoutMs){
   // v1.23 · S13fix · testo "incluye entrada+bebida+postre" del menù almuerzo · da PARAMETROS
   ALMUERZO_INCLUYE_TXT = (cfg.almuerzo_incluye||'').trim();
 
-  // STEP 2 · CSV URL
-  const dataSource = cfgResp.dataSource || 'visor';
-  const csvUrl = (dataSource === 'seed' && cfg.sheet_csv_url_seed)
-    ? cfg.sheet_csv_url_seed
-    : (cfg.sheet_csv_url_visor || cfg.sheet_csv_url);
+  // v1.32 · KILL-SWITCH pedido digital: una cella in PARAMETROS accende/spegne
+  // il tap unico + la campanella SENZA deploy (flip del martedì · e freno
+  // d'emergenza permanente). Override dev ?pedido=on|off per la prova generale.
+  PEDIDO_DIGITAL = String(cfg.PEDIDO_DIGITAL_ACTIVO || 'FALSE').trim().toUpperCase() === 'TRUE';
+  const qsPedido = new URLSearchParams(location.search).get('pedido');
+  if(qsPedido === 'on') PEDIDO_DIGITAL = true;
+  else if(qsPedido === 'off') PEDIDO_DIGITAL = false;
+  if(MODO_RESPALDO) PEDIDO_DIGITAL = false;          // senza GAS niente pedido
+  LLAMAR_MESERO_ENABLED = PEDIDO_DIGITAL;            // campanella e pedido viaggiano insieme
+}
 
-  if(!csvUrl){
-    const err = new Error('No sheet_csv_url in PARAMETROS for local=' + LOCAL_ID);
-    err.name = 'AppError';
-    throw err;
-  }
-
-  // STEP 3 · Fetch CSV
-  const csvResp = await fetchWithTimeout(csvUrl + (csvUrl.includes('?') ? '&' : '?') + 't=' + Date.now(), timeoutMs);
-  const text = await csvResp.text();
-  setProgress(70);
-
-  // STEP 4 · Parse
+/* v1.32 · CSV → ALL_PRODUCTS + ALL_CATEGORIES · corpo unico vivo/respaldo */
+function construirProductos(text){
   const rows = parseCSV(text).slice(1);
   const parsed = rows.map(r=>({
     id:            r[0]||'',
@@ -4605,6 +4712,11 @@ async function loadFromSheet(timeoutMs){
     // v1.12 · S5 · cross-sell strip
     sugerencia_categoria:    (r[19]||'').toLowerCase().trim(),  // ID categoria target (es. 'spritz')
     es_sugerencia_destacada: r[20]==='TRUE',                    // se TRUE, hero della sua categoria
+    // v1.32 · push del Comandante (admin v3.2: r[23] Push_Hasta · r[24] Push_Frase)
+    // e forzado fuori ritmo (r[30] Forzado_Hasta) · date parse in esPush/esForzado
+    push_hasta:    r[23]||'',
+    push_frase:    r[24]||'',
+    forzado_hasta: r[30]||'',
     // v1.23 · S13 · descrizioni multilingua (colonne Descripcion_XX) · fallback a ES (r[3])
     desc_i18n: {
       en: r[33]||'', pt: r[34]||'', it: r[35]||'',
@@ -4635,8 +4747,55 @@ async function loadFromSheet(timeoutMs){
     id, name: id.charAt(0).toUpperCase()+id.slice(1),
     emoji: catMap[id]||'✦', orden: i+1
   }));
+}
 
-  setProgress(100);
+/* v1.32 · esPush / esForzado · parse date CL (d/m/yyyy hh:mm) o ISO · scadenza inclusa */
+function _fechaViva(raw){
+  const s = (raw||'').toString().trim();
+  if(!s) return false;
+  let d = null;
+  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:[ T](\d{1,2}):(\d{2}))?/);
+  if(m) d = new Date(+m[3], +m[2]-1, +m[1], +(m[4]||0), +(m[5]||0));  // d/m/yyyy (locale CL)
+  else { const t = Date.parse(s); if(!isNaN(t)) d = new Date(t); }     // ISO dal GAS
+  return d && !isNaN(d.getTime()) && d.getTime() > Date.now();
+}
+function esPush(p){ return _fechaViva(p.push_hasta); }
+function esForzado(p){ return _fechaViva(p.forzado_hasta); }
+
+/* v1.32 · MODO RESPALDO · il piano B dell'incidente 05-lug (Google sospeso →
+   QR nel vuoto). Due strati: menu_snapshot.json nel repo (GitHub Pages era vivo
+   durante il blackout · refresh notturno via Action) → localStorage del device.
+   Ritorna true se la carta è ricostruita: il boot prosegue normale. */
+async function intentarRespaldo(){
+  let snap = null;
+  try {
+    const r = await fetchWithTimeout('menu_snapshot.json?t=' + Date.now(), 8000);
+    const j = await r.json();
+    if(j && j.csv && (!j.local || j.local === LOCAL_ID)) snap = j;
+  } catch(e){ /* snapshot assente o rotto → layer 2 */ }
+  if(!snap){
+    try {
+      const raw = localStorage.getItem('respaldo_' + LOCAL_ID);
+      if(raw){ const j = JSON.parse(raw); if(j && j.csv) snap = j; }
+    } catch(e){}
+  }
+  if(!snap) return false;
+  try {
+    MODO_RESPALDO = true;
+    aplicarConfigCliente(snap.config || {});
+    construirProductos(snap.csv);
+    document.body.classList.add('modo-respaldo');
+    const bar = document.getElementById('respaldoBar');
+    if(bar){
+      bar.textContent = getLang('respaldo_banner') || '📖 Carta de referencia · pídele al mesero para ordenar';
+      bar.classList.add('show');
+    }
+    console.warn('[v1.32] MODO RESPALDO attivo · snapshot ts=' + (snap.ts || '?'));
+    return true;
+  } catch(e){
+    console.error('[v1.32] respaldo fallito:', e);
+    return false;
+  }
 }
 
 function parseCSV(text){
@@ -6184,7 +6343,8 @@ function renderMenu(){
         ? isAlmuerzoProd(p.id)
         : visibleCatIds.includes(p.categoria);
     // Il filtro ritmo NON si applica al gruppo almuerzo (il menù del día è governato dalla regola-prezzo, non dai ritmi serali)
-    const inRitmo = almuerzoGroupActive ? true : (!ritmoFilterActive || ritmoProdSet.has(p.id));
+    // v1.32 · FORZADO (GG da menu_admin): visibile anche fuori ritmo fino a Forzado_Hasta
+    const inRitmo = almuerzoGroupActive ? true : (!ritmoFilterActive || ritmoProdSet.has(p.id) || esForzado(p));
     return inFaja && inGroup && inRitmo;
   });
   if(FILTERED.length === 0){
@@ -6206,6 +6366,10 @@ function renderMenu(){
   FILTERED.forEach(p=>{
     if(!byCat[p.categoria]) byCat[p.categoria] = [];
     byCat[p.categoria].push(p);
+  });
+  // v1.32 · il PUSH del Comandante apre la sua categoria (l'occhio compra prima del portafoglio)
+  Object.keys(byCat).forEach(k=>{
+    byCat[k].sort((a,b)=> (esPush(b)?1:0) - (esPush(a)?1:0));
   });
   let html = '';
   visibleCats.forEach(cat=>{
@@ -6267,14 +6431,24 @@ function renderProductCard(p){
     ? `<span class="badge" style="background:rgba(61,170,104,0.18);color:#2e8a52;font-weight:700">🍽️ ${getLang('group_almuerzo')||'Menú del Día'}</span>`
     : '';
   const almuerzoClass = isAlmuerzoActivo ? ' has-almuerzo' : '';
+  // v1.32 · PUSH del Comandante (menu_admin → Push_Hasta/Push_Frase) · destacado
+  const isPushed = esPush(p);
+  const pushFrase = isPushed ? (p.push_frase || getLang('push_default_frase') || 'El recomendado del Comandante') : '';
+  const pushFlag = isPushed
+    ? `<div style="position:absolute;top:-3px;left:-3px;background:#E94560;color:#fff;padding:2px 5px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:0.3px;z-index:3;line-height:1;border:2px solid var(--brand-surface)">★</div>`
+    : '';
+  const pushBadge = isPushed
+    ? `<span class="badge" style="background:rgba(233,69,96,0.16);color:#E94560;font-weight:700">★ ${pushFrase}</span>`
+    : '';
+  const pushClass = isPushed ? ' has-push' : '';
   // v1.23 · S13 · tipo '2x1' o 'multiplo' = stesso prodotto, paga 1 ricevi 2.
   // NON sostituisce il prezzo (resta quello vero del prodotto) · mostra solo badge 2x1.
   // Altri tipi (combo/tabla) = prezzo fisso promo che sostituisce il prezzo.
   const isDosPorUno = promo && (promo.tipo === '2x1' || promo.tipo === 'multiplo');
   const promoPriceMain = (promo && !isDosPorUno) ? formatPrice(promo.precio_final) : prices.main;
   const promoPriceOrig = (promo && !isDosPorUno) ? formatPrice(p.precio) : prices.orig;
-  const badgesHtml = (promo || badges || almuerzoBadge)
-    ? `<div class="card-badges">${almuerzoBadge}${promoBadge}${badges || ''}</div>`
+  const badgesHtml = (promo || badges || almuerzoBadge || pushBadge)
+    ? `<div class="card-badges">${pushBadge}${almuerzoBadge}${promoBadge}${badges || ''}</div>`
     : '';
   // v1.11 · dot NUEVO sull'angolo top-right della foto (sostituisce bordo verde animato)
   const nuevoDot = isNew && !p.agotado
@@ -6282,8 +6456,8 @@ function renderProductCard(p){
     : '';
   // v1.11 · layout Strada C · nome+prezzo top, descrizione 2 righe sotto
   return `
-    <div class="product-card${p.agotado?' agotado':''}${isNew?' nuevo-highlight':''}${promoClass}${almuerzoClass}" data-id="${p.id}" onclick="openDetail('${p.id}')">
-      <div class="card-img-wrap">${imgHtml}${promoFlag}${almuerzoFlag}${nuevoDot}</div>
+    <div class="product-card${p.agotado?' agotado':''}${isNew?' nuevo-highlight':''}${promoClass}${almuerzoClass}${pushClass}" data-id="${p.id}" onclick="openDetail('${p.id}')">
+      <div class="card-img-wrap">${imgHtml}${pushFlag}${promoFlag}${almuerzoFlag}${nuevoDot}</div>
       <div class="card-body">
         <div class="card-top-row">
           <div class="card-name${p.agotado?' agotado-text':''}">${toTitleCase(p.nombre)}</div>
@@ -6760,6 +6934,11 @@ function closeCart(){
 function renderCart(){
   const el = document.getElementById('cartSheetContent');
   if(!el) return;
+  // v1.32 · pedido in corso e carro vuoto → il carro È lo stato del pedido
+  if(PEDIDO_ACTUAL && CART.items.length === 0){
+    renderPedidoEstado();
+    return;
+  }
   if(CART.items.length === 0){
     el.innerHTML = `
       <div class="cart-title">${getLang('cart_title') || 'Mi Pedido'}</div>
@@ -6787,11 +6966,20 @@ function renderCart(){
       <span class="cart-total-label">${getLang('cart_total') || 'Total'}</span>
       <span class="cart-total-val">${formatPriceWithSymbol(total)}</span>
     </div>
-    <button class="cart-listo-btn" onclick="cartListo()">${getLang('cart_listo') || 'Listo · mostrar al mesero'}</button>`;
+    ${(PEDIDO_DIGITAL && MESA_ID)
+      ? `<div class="pedido-hint">${getLang('pedido_hint') || '🛎 Nuevo — tu pedido le llega al mesero al tiro'}</div>
+         <button class="cart-listo-btn cart-btn-pedido" id="btnEnviarPedido" onclick="cartListo()">${getLang('pedido_btn') || '🛎 Enviar pedido y llamar al mesero'}</button>`
+      : `<button class="cart-listo-btn" onclick="cartListo()">${getLang('cart_listo') || 'Listo · mostrar al mesero'}</button>`}`;
 }
 
 function cartListo(){
   if(CART.items.length === 0) return;
+  // v1.32 · TAP UNICO: col kill-switch acceso e una mesa vera, il carrito
+  // diventa la llamada (spec 03-jul). Switch spento = comportamento storico.
+  if(PEDIDO_DIGITAL && MESA_ID){
+    enviarPedidoDigital();
+    return;
+  }
   const total = CART.items.reduce((s,i)=> s + i.precio * (i.qty||1), 0);
   const snapshot = { items: CART.items.slice(), total: total, gancho_origen: CART.gancho_origen };
   // Salva intenzione su GAS (fire-and-forget · non blocca la UX)
@@ -6838,6 +7026,168 @@ function submitCarrito(snap){
       body: JSON.stringify(payload),
     }).catch(e => console.warn('[v1.23] submitCarrito failed:', e.message));
   } catch(e){ console.warn('[v1.23] submitCarrito exception:', e.message); }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   v1.32 · PEDIDO DIGITAL · il carrito diventa la llamada (spec 03-jul)
+   enviarPedido (GAS v3.3, dedup uuid) → PEDIDOS + llamada + campanilla
+   Telegram del mesero → poll getEstadoPedido → "✓ Camila va en camino".
+   Su QUALSIASI errore: fallback al recap storico — il cliente non resta
+   mai a mani vuote. submitCarrito resta vivo (telemetria, non si tocca).
+   ════════════════════════════════════════════════════════════════════ */
+
+function _postGAS(body, timeoutMs){
+  const ctrl = new AbortController();
+  const tid = setTimeout(()=>ctrl.abort(), timeoutMs || 15000);
+  return fetch(BRAND.gas_url || GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // no preflight (pattern gasPost)
+    body: JSON.stringify(body),
+    signal: ctrl.signal,
+  }).then(r => { clearTimeout(tid); return r.json(); })
+    .catch(e => { clearTimeout(tid); throw e; });
+}
+
+function _nuevoUuid(){
+  try { if(crypto && crypto.randomUUID) return crypto.randomUUID(); } catch(e){}
+  return 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+async function enviarPedidoDigital(){
+  if(CART.items.length === 0) return;
+  const btn = document.getElementById('btnEnviarPedido');
+  if(btn){ btn.disabled = true; btn.textContent = getLang('pedido_enviando') || 'Enviando…'; }
+
+  const total = CART.items.reduce((s,i)=> s + i.precio * (i.qty||1), 0);
+  const snapshot = { items: CART.items.slice(), total: total, gancho_origen: CART.gancho_origen };
+  // items con categoria: il mesero li vede in orden ALOHA (spec 03-jul)
+  const items = snapshot.items.map(i=>{
+    const p = ALL_PRODUCTS.find(x=>x.id===i.id);
+    return { id:i.id, nombre:i.nombre, precio:i.precio, qty:i.qty||1, cat: p ? p.categoria : '' };
+  });
+  const uuid = _nuevoUuid();
+
+  submitCarrito(snapshot);   // telemetria intenzioni · invariata
+
+  try {
+    const resp = await _postGAS({
+      action: 'enviarPedido', local: LOCAL_ID, uuid: uuid,
+      mesa: MESA_ID, total: snapshot.total,
+      ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
+      member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
+      items_json: JSON.stringify(items),
+      ts: Date.now(),
+    });
+    if(!resp || !resp.ok) throw new Error((resp && resp.error) || 'enviar_failed');
+
+    PEDIDO_ACTUAL = {
+      uuid: uuid, ts: Date.now(), total: snapshot.total,
+      n: items.reduce((s,i)=> s + (i.qty||1), 0),
+      estado: resp.estado || 'pendiente', mesero: '',
+    };
+    try { sessionStorage.setItem(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
+    CART = { items: [], updated_ts: 0, gancho_origen: '' };
+    sessionStorage.removeItem(CART_KEY);
+    updateCartBadge();
+    renderPedidoEstado();
+    iniciarPollPedido();
+  } catch(e){
+    console.warn('[v1.32] enviarPedido fallito → fallback recap:', e.message);
+    showToastMsg(getLang('pedido_fallback') || 'No pude enviarlo — muéstrale esta lista al mesero 🙌');
+    renderCartRecap(snapshot);   // comportamento storico: mai a mani vuote
+    CART = { items: [], updated_ts: 0, gancho_origen: '' };
+    sessionStorage.removeItem(CART_KEY);
+    updateCartBadge();
+  }
+}
+
+/* la vista-stato dentro il cart sheet · aggiornata dal poll */
+function renderPedidoEstado(){
+  const el = document.getElementById('cartSheetContent');
+  if(!el || !PEDIDO_ACTUAL) return;
+  const PA = PEDIDO_ACTUAL;
+  const VISTAS = {
+    pendiente:  { icon:'🛎', anim:true,  t: getLang('pedido_st_pendiente') || 'Llamando al mesero…',
+                  s: getLang('pedido_st_pendiente_sub') || 'Tu pedido ya está en el sistema' },
+    atendido:   { icon:'✓',  anim:false, t: (getLang('pedido_st_atendido') || '{nombre} va en camino').replace('{nombre}', PA.mesero || (getLang('pedido_el_mesero')||'El mesero')),
+                  s: getLang('pedido_st_atendido_sub') || 'Confirma tu pedido cuando llegue a la mesa' },
+    digitado:   { icon:'⌨',  anim:false, t: getLang('pedido_st_digitado') || 'En el sistema',
+                  s: getLang('pedido_st_digitado_sub') || 'Cocina y barra ya lo están preparando' },
+    entregado:  { icon:'🍽', anim:false, t: getLang('pedido_st_entregado') || '¡Entregado — buen provecho!',
+                  s: getLang('pedido_st_entregado_sub') || 'Gracias por pedir desde tu mesa' },
+    cerrado:    { icon:'🍽', anim:false, t: getLang('pedido_st_entregado') || '¡Entregado — buen provecho!', s:'' },
+    expirado:   { icon:'🙋', anim:false, t: getLang('pedido_st_problema') || 'Mejor díselo al mesero',
+                  s: getLang('pedido_st_problema_sub') || 'No pudimos confirmarlo — llama al mesero o acércate a la barra' },
+    cancelado:  { icon:'🙋', anim:false, t: getLang('pedido_st_problema') || 'Mejor díselo al mesero',
+                  s: getLang('pedido_st_problema_sub') || 'No pudimos confirmarlo — llama al mesero o acércate a la barra' },
+  };
+  const v = VISTAS[PA.estado] || VISTAS.pendiente;
+  const terminal = ['entregado','cerrado','expirado','cancelado'].includes(PA.estado);
+  el.innerHTML = `
+    <div class="cart-recap">
+      <div class="cart-recap-check${v.anim ? ' pedido-pulse' : ''}">${v.icon}</div>
+      <div class="cart-recap-title">${v.t}</div>
+      <div class="cart-recap-sub">${v.s}</div>
+      <div class="cart-recap-list">
+        <div class="cart-recap-item"><span>${PA.n} ${getLang('pedido_items')||'productos'} · ${getLang('mesa')||'Mesa'} ${MESA_ID}</span><span>${formatPriceWithSymbol(PA.total)}</span></div>
+      </div>
+      ${terminal
+        ? `<button class="cart-listo-btn" onclick="cerrarPedidoActual()">${getLang('pedido_pedir_mas') || 'Pedir algo más'}</button>`
+        : `<button class="cart-listo-btn" onclick="closeCart()">${getLang('cart_close') || 'Cerrar'}</button>`}
+    </div>`;
+}
+
+function cerrarPedidoActual(){
+  detenerPollPedido();
+  PEDIDO_ACTUAL = null;
+  try { sessionStorage.removeItem(PEDIDO_KEY); } catch(e){}
+  renderCart();
+}
+
+function iniciarPollPedido(){
+  detenerPollPedido();
+  PEDIDO_POLL = setInterval(async ()=>{
+    if(!PEDIDO_ACTUAL){ detenerPollPedido(); return; }
+    if(document.visibilityState !== 'visible') return;
+    try {
+      const url = (BRAND.gas_url || GAS_URL) + '?action=getEstadoPedido&local=' + encodeURIComponent(LOCAL_ID) +
+        '&uuid=' + encodeURIComponent(PEDIDO_ACTUAL.uuid) + '&t=' + Date.now();
+      const r = await fetchWithTimeout(url, 9000).then(x=>x.json());
+      if(!r || !r.ok) return;   // silenzioso: il prossimo giro riprova
+      const cambio = (r.estado !== PEDIDO_ACTUAL.estado) || ((r.mesero||'') !== PEDIDO_ACTUAL.mesero);
+      PEDIDO_ACTUAL.estado = r.estado || PEDIDO_ACTUAL.estado;
+      PEDIDO_ACTUAL.mesero = r.mesero || '';
+      try { sessionStorage.setItem(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
+      if(cambio){
+        if(PEDIDO_ACTUAL.estado === 'atendido'){
+          showToastMsg('✓ ' + (PEDIDO_ACTUAL.mesero || (getLang('pedido_el_mesero')||'El mesero')) + ' ' + (getLang('pedido_camino_toast')||'va en camino'));
+        }
+        const sheetOpen = document.getElementById('cartSheet')?.classList.contains('open');
+        if(sheetOpen && CART.items.length === 0) renderPedidoEstado();
+      }
+      if(['entregado','cerrado','expirado','cancelado'].includes(PEDIDO_ACTUAL.estado)) detenerPollPedido();
+    } catch(e){ /* rete: il prossimo giro riprova */ }
+  }, 10000);
+}
+
+function detenerPollPedido(){
+  if(PEDIDO_POLL){ clearInterval(PEDIDO_POLL); PEDIDO_POLL = null; }
+}
+
+/* refresh/rientro: il pedido vive in sessionStorage — si riprende da dove era */
+function restaurarPedidoActual(){
+  try {
+    const raw = sessionStorage.getItem(PEDIDO_KEY);
+    if(!raw) return;
+    const p = JSON.parse(raw);
+    if(!p || !p.uuid) return;
+    if(['entregado','cerrado','expirado','cancelado'].includes(p.estado)){
+      sessionStorage.removeItem(PEDIDO_KEY);
+      return;
+    }
+    PEDIDO_ACTUAL = p;
+    iniciarPollPedido();
+  } catch(e){}
 }
 
 /* v1.12 · S5 · DJS_AGENDA · poll DJ ogni 60s, calcola DJ attivo per giorno+ora
@@ -7365,9 +7715,14 @@ function onCallWaiterGeneric(){
     showToastMsg(getLang('call_no_mesa') || 'Acércate a un mesero para ordenar');
     return;
   }
+  // v1.32 · comunicazione al momento giusto (spec §5): chi suona il campanello
+  // è il pubblico perfetto per scoprire il pedido digitale (998 llamadas, 0 pedidos)
+  const hintPedido = (PEDIDO_DIGITAL && CART.items && CART.items.length === 0)
+    ? ' · ' + (getLang('llamada_hint_pedido') || '💡 ¿Sabías que puedes mandarme tu pedido desde el carrito? Llego con todo listo')
+    : '';
   openConfirmSheet({
     title:    getLang('call_generic_title') || '¿Llamar mesero?',
-    subtitle: `${getLang('mesa')} ${MESA_ID} · ${getLang('call_generic_subtitle') || 'El mesero llegará a tu mesa en breve'}`,
+    subtitle: `${getLang('mesa')} ${MESA_ID} · ${getLang('call_generic_subtitle') || 'El mesero llegará a tu mesa en breve'}${hintPedido}`,
     payload:  { tipo_llamada :'generica', prod_id: null },
     okLabel:  getLang('confirm_call') || 'Sí, llamar',
   });
