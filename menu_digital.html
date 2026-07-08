@@ -11,7 +11,14 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.38 · 18-jun-2026 · Sessione S17
+     menu_digital.html · v1.39 · 18-jun-2026 · Sessione S17
+     CHANGELOG v1.38 → v1.39 (miércoles 8-jul AM · fix del bundle, oss. Alberto):
+     · Z-INDEX: la sheet "elige tu bebida" si apriva DIETRO il detailSheet (301) —
+       ora 340/341 + il modal si chiude da solo quando parte la scelta.
+     · FIX PREZZO CARRELLO: gli item entrano col prezzo della REGLA attiva
+       ($11.900 del menú) invece del listino — la card era giusta, il carro no.
+     · Il MENÚ si presenta: 🍱 + riga "incluye…" (da PARAMETROS.almuerzo_incluye)
+       nel carro · al mesero arriva "Menú del Día · [plato] · [bebida]".
      CHANGELOG v1.37 → v1.38 (martes 7-jul · lanzamiento · el bundle elige la bebida):
      · SHEET "ELIGE TU BEBIDA O COPA": al agregar un plato del bundle almuerzo
        (PRECIOS_REGLA tipo almuerzo) se abre UNA pregunta con chips — la scelta
@@ -1456,10 +1463,11 @@ body.feature-pedir-directo .card-pedir-btn{display:flex}
 #respaldoBar.show{display:block;}
 body.modo-respaldo .bnav-fab{opacity:0.35;pointer-events:none;}
 /* v1.38 · sheet opciones bundle almuerzo */
-.op-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:130;opacity:0;pointer-events:none;transition:opacity .2s;}
+/* v1.39 · z-index SOPRA il detailSheet (301) — prima si apriva dietro il modal */
+.op-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:340;opacity:0;pointer-events:none;transition:opacity .2s;}
 .op-overlay.open{opacity:1;pointer-events:auto;}
 .op-sheet{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;background:var(--brand-surface,#fff);
-  border-radius:18px 18px 0 0;padding:10px 18px calc(24px + env(safe-area-inset-bottom,0));z-index:131;
+  border-radius:18px 18px 0 0;padding:10px 18px calc(24px + env(safe-area-inset-bottom,0));z-index:341;
   transform:translateY(100%);transition:transform .25s cubic-bezier(.32,.72,0,1);}
 .op-sheet.open{transform:none;}
 .op-handle{width:38px;height:4px;border-radius:2px;background:var(--brand-border,#ddd);margin:4px auto 14px;}
@@ -6974,9 +6982,14 @@ function addToCart(prodId){
 // diverse = due righe) · merge solo se STESSA opción
 function _pushLinea(p, op){
   if(CART.items.length === 0) CART.gancho_origen = p.id;
+  // v1.39 · FIX PREZZO: nel carro va il prezzo della REGLA attiva (menú $11.900),
+  // non il listino — la card lo mostrava giusto, il carrello no (oss. Alberto)
+  const regla = PRECIOS_REGLA_MAP[p.id];
+  const esMenu = !!(regla && regla.tipo === 'almuerzo');
+  const precio = (regla && parsePrice(regla.precio) > 0) ? parsePrice(regla.precio) : parsePrice(p.precio);
   const existing = CART.items.find(i => i.id === p.id && (i.op||'') === (op||''));
   if(existing){ existing.qty = (existing.qty||1) + 1; }
-  else { CART.items.push({ id: p.id, nombre: p.nombre, precio: parsePrice(p.precio), qty: 1, op: op||'' }); }
+  else { CART.items.push({ id: p.id, nombre: p.nombre, precio: precio, qty: 1, op: op||'', es_menu: esMenu }); }
   saveCart();
   // Feedback visivo sul bottone
   const btn = document.getElementById('agregarBtn-' + p.id);
@@ -6995,6 +7008,9 @@ let OP_PROD_PENDIENTE = null;
 function abrirOpcionAlmuerzo(prodId){
   const p = ALL_PRODUCTS.find(x => x.id === prodId);
   if(!p) return;
+  // v1.39 · se il tap arriva dal modal prodotto, il modal si fa da parte:
+  // "Agregar" → si chiude → appare la scelta (prima restava sotto, z-index 301)
+  try { if(document.getElementById('detailSheet')?.classList.contains('open')) closeDetail(); } catch(e){}
   OP_PROD_PENDIENTE = prodId;
   document.getElementById('opTitle').textContent = getLang('almuerzo_elige') || 'Elige tu bebida o copa';
   document.getElementById('opSub').textContent = toTitleCase(p.nombre) + (ALMUERZO_INCLUYE_TXT ? ' · ' + ALMUERZO_INCLUYE_TXT : '');
@@ -7072,7 +7088,8 @@ function renderCart(){
     ${CART.items.map((i, idx) => `
       <div class="cart-row">
         <div class="cart-row-info">
-          <div class="cart-row-name">${toTitleCase(i.nombre)}</div>
+          <div class="cart-row-name">${i.es_menu ? '🍱 ' : ''}${toTitleCase(i.nombre)}</div>
+          ${i.es_menu ? `<div class="cart-row-op" style="color:var(--brand-text-muted);font-weight:500">${ALMUERZO_INCLUYE_TXT || 'Incluye entrada y postre'}</div>` : ''}
           ${i.op ? `<div class="cart-row-op">🥤 ${i.op}</div>` : ''}
           <div class="cart-row-price">${formatPrice(i.precio * (i.qty||1))}</div>
         </div>
@@ -7189,7 +7206,10 @@ async function enviarPedidoDigital(){
     const p = ALL_PRODUCTS.find(x=>x.id===i.id);
     // v1.38 · l'opción del bundle viaggia DENTRO il nombre: mesero, PEDIDOS.Productos
     // e "esta noche" la vedono senza toccare una riga di backend
-    return { id:i.id, nombre: i.nombre + (i.op ? ' · ' + i.op : ''), precio:i.precio, qty:i.qty||1, cat: p ? p.categoria : '' };
+    // v1.39 · il MENÚ si dichiara: "Menú del Día · Gohan · Copa de vino"
+    return { id:i.id,
+      nombre: (i.es_menu ? (getLang('group_almuerzo')||'Menú del Día') + ' · ' : '') + i.nombre + (i.op ? ' · ' + i.op : ''),
+      precio:i.precio, qty:i.qty||1, cat: p ? p.categoria : '' };
   });
   const uuid = _nuevoUuid();
 
