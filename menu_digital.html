@@ -11,7 +11,12 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.40 · 18-jun-2026 · Sessione S17
+     menu_digital.html · v1.41 · 18-jun-2026 · Sessione S17
+     CHANGELOG v1.40 → v1.41 (miércoles 8-jul noche · contratto dati, oss. Alberto):
+     · items_json STRUTTURATO per KDS e cuenta: qty=unità PAGATE (cuenta) ·
+       llevar=unità DA PRODURRE (KDS) · op/es_menu/promo campi macchina.
+       Il nombre composto resta per gli umani (mesero/Productos). Additivo:
+       niente si rompe, il KDS di questa settimana nasce già col dato giusto.
      CHANGELOG v1.39 → v1.40 (miércoles 8-jul noche · happy hour, oss. Alberto):
      · 2x1/MULTIPLO nel carro: la matematica era giusta (pagas qty) ma muta —
        ora la riga dice "🎁 2x1 · pagas 1, llevas 2" (qty = unità PAGATE),
@@ -7220,11 +7225,19 @@ async function enviarPedidoDigital(){
     // e "esta noche" la vedono senza toccare una riga di backend
     // v1.39 · il MENÚ si dichiara: "Menú del Día · Gohan · Copa de vino"
     // v1.40 · il 2x1 si dichiara al mesero: "· 2x1 (llevar N)" — porta il doppio!
+    // v1.41 · CONTRATTO DATI per KDS e cuenta (oss. Alberto): il nombre composto
+    // è per gli umani; le macchine leggono i CAMPI:
+    //   qty    = unità PAGATE            → la cuenta fattura qty × precio
+    //   llevar = unità DA SERVIRE/PRODURRE → il KDS prepara llevar
+    //   op     = bebida/copa del menú · es_menu · promo ('2x1' | '')
+    const qty = i.qty||1;
     return { id:i.id,
       nombre: (i.es_menu ? (getLang('group_almuerzo')||'Menú del Día') + ' · ' : '') + i.nombre
         + (i.op ? ' · ' + i.op : '')
-        + (i.p2x1 ? ' · 2x1 (llevar ' + ((i.qty||1)*2) + ')' : ''),
-      precio:i.precio, qty:i.qty||1, cat: p ? p.categoria : '' };
+        + (i.p2x1 ? ' · 2x1 (llevar ' + (qty*2) + ')' : ''),
+      precio:i.precio, qty: qty, llevar: i.p2x1 ? qty*2 : qty,
+      op: i.op||'', es_menu: !!i.es_menu, promo: i.p2x1 ? '2x1' : '',
+      cat: p ? p.categoria : '' };
   });
   const uuid = _nuevoUuid();
 
