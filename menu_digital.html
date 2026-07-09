@@ -4249,6 +4249,10 @@ const PEDIDOS_NOCHE_KEY = 'pedidos_noche_v1';
    PARAMETROS.almuerzo_opciones = "Bebida, Copa de vino, Cerveza" → al tap su un
    piatto-almuerzo si apre la scelta; vuota = feature spenta (data-gated). */
 let ALMUERZO_OPCIONES = [];
+/* v1.42 · TÉRMINO DE LA CARNE: PARAMETROS.termino_opciones = "Inglesa, A punto,
+   Tres cuartos, Bien cocida" + token 'carne' nella colonna Badges del prodotto
+   → al tap si chiede il término. Data-gated come le bebidas. */
+let TERMINO_OPCIONES = [];
 
 let ALL_PRODUCTS     = [];
 let ALL_CATEGORIES   = [];
@@ -4766,6 +4770,8 @@ function aplicarConfigCliente(cfg){
   ALMUERZO_INCLUYE_TXT = (cfg.almuerzo_incluye||'').trim();
   // v1.38 · le opzioni bebida/copa del bundle (vuota = nessuna domanda)
   ALMUERZO_OPCIONES = (cfg.almuerzo_opciones||'').split(',').map(s=>s.trim()).filter(Boolean);
+  // v1.42 · i términos della carne (vuota = nessuna domanda)
+  TERMINO_OPCIONES = (cfg.termino_opciones||'').split(',').map(s=>s.trim()).filter(Boolean);
 
   // v1.32 · KILL-SWITCH pedido digital: una cella in PARAMETROS accende/spegne
   // il tap unico + la campanella SENZA deploy (flip del martedì · e freno
@@ -6979,15 +6985,19 @@ function updateCartBadge(){
 function addToCart(prodId){
   const p = ALL_PRODUCTS.find(x => x.id === prodId);
   if(!p) return;
-  // v1.38 · piatto del bundle almuerzo con opciones configurate → UNA domanda
-  // ("¿tu bebida o copa?") e la scelta viaggia nel pedido. Entrada e postre
-  // sono standard: zero domande. Data-gated: almuerzo_opciones vuota = spento.
+  // v1.38 · piatto del bundle almuerzo → domanda bebida/copa
+  // v1.42 · carne (token 'carne' nei Badges) → domanda término · le domande
+  // si INCATENANO (un lomo in almuerzo chiede bebida E término). Data-gated.
   const esAlmuerzo = PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo';
-  if(esAlmuerzo && ALMUERZO_OPCIONES.length){
-    abrirOpcionAlmuerzo(prodId);
+  const esCarne = (p.badges||'').toLowerCase().includes('carne');
+  const preguntas = [];
+  if(esAlmuerzo && ALMUERZO_OPCIONES.length) preguntas.push({ tipo:'bebida',  opciones: ALMUERZO_OPCIONES });
+  if(esCarne && TERMINO_OPCIONES.length)     preguntas.push({ tipo:'termino', opciones: TERMINO_OPCIONES });
+  if(preguntas.length){
+    iniciarPreguntas(prodId, preguntas);
     return;
   }
-  _pushLinea(p, '');
+  _pushLinea(p, '', '');
 }
 
 // v1.38 · una línea per combinazione prodotto+opción (due Gohan con copas
