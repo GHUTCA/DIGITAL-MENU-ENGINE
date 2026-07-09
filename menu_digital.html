@@ -11,7 +11,13 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.41 · 18-jun-2026 · Sessione S17
+     menu_digital.html · v1.42 · 18-jun-2026 · Sessione S17
+     CHANGELOG v1.41 → v1.42 (miércoles 8-jul noche · término de la carne):
+     · Domande A CATENA nel chooser: bebida del menú + TÉRMINO della carne
+       (token 'carne' nella colonna Badges — invisibile in carta, whitelist).
+       PARAMETROS.termino_opciones = "Inglesa, A punto, Tres cuartos, Bien cocida"
+       (vuota = spento). Merge righe per id+bebida+término. Campo `termino`
+       strutturato nel items_json (KDS/cuenta) + nel nombre per gli umani.
      CHANGELOG v1.40 → v1.41 (miércoles 8-jul noche · contratto dati, oss. Alberto):
      · items_json STRUTTURATO per KDS e cuenta: qty=unità PAGATE (cuenta) ·
        llevar=unità DA PRODURRE (KDS) · op/es_menu/promo campi macchina.
@@ -3626,6 +3632,7 @@ const TRANSLATIONS = {
     pedido_ya_noche:'Ya pedido esta noche',
     llamada_cooldown:'🔔 El mesero ya fue avisado · va en camino',
     almuerzo_elige:'Elige tu bebida o copa',
+    termino_elige:'El término de tu carne',
     promo_pagas:'pagas', promo_llevas:'llevas',
     llamada_hint_pedido:'💡 ¿Sabías que puedes mandarme tu pedido desde el carrito? Llego con todo listo',
     respaldo_banner:'📖 Carta de referencia · pídele al mesero para ordenar',
@@ -3703,6 +3710,7 @@ const TRANSLATIONS = {
     pedido_ya_noche:'Already ordered tonight',
     llamada_cooldown:'🔔 Your waiter is already on the way',
     almuerzo_elige:'Choose your drink',
+    termino_elige:'How would you like your meat?',
     promo_pagas:'pay for', promo_llevas:'you get',
     llamada_hint_pedido:'💡 Did you know you can send me your order from the cart? I arrive with everything ready',
     respaldo_banner:'📖 Reference menu · ask your waiter to order',
@@ -7002,7 +7010,7 @@ function addToCart(prodId){
 
 // v1.38 · una línea per combinazione prodotto+opción (due Gohan con copas
 // diverse = due righe) · merge solo se STESSA opción
-function _pushLinea(p, op){
+function _pushLinea(p, op, termino){
   if(CART.items.length === 0) CART.gancho_origen = p.id;
   // v1.39 · FIX PREZZO: nel carro va il prezzo della REGLA attiva (menú $11.900),
   // non il listino — la card lo mostrava giusto, il carrello no (oss. Alberto)
@@ -7013,9 +7021,11 @@ function _pushLinea(p, op){
   // DICEVA "llevas el doble" — né al cliente né al mesero (oss. Alberto, happy hour)
   const promo = (typeof PROD_TO_PROMO !== 'undefined') ? PROD_TO_PROMO[p.id] : null;
   const es2x1 = !!(promo && (promo.tipo === '2x1' || promo.tipo === 'multiplo'));
-  const existing = CART.items.find(i => i.id === p.id && (i.op||'') === (op||''));
+  // v1.42 · merge solo se stesse scelte (op + término): due filetes a término
+  // diverso = due righe
+  const existing = CART.items.find(i => i.id === p.id && (i.op||'') === (op||'') && (i.termino||'') === (termino||''));
   if(existing){ existing.qty = (existing.qty||1) + 1; }
-  else { CART.items.push({ id: p.id, nombre: p.nombre, precio: precio, qty: 1, op: op||'', es_menu: esMenu, p2x1: es2x1 }); }
+  else { CART.items.push({ id: p.id, nombre: p.nombre, precio: precio, qty: 1, op: op||'', termino: termino||'', es_menu: esMenu, p2x1: es2x1 }); }
   saveCart();
   // Feedback visivo sul bottone
   const btn = document.getElementById('agregarBtn-' + p.id);
@@ -7029,34 +7039,54 @@ function _pushLinea(p, op){
   }
 }
 
-/* v1.38 · sheet "Elige tu bebida o copa" (il bundle batte il menù di plastica) */
-let OP_PROD_PENDIENTE = null;
-function abrirOpcionAlmuerzo(prodId){
+/* v1.38→v1.42 · sheet domande a catena: bebida del menú + término de la carne.
+   OP_FLOW = {prodId, preguntas[], idx, respuestas{}} — si chiede una cosa alla
+   volta, alla fine la riga entra nel carro con TUTTE le scelte. */
+let OP_FLOW = null;
+function iniciarPreguntas(prodId, preguntas){
   const p = ALL_PRODUCTS.find(x => x.id === prodId);
   if(!p) return;
-  // v1.39 · se il tap arriva dal modal prodotto, il modal si fa da parte:
-  // "Agregar" → si chiude → appare la scelta (prima restava sotto, z-index 301)
+  // v1.39 · se il tap arriva dal modal prodotto, il modal si fa da parte
   try { if(document.getElementById('detailSheet')?.classList.contains('open')) closeDetail(); } catch(e){}
-  OP_PROD_PENDIENTE = prodId;
-  document.getElementById('opTitle').textContent = getLang('almuerzo_elige') || 'Elige tu bebida o copa';
-  document.getElementById('opSub').textContent = toTitleCase(p.nombre) + (ALMUERZO_INCLUYE_TXT ? ' · ' + ALMUERZO_INCLUYE_TXT : '');
-  document.getElementById('opChips').innerHTML = ALMUERZO_OPCIONES.map((o,i) =>
+  OP_FLOW = { prodId: prodId, preguntas: preguntas, idx: 0, respuestas: {} };
+  _renderPregunta();
+}
+function _renderPregunta(){
+  if(!OP_FLOW) return;
+  const p = ALL_PRODUCTS.find(x => x.id === OP_FLOW.prodId);
+  const q = OP_FLOW.preguntas[OP_FLOW.idx];
+  if(!p || !q){ cerrarOpcion(); return; }
+  const titulos = {
+    bebida:  getLang('almuerzo_elige') || 'Elige tu bebida o copa',
+    termino: getLang('termino_elige') || 'El término de tu carne',
+  };
+  const subExtra = q.tipo === 'bebida' && ALMUERZO_INCLUYE_TXT ? ' · ' + ALMUERZO_INCLUYE_TXT : '';
+  const paso = OP_FLOW.preguntas.length > 1 ? ` (${OP_FLOW.idx+1}/${OP_FLOW.preguntas.length})` : '';
+  document.getElementById('opTitle').textContent = (titulos[q.tipo] || 'Elige') + paso;
+  document.getElementById('opSub').textContent = toTitleCase(p.nombre) + subExtra;
+  document.getElementById('opChips').innerHTML = q.opciones.map((o,i) =>
     `<button class="op-chip" onclick="elegirOpcion(${i})">${o}</button>`).join('');
   document.getElementById('opOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('opSheet').classList.add('open'), 10);
 }
 function elegirOpcion(idx){
-  const op = ALMUERZO_OPCIONES[idx] || '';
-  const p = ALL_PRODUCTS.find(x => x.id === OP_PROD_PENDIENTE);
+  if(!OP_FLOW) return;
+  const q = OP_FLOW.preguntas[OP_FLOW.idx];
+  OP_FLOW.respuestas[q.tipo] = q.opciones[idx] || '';
+  OP_FLOW.idx++;
+  if(OP_FLOW.idx < OP_FLOW.preguntas.length){ _renderPregunta(); return; }
+  const p = ALL_PRODUCTS.find(x => x.id === OP_FLOW.prodId);
+  const r = OP_FLOW.respuestas;
   cerrarOpcion();
   if(!p) return;
-  _pushLinea(p, op);
-  showToastMsg(toTitleCase(p.nombre) + ' · ' + op + ' · ' + (getLang('add') || 'agregado'));
+  _pushLinea(p, r.bebida || '', r.termino || '');
+  const detalle = [r.bebida, r.termino].filter(Boolean).join(' · ');
+  showToastMsg(toTitleCase(p.nombre) + (detalle ? ' · ' + detalle : '') + ' · ' + (getLang('add') || 'agregado'));
 }
 function cerrarOpcion(){
   document.getElementById('opSheet').classList.remove('open');
   document.getElementById('opOverlay').classList.remove('open');
-  OP_PROD_PENDIENTE = null;
+  OP_FLOW = null;
 }
 
 function cartChangeQty(idx, delta){
@@ -7118,6 +7148,7 @@ function renderCart(){
           ${i.es_menu ? `<div class="cart-row-op" style="color:var(--brand-text-muted);font-weight:500">${ALMUERZO_INCLUYE_TXT || 'Incluye entrada y postre'}</div>` : ''}
           ${i.p2x1 ? `<div class="cart-row-op" style="color:#d97706">🎁 2x1 · ${getLang('promo_pagas')||'pagas'} ${i.qty||1}, ${getLang('promo_llevas')||'llevas'} ${(i.qty||1)*2}</div>` : ''}
           ${i.op ? `<div class="cart-row-op">🥤 ${i.op}</div>` : ''}
+          ${i.termino ? `<div class="cart-row-op">🥩 ${i.termino}</div>` : ''}
           <div class="cart-row-price">${formatPrice(i.precio * (i.qty||1))}</div>
         </div>
         <div class="cart-row-qty">
@@ -7168,7 +7199,7 @@ function renderCartRecap(snap){
       <div class="cart-recap-title">${getLang('cart_recap_title') || '¡Pedido listo!'}</div>
       <div class="cart-recap-sub">${getLang('cart_recap_sub') || 'Muestra esta lista al mesero para ordenar.'}</div>
       <div class="cart-recap-list">
-        ${snap.items.map(i => `<div class="cart-recap-item"><span>${(i.qty||1)}× ${toTitleCase(i.nombre)}${i.op ? ' · ' + i.op : ''}${i.p2x1 ? ' · 🎁2x1 (llevas ' + ((i.qty||1)*2) + ')' : ''}</span><span>${formatPrice(i.precio*(i.qty||1))}</span></div>`).join('')}
+        ${snap.items.map(i => `<div class="cart-recap-item"><span>${(i.qty||1)}× ${toTitleCase(i.nombre)}${i.op ? ' · ' + i.op : ''}${i.termino ? ' · ' + i.termino : ''}${i.p2x1 ? ' · 🎁2x1 (llevas ' + ((i.qty||1)*2) + ')' : ''}</span><span>${formatPrice(i.precio*(i.qty||1))}</span></div>`).join('')}
         <div class="cart-recap-item" style="border-top:1px solid var(--brand-border);margin-top:6px;padding-top:8px;font-weight:700"><span>${getLang('cart_total')||'Total'}</span><span>${formatPriceWithSymbol(snap.total)}</span></div>
       </div>
       <button class="cart-listo-btn" onclick="closeCart()">${getLang('cart_close')||'Cerrar'}</button>
@@ -7244,9 +7275,10 @@ async function enviarPedidoDigital(){
     return { id:i.id,
       nombre: (i.es_menu ? (getLang('group_almuerzo')||'Menú del Día') + ' · ' : '') + i.nombre
         + (i.op ? ' · ' + i.op : '')
+        + (i.termino ? ' · ' + i.termino : '')
         + (i.p2x1 ? ' · 2x1 (llevar ' + (qty*2) + ')' : ''),
       precio:i.precio, qty: qty, llevar: i.p2x1 ? qty*2 : qty,
-      op: i.op||'', es_menu: !!i.es_menu, promo: i.p2x1 ? '2x1' : '',
+      op: i.op||'', termino: i.termino||'', es_menu: !!i.es_menu, promo: i.p2x1 ? '2x1' : '',
       cat: p ? p.categoria : '' };
   });
   const uuid = _nuevoUuid();
