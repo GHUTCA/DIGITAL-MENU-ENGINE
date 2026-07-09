@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- v1.44 · Norma Q (come registro v35): pinch-zoom LIBERO -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- v1.15 · S7 · color-scheme dinamico (modificato a runtime da JS in base a fascia).
      Default light per coerenza con palette DIA al primo paint splash.
      Niente "light dark" → Samsung Internet altrimenti attiva dark-engine in dark mode telefono. -->
@@ -11,7 +12,15 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.42 · 18-jun-2026 · Sessione S17
+     menu_digital.html · v1.44 · 18-jun-2026 · Sessione S17
+     CHANGELOG v1.43 → v1.44 (jueves 9-jul · zoom libre, oss. Alberto):
+     · Pinch-zoom sbloccato (via user-scalable=no · Norma Q, come registro v35).
+     CHANGELOG v1.42 → v1.43 (miércoles 8-jul noche · el saludo de la casa):
+     · "👋 Hola — esta noche te atiende Claret": al abrir el menú con mesa,
+       getMeseroDeMesa (GAS v3.3.3, público, solo nombre de pila) → toast una
+       volta per sessione + badge "Mesa 82 · Claret". Retro-compatibile:
+       GAS pre-3.3.3 → nessun saluto, zero errori. Foto del mesero = fase 2
+       (pattern foto_url dei DJ, colonna in arrivo con la scheda staff).
      CHANGELOG v1.41 → v1.42 (miércoles 8-jul noche · término de la carne):
      · Domande A CATENA nel chooser: bebida del menú + TÉRMINO della carne
        (token 'carne' nella colonna Badges — invisibile in carta, whitelist).
@@ -3633,6 +3642,7 @@ const TRANSLATIONS = {
     llamada_cooldown:'🔔 El mesero ya fue avisado · va en camino',
     almuerzo_elige:'Elige tu bebida o copa',
     termino_elige:'El término de tu carne',
+    saludo_mesero:'Hola — esta noche te atiende',
     promo_pagas:'pagas', promo_llevas:'llevas',
     llamada_hint_pedido:'💡 ¿Sabías que puedes mandarme tu pedido desde el carrito? Llego con todo listo',
     respaldo_banner:'📖 Carta de referencia · pídele al mesero para ordenar',
@@ -3711,6 +3721,7 @@ const TRANSLATIONS = {
     llamada_cooldown:'🔔 Your waiter is already on the way',
     almuerzo_elige:'Choose your drink',
     termino_elige:'How would you like your meat?',
+    saludo_mesero:'Hi — tonight you’re served by',
     promo_pagas:'pay for', promo_llevas:'you get',
     llamada_hint_pedido:'💡 Did you know you can send me your order from the cart? I arrive with everything ready',
     respaldo_banner:'📖 Reference menu · ask your waiter to order',
@@ -4399,6 +4410,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('mesaBadge').classList.add('show');
     document.getElementById('mesaNum').textContent = MESA_ID;
     trackView();
+    // v1.43 · la casa saluta col nome di chi ti serve ("Hola, te atiende Claret")
+    if(!MODO_RESPALDO) cargarMeseroDeMesa();
     // v1.11 · stickyCallBar rimosso · campanella vive ora in bottom-nav (sempre visibile, no toggle)
   }
   if(MEMBER_ID) loadMember(MEMBER_ID);
@@ -7945,6 +7958,26 @@ function showToastMsg(msg){
 }
 
 function scrollToTop(){ window.scrollTo({top:0, behavior:'smooth'}); }
+
+/* v1.43 · EL SALUDO · mesa → mesero de hoy (getMeseroDeMesa, GAS v3.3.3).
+   Guardia retro-compatibile: il GAS pre-3.3.3 risponde al default senza campo
+   mesero → non succede nulla. Saluto UNA volta per sessione + nome nel badge. */
+let MESERO_MESA = '';
+async function cargarMeseroDeMesa(){
+  try {
+    const url = (BRAND.gas_url || GAS_URL) + '?action=getMeseroDeMesa&local=' + encodeURIComponent(LOCAL_ID) +
+      '&mesa=' + encodeURIComponent(MESA_ID) + '&t=' + Date.now();
+    const r = await fetchWithTimeout(url, 8000).then(x=>x.json());
+    if(!r || !r.ok || !r.mesero) return;
+    MESERO_MESA = r.mesero;
+    const mb = document.getElementById('mesaNum');
+    if(mb) mb.textContent = MESA_ID + ' · ' + MESERO_MESA;
+    if(!sessionStorage.getItem('saludo_mesero_v1')){
+      try { sessionStorage.setItem('saludo_mesero_v1', '1'); } catch(e){}
+      showToastMsg('👋 ' + (getLang('saludo_mesero') || 'Hola — esta noche te atiende') + ' ' + MESERO_MESA);
+    }
+  } catch(e){ /* saluto silenzioso mancato: nessun danno */ }
+}
 
 /* LLAMAR MESERO (v1.7 invariato) */
 let CONFIRM_PAYLOAD = null;
