@@ -12,7 +12,10 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.44 · 18-jun-2026 · Sessione S17
+     menu_digital.html · v1.45 · 18-jun-2026 · Sessione S17
+     CHANGELOG v1.44 → v1.45 (jueves 9-jul · saludo con reloj, oss. Alberto):
+     · Il saluto sa che ore sono: <18h "hoy te atiende" · >=18h "esta noche te
+       atiende" (a pranzo stonava la noche).
      CHANGELOG v1.43 → v1.44 (jueves 9-jul · zoom libre, oss. Alberto):
      · Pinch-zoom sbloccato (via user-scalable=no · Norma Q, come registro v35).
      CHANGELOG v1.42 → v1.43 (miércoles 8-jul noche · el saludo de la casa):
@@ -3642,7 +3645,7 @@ const TRANSLATIONS = {
     llamada_cooldown:'🔔 El mesero ya fue avisado · va en camino',
     almuerzo_elige:'Elige tu bebida o copa',
     termino_elige:'El término de tu carne',
-    saludo_mesero:'Hola — esta noche te atiende',
+    saludo_mesero_dia:'Hola — hoy te atiende', saludo_mesero_noche:'Hola — esta noche te atiende',
     promo_pagas:'pagas', promo_llevas:'llevas',
     llamada_hint_pedido:'💡 ¿Sabías que puedes mandarme tu pedido desde el carrito? Llego con todo listo',
     respaldo_banner:'📖 Carta de referencia · pídele al mesero para ordenar',
@@ -3721,7 +3724,7 @@ const TRANSLATIONS = {
     llamada_cooldown:'🔔 Your waiter is already on the way',
     almuerzo_elige:'Choose your drink',
     termino_elige:'How would you like your meat?',
-    saludo_mesero:'Hi — tonight you’re served by',
+    saludo_mesero_dia:'Hi — today you’re served by', saludo_mesero_noche:'Hi — tonight you’re served by',
     promo_pagas:'pay for', promo_llevas:'you get',
     llamada_hint_pedido:'💡 Did you know you can send me your order from the cart? I arrive with everything ready',
     respaldo_banner:'📖 Reference menu · ask your waiter to order',
@@ -7974,7 +7977,12 @@ async function cargarMeseroDeMesa(){
     if(mb) mb.textContent = MESA_ID + ' · ' + MESERO_MESA;
     if(!sessionStorage.getItem('saludo_mesero_v1')){
       try { sessionStorage.setItem('saludo_mesero_v1', '1'); } catch(e){}
-      showToastMsg('👋 ' + (getLang('saludo_mesero') || 'Hola — esta noche te atiende') + ' ' + MESERO_MESA);
+      // v1.45 · il saluto sa che ore sono (oss. Alberto: "esta noche" a pranzo stona)
+      const esNoche = new Date().getHours() >= 18 || new Date().getHours() < 6;
+      const frase = esNoche
+        ? (getLang('saludo_mesero_noche') || 'Hola — esta noche te atiende')
+        : (getLang('saludo_mesero_dia')   || 'Hola — hoy te atiende');
+      showToastMsg('👋 ' + frase + ' ' + MESERO_MESA);
     }
   } catch(e){ /* saluto silenzioso mancato: nessun danno */ }
 }
