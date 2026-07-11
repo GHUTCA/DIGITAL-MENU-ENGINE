@@ -12,7 +12,13 @@
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
 <!-- ════════════════════════════════════════════════════════════════════
-     menu_digital.html · v1.45 · 18-jun-2026 · Sessione S17
+     menu_digital.html · v1.46 · 18-jun-2026 · Sessione S18 (11-jul · CORAZZA)
+     CHANGELOG v1.45 → v1.46 (sábado 11-jul · dopo i pedidos persi del venerdì):
+     · enviarPedido: 3 tentativi con backoff 2s/5s, STESSO uuid (dedup GAS)
+       — prima era UN colpo secco da 15s e via.
+     · Su fallimento definitivo: carrito INTATTO + bottone "Reintentar envío"
+       — prima si svuotava con un toast che nessuno leggeva. Nessun ordine
+       muore più in silenzio.
      CHANGELOG v1.44 → v1.45 (jueves 9-jul · saludo con reloj, oss. Alberto):
      · Il saluto sa che ore sono: <18h "hoy te atiende" · >=18h "esta noche te
        atiende" (a pranzo stonava la noche).
@@ -7301,16 +7307,33 @@ async function enviarPedidoDigital(){
 
   submitCarrito(snapshot);   // telemetria intenzioni · invariata
 
+  // v1.46 · LA CORAZZA (venerdì 10-jul: pedidos persi nel silenzio): il
+  // percorso dei SOLDI insiste — 3 tentativi, STESSO uuid (il GAS deduplica
+  // → mai doppioni), backoff 2s/5s. Il loader del catalogo riprovava da
+  // sempre; adesso riprova anche l'ordine. E su fallimento il carrito
+  // NON si svuota più: bottone "Reintentar", nessun ordine muore zitto.
+  const payloadPedido = {
+    action: 'enviarPedido', local: LOCAL_ID, uuid: uuid,
+    mesa: MESA_ID, total: snapshot.total,
+    ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
+    member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
+    items_json: JSON.stringify(items),
+    ts: Date.now(),
+  };
+  let resp = null, lastErr = '';
+  for (let intento = 0; intento < 3; intento++) {
+    if (intento) await new Promise(r => setTimeout(r, intento === 1 ? 2000 : 5000));
+    try {
+      resp = await _postGAS(payloadPedido);
+      if (resp && resp.ok) break;
+      lastErr = (resp && resp.error) || 'enviar_failed';
+      resp = null;
+      if (lastErr === 'carrito_vacio' || lastErr === 'items_json_invalid') break;   // duri: inutile insistere
+    } catch (e) { lastErr = e.message || 'network'; resp = null; }
+  }
+
   try {
-    const resp = await _postGAS({
-      action: 'enviarPedido', local: LOCAL_ID, uuid: uuid,
-      mesa: MESA_ID, total: snapshot.total,
-      ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
-      member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
-      items_json: JSON.stringify(items),
-      ts: Date.now(),
-    });
-    if(!resp || !resp.ok) throw new Error((resp && resp.error) || 'enviar_failed');
+    if (!resp || !resp.ok) throw new Error(lastErr || 'enviar_failed');
 
     PEDIDO_ACTUAL = {
       uuid: uuid, ts: Date.now(), total: snapshot.total,
@@ -7329,12 +7352,12 @@ async function enviarPedidoDigital(){
     renderPedidoEstado();
     iniciarPollPedido();
   } catch(e){
-    console.warn('[v1.32] enviarPedido fallito → fallback recap:', e.message);
-    showToastMsg(getLang('pedido_fallback') || 'No pude enviarlo — muéstrale esta lista al mesero 🙌');
-    renderCartRecap(snapshot);   // comportamento storico: mai a mani vuote
-    CART = { items: [], updated_ts: 0, gancho_origen: '' };
-    sessionStorage.removeItem(CART_KEY);
-    updateCartBadge();
+    // v1.46 · dopo 3 tentativi veri: il carrito RESTA INTATTO e il bottone
+    // diventa "Reintentar" — l'ordine non muore mai in silenzio (prima:
+    // 1 tentativo, carrito svuotato, toast che nessuno leggeva)
+    console.warn('[v1.46] enviarPedido fallito dopo 3 intenti:', e.message);
+    showToastMsg(getLang('pedido_reintentar') || 'No pude enviarlo — tu pedido sigue aquí, dale Reintentar 🛎');
+    if(btn){ btn.disabled = false; btn.textContent = getLang('pedido_reintentar_btn') || 'Reintentar envío 🛎'; }
   }
 }
 
