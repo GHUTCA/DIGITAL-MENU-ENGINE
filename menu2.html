@@ -3583,7 +3583,8 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2-lista b{font-size:14px}
 .v2-lista p{font-size:12px;margin-top:3px;color:#6B5A4F}
 /* mondo club (palette cabina — sempre notturno, è LA NOTTE) */
-#v2ShNoche{background:linear-gradient(180deg,#0f0a1c,#130e20);z-index:465;
+/* z 498: SOPRA buscador(479) e chip(478) — il mondo copre tutto fino al header (480) */
+#v2ShNoche{background:linear-gradient(180deg,#0f0a1c,#130e20);z-index:498;
   border:1.5px solid rgba(180,106,224,.45);border-bottom:0;
   box-shadow:0 -8px 40px rgba(123,75,214,.35);color:#F2FDFF;max-height:92dvh}
 #v2ShNoche .v2-handle{background:rgba(180,106,224,.5)}
@@ -3768,7 +3769,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.5.0 · 12jul</span>
+<span id="ver" hidden>menu2 · v2.5.1 · 12jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
