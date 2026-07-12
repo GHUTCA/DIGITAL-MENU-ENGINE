@@ -3393,6 +3393,24 @@ body.v2-sheet-open #v2Barra,body.v2-sheet-open #v2Noche{display:none!important}
 .v2-nchip.v2-nchip-bpm b{color:#fff;text-shadow:0 0 8px rgba(180,106,224,.8)}
 .v2-nchip.v2-nchip-bpm small{color:rgba(255,255,255,.55)}
 .v2-nchip-bpm .v2-ondot{display:inline-block;margin-left:4px;vertical-align:middle}
+/* round5 oss.4 · titoli dei chip TUTTI allineati in alto (COCKTAILS senza
+   sottotitolo restava centrato verticale) */
+.v2-nchip{display:flex;flex-direction:column;justify-content:flex-start;align-items:center}
+/* round5 oss.6 · il blocco fisso vive SOPRA gli overlay: con un modal aperto
+   i chip restano vivi — tap = chiude il modal e salta al mondo */
+#header{z-index:480!important}
+#v2Buscar{z-index:479!important}
+#groupBar{z-index:478!important}
+#v2ShId{z-index:500}
+#v2ShNoche{z-index:501}
+/* round5 oss.7.1 · OTRA RONDA è il chip di VENDITA: oro pieno, pulsa piano */
+.v2-ronda{border:0!important;background:linear-gradient(90deg,#FFD98A,#ffb84d)!important;
+  color:#2A1F1A!important;font-weight:900!important;font-size:15px!important;
+  box-shadow:0 4px 16px rgba(255,184,77,.45);animation:v2rondaPulse 2.6s ease-in-out infinite}
+@keyframes v2rondaPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.018)}}
+/* round5 oss.7.3 · la via diretta si VEDE ma dorme: próximamente */
+.v2-via-prox{border:1.5px dashed var(--brand-border);border-radius:14px;padding:11px;
+  font-size:13px;font-weight:700;background:transparent;color:var(--brand-text-muted);opacity:.75}
 #v2Buscar .wrap{position:relative}
 #v2Buscar input{width:100%;background:var(--brand-surface);border:1.5px solid var(--brand-border);
   border-radius:14px;color:var(--brand-text);padding:11px 38px 11px 40px;font-size:15px;outline:none}
@@ -3620,7 +3638,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.2.1 · 12jul</span>
+<span id="ver" hidden>menu2 · v2.3.0 · 12jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7022,9 +7040,17 @@ function v2AbrirDest(key, tipo){
   document.body.classList.add('v2-sheet-open');   // oss.7 · le strip si fanno da parte
 }
 
+/* round5 oss.6 · chiudi TUTTO ciò che copre (modal prodotto, carro, sheets v2):
+   il tap su un chip mentre un modal è aperto = chiude E salta, un gesto solo */
+function v2CerrarTodo(){
+  v2CerrarSheets();
+  try { closeDetail(); } catch(e){}
+  try { closeCart(); } catch(e){}
+}
+
 /* v3.3 fix ③ · il salto ai mondi + buscador in place */
 function v2Salta(gk){
-  v2CerrarSheets();   // oss.6 · il blocco fisso resta vivo con lo sheet aperto: il tap chiude e salta
+  v2CerrarTodo();   // oss.6 · un gesto solo: chiude il modal e salta al mondo
   if(V2_Q) v2LimpiaQ();
   if(CURRENT_GROUP !== null){ CURRENT_GROUP = null; renderMenu(); }
   V2_WORLD = gk;
@@ -7342,6 +7368,8 @@ function openDetail(id){
   setTimeout(()=>document.getElementById('detailSheet').classList.add('open'), 10);
   document.body.style.overflow = 'hidden';
   document.body.classList.add('v2-sheet-open');   // oss.7 · le strip non coprono la barra d'ordine
+  // round5 oss.6 · la scheda si ferma sotto i chip (il blocco fisso resta vivo)
+  document.getElementById('detailSheet').style.maxHeight = 'calc(100dvh - ' + (v2TopBlockH() + 6) + 'px)';
   // v2.0 · barra d'ordine fissa (gesto ②): stepper + CTA, bloccato finché
   // manca una scelta obbligatoria
   V2_DET = { p: p, qty: 1, preguntas: v2Preguntas(p), resp: {} };   // "Agregar N" è additivo: si parte da 1
@@ -7888,6 +7916,8 @@ function openCart(){
   setTimeout(()=>document.getElementById('cartSheet').classList.add('open'), 10);
   document.body.style.overflow = 'hidden';
   document.body.classList.add('v2-sheet-open');   // oss.7
+  // round5 oss.6 · anche il carro si ferma sotto i chip
+  document.getElementById('cartSheet').style.maxHeight = 'calc(100dvh - ' + (v2TopBlockH() + 6) + 'px)';
   // v1.36 · rinfresca gli stati dello storico serata (one-shot, poi ri-renderizza)
   if(PEDIDO_DIGITAL && _nocheValidos().length > 1){
     _nocheRefrescarEstados().then(()=>{
@@ -7971,12 +8001,17 @@ function v2ViasHTML(){
   if(!(PEDIDO_DIGITAL && MESA_ID)){
     return `<button class="cart-listo-btn" onclick="cartListo()">${getLang('cart_listo') || 'Listo · mostrar al mesero'}</button>`;
   }
-  if(!ENVIO_DIRECTO){
-    return `<div class="pedido-hint">${getLang('pedido_hint') || '🛎 Nuevo — tu pedido le llega al mesero al tiro'}</div>
-      <button class="cart-listo-btn cart-btn-pedido" id="btnEnviarPedido" onclick="cartListo()">${getLang('pedido_btn') || '🛎 Enviar pedido y llamar al mesero'}</button>`;
-  }
   const d = v2DestinoDe();
   const mesero = MESERO_MESA ? MESERO_MESA : 'el mesero';
+  // round5 oss.7.2+7.3 · via il hint "Nuevo…" (non informava niente) · il
+  // DOPPIO CANALE del mockup si VEDE sempre: col gate spento la via diretta
+  // dorme con un "próximamente" — il cliente sa che arriva.
+  if(!ENVIO_DIRECTO){
+    return `<div class="v2-vias" id="v2Vias">
+      <button class="cart-listo-btn cart-btn-pedido" id="btnEnviarPedido" style="margin:0" onclick="cartListo()">🛎 Enviar pedido — ${mesero} pasa a confirmar</button>
+      <button class="v2-via-prox" disabled>${d.emo} Envío directo a ${d.txt} · ⏳ próximamente</button>
+    </div>`;
+  }
   return `<div class="v2-vias" id="v2Vias">
       <button class="v2-via-si" onclick="v2Confirmar()">${d.emo} ¿Enviar directo a ${d.txt}?<small>ya lo empiezan a preparar</small></button>
       <button class="v2-via-mesero" onclick="cartListo()">🙋 ¿Deseas revisar tu pedido con ${mesero}?</button>
@@ -8200,7 +8235,8 @@ function renderPedidoEstado(){
   if(!el || !PEDIDO_ACTUAL) return;
   const PA = PEDIDO_ACTUAL;
   const VISTAS = {
-    pendiente:  { icon:'🛎', anim:true,  t: getLang('pedido_st_pendiente') || 'Llamando al mesero…',
+    // round5 oss.7.3 · sappiamo CHI è il mesero: si chiama per nome
+    pendiente:  { icon:'🛎', anim:true,  t: MESERO_MESA ? ('Avisando a ' + MESERO_MESA + '…') : (getLang('pedido_st_pendiente') || 'Llamando al mesero…'),
                   s: getLang('pedido_st_pendiente_sub') || 'Tu pedido ya está en el sistema' },
     atendido:   { icon:'✓',  anim:false, t: (getLang('pedido_st_atendido') || '{nombre} va en camino').replace('{nombre}', PA.mesero || (getLang('pedido_el_mesero')||'El mesero')),
                   s: getLang('pedido_st_atendido_sub') || 'Confirma tu pedido cuando llegue a la mesa' },
@@ -9148,7 +9184,7 @@ function v2Boot(){
       document.getElementById('v2Qx').classList.toggle('show', !!V2_Q);
       renderMenu();
     });
-    q.addEventListener('focus', () => v2CerrarSheets());   // oss.6 · cercare chiude lo sheet
+    q.addEventListener('focus', () => v2CerrarTodo());   // oss.6 · cercare chiude qualsiasi sheet
   }
   const bell = document.getElementById('v2Bell');
   if(bell) bell.style.display = (LLAMAR_MESERO_ENABLED && MESA_ID && !IS_VETRINA) ? '' : 'none';
