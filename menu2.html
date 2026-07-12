@@ -3609,6 +3609,63 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2-evfila small{color:rgba(242,253,255,.5)}
 .v2-velo{position:fixed;inset:0;background:rgba(1,25,32,.72);opacity:0;pointer-events:none;transition:.2s;z-index:455}
 .v2-velo.show{opacity:1;pointer-events:auto}
+/* ════ IL MONDO BPM v2 (12-lug sera) · l'energia della casa ════
+   Un eroe solo: l'ADESSO. Poi la subida, el trago del ritmo, los DJs. */
+.v2n-hero{background:linear-gradient(135deg,rgba(180,106,224,.22),rgba(63,224,240,.07));
+  border:1.5px solid rgba(180,106,224,.5);border-radius:20px;padding:16px 14px;position:relative;overflow:hidden}
+.v2n-live{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:900;
+  letter-spacing:.18em;color:#00ffc8;text-transform:uppercase}
+.v2n-djrow{display:flex;gap:12px;align-items:center;margin-top:8px}
+.v2n-djfoto{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:0 0 auto;
+  border:2.5px solid rgba(180,106,224,.8);box-shadow:0 0 16px rgba(180,106,224,.5)}
+.v2n-djnome{font-size:20px;font-weight:900;line-height:1.1}
+.v2n-djslot{font-size:12px;color:rgba(242,253,255,.55);margin-top:2px}
+.v2n-bpmrow{display:flex;align-items:baseline;gap:10px;margin-top:12px}
+.v2n-bpmnum{font-size:44px;font-weight:900;line-height:1;color:var(--v2-neon-soft);
+  text-shadow:0 0 14px rgba(63,224,240,.6);font-variant-numeric:tabular-nums}
+.v2n-bpmnum small{font-size:15px;font-weight:800;color:rgba(242,253,255,.5);letter-spacing:.1em}
+.v2n-etq{font-size:12.5px;font-weight:800;color:var(--v2-dj)}
+.v2n-slogan{margin-top:6px;font-size:17px;font-weight:800;font-style:italic;color:#fff}
+.v2n-eq{display:flex;gap:3px;align-items:flex-end;height:26px;margin-top:12px}
+.v2n-eq i{flex:1;background:linear-gradient(180deg,var(--v2-dj),rgba(63,224,240,.7));
+  border-radius:2px;animation:v2eq 1s ease-in-out infinite}
+@keyframes v2eq{0%,100%{height:22%}50%{height:100%}}
+/* la subida · la scala della notte */
+.v2n-sube{display:flex;gap:8px;align-items:flex-end;margin-top:4px}
+.v2n-act{flex:1;text-align:center;border-radius:12px 12px 4px 4px;padding:8px 2px 7px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(180,106,224,.25);color:rgba(242,253,255,.55)}
+.v2n-act .e{font-size:16px;display:block}
+.v2n-act b{display:block;font-size:11px;font-weight:900;margin-top:2px;color:rgba(242,253,255,.75)}
+.v2n-act small{display:block;font-size:9.5px}
+.v2n-act.h60{padding-top:14px}.v2n-act.h70{padding-top:22px}.v2n-act.h80{padding-top:30px}
+.v2n-act.on{background:linear-gradient(180deg,rgba(180,106,224,.4),rgba(180,106,224,.15));
+  border-color:var(--v2-dj);color:#fff;box-shadow:0 0 14px rgba(123,75,214,.45)}
+.v2n-act.on b{color:#fff}
+.v2n-aqui{font-size:9px;font-weight:900;letter-spacing:.12em;color:#00ffc8;display:block;margin-top:3px}
+/* el trago de este ritmo */
+.v2n-trago{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.05);
+  border:1.5px solid rgba(255,217,138,.4);border-radius:16px;padding:10px 12px;margin-top:4px}
+.v2n-trago .ph{width:56px;height:56px;border-radius:12px;overflow:hidden;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;font-size:26px;background:rgba(255,255,255,.06)}
+.v2n-trago .ph img{width:100%;height:100%;object-fit:cover}
+.v2n-trago .b{flex:1;min-width:0}
+.v2n-trago .nom{font-size:14.5px;font-weight:800;color:#fff}
+.v2n-trago .pr{font-size:14px;font-weight:900;color:var(--v2-oro);margin-top:2px}
+/* quién toca · headliner cards */
+.v2n-djs{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.v2n-djs::-webkit-scrollbar{display:none}
+.v2n-djcard{flex:0 0 150px;background:rgba(255,255,255,.05);border:1px solid rgba(180,106,224,.35);
+  border-radius:16px;overflow:hidden;text-align:left}
+.v2n-djcard .foto{width:100%;height:96px;object-fit:cover;display:block;background:#1a1128}
+.v2n-djcard .i{padding:8px 10px 10px}
+.v2n-djcard .n{font-size:14px;font-weight:900;color:#fff}
+.v2n-djcard .d{font-size:10.5px;color:var(--v2-oro);font-weight:800;margin-top:2px}
+.v2n-djcard .hh{font-size:10.5px;color:rgba(242,253,255,.5)}
+.v2n-djcard .ig{font-size:10.5px;color:var(--v2-dj);margin-top:4px;display:block;font-weight:700;
+  text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v2n-djbox-teaser{margin-top:14px;width:100%;border:1.5px dashed rgba(180,106,224,.5);
+  border-radius:14px;padding:12px;font-size:13px;font-weight:800;background:transparent;
+  color:rgba(242,253,255,.6);text-align:center}
 /* ── v3.3 fix ④ · destacado a PAGINA INTERA ── */
 #v2ShDest{max-height:94dvh;min-height:88dvh}
 #v2ShDest{pointer-events:none}
@@ -3638,7 +3695,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.3.0 · 12jul</span>
+<span id="ver" hidden>menu2 · v2.4.0 · 12jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -9121,42 +9178,103 @@ async function v2AbrirNoche(){
   inf.innerHTML = '<div class="v2-nsec" style="padding:20px 0">cargando la noche…</div>';
   try { if(typeof loadCartelera === 'function') await loadCartelera(); } catch(e){}
   const dj = (typeof resolveDjActual === 'function') ? resolveDjActual() : null;
+  const rit = RITMO_ACTUAL;
   let h = '';
-  if(dj && dj.nombre){
-    h += `<div class="v2-cabina"><span class="v2-vinilo big"></span><div class="v2-cab-i">
-      <div class="v2-cab-eyebrow">● ahora en cabina</div>
-      <div class="v2-cab-nom">${escapeHtml(dj.nombre)}</div>
-      <div class="v2-cab-slot">${dj.hora_fin ? 'hasta las ' + escapeHtml(dj.hora_fin) : ''}${dj.instagram ? ' · ' + escapeHtml(dj.instagram) : ''}</div>
-      ${RITMO_ACTUAL && RITMO_ACTUAL.mensaje_cliente ? `<div class="v2-ritmo-msg">${escapeHtml(RITMO_ACTUAL.mensaje_cliente)}</div>` : ''}
-    </div></div>`;
-  } else if(RITMO_ACTUAL && RITMO_ACTUAL.mensaje_cliente){
-    h += `<div class="v2-cabina"><span class="v2-vinilo big"></span><div class="v2-cab-i">
-      <div class="v2-cab-eyebrow">esta noche</div>
-      <div class="v2-ritmo-msg">${escapeHtml(RITMO_ACTUAL.mensaje_cliente)}</div></div></div>`;
+
+  // ═ 1 · AHORA — l'eroe: l'energia del momento (DJ da headliner + BPM vero)
+  const eq = '<div class="v2n-eq">' + Array.from({length:18}, (_,i) =>
+    `<i style="animation-delay:${(i*137)%900}ms;animation-duration:${700+(i*53)%500}ms"></i>`).join('') + '</div>';
+  h += `<div class="v2n-hero">
+    ${dj && dj.nombre ? `
+      <span class="v2n-live"><span class="v2-ondot"></span>en cabina</span>
+      <div class="v2n-djrow">
+        ${dj.foto_url ? `<img class="v2n-djfoto" src="${dj.foto_url}" alt="">` : '<span class="v2-vinilo big"></span>'}
+        <div><div class="v2n-djnome">${escapeHtml(dj.nombre)}</div>
+        <div class="v2n-djslot">${dj.hora_fin ? 'hasta las ' + escapeHtml(dj.hora_fin) : ''}${dj.instagram ? ' · @' + escapeHtml(String(dj.instagram).split('/').filter(Boolean).pop()) : ''}</div></div>
+      </div>` : `
+      <span class="v2n-live" style="color:var(--v2-dj)">● la casa suena</span>`}
+    ${rit ? `
+      <div class="v2n-bpmrow"><span class="v2n-bpmnum">${rit.bpm||''}<small> BPM</small></span>
+        <span class="v2n-etq">${rit.emoji||''} ${escapeHtml(rit.nombre||'')}<br>${escapeHtml(rit.etiqueta||'')}</span></div>
+      ${rit.mensaje_cliente ? `<div class="v2n-slogan">«${escapeHtml(rit.mensaje_cliente)}»</div>` : ''}` : ''}
+    ${eq}
+  </div>`;
+
+  // ═ 2 · LA NOCHE SUBE — la scala dei 4 atti: vedere cosa viene = restare
+  // getRitmos spoglia le ore dai disponibles → la scala sale per BPM e ogni
+  // gradino porta il NOME dell'atto (Warmup→Groove→Prime→Peak): è la lingua
+  // della cabina, meglio dell'orario
+  const acts = (RITMOS_DISP||[]).filter(r=>r && (r.bpm||r.bpm_valor)).slice()
+    .sort((a,b)=>(a.bpm||a.bpm_valor)-(b.bpm||b.bpm_valor));
+  if(acts.length > 1){
+    const alt = ['','h60','h70','h80'];
+    h += `<div class="v2-nsec">La noche sube</div><div class="v2n-sube">` +
+      acts.map((r,i)=>`<div class="v2n-act ${alt[Math.min(i,3)]}${rit && r.id===rit.id?' on':''}">
+        <span class="e">${r.emoji||''}</span><b>${r.bpm||r.bpm_valor} BPM</b><small>${escapeHtml(r.nombre||'')}</small>
+        ${rit && r.id===rit.id ? '<span class="v2n-aqui">estás aquí</span>' : ''}</div>`).join('') + `</div>`;
   }
+
+  // ═ 3 · EL TRAGO DE ESTE RITMO — il ponte musica→cassa
+  const trago = v2TragoDelRitmo();
+  if(trago && !IS_VETRINA && PEDIDO_DIGITAL){
+    const pr = getDisplayPrice(trago);
+    h += `<div class="v2-nsec">El trago de este ritmo</div>
+      <div class="v2n-trago">
+        <div class="ph">${trago.imagen?`<img src="${trago.imagen}" alt="">`:'🍸'}</div>
+        <div class="b"><div class="nom">${toTitleCase(trago.nombre)}</div><div class="pr">${pr.main}</div></div>
+        <span id="v2ctrlx-${trago.id}">${v2CtrlHTML(trago)}</span>
+      </div>`;
+  }
+
+  // ═ 4 · QUIÉN TOCA — i DJ da headliner, con la faccia
   const semana = (CARTELERA_DATA && CARTELERA_DATA.djs_semana) || DJS_AGENDA || [];
   if(semana.length){
-    h += `<div class="v2-nsec">Próximas sesiones</div>` + semana.slice(0,6).map(s =>
-      `<div class="v2-sesion"><b>${escapeHtml((s.dias_visible||s.dia||'').toString().slice(0,14))}</b> ${escapeHtml(s.nombre||s.dj_nombre||'')} · ${escapeHtml(s.hora_ini||s.hora_inicio||'')}${s.hora_fin ? ' — ' + escapeHtml(s.hora_fin) : ''}</div>`).join('');
+    h += `<div class="v2-nsec">Quién toca</div><div class="v2n-djs">` +
+      semana.slice(0,8).map(s=>{
+        const ig = s.instagram ? String(s.instagram).split('/').filter(Boolean).pop() : '';
+        return `<div class="v2n-djcard">
+          ${s.foto_url ? `<img class="foto" src="${s.foto_url}" alt="" loading="lazy">` : '<div class="foto"></div>'}
+          <div class="i"><div class="n">${escapeHtml(s.nombre||s.dj_nombre||'')}</div>
+          <div class="d">${escapeHtml(s.dias_visible||'')}</div>
+          <div class="hh">${escapeHtml(s.hora_ini||'')}${s.hora_fin?' — '+escapeHtml(s.hora_fin):''}</div>
+          ${ig ? `<a class="ig" href="https://instagram.com/${ig}" target="_blank" rel="noopener">📸 @${escapeHtml(ig)}</a>` : ''}</div>
+        </div>`;}).join('') + `</div>`;
   }
-  const ev = CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos;
-  if(ev && (ev.titulo || ev.Titulo)){
-    h += `<div class="v2-nsec">La casa</div>
-      <div class="v2-evfila"><span class="ico">🎧</span><span><b>${escapeHtml(ev.titulo||ev.Titulo)}</b><small>${escapeHtml(ev.detalle||ev.Detalle||'')}</small></span></div>`;
-  }
+
+  // ═ 5 · LA CASA + la porta DJ-BOX (viva col gate · teaser dormiente senza)
   if(BRAND.cartelera_footer){
-    h += `<div class="v2-evfila"><span class="ico">🖤</span><span><b>${escapeHtml(BRAND.cartelera_footer)}</b><small>la carta de la noche la escribe la cabina</small></span></div>`;
+    h += `<div class="v2-nsec">La casa</div>
+      <div class="v2-evfila"><span class="ico">🖤</span><span><b>${escapeHtml(BRAND.cartelera_footer)}</b><small>la carta de la noche la escribe la cabina</small></span></div>`;
   }
   if(BRAND.instagram_url){
     h += `<div class="v2-evfila"><span class="ico">📸</span><span><b>@${escapeHtml(BRAND.instagram_url.split('/').filter(Boolean).pop()||'')}</b><small>etiquétanos y tu noche entra en la historia</small></span></div>`;
   }
-  // porta DJ-BOX: esiste solo col gate acceso (PARAMETROS.djbox_on · build lun 20)
-  if(DJBOX_ON){
-    h += `<button class="v2-via-si" style="margin-top:16px;background:linear-gradient(90deg,var(--v2-dj),#7b4bd6);color:#fff"
-      onclick="showToastMsg('🎧 DJ-BOX llega muy pronto')">🎧 DJ·BOX — pide tu canción</button>`;
-  }
-  h += `<button class="v2-via-mesero" style="margin-top:14px;width:100%" onclick="v2CerrarSheets()">↓ volver a la carta</button>`;
+  h += DJBOX_ON
+    ? `<button class="v2-via-si" style="margin-top:14px;background:linear-gradient(90deg,var(--v2-dj),#7b4bd6);color:#fff"
+        onclick="showToastMsg('🎧 DJ-BOX llega muy pronto')">🎧 DJ·BOX — pide tu canción</button>`
+    : `<button class="v2n-djbox-teaser" disabled>🎧 DJ·BOX — tu canción a cabina · ⏳ próximamente</button>`;
+  h += `<button class="v2-via-mesero" style="margin-top:10px;width:100%" onclick="v2CerrarSheets()">↓ volver a la carta</button>`;
   inf.innerHTML = h || '<div class="v2-nsec">La noche se está armando…</div>';
+}
+
+/* la notte gira oltre mezzanotte: minuti «di notte» (prima delle 12 = +24h) */
+function v2MinNoche(hhmm){
+  const m = (typeof parseHHMMtoMin === 'function') ? parseHHMMtoMin(hhmm) : null;
+  if(m === null || isNaN(m)) return 9999;
+  return m < 720 ? m + 1440 : m;
+}
+/* el trago del ritmo: push > destacado > un trago della barra — dentro i
+   prod_ids del ritmo vivo (la musica cura la carta, la carta vende) */
+function v2TragoDelRitmo(){
+  const rit = RITMO_ACTUAL;
+  if(!rit || !rit.prod_ids || !rit.prod_ids.length) return null;
+  const set = new Set(rit.prod_ids);
+  const barraCats = new Set((CATEGORY_GROUPS && (CATEGORY_GROUPS['Barra']||{}).cats) || []);
+  const vivos = ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && set.has(p.id));
+  return vivos.find(p=>esPush(p) && barraCats.has(p.categoria))
+      || vivos.find(p=>p.es_sugerencia_destacada && barraCats.has(p.categoria))
+      || vivos.find(p=>barraCats.has(p.categoria))
+      || null;
 }
 
 /* ── boot v2: chip, campanella, strip — chiamato dal boot principale ── */
