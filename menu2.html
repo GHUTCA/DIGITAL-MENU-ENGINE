@@ -3667,6 +3667,30 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2n-djbox-teaser{margin-top:14px;width:100%;border:1.5px dashed rgba(180,106,224,.5);
   border-radius:14px;padding:12px;font-size:13px;font-weight:800;background:transparent;
   color:rgba(242,253,255,.6);text-align:center}
+/* ═══ FINAL round (12-lug notte) ═══ */
+/* oss.1 · la ⭐ del chip brillava poco sul panna: fondo nero degradé + brillo */
+.v2-star{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:50%;background:radial-gradient(circle at 35% 30%,#3a3a4a,#0a0a14 75%);
+  font-size:12px;margin-left:2px;box-shadow:0 0 8px rgba(255,217,138,.8);
+  animation:v2starGlow 2.2s ease-in-out infinite}
+@keyframes v2starGlow{0%,100%{box-shadow:0 0 6px rgba(255,217,138,.55)}50%{box-shadow:0 0 13px rgba(255,217,138,.95)}}
+/* oss.3 · le foto coprono TUTTA la testa dello sheet: maniglia e ✕ flottano
+   sopra l'immagine, niente più strisce di fondo a sx/dx/alto */
+#detailSheet .sheet-handle{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:7;margin:0;
+  background:rgba(255,255,255,.75);width:44px;height:4px;border-radius:2px}
+.sheet-img,.sheet-img img{border-radius:20px 20px 0 0}
+.sheet-img{height:250px}
+#v2ShDest .v2-handle{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:7;margin:0;
+  background:rgba(255,255,255,.75)}
+#v2ShDest .ph{border-radius:24px 24px 0 0}
+#v2ShDest .scroll{border-radius:24px 24px 0 0}
+/* oss.4b · lightbox del poster: sopra tutto, con crocetta */
+#v2Lightbox{position:fixed;inset:0;background:rgba(2,2,8,.94);z-index:520;display:none;
+  align-items:center;justify-content:center;padding:18px}
+#v2Lightbox.show{display:flex}
+#v2Lightbox img{max-width:100%;max-height:92dvh;border-radius:14px;object-fit:contain}
+#v2Lightbox .cap{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:0;right:0;
+  text-align:center;font-size:12.5px;color:rgba(255,255,255,.7);padding:0 40px}
 /* ═══ VB round · hero FUSO + le due card grandi ═══ */
 .v2n-sube.sm .v2n-act{padding:5px 2px 5px;border-radius:10px 10px 4px 4px}
 .v2n-sube.sm .v2n-act .e{font-size:13px}
@@ -3791,7 +3815,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.6.0 · 12jul</span>
+<span id="ver" hidden>menu2 · v2.7.0 · 12jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4120,6 +4144,13 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
     <div class="v2dj-prox" id="v2DjProx">⏳ PEDIR llega muy pronto — podrás mandarla a cabina desde aquí</div>
     <div class="v2dj-regla">El DJ tiene la última palabra: si no la pone, <b>te devolvemos la plata solos</b>.</div>
   </div></div>
+</div>
+
+<!-- FINAL round oss.4b · lightbox poster (sopra tutto, ✕ per chiudere) -->
+<div id="v2Lightbox" onclick="v2LightboxClose()">
+  <button class="v2-x" onclick="v2LightboxClose()" style="top:14px">✕</button>
+  <img id="v2LightboxImg" src="" alt="">
+  <div class="cap" id="v2LightboxCap"></div>
 </div>
 
 <!-- ── TOAST ── -->
@@ -7093,6 +7124,11 @@ function v2AlmuerzoProds(){
     PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && !p.agotado && productInFaja(p));
 }
 function v2DestacadosHTML(){
+  // FINAL oss.2 · anti-flash: al boot il primo render parte PRIMA che ritmi e
+  // reglas arrivino → per un attimo si vedevano i destacados "vecchi". Finché
+  // i ritmi non ci sono, niente carosello; loadRitmos/loadPreciosRegla
+  // ri-renderizzano da soli quando i dati atterrano.
+  if(!RITMOS_DISP || !RITMOS_DISP.length) return '';
   // oss.6 (12-lug) · QUI dentro vive tutto ciò che spinge: push del Comandante,
   // Menú del Día, PROMOS (niente più chip), de la casa, evento di cartelera.
   const dst = [];
@@ -9190,10 +9226,11 @@ function v2PintaChip(){
   if(!chip) return;
   if(!MESA_ID || IS_VETRINA){ chip.style.display = 'none'; return; }
   // oss.1 (12-lug) · il chip deve INVITARE anche chi non è della Lista:
-  // Member riconosciuto → si espande col nome; ospite → la ⭐ è la porta.
-  chip.textContent = ACTIVE_MEMBER && ACTIVE_MEMBER.nombre
-    ? 'Mesa ' + MESA_ID + ' · 🎩 ' + ACTIVE_MEMBER.nombre
-    : 'Mesa ' + MESA_ID + ' · ⭐';
+  // Member riconosciuto → si espande col nome; ospite → la ⭐ è la porta
+  // (FINAL: su fondo nero degradé che brilla — sul panna si perdeva).
+  chip.innerHTML = ACTIVE_MEMBER && ACTIVE_MEMBER.nombre
+    ? 'Mesa ' + escapeHtml(MESA_ID) + ' · 🎩 ' + escapeHtml(ACTIVE_MEMBER.nombre)
+    : 'Mesa ' + escapeHtml(MESA_ID) + ' <span class="v2-star">⭐</span>';
   chip.style.display = 'flex';
 }
 function v2AbrirId(){
@@ -9350,7 +9387,8 @@ async function v2AbrirNoche(){
     </button>`;
   }
   if(cbks && cbks.foto_url){
-    cards += `<button class="v2n-bigcard" onclick="v2ToggleDoor(this,'v2DoorSemana')">
+    window._v2Cbks = cbks;   // per il lightbox (FINAL oss.4b)
+    cards += `<button class="v2n-bigcard" onclick="v2LightboxOpen(window._v2Cbks.foto_url, window._v2Cbks.subtitulo_es||'')">
       <img class="ph" src="${cbks.foto_url}" alt="">
       <div class="i"><div class="ey" style="color:${cbks.header_color||'#5fd0c5'}">🎧 DJ EVENTS</div>
       <div class="n">${escapeHtml(cbks.eyebrow_es||'LA SEMANA BKS')}</div>
@@ -9358,37 +9396,20 @@ async function v2AbrirNoche(){
     </button>`;
   }
   if(cards) h += `<div class="v2n-2cards">${cards}</div>`;
-  if(cbks && cbks.foto_url){
-    h += `<div class="v2n-doorbody" id="v2DoorSemana" style="margin-top:8px">
-      <img class="v2n-poster" src="${cbks.foto_url}" alt="" loading="lazy">
-      <div class="v2n-poster-cap">${escapeHtml(cbks.subtitulo_es||'')}</div>
-    </div>`;
-  }
 
-  // ═ 4 · LA CASA
-  if(BRAND.cartelera_footer){
-    h += `<div class="v2-nsec">La casa</div>
-      <div class="v2-evfila"><span class="ico">🖤</span><span><b>${escapeHtml(BRAND.cartelera_footer)}</b><small>la carta de la noche la escribe la cabina</small></span></div>`;
-  }
-  if(BRAND.instagram_url){
-    h += `<div class="v2-evfila"><span class="ico">📸</span><span><b>@${escapeHtml(BRAND.instagram_url.split('/').filter(Boolean).pop()||'')}</b><small>etiquétanos y tu noche entra en la historia</small></span></div>`;
-  }
-
-  // ═ 5 · LA PORTA 📅 DJ AGENDA — accordion (semana già in mano dalla sez. 2)
-  // Il MUNDIAL non vive più qui: sta nei Destacados (trattamento = domani).
+  // FINAL oss.5 · via «la música manda» e «etiquétanos» — qui non servivano.
+  // ═ 4 · LA PORTA 📅 DJ AGENDA — accordion, come LISTA (FINAL oss.6: la
+  // foto del DJ vive già nella card grande sopra, qui contano giorni e orari)
   if(semana.length){
-    const agCards = semana.slice(0,8).map(s=>{
+    const agRows = semana.slice(0,10).map(s=>{
       const ig = s.instagram ? String(s.instagram).split('/').filter(Boolean).pop() : '';
-      return `<div class="v2n-djcard">
-        ${s.foto_url ? `<img class="foto" src="${s.foto_url}" alt="" loading="lazy">` : '<div class="foto"></div>'}
-        <div class="i"><div class="n">${escapeHtml(s.nombre||s.dj_nombre||'')}</div>
-        <div class="d">${escapeHtml(s.dias_visible||'')}</div>
-        <div class="hh">${escapeHtml(s.hora_ini||'')}${s.hora_fin?' — '+escapeHtml(s.hora_fin):''}</div>
-        ${ig ? `<a class="ig" href="https://instagram.com/${ig}" target="_blank" rel="noopener">📸 @${escapeHtml(ig)}</a>` : ''}</div>
-      </div>`;}).join('');
-    h += `<button class="v2n-door" onclick="v2ToggleDoor(this,'v2DoorAgenda')">
+      return `<div class="v2-sesion"><b>${escapeHtml((s.dias_visible||'').toString().slice(0,16))}</b>
+        ${escapeHtml(s.nombre||s.dj_nombre||'')} · ${escapeHtml(s.hora_ini||'')}${s.hora_fin?' — '+escapeHtml(s.hora_fin):''}
+        ${ig ? ` · <a style="color:var(--v2-dj);text-decoration:none" href="https://instagram.com/${ig}" target="_blank" rel="noopener">@${escapeHtml(ig)}</a>` : ''}</div>`;
+    }).join('');
+    h += `<button class="v2n-door" style="margin-top:12px" onclick="v2ToggleDoor(this,'v2DoorAgenda')">
         <span class="ico">📅</span><span><b>DJ AGENDA</b><small>quién toca esta semana</small></span><span class="arr">›</span></button>
-      <div class="v2n-doorbody" id="v2DoorAgenda"><div class="v2n-djs">${agCards}</div></div>`;
+      <div class="v2n-doorbody" id="v2DoorAgenda">${agRows}</div>`;
   }
 
   // ═ 6 · DJ-BOX — il cartridge del focus group, da MARKETING: si apre SEMPRE
@@ -9400,6 +9421,19 @@ async function v2AbrirNoche(){
     </button>`;
   // VB round oss.5 · niente "volver": la ✕ basta, spazio guadagnato
   inf.innerHTML = h || '<div class="v2-nsec">La noche se está armando…</div>';
+  // FINAL oss.4 · si apre SEMPRE in cima (sul blocco «la noche sube»)
+  const scr = shN.querySelector('.scroll');
+  if(scr) scr.scrollTop = 0;
+}
+
+/* FINAL oss.4b · il poster si apre SOPRA lo schermo, ✕ per chiudere */
+function v2LightboxOpen(url, cap){
+  document.getElementById('v2LightboxImg').src = url;
+  document.getElementById('v2LightboxCap').textContent = cap || '';
+  document.getElementById('v2Lightbox').classList.add('show');
+}
+function v2LightboxClose(){
+  document.getElementById('v2Lightbox').classList.remove('show');
 }
 
 /* VB round oss.2 · tap sulla card DJ → la scheda DJ del motore (foto+bio+IG) */
