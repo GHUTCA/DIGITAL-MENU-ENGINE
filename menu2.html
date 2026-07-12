@@ -11,6 +11,17 @@
 <meta name="supported-color-schemes" content="light" id="bvSupportedScheme">
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
+<!-- round3 oss.1 (12-lug) · PWA: salvata in pantalla de inicio si apre "BKS"
+     a TUTTO SCHERMO, senza barra indirizzo (la barra in Chrome-da-QR non è
+     sopprimibile — è chrome del browser; la via pulita per l'URL è il dominio
+     custom menu.pinsita.cl, DNS di Alberto). ⚠ allo swap di lunedì: aggiornare
+     start_url del manifest → menu_digital.html -->
+<link rel="manifest" href="menu2.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BKS">
+<link rel="apple-touch-icon" href="https://i.ibb.co/DHfskPMc/HOME-Comp.jpg">
 <!-- ════════════════════════════════════════════════════════════════════
      menu2.html · v2.0.0 · 12-jul-2026 · EL MENÚ QUE VENDE (file PARALLELO)
      Innesto del mockup MOCKUP_MENU_VENDE v3.3 (3 round focus group Alberto)
@@ -3355,8 +3366,23 @@ body.v2-sheet-open #v2Barra,body.v2-sheet-open #v2Noche{display:none!important}
 
 /* ── v3.3 fix ③ · buscador VERO che filtra la lista in place ── */
 #fajaBar,#catSticky,#headerSearchBtn{display:none!important}  /* mockup: via nastro semana, cat-tabs, lente */
-#v2Buscar{padding:8px 16px 6px;background:var(--brand-bg);position:sticky;top:0;z-index:30;
-  box-shadow:0 8px 16px rgba(0,0,0,.15)}
+/* oss.2 round3 · IL BLOCCO FISSO È UNA SUPERFICIE SOLA: header scuro, poi
+   buscador+chip sullo stesso fondo, UN'ombra sola in fondo al blocco (prima
+   l'ombra del buscador tagliava in due e le card sembravano scollate) */
+#v2Buscar{padding:8px 16px 2px;background:var(--brand-bg);position:sticky;top:0;z-index:30;
+  box-shadow:none}
+#groupBar.show{display:block}
+#groupBar{border-bottom:0!important;box-shadow:0 10px 18px rgba(0,0,0,.16);padding:8px 12px 10px!important}
+#groupGrid{grid-template-columns:repeat(auto-fit,minmax(0,1fr))!important}
+/* oss.4 round3 · il logo respira (via la tagline: il lema ora VIVE nei chip) */
+#v2Tagline{display:none!important}
+.brand-logo-text{font-size:27px!important}
+.brand-logo-img{height:42px!important}
+/* il 4º chip: BPM — apre il mondo intero (il foot si libera) */
+.v2-nchip-bpm{background:linear-gradient(135deg,#1a0f2e,#3d2266);border-color:rgba(180,106,224,.55)}
+.v2-nchip-bpm b{color:#fff;text-shadow:0 0 8px rgba(180,106,224,.8)}
+.v2-nchip-bpm small{color:rgba(255,255,255,.55)}
+.v2-nchip-bpm .v2-ondot{display:inline-block;margin-left:4px;vertical-align:middle}
 #v2Buscar .wrap{position:relative}
 #v2Buscar input{width:100%;background:var(--brand-surface);border:1.5px solid var(--brand-border);
   border-radius:14px;color:var(--brand-text);padding:11px 38px 11px 40px;font-size:15px;outline:none}
@@ -3434,8 +3460,9 @@ body.theme-dark[data-fascia-menu="dia"] .v2-precio{color:#b8860b}
 @keyframes v2pop{0%{transform:scale(1.5)}100%{transform:scale(1)}}
 
 /* ── barra pedido verde fissa + strip BPM ── */
-#v2Barra{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(56px + env(safe-area-inset-bottom,0px));
+#v2Barra{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));
   width:100%;max-width:480px;z-index:340;padding:6px 12px;display:none}
+#v2Noche{display:none!important}   /* round3 oss.4 · BPM è salito nei chip: il foot respira */
 #v2Barra.show{display:block}
 body[data-vetrina="true"] #v2Barra{display:none!important}
 #v2Barra > button{width:100%;border:0;border-radius:16px;padding:15px 18px;font-size:16px;
@@ -3583,7 +3610,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.1.0 · 12jul</span>
+<span id="ver" hidden>menu2 · v2.2.0 · 12jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -3693,16 +3720,16 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
     <div class="brand-logo-wrap">
       <img class="brand-logo-img hidden" id="brandLogoImg" alt="Logo" src="">
       <div class="brand-logo-text" id="brandLogoText">●&nbsp;Menú</div>
-      <!-- v2.0 · IL LEMA È L'ARCHITETTURA (SAPORE · COCKTAILS · BPM) -->
+      <!-- round3 oss.4 · via la tagline (il lema vive nei 4 chip) · la campanella
+           sta DI QUA, il cliente di là -->
       <div class="v2-tagline" id="v2Tagline">SAPORE - COCKTAILS - BPM</div>
+      <button class="v2-bell" id="v2Bell" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero" style="display:none">🔔</button>
     </div>
     <div class="header-right">
       <!-- v1.11 · lente search nell'header (sostituisce search bar sticky) -->
       <button class="header-search-btn" id="headerSearchBtn" onclick="openSearchOverlay()" aria-label="Buscar" data-i18n-aria="nav_search">
         <span class="header-search-icon">⌕</span>
       </button>
-      <!-- v2.0 · la campanella sale in header (la bottom-nav non c'è più) -->
-      <button class="v2-bell" id="v2Bell" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero" style="display:none">🔔</button>
       <!-- v2.0 · chip identità panna: Mesa N (+ Member se riconosciuto) → sheet dall'alto -->
       <button class="v2-chip-id" id="v2ChipId" onclick="v2AbrirId()" style="display:none">Mesa –</button>
       <div id="mesaBadge"><span class="mesa-icon">🪑</span><span id="mesaNum">–</span></div>
@@ -3729,7 +3756,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 <div id="v2Buscar"><div style="display:flex;gap:8px;align-items:stretch">
   <div class="wrap" style="flex:1">
     <span class="lupa">🔎</span>
-    <input id="v2Q" type="search" placeholder="Busca por nombre…" autocomplete="off">
+    <input id="v2Q" type="search" placeholder="Buscar…" autocomplete="off">
     <button class="x" id="v2Qx" onclick="v2LimpiaQ()">✕</button>
   </div>
   <div id="v2MeseroPill">
@@ -5451,12 +5478,19 @@ function renderGroups(){
       </button>`;
   }).join('');
   // oss.6 (12-lug) · niente chip PROMOS/ALMUERZO: vivono dentro ✨ Destacados
-  // (la nav resta pura: i 3 mondi del lema). I gruppi virtuali __PROMOS__/
+  // (la nav resta pura: i mondi del lema). I gruppi virtuali __PROMOS__/
   // __ALMUERZO__ restano nel motore, semplicemente nessun chip li attiva.
-  // v1.23 · S13fix · chip "Menú del Día" · prodotti con regola-prezzo almuerzo attiva ADESSO
-  const almuerzoProdsCount = ALL_PRODUCTS.filter(p =>
-    PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && !p.agotado && productInFaja(p)
-  ).length;
+  // round3 oss.4 · il 4º chip: ⚡BPM — apre il MONDO INTERO (ex strip del foot).
+  // Così il lema completo (SAPORE·COCKTAILS·BPM) vive nell'header attivo.
+  let nChips = groupKeys.length;
+  if(v2NocheVisible()){
+    nChips++;
+    html += `
+      <button class="v2-nchip v2-nchip-bpm" onclick="v2AbrirNoche()">
+        <b class="v2-lema">⚡BPM${DJBOX_ON?'<span class="v2-ondot"></span>':''}</b><small>la noche</small>
+      </button>`;
+  }
+  grid.className = 'group-grid g-' + nChips;
   grid.innerHTML = html;
   wrap.classList.add('show');
 }
