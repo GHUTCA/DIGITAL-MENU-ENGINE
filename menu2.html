@@ -3668,6 +3668,20 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
   border-radius:14px;padding:12px;font-size:13px;font-weight:800;background:transparent;
   color:rgba(242,253,255,.6);text-align:center}
 /* ═══ FINAL round (12-lug notte) ═══ */
+/* coda finale · DJ VIVO IN HOME: quando la cabina suona, la home lo dice —
+   la strip-porta col vinile e i BPM (l'anima del nastro del menù vecchio) */
+.v2-djlive{display:flex;gap:11px;align-items:center;width:calc(100% - 32px);margin:10px 16px 2px;
+  padding:11px 13px;border:1.5px solid rgba(180,106,224,.55);border-radius:16px;cursor:pointer;
+  background:linear-gradient(90deg,#1a0f2e,#2b1846);color:#fff;text-align:left;
+  box-shadow:0 4px 18px rgba(123,75,214,.4)}
+.v2-djlive .b{flex:1;min-width:0}
+.v2-djlive b{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:900;letter-spacing:.05em}
+.v2-djlive small{display:block;font-size:11.5px;color:rgba(242,253,255,.65);margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v2-djlive .eq{display:flex;gap:2px;align-items:flex-end;height:20px;width:34px;flex:0 0 auto}
+.v2-djlive .eq i{flex:1;background:linear-gradient(180deg,#00ffc8,rgba(0,255,200,.4));
+  border-radius:1.5px;animation:v2eq 1s ease-in-out infinite}
+.v2-djlive .arr{color:rgba(255,255,255,.5);font-size:16px;flex:0 0 auto}
 /* oss.1 · la ⭐ del chip brillava poco sul panna: fondo nero degradé + brillo */
 .v2-star{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
   border-radius:50%;background:radial-gradient(circle at 35% 30%,#3a3a4a,#0a0a14 75%);
@@ -3815,7 +3829,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.7.1 · 12jul</span>
+<span id="ver" hidden>menu2 · v2.8.0 · 12jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7123,6 +7137,24 @@ function v2AlmuerzoProds(){
   return ALL_PRODUCTS.filter(p =>
     PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && !p.agotado && productInFaja(p));
 }
+/* coda finale (12-lug) · IL DJ VIVO SI VEDE DALLA HOME: quando la cabina
+   suona, sopra i Destacados appare la strip-porta — vinile, EN CABINA col
+   nome, BPM e slogan, EQ vivo — tap → il mondo BPM. Senza DJ: niente strip,
+   basta il chip ⚡BPM. (Si aggiorna col poll dei ritmi, 60s.) */
+function v2DjLiveHTML(){
+  const dj = (typeof resolveDjActual === 'function') ? resolveDjActual() : null;
+  if(!dj || !dj.nombre) return '';
+  const rit = RITMO_ACTUAL;
+  const eq = Array.from({length:6}, (_,i) =>
+    `<i style="animation-delay:${(i*160)%800}ms;animation-duration:${650+(i*70)%400}ms"></i>`).join('');
+  return `<button class="v2-djlive" onclick="v2AbrirNoche()">
+    <span class="v2-vinilo"></span>
+    <span class="b"><b><span class="v2-ondot"></span>EN CABINA · ${escapeHtml(dj.nombre)}</b>
+    <small>${rit ? `${rit.emoji||''} ${rit.bpm||''} BPM · ${escapeHtml(rit.mensaje_cliente||rit.etiqueta||'')}` : 'la música manda'}</small></span>
+    <span class="eq">${eq}</span><span class="arr">›</span>
+  </button>`;
+}
+
 function v2DestacadosHTML(){
   // FINAL oss.2 · anti-flash: al boot il primo render parte PRIMA che ritmi e
   // reglas arrivino → per un attimo si vedevano i destacados "vecchi". Finché
@@ -7149,7 +7181,7 @@ function v2DestacadosHTML(){
       const e = d.e;
       const tit = e.titulo_es || e.titulo || e.Titulo || '';
       const eyebrow = e.eyebrow_es || e.eyebrow || e.Eyebrow || 'EVENTO';
-      const ph = e.foto_url ? `<img src="${e.foto_url}" alt="" loading="lazy">` : '🪩';
+      const ph = e.foto_url ? `<img src="${e.foto_url}" alt="" loading="lazy" onerror="this.parentElement.textContent='🪩'">` : '🪩';
       return `<button class="v2-dst" onclick="v2AbrirDest('ev')">
         <span class="flag v2-flag-evento">🎉 EVENTO</span>
         <div class="ph">${ph}</div>
@@ -7158,7 +7190,7 @@ function v2DestacadosHTML(){
     if(d.tipo === 'almuerzo'){
       const regla = PRECIOS_REGLA_MAP[d.alm[0].id];
       const precio = regla ? formatPrice(regla.precio) : '';
-      const ph = d.alm[0].imagen ? `<img src="${d.alm[0].imagen}" alt="" loading="lazy">` : '🍱';
+      const ph = d.alm[0].imagen ? `<img src="${d.alm[0].imagen}" alt="" loading="lazy" onerror="this.parentElement.textContent='🍱'">` : '🍱';
       return `<button class="v2-dst" onclick="v2AbrirDest('almuerzo')">
         <span class="flag" style="background:#3DAA68;color:#fff">🍽️ MENÚ</span>
         <div class="ph">${ph}</div>
@@ -7173,8 +7205,11 @@ function v2DestacadosHTML(){
       ? `<span class="flag v2-flag-push">🔥 EL COMANDANTE</span>`
       : (is2x1 || d.tipo === 'promo' ? `<span class="flag v2-flag-2x1">🎁 ${is2x1?'2x1':'PROMO'}</span>` : '');
     const prices = getDisplayPrice(p);
-    const ph = p.imagen ? `<img src="${p.imagen}" alt="" loading="lazy">`
-      : (ALL_CATEGORIES.find(c=>c.id===p.categoria)?.emoji || '🍽️');
+    // coda finale · fallback emoji come le file: le URL morte del foglio (le
+    // cloudfront del vecchio POS) non mostrano MAI il fondo vuoto coi bordi
+    const catEmojiD = ALL_CATEGORIES.find(c=>c.id===p.categoria)?.emoji || '🍽️';
+    const ph = p.imagen ? `<img src="${p.imagen}" alt="" loading="lazy" onerror="this.parentElement.textContent='${catEmojiD}'">`
+      : catEmojiD;
     const eyebrow = d.tipo==='push' ? (p.push_frase||'push del día')
       : d.tipo==='promo' ? (promo && promo.nombre ? promo.nombre : 'promo de hoy') : 'de la casa';
     return `<button class="v2-dst" onclick="v2AbrirDest('p:${p.id}','${d.tipo}')">${flag}
@@ -7345,8 +7380,8 @@ function renderMenu(){
     byCat[k].sort((a,b)=> (esPush(b)?1:0) - (esPush(a)?1:0));
   });
   // v2.0 · DESTACADOS: carosello misto in testa (gesto ④) — solo sulla home
-  // (nessun mondo filtrato attivo): push adminPush → de la casa → evento cartelera
-  let html = (CURRENT_GROUP === null) ? v2DestacadosHTML() : '';
+  // + coda finale: la strip EN CABINA quando il DJ suona (porta al mondo BPM)
+  let html = (CURRENT_GROUP === null) ? (v2DjLiveHTML() + v2DestacadosHTML()) : '';
   visibleCats.forEach(cat=>{
     const items = byCat[cat.id];
     if(!items || items.length === 0) return;
