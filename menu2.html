@@ -3332,8 +3332,8 @@ body:not(.theme-dark) .cart-ig-follow{
   padding:6px 12px;font-size:12px;font-weight:800;display:flex;align-items:center;gap:5px;
   box-shadow:0 2px 10px rgba(0,0,0,.25);max-width:46vw;overflow:hidden;white-space:nowrap;
   text-overflow:ellipsis;cursor:pointer}
-.v2-bell{width:34px;height:34px;border-radius:50%;border:1px solid var(--brand-border);
-  background:transparent;color:var(--brand-text);font-size:16px;cursor:pointer}
+.v2-bell{width:40px;height:40px;border-radius:50%;border:1px solid var(--brand-border);
+  background:transparent;color:var(--brand-text);font-size:19px;cursor:pointer}
 /* ── oss.2+3 (12-lug) · mesero = PILL compatta nel row del buscador:
    testo pieno (niente più grigio perso nel fondo), e si guadagna una riga ── */
 #v2MeseroPill{display:none;align-items:center;gap:6px;flex:0 0 auto;max-width:45vw;
@@ -3815,7 +3815,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.7.0 · 12jul</span>
+<span id="ver" hidden>menu2 · v2.7.1 · 12jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7583,7 +7583,11 @@ function openDetail(id){
   document.getElementById('detailSheet').style.maxHeight = 'calc(100dvh - ' + (v2TopBlockH() + 6) + 'px)';
   // v2.0 · barra d'ordine fissa (gesto ②): stepper + CTA, bloccato finché
   // manca una scelta obbligatoria
-  V2_DET = { p: p, qty: 1, preguntas: v2Preguntas(p), resp: {} };   // "Agregar N" è additivo: si parte da 1
+  // FINAL fix 2 (12-lug) · se il prodotto è GIÀ nel carro, lo stepper del
+  // modal comanda il carro IN DIRETTA (fino a 0 = fuori): casa e modal
+  // sempre allineati, anche chiudendo con la ✕. Se non c'è: "Agregar N".
+  const yaEnCarro = v2QtyOf(p.id);
+  V2_DET = { p: p, qty: yaEnCarro > 0 ? yaEnCarro : 1, preguntas: v2Preguntas(p), resp: {}, live: yaEnCarro > 0 };
   const orden = document.getElementById('v2Orden');
   if(!p.agotado && !IS_VETRINA && PEDIDO_DIGITAL){
     orden.classList.add('show');
@@ -7616,13 +7620,44 @@ function v2DetElige(tipo, opcion, el){
 }
 function v2DetQty(d){
   if(!V2_DET) return;
+  if(V2_DET.live){
+    // in diretta sul carro (rispettando op/termino della riga esistente)
+    v2LineDelta(V2_DET.p.id, d);
+    V2_DET.qty = v2QtyOf(V2_DET.p.id);
+    document.getElementById('v2DetQ').textContent = V2_DET.qty;
+    v2DetPinta();
+    return;
+  }
   V2_DET.qty = Math.max(1, V2_DET.qty + d);
   document.getElementById('v2DetQ').textContent = V2_DET.qty;
   v2DetPinta();
 }
+/* delta su una riga ESISTENTE del prodotto (l'ultima): preserva op/termino
+   in salita e in discesa — v2Mas col ＋ creava una riga nuova senza scelte */
+function v2LineDelta(id, d){
+  const p = ALL_PRODUCTS.find(x=>x.id===id);
+  if(!p) return;
+  for(let i = CART.items.length - 1; i >= 0; i--){
+    if(CART.items[i].id === id){
+      CART.items[i].qty = (CART.items[i].qty||1) + d;
+      if(CART.items[i].qty <= 0) CART.items.splice(i, 1);
+      if(CART.items.length === 0) CART.gancho_origen = '';
+      saveCart(); v2RefreshCtrl(id);
+      try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
+      return;
+    }
+  }
+  if(d > 0){ _pushLinea(p, '', ''); v2RefreshCtrl(id); }
+}
 function v2DetPinta(){
   if(!V2_DET) return;
   const cta = document.getElementById('v2DetCta');
+  if(V2_DET.live){
+    // il carro è già aggiornato: il CTA conferma soltanto
+    cta.disabled = false;
+    cta.textContent = V2_DET.qty > 0 ? 'Listo ✓ · ' + V2_DET.qty + ' en tu pedido' : 'Quitado del pedido ✓';
+    return;
+  }
   const falta = V2_DET.preguntas.find(q => !V2_DET.resp[q.tipo]);
   const regla = PRECIOS_REGLA_MAP[V2_DET.p.id];
   const precio = (regla && parsePrice(regla.precio) > 0) ? parsePrice(regla.precio) : parsePrice(V2_DET.p.precio);
@@ -7634,6 +7669,7 @@ function v2DetPinta(){
 }
 function v2DetAgregar(){
   if(!V2_DET) return;
+  if(V2_DET.live){ closeDetail(); return; }   // già applicato in diretta
   const d = V2_DET;
   for(let i = 0; i < d.qty; i++) _pushLinea(d.p, d.resp.bebida || '', d.resp.termino || '');
   try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
@@ -9184,6 +9220,21 @@ function onCallWaiterGeneric(){
   const hintPedido = (PEDIDO_DIGITAL && CART.items && CART.items.length === 0)
     ? ' · ' + (getLang('llamada_hint_pedido') || '💡 ¿Sabías que puedes mandarme tu pedido desde el carrito? Llego con todo listo')
     : '';
+  // FINAL fix 1 (12-lug) · sappiamo CHI ti attende: la campanella lo dice per
+  // nome. Genere: euristica sul nome (finisce in -a → la) finché il foglio
+  // STAFF non porterà il campo vero.
+  const nomeM = MESERO_MESA;
+  if(nomeM){
+    const esNoche = new Date().getHours() >= 18 || new Date().getHours() < 6;
+    const fem = /a$/i.test(nomeM.trim());
+    openConfirmSheet({
+      title:    (esNoche ? 'Esta noche' : 'Hoy') + ' te atiende ' + nomeM,
+      subtitle: `${getLang('mesa')} ${MESA_ID} · ¿Deseas llamar${fem ? 'la' : 'lo'}? Viene al tiro a tu mesa${hintPedido}`,
+      payload:  { tipo_llamada :'generica', prod_id: null },
+      okLabel:  'Sí — que venga ' + nomeM,
+    });
+    return;
+  }
   openConfirmSheet({
     title:    getLang('call_generic_title') || '¿Llamar mesero?',
     subtitle: `${getLang('mesa')} ${MESA_ID} · ${getLang('call_generic_subtitle') || 'El mesero llegará a tu mesa en breve'}${hintPedido}`,
@@ -9209,7 +9260,7 @@ function notifyWaiter(payload){
   try {
     navigator.sendBeacon(BRAND.gas_url, JSON.stringify(body));
     _llamadaMarcaTs();   // v1.37 · parte il cooldown
-    showToastMsg(getLang('call_sent') || '🔔 Mesero llamado · llega pronto');
+    showToastMsg(MESERO_MESA ? '🔔 ' + MESERO_MESA + ' viene en camino' : (getLang('call_sent') || '🔔 Mesero llamado · llega pronto'));
   } catch(e) {
     console.warn('[v1.10] notifyWaiter failed:', e);
     showToastMsg(getLang('call_retry_error'));
