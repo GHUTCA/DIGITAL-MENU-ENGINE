@@ -3667,6 +3667,28 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2n-djbox-teaser{margin-top:14px;width:100%;border:1.5px dashed rgba(180,106,224,.5);
   border-radius:14px;padding:12px;font-size:13px;font-weight:800;background:transparent;
   color:rgba(242,253,255,.6);text-align:center}
+/* ═══ VB round · hero FUSO + le due card grandi ═══ */
+.v2n-sube.sm .v2n-act{padding:5px 2px 5px;border-radius:10px 10px 4px 4px}
+.v2n-sube.sm .v2n-act .e{font-size:13px}
+.v2n-sube.sm .v2n-act b{font-size:9.5px}
+.v2n-sube.sm .v2n-act small{font-size:8.5px}
+.v2n-sube.sm .v2n-act.h60{padding-top:9px}.v2n-sube.sm .v2n-act.h70{padding-top:13px}
+.v2n-sube.sm .v2n-act.h80{padding-top:17px}
+.v2n-sube.sm{margin-top:10px}
+.v2n-trago.inhero{margin-top:12px;background:rgba(0,0,0,.25);border-color:rgba(255,217,138,.35)}
+.v2n-2cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.v2n-bigcard{position:relative;border-radius:18px;overflow:hidden;border:1.5px solid rgba(180,106,224,.4);
+  background:#130e20;padding:0;text-align:left;cursor:pointer;color:#F2FDFF;min-height:170px;
+  display:flex;flex-direction:column}
+.v2n-bigcard .ph{width:100%;height:104px;object-fit:cover;display:block;background:#1a1128;flex:0 0 auto}
+.v2n-bigcard .i{padding:8px 10px 10px;flex:1}
+.v2n-bigcard .ey{font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#00ffc8;
+  display:flex;align-items:center;gap:5px}
+.v2n-bigcard .n{font-size:14.5px;font-weight:900;margin-top:3px;line-height:1.15}
+.v2n-bigcard .s{font-size:10.5px;color:rgba(242,253,255,.5);margin-top:3px}
+/* la scheda DJ del motore deve vivere SOPRA il mondo (tap sulla card) */
+#djSheet{z-index:506!important}
+#djOverlay{z-index:505!important}
 /* ═══ round BPM-2 · le PORTE (agenda/eventos) + DJ-BOX da marketing ═══ */
 .v2n-door{display:flex;gap:10px;align-items:center;width:100%;padding:12px;margin-bottom:8px;
   background:rgba(255,255,255,.05);border:1px solid rgba(180,106,224,.35);border-radius:14px;
@@ -3769,7 +3791,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.5.1 · 12jul</span>
+<span id="ver" hidden>menu2 · v2.6.0 · 12jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -9282,49 +9304,65 @@ async function v2AbrirNoche(){
   const rit = RITMO_ACTUAL;
   let h = '';
 
-  // ═ 1 · AHORA — l'eroe: l'energia del momento (DJ da headliner + BPM vero)
+  // ═ 1 · HERO FUSO (VB round · oss.1): la subida (piccola) + slogan + el
+  // trago — UNA card sola che dice: «aquí en un rato se arma la fiesta»
   const eq = '<div class="v2n-eq">' + Array.from({length:18}, (_,i) =>
     `<i style="animation-delay:${(i*137)%900}ms;animation-duration:${700+(i*53)%500}ms"></i>`).join('') + '</div>';
-  h += `<div class="v2n-hero">
-    ${dj && dj.nombre ? `
-      <span class="v2n-live"><span class="v2-ondot"></span>en cabina</span>
-      <div class="v2n-djrow">
-        ${dj.foto_url ? `<img class="v2n-djfoto" src="${dj.foto_url}" alt="">` : '<span class="v2-vinilo big"></span>'}
-        <div><div class="v2n-djnome">${escapeHtml(dj.nombre)}</div>
-        <div class="v2n-djslot">${dj.hora_fin ? 'hasta las ' + escapeHtml(dj.hora_fin) : ''}${dj.instagram ? ' · @' + escapeHtml(String(dj.instagram).split('/').filter(Boolean).pop()) : ''}</div></div>
-      </div>` : `
-      <span class="v2n-live" style="color:var(--v2-dj)">● la casa suena</span>`}
-    ${rit ? `
-      <div class="v2n-bpmrow"><span class="v2n-bpmnum">${rit.bpm||''}<small> BPM</small></span>
-        <span class="v2n-etq">${rit.emoji||''} ${escapeHtml(rit.nombre||'')}<br>${escapeHtml(rit.etiqueta||'')}</span></div>
-      ${rit.mensaje_cliente ? `<div class="v2n-slogan">«${escapeHtml(rit.mensaje_cliente)}»</div>` : ''}` : ''}
-    ${eq}
-  </div>`;
-
-  // ═ 2 · LA NOCHE SUBE — la scala dei 4 atti: vedere cosa viene = restare
-  // getRitmos spoglia le ore dai disponibles → la scala sale per BPM e ogni
-  // gradino porta il NOME dell'atto (Warmup→Groove→Prime→Peak): è la lingua
-  // della cabina, meglio dell'orario
   const acts = (RITMOS_DISP||[]).filter(r=>r && (r.bpm||r.bpm_valor)).slice()
     .sort((a,b)=>(a.bpm||a.bpm_valor)-(b.bpm||b.bpm_valor));
-  if(acts.length > 1){
-    const alt = ['','h60','h70','h80'];
-    h += `<div class="v2-nsec">La noche sube</div><div class="v2n-sube">` +
-      acts.map((r,i)=>`<div class="v2n-act ${alt[Math.min(i,3)]}${rit && r.id===rit.id?' on':''}">
-        <span class="e">${r.emoji||''}</span><b>${r.bpm||r.bpm_valor} BPM</b><small>${escapeHtml(r.nombre||'')}</small>
-        ${rit && r.id===rit.id ? '<span class="v2n-aqui">estás aquí</span>' : ''}</div>`).join('') + `</div>`;
-  }
-
-  // ═ 3 · EL TRAGO DE ESTE RITMO — il ponte musica→cassa
+  const alt = ['','h60','h70','h80'];
+  const subeHtml = acts.length > 1 ? `<div class="v2n-sube sm">` +
+    acts.map((r,i)=>`<div class="v2n-act ${alt[Math.min(i,3)]}${rit && r.id===rit.id?' on':''}">
+      <span class="e">${r.emoji||''}</span><b>${r.bpm||r.bpm_valor} BPM</b><small>${escapeHtml(r.nombre||'')}</small>
+      ${rit && r.id===rit.id ? '<span class="v2n-aqui">estás aquí</span>' : ''}</div>`).join('') + `</div>` : '';
   const trago = v2TragoDelRitmo();
+  let tragoHtml = '';
   if(trago && !IS_VETRINA && PEDIDO_DIGITAL){
     const pr = getDisplayPrice(trago);
-    h += `<div class="v2-nsec">El trago de este ritmo</div>
-      <div class="v2n-trago">
-        <div class="ph">${trago.imagen?`<img src="${trago.imagen}" alt="">`:'🍸'}</div>
-        <div class="b"><div class="nom">${toTitleCase(trago.nombre)}</div><div class="pr">${pr.main}</div></div>
-        <span id="v2ctrlx-${trago.id}">${v2CtrlHTML(trago)}</span>
-      </div>`;
+    tragoHtml = `<div class="v2n-trago inhero">
+      <div class="ph">${trago.imagen?`<img src="${trago.imagen}" alt="">`:'🍸'}</div>
+      <div class="b"><div class="nom">${toTitleCase(trago.nombre)}</div><div class="pr">${pr.main} · el trago de este ritmo</div></div>
+      <span id="v2ctrlx-${trago.id}">${v2CtrlHTML(trago)}</span>
+    </div>`;
+  }
+  h += `<div class="v2n-hero">
+    <span class="v2n-live" style="color:var(--v2-dj)">⚡ LA NOCHE SUBE — aquí se arma la fiesta</span>
+    ${subeHtml}
+    ${rit && rit.mensaje_cliente ? `<div class="v2n-slogan" style="margin-top:10px">«${escapeHtml(rit.mensaje_cliente)}»<span style="font-style:normal;font-size:11.5px;font-weight:700;color:rgba(242,253,255,.5)"> · ${rit.emoji||''} ${escapeHtml(rit.etiqueta||'')}</span></div>` : ''}
+    ${eq}
+    ${tragoHtml}
+  </div>`;
+
+  // ═ 2 · LE DUE CARD GRANDI (VB round · oss.2): il DJ della serata — o il
+  // PRÓXIMO, con foto e tap→scheda del motore (bio+IG) — accanto DJ EVENTS:
+  // il poster di CARTELERA_BKS (col H3), anche se non attivo, per vederlo
+  const semana = (CARTELERA_DATA && CARTELERA_DATA.djs_semana) || DJS_AGENDA || [];
+  const djShow = (dj && dj.nombre) ? dj : (semana[0] || null);
+  window._v2DjShow = djShow;
+  const cbks = CARTELERA_DATA && CARTELERA_DATA.cartelera_bks;
+  let cards = '';
+  if(djShow){
+    cards += `<button class="v2n-bigcard" onclick="v2VerDj()">
+      ${djShow.foto_url ? `<img class="ph" src="${djShow.foto_url}" alt="">` : '<div class="ph"></div>'}
+      <div class="i"><div class="ey">${(dj && dj.nombre) ? '<span class="v2-ondot"></span> esta noche' : '⏭ próximo · ' + escapeHtml(djShow.dias_visible||'')}</div>
+      <div class="n">${escapeHtml(djShow.nombre||'')}</div>
+      <div class="s">${escapeHtml(djShow.hora_ini||'')}${djShow.hora_fin?' — '+escapeHtml(djShow.hora_fin):''} · tócalo para verlo</div></div>
+    </button>`;
+  }
+  if(cbks && cbks.foto_url){
+    cards += `<button class="v2n-bigcard" onclick="v2ToggleDoor(this,'v2DoorSemana')">
+      <img class="ph" src="${cbks.foto_url}" alt="">
+      <div class="i"><div class="ey" style="color:${cbks.header_color||'#5fd0c5'}">🎧 DJ EVENTS</div>
+      <div class="n">${escapeHtml(cbks.eyebrow_es||'LA SEMANA BKS')}</div>
+      <div class="s">${escapeHtml((cbks.subtitulo_es||'').slice(0,42))}</div></div>
+    </button>`;
+  }
+  if(cards) h += `<div class="v2n-2cards">${cards}</div>`;
+  if(cbks && cbks.foto_url){
+    h += `<div class="v2n-doorbody" id="v2DoorSemana" style="margin-top:8px">
+      <img class="v2n-poster" src="${cbks.foto_url}" alt="" loading="lazy">
+      <div class="v2n-poster-cap">${escapeHtml(cbks.subtitulo_es||'')}</div>
+    </div>`;
   }
 
   // ═ 4 · LA CASA
@@ -9336,10 +9374,10 @@ async function v2AbrirNoche(){
     h += `<div class="v2-evfila"><span class="ico">📸</span><span><b>@${escapeHtml(BRAND.instagram_url.split('/').filter(Boolean).pop()||'')}</b><small>etiquétanos y tu noche entra en la historia</small></span></div>`;
   }
 
-  // ═ 5 · LE PORTE (round BPM-2): 📅 DJ AGENDA · 🎉 DJ EVENTOS — accordion
-  const semana = (CARTELERA_DATA && CARTELERA_DATA.djs_semana) || DJS_AGENDA || [];
+  // ═ 5 · LA PORTA 📅 DJ AGENDA — accordion (semana già in mano dalla sez. 2)
+  // Il MUNDIAL non vive più qui: sta nei Destacados (trattamento = domani).
   if(semana.length){
-    const cards = semana.slice(0,8).map(s=>{
+    const agCards = semana.slice(0,8).map(s=>{
       const ig = s.instagram ? String(s.instagram).split('/').filter(Boolean).pop() : '';
       return `<div class="v2n-djcard">
         ${s.foto_url ? `<img class="foto" src="${s.foto_url}" alt="" loading="lazy">` : '<div class="foto"></div>'}
@@ -9350,16 +9388,7 @@ async function v2AbrirNoche(){
       </div>`;}).join('');
     h += `<button class="v2n-door" onclick="v2ToggleDoor(this,'v2DoorAgenda')">
         <span class="ico">📅</span><span><b>DJ AGENDA</b><small>quién toca esta semana</small></span><span class="arr">›</span></button>
-      <div class="v2n-doorbody" id="v2DoorAgenda"><div class="v2n-djs">${cards}</div></div>`;
-  }
-  const evx = CARTELERA_DATA && CARTELERA_DATA.evento;
-  if(evx && (evx.titulo_es || evx.titulo)){
-    h += `<button class="v2n-door" onclick="v2ToggleDoor(this,'v2DoorEventos')">
-        <span class="ico">🎉</span><span><b>DJ EVENTOS</b><small>${escapeHtml(evx.titulo_es||evx.titulo||'lo que se viene')}</small></span><span class="arr">›</span></button>
-      <div class="v2n-doorbody" id="v2DoorEventos">
-        ${evx.foto_url ? `<img class="v2n-poster" src="${evx.foto_url}" alt="" loading="lazy">` : ''}
-        <div class="v2n-poster-cap">${escapeHtml(evx.subtitulo_es||'')}${evx.horario_visible ? ' · 🕒 ' + escapeHtml(evx.horario_visible) : ''}</div>
-      </div>`;
+      <div class="v2n-doorbody" id="v2DoorAgenda"><div class="v2n-djs">${agCards}</div></div>`;
   }
 
   // ═ 6 · DJ-BOX — il cartridge del focus group, da MARKETING: si apre SEMPRE
@@ -9369,8 +9398,13 @@ async function v2AbrirNoche(){
       <span class="t"><b>Tu canción, a la cabina</b><small>búscala, págala y suena — el DJ tiene la última palabra</small></span>
       <span class="luz ${DJBOX_ON?'on':'off'}"><span class="dot"></span>${DJBOX_ON?'abierto':'pronto'}</span>
     </button>`;
-  h += `<button class="v2-via-mesero" style="margin-top:12px;width:100%" onclick="v2CerrarSheets()">↓ volver a la carta</button>`;
+  // VB round oss.5 · niente "volver": la ✕ basta, spazio guadagnato
   inf.innerHTML = h || '<div class="v2-nsec">La noche se está armando…</div>';
+}
+
+/* VB round oss.2 · tap sulla card DJ → la scheda DJ del motore (foto+bio+IG) */
+function v2VerDj(){
+  if(window._v2DjShow && typeof openDjSheet === 'function') openDjSheet(window._v2DjShow);
 }
 
 /* le porte del mondo BPM: accordion */
