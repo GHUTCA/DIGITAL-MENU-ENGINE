@@ -3335,12 +3335,19 @@ body:not(.theme-dark) .cart-ig-follow{
 #v2Stars span{font-size:17px;color:rgba(255,255,255,.25);cursor:pointer}
 #v2Stars span.on{color:var(--v2-oro)}
 
-/* ── buscador visibile (porta all'overlay esistente) ── */
-#v2Buscar{padding:8px 16px 4px;background:var(--brand-bg)}
-#v2Buscar .inp{width:100%;background:var(--brand-surface);border:1.5px solid var(--brand-border);
-  border-radius:14px;color:var(--brand-text-muted);padding:11px 14px 11px 40px;font-size:14.5px;
-  text-align:left;position:relative;cursor:pointer;display:block}
-#v2Buscar .inp .lupa{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px}
+/* ── v3.3 fix ③ · buscador VERO che filtra la lista in place ── */
+#fajaBar,#catSticky,#headerSearchBtn{display:none!important}  /* mockup: via nastro semana, cat-tabs, lente */
+#v2Buscar{padding:8px 16px 6px;background:var(--brand-bg);position:sticky;top:0;z-index:30;
+  box-shadow:0 8px 16px rgba(0,0,0,.15)}
+#v2Buscar .wrap{position:relative}
+#v2Buscar input{width:100%;background:var(--brand-surface);border:1.5px solid var(--brand-border);
+  border-radius:14px;color:var(--brand-text);padding:11px 38px 11px 40px;font-size:15px;outline:none}
+#v2Buscar input:focus{border-color:var(--v2-neon)}
+#v2Buscar .lupa{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px}
+#v2Buscar .x{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:30px;height:30px;
+  border:0;border-radius:50%;background:var(--brand-surface-card,var(--brand-surface));
+  color:var(--brand-text-muted);font-size:14px;font-weight:900;cursor:pointer;display:none}
+#v2Buscar .x.show{display:block}
 
 /* ── chip lema a 2 righe (SAPORE·comida | COCKTAILS | SAPORE·postre) ── */
 .v2-nchip{border-radius:20px;padding:7px 4px 6px;text-align:center;background:var(--brand-surface);
@@ -3529,10 +3536,36 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2-evfila small{color:rgba(242,253,255,.5)}
 .v2-velo{position:fixed;inset:0;background:rgba(1,25,32,.72);opacity:0;pointer-events:none;transition:.2s;z-index:455}
 .v2-velo.show{opacity:1;pointer-events:auto}
+/* ── v3.3 fix ④ · destacado a PAGINA INTERA ── */
+#v2ShDest{max-height:94dvh;min-height:88dvh}
+#v2ShDest{pointer-events:none}
+#v2ShDest.up{pointer-events:auto}
+#v2ShDest .ph{height:300px;display:flex;align-items:center;justify-content:center;font-size:120px;
+  background:var(--brand-surface-card,var(--brand-surface));overflow:hidden;flex:0 0 auto}
+#v2ShDest .ph img{width:100%;height:100%;object-fit:cover}
+#v2ShDest .inf{padding:14px 18px 18px}
+#v2ShDest .eyebrow{font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--v2-dj)}
+#v2ShDest .nom{font-size:25px;font-weight:900;margin-top:4px;color:var(--brand-text)}
+#v2ShDest .des{font-size:15px;color:var(--brand-text-muted);margin-top:8px;line-height:1.6}
+#v2ShDest .meta{margin-top:10px;font-size:15px;color:var(--v2-oro);font-weight:800}
+body.theme-dark[data-fascia-menu="dia"] #v2ShDest .meta{color:#b8860b}
+#v2ShDest .orden{border-top:1.5px solid var(--brand-border);padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));
+  background:var(--brand-surface);flex:0 0 auto}
+#v2ShDest .orden .cta{width:100%;border:0;border-radius:14px;padding:15px;font-size:16px;
+  font-weight:900;background:var(--brand-accent);color:#fff;cursor:pointer}
+/* ── v3.3 · carrello "Tu pedido 🛎" con stepper a sinistra ── */
+.v2c-tit{padding:4px 0 8px;font-size:19px;font-weight:900;color:var(--brand-text)}
+.v2c-it{display:flex;gap:10px;align-items:center;padding:9px 0}
+.v2c-it .nom{flex:1;font-size:14.5px;font-weight:600;color:var(--brand-text);min-width:0}
+.v2c-it .nom small{display:block;color:var(--brand-text-muted);font-weight:400;font-size:12px}
+.v2c-it .imp{font-weight:800;color:var(--brand-text-muted);font-variant-numeric:tabular-nums}
+.v2c-tot{display:flex;padding:12px 0;font-size:17px;font-weight:900;color:var(--brand-text)}
+.v2c-tot span:last-child{margin-left:auto;color:var(--v2-oro)}
+body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.0.0 · 12jul</span>
+<span id="ver" hidden>menu2 · v2.0.1 · 12jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -3678,11 +3711,12 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
   <div class="rhythm-waveform" id="rhythmWaveform"></div>
 </div>
 
-<!-- v2.0 · buscador VISIBILE (gesto ⑥ del commercio) — è la porta
-     all'overlay full-screen v1.11, che resta il motore della ricerca -->
-<div id="v2Buscar"><span class="inp" onclick="openSearchOverlay()" role="button" tabindex="0">
-  <span class="lupa">🔎</span><span id="v2BuscarTxt">¿Qué quieres? Busca por nombre…</span>
-</span></div>
+<!-- v3.3 fix ③ · buscador VERO: filtra la lista in place (cerca→＋→barra in 2 gesti) -->
+<div id="v2Buscar"><div class="wrap">
+  <span class="lupa">🔎</span>
+  <input id="v2Q" type="search" placeholder="¿Qué quieres? Busca por nombre…" autocomplete="off">
+  <button class="x" id="v2Qx" onclick="v2LimpiaQ()">✕</button>
+</div></div>
 
 <!-- ── MACRO-GROUPS ── -->
 <div id="groupBar"><div class="group-grid" id="groupGrid"></div></div>
@@ -3813,6 +3847,21 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 <div class="v2-sheet" id="v2ShId">
   <div class="v2-handle"></div><button class="v2-x" onclick="v2CerrarSheets()">✕</button>
   <div class="scroll"><div class="inf" id="v2ShIdInf"></div></div>
+</div>
+
+<!-- v3.3 fix ④ · destacado a PAGINA INTERA con ✕ -->
+<div class="v2-sheet" id="v2ShDest">
+  <div class="v2-handle"></div><button class="v2-x" onclick="v2CerrarSheets()">✕</button>
+  <div class="scroll">
+    <div class="ph" id="v2DPh"></div>
+    <div class="inf">
+      <div class="eyebrow" id="v2DEyebrow"></div>
+      <div class="nom" id="v2DNom"></div>
+      <div class="des" id="v2DDes"></div>
+      <div class="meta" id="v2DMeta"></div>
+    </div>
+  </div>
+  <div class="orden" id="v2DOrden"></div>
 </div>
 
 <!-- v2.0 · IL MONDO BPM (palette cabina · CARTELERA_BKS + DJS_AGENDA + porta DJ-BOX gated) -->
@@ -4581,6 +4630,8 @@ let ULTIMA_RONDA  = null;         // items dell'ultimo pedido inviato (🔁 otra
 const RONDA_KEY   = 'ultima_ronda_v1';
 let V2_DET        = null;         // {p, qty, preguntas[], resp{}} della scheda aperta
 let V2_CALIF      = 0;            // stelline date al mesero (1×/sessione)
+let V2_Q          = '';           // buscador in place (fix ③ v3.3)
+let V2_WORLD      = null;         // mondo del lema evidenziato (i chip SALTANO, non filtrano)
 try { ULTIMA_RONDA = JSON.parse(sessionStorage.getItem(RONDA_KEY) || 'null'); } catch(e){}
 
 let ALL_PRODUCTS     = [];
@@ -5348,12 +5399,15 @@ function renderGroups(){
       return { b:'SAPORE', s:(getGroupName(gk)||'postre').toLowerCase() };
     return { b:getGroupName(gk)||gk, s:'' };
   };
+  // v3.3 fix ③ · i chip del lema SALTANO alla sezione (tutto il menù resta in
+  // una lista sola — il mockup validato); Promos/Almuerzo restano filtri modali.
+  if(V2_WORLD === null && groupKeys.length) V2_WORLD = groupKeys[0];
   let html = groupKeys.map(gk=>{
-    const isActive = CURRENT_GROUP === gk;
+    const isActive = CURRENT_GROUP === null && V2_WORLD === gk;
     const count = countByGroup[gk] || 0;
     // v1.10 · count=0 → disabled grigio invece di nascosto · stabilità interfaccia
     const isDisabled = count === 0;
-    const onclick = isDisabled ? '' : `onclick="setGroup('${gk}')"`;
+    const onclick = isDisabled ? '' : `onclick="v2Salta('${gk}')"`;
     const L = v2Lema(gk);
     return `
       <button class="v2-nchip${isActive?' active':''}${isDisabled?' disabled':''}" ${onclick}${isDisabled?' aria-disabled="true"':''}>
@@ -5408,8 +5462,9 @@ function scrollToCategory(id){
     const cats   = document.getElementById('catSticky');
     const groups = document.getElementById('groupBar');
     const groupsH = (groups && groups.classList.contains('show')) ? groups.offsetHeight : 0;
-    const offset = (header?.offsetHeight||54) + (faja?.offsetHeight||50) +
-                   groupsH + (cats?.offsetHeight||44) + 8;
+    const buscarH = document.getElementById('v2Buscar')?.offsetHeight || 0;   // v2: buscador sticky
+    const offset = (header?.offsetHeight||54) + (faja?.offsetHeight||0) +
+                   groupsH + (cats?.offsetHeight||0) + buscarH + 8;
     window.scrollTo({top: el.offsetTop - offset, behavior:'smooth'});
   }
   document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
@@ -6785,7 +6840,7 @@ function v2DestacadosHTML(){
       const e = d.e;
       const tit = e.titulo || e.Titulo || '';
       const eyebrow = e.eyebrow || e.Eyebrow || 'EVENTO';
-      return `<button class="v2-dst" onclick="openCartelera()">
+      return `<button class="v2-dst" onclick="v2AbrirDest('ev')">
         <span class="flag v2-flag-evento">🎧 EVENTO</span>
         <div class="ph">🪩</div>
         <div class="inf"><div class="eyebrow">${eyebrow}</div><div class="nom">${tit}</div></div></button>`;
@@ -6799,7 +6854,7 @@ function v2DestacadosHTML(){
     const prices = getDisplayPrice(p);
     const ph = p.imagen ? `<img src="${p.imagen}" alt="" loading="lazy">`
       : (ALL_CATEGORIES.find(c=>c.id===p.categoria)?.emoji || '🍽️');
-    return `<button class="v2-dst" onclick="openDetail('${p.id}')">${flag}
+    return `<button class="v2-dst" onclick="v2AbrirDest('p:${p.id}','${d.tipo}')">${flag}
       <div class="ph">${ph}</div>
       <div class="inf"><div class="eyebrow">${d.tipo==='push' ? (p.push_frase||'push del día') : 'de la casa'}</div>
       <div class="nom">${toTitleCase(p.nombre)}</div><div class="precio">${prices.main}</div></div></button>`;
@@ -6807,8 +6862,81 @@ function v2DestacadosHTML(){
   return `<div class="v2-sec-t">✨ Destacados</div><div class="v2-carrusel">${cards}</div>`;
 }
 
+/* v3.3 fix ④ · il destacado si apre a PAGINA INTERA (✕ per uscire) */
+function v2AbrirDest(key, tipo){
+  const ph = document.getElementById('v2DPh'), eb = document.getElementById('v2DEyebrow'),
+        nom = document.getElementById('v2DNom'), des = document.getElementById('v2DDes'),
+        meta = document.getElementById('v2DMeta'), orden = document.getElementById('v2DOrden');
+  if(key === 'ev'){
+    const e = (CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos) || {};
+    ph.innerHTML = '🪩';
+    eb.textContent = e.eyebrow || e.Eyebrow || 'EVENTO';
+    nom.textContent = e.titulo || e.Titulo || '';
+    des.textContent = e.detalle || e.Detalle || '';
+    meta.textContent = e.fechas || e.Fechas || '';
+    orden.innerHTML = `<button class="cta" onclick="v2CerrarSheets();v2AbrirNoche()">🌙 Ver el mundo BPM completo</button>`;
+  } else {
+    const p = ALL_PRODUCTS.find(x=>x.id===key.slice(2));
+    if(!p) return;
+    trackProductView(p);
+    const promo = PROD_TO_PROMO[p.id];
+    const is2x1 = promo && (promo.tipo === '2x1' || promo.tipo === 'multiplo');
+    const prices = getDisplayPrice(p);
+    ph.innerHTML = p.imagen ? `<img src="${p.imagen}" alt="">`
+      : (ALL_CATEGORIES.find(c=>c.id===p.categoria)?.emoji || '🍽️');
+    eb.textContent = tipo === 'push' ? '🔥 el Comandante lo recomienda' : '✨ de la casa';
+    nom.textContent = toTitleCase(p.nombre);
+    des.textContent = (tipo === 'push' && p.push_frase ? p.push_frase + ' — ' : '') +
+      getProductDesc(p) + (is2x1 ? ' · 🎁 2x1: pagas 1, llevas 2' : '');
+    meta.textContent = prices.orig ? prices.orig + ' → ' + prices.main : prices.main;
+    orden.innerHTML = (!IS_VETRINA && PEDIDO_DIGITAL)
+      ? (v2Preguntas(p).length
+        ? `<button class="cta" onclick="v2CerrarSheets();openDetail('${p.id}')">Elegir y agregar →</button>`
+        : `<button class="cta" onclick="v2Mas('${p.id}',1);v2CerrarSheets();showToastMsg('✓ ${toTitleCase(p.nombre).replace(/'/g,"\\'")} en tu pedido')">＋ Agregar · ${prices.main}</button>`)
+      : '';
+  }
+  document.getElementById('v2Velo').classList.add('show');
+  document.getElementById('v2ShDest').classList.add('up');
+}
+
+/* v3.3 fix ③ · il salto ai mondi + buscador in place */
+function v2Salta(gk){
+  if(V2_Q) v2LimpiaQ();
+  if(CURRENT_GROUP !== null){ CURRENT_GROUP = null; renderMenu(); }
+  V2_WORLD = gk;
+  renderGroups();
+  const cats = (CATEGORY_GROUPS && CATEGORY_GROUPS[gk] && CATEGORY_GROUPS[gk].cats) || [];
+  const target = cats.find(c => document.getElementById('cat-' + c));
+  if(target) setTimeout(()=>scrollToCategory(target), 60);
+}
+function v2LimpiaQ(){
+  V2_Q = '';
+  const q = document.getElementById('v2Q');
+  if(q) q.value = '';
+  document.getElementById('v2Qx').classList.remove('show');
+  renderMenu();
+}
+function v2Norm(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function v2SearchHTML(){
+  const q = v2Norm(V2_Q);
+  const hits = ALL_PRODUCTS.filter(p =>
+    !p.agotado && productInFaja(p) &&
+    v2Norm(p.nombre + ' ' + (p.descripcion||'') + ' ' + getProductDesc(p)).indexOf(q) >= 0);
+  let h = `<div class="v2-sec-t">🔎 ${hits.length} para «${escapeHtml(V2_Q)}»</div>`;
+  h += hits.length
+    ? `<div class="product-list">${hits.map(p=>renderProductCard(p)).join('')}</div>`
+    : `<div style="padding:30px 16px;color:var(--brand-text-muted);text-align:center;font-size:14px">Nada con ese nombre — mira los mundos arriba 👆</div>`;
+  return h;
+}
+
 function renderMenu(){
   const wrap = document.getElementById('menuContent');
+  // v3.3 fix ③ · buscador in place: la query sostituisce la lista (cerca→＋→barra)
+  if(V2_Q && V2_Q.length >= 2){
+    document.getElementById('emptyState').classList.remove('show');
+    wrap.innerHTML = v2SearchHTML();
+    return;
+  }
   const visibleCatIds = getVisibleCategories().map(c => c.id);
   const ritmoFilterActive = RITMO_FILTER_ON && RITMO_ACTUAL && RITMO_ACTUAL.prod_ids && RITMO_ACTUAL.prod_ids.length > 0;
   const ritmoProdSet = ritmoFilterActive ? new Set(RITMO_ACTUAL.prod_ids) : null;
@@ -7075,21 +7203,11 @@ function openDetail(id){
           ${prices.orig ? `<span class="sheet-price-orig">${prices.orig}</span>` : ''}
           <span class="sheet-price">${prices.main}</span>
         </div>
-        ${!p.agotado ? (LLAMAR_MESERO_ENABLED ? `
-          <button class="card-call-btn" style="width:48px;height:48px;font-size:22px"
-                  onclick="closeDetail();setTimeout(()=>onCallWaiterForProduct('${p.id}'),320)"
-                  aria-label="Llamar mesero">🔔</button>
-        ` : '') : ''}
       </div>
       ${(PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && ALMUERZO_INCLUYE_TXT) ? `
         <div class="almuerzo-incluye">🍽️ ${ALMUERZO_INCLUYE_TXT}</div>
       ` : ''}
       ${!p.agotado && !IS_VETRINA && PEDIDO_DIGITAL ? v2PreguntasHTML(p) : ''}
-      ${!p.agotado && LLAMAR_MESERO_ENABLED && MESA_ID ? `
-        <div style="text-align:center;font-size:12px;color:var(--brand-text-muted);margin:10px 0 0;letter-spacing:0.3px">
-          ${getLang('call_caption_product') || 'Toca 🔔 para llamar mesero por este producto'}
-        </div>
-      ` : ''}
       </div>
       ${upsellHtml}
     </div>`;
@@ -7674,29 +7792,26 @@ function renderCart(){
     return;
   }
   const total = CART.items.reduce((s,i)=> s + i.precio * (i.qty||1), 0);
+  // v3.3 · "Tu pedido 🛎" · stepper a SINISTRA, dettagli piccoli sotto il nome
   el.innerHTML = `
-    <div class="cart-title">${getLang('cart_title') || 'Mi Pedido'}</div>
-    <div class="cart-subtitle">${getLang('cart_subtitle') || 'Revisa tu selección y muéstrasela al mesero.'}</div>
-    ${CART.items.map((i, idx) => `
-      <div class="cart-row">
-        <div class="cart-row-info">
-          <div class="cart-row-name">${i.es_menu ? '🍱 ' : ''}${toTitleCase(i.nombre)}</div>
-          ${i.es_menu ? `<div class="cart-row-op" style="color:var(--brand-text-muted);font-weight:500">${ALMUERZO_INCLUYE_TXT || 'Incluye entrada y postre'}</div>` : ''}
-          ${i.p2x1 ? `<div class="cart-row-op" style="color:#d97706">🎁 2x1 · ${getLang('promo_pagas')||'pagas'} ${i.qty||1}, ${getLang('promo_llevas')||'llevas'} ${(i.qty||1)*2}</div>` : ''}
-          ${i.op ? `<div class="cart-row-op">🥤 ${i.op}</div>` : ''}
-          ${i.termino ? `<div class="cart-row-op">🥩 ${i.termino}</div>` : ''}
-          <div class="cart-row-price">${formatPrice(i.precio * (i.qty||1))}</div>
-        </div>
-        <div class="cart-row-qty">
-          <button class="cart-qty-btn" onclick="cartChangeQty(${idx},-1)" aria-label="−">−</button>
-          <span class="cart-qty-num">${i.qty||1}</span>
-          <button class="cart-qty-btn" onclick="cartChangeQty(${idx},1)" aria-label="+">＋</button>
-        </div>
-      </div>
-    `).join('')}
-    <div class="cart-total-row">
-      <span class="cart-total-label">${getLang('cart_total') || 'Total'}</span>
-      <span class="cart-total-val">${formatPriceWithSymbol(total)}</span>
+    <div class="v2c-tit">Tu pedido 🛎</div>
+    ${CART.items.map((i, idx) => {
+      const detalles = [
+        i.es_menu ? '🍱 ' + (ALMUERZO_INCLUYE_TXT || 'Incluye entrada y postre') : '',
+        i.p2x1 ? `🎁 2x1 · ${getLang('promo_pagas')||'pagas'} ${i.qty||1}, ${getLang('promo_llevas')||'llevas'} ${(i.qty||1)*2}` : '',
+        i.op ? '🥤 ' + i.op : '',
+        i.termino ? '🥩 ' + i.termino : '',
+      ].filter(Boolean).join(' · ');
+      return `
+      <div class="v2c-it">
+        <span class="v2-step"><button onclick="cartChangeQty(${idx},-1)">−</button><b>${i.qty||1}</b><button onclick="cartChangeQty(${idx},1)">＋</button></span>
+        <span class="nom">${toTitleCase(i.nombre)}${detalles ? `<small>${detalles}</small>` : ''}</span>
+        <span class="imp">${formatPrice(i.precio * (i.qty||1))}</span>
+      </div>`;
+    }).join('')}
+    <div class="v2c-tot">
+      <span>${getLang('cart_total') || 'Total'}</span>
+      <span>${formatPriceWithSymbol(total)}</span>
     </div>
     ${(ULTIMA_RONDA && ULTIMA_RONDA.length)
       ? `<button class="v2-ronda" onclick="v2OtraRonda()">🔁 ¿Otra ronda? — repetir lo anterior</button>`
@@ -8771,6 +8886,7 @@ function v2CerrarSheets(){
   document.getElementById('v2Velo').classList.remove('show');
   document.getElementById('v2ShId').classList.remove('up');
   document.getElementById('v2ShNoche').classList.remove('up');
+  document.getElementById('v2ShDest').classList.remove('up');
 }
 
 /* ── stelline (TIP Alberto 10-lug): SOLO dopo il primo pedido · 1 per mesa/notte.
@@ -8863,6 +8979,16 @@ async function v2AbrirNoche(){
 /* ── boot v2: chip, campanella, strip — chiamato dal boot principale ── */
 function v2Boot(){
   v2PintaChip();
+  // v3.3 fix ③ · il buscador in place si aggancia
+  const q = document.getElementById('v2Q');
+  if(q && !q.dataset.wired){
+    q.dataset.wired = '1';
+    q.addEventListener('input', () => {
+      V2_Q = q.value.trim();
+      document.getElementById('v2Qx').classList.toggle('show', !!V2_Q);
+      renderMenu();
+    });
+  }
   const bell = document.getElementById('v2Bell');
   if(bell) bell.style.display = (LLAMAR_MESERO_ENABLED && MESA_ID && !IS_VETRINA) ? '' : 'none';
   const noche = document.getElementById('v2Noche');
