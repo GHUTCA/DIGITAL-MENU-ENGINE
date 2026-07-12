@@ -3666,6 +3666,79 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2n-djbox-teaser{margin-top:14px;width:100%;border:1.5px dashed rgba(180,106,224,.5);
   border-radius:14px;padding:12px;font-size:13px;font-weight:800;background:transparent;
   color:rgba(242,253,255,.6);text-align:center}
+/* ═══ round BPM-2 · le PORTE (agenda/eventos) + DJ-BOX da marketing ═══ */
+.v2n-door{display:flex;gap:10px;align-items:center;width:100%;padding:12px;margin-bottom:8px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(180,106,224,.35);border-radius:14px;
+  color:#F2FDFF;text-align:left;font-size:14px;cursor:pointer}
+.v2n-door .ico{font-size:20px;flex:0 0 auto}
+.v2n-door b{display:block;font-size:13.5px;font-weight:900;letter-spacing:.04em}
+.v2n-door small{display:block;color:rgba(242,253,255,.5);font-size:11px}
+.v2n-door .arr{margin-left:auto;color:rgba(242,253,255,.4);font-size:15px;transition:transform .2s}
+.v2n-door.open .arr{transform:rotate(90deg)}
+.v2n-doorbody{display:none;margin:-2px 0 10px;padding:2px}
+.v2n-doorbody.open{display:block}
+.v2n-poster{width:100%;border-radius:16px;display:block;border:1px solid rgba(180,106,224,.35)}
+.v2n-poster-cap{font-size:12.5px;color:rgba(242,253,255,.65);margin-top:6px;text-align:center}
+/* DJ-BOX · il cartridge (logo disegnato al focus group) — GRANDE, da marketing */
+.v2-djbox-logo{display:inline-flex;align-items:center;gap:8px;font-weight:900;
+  letter-spacing:.06em;color:#fff;background:#0a0714;border:2px solid #ff2e88;
+  border-radius:12px;padding:7px 13px;font-size:17px;
+  box-shadow:0 0 14px rgba(255,46,136,.55),inset 0 0 10px rgba(255,46,136,.15)}
+.v2-djbox-logo .disc{width:15px;height:15px;border-radius:50%;flex:0 0 auto;
+  background:radial-gradient(circle,#ff2e88 28%,#241f2c 32%);
+  border:1.5px solid rgba(255,255,255,.5);animation:v2spin 2.4s linear infinite}
+.v2-djbox-logo small{font-size:9px;font-weight:800;color:#ff9cc6;letter-spacing:.14em}
+.v2n-djbox{width:100%;margin-top:14px;padding:14px;border-radius:18px;cursor:pointer;text-align:left;
+  background:radial-gradient(300px 160px at 90% -10%, rgba(139,92,246,.25), transparent 60%),#0a0714;
+  border:1.5px solid rgba(255,46,136,.5);box-shadow:0 0 22px rgba(255,46,136,.25);
+  display:flex;align-items:center;gap:12px;color:#f4f0ff}
+.v2n-djbox .t{flex:1;min-width:0}
+.v2n-djbox .t b{display:block;font-size:14.5px;font-weight:900}
+.v2n-djbox .t small{display:block;font-size:11.5px;color:#a89fc7;margin-top:2px}
+.v2n-djbox .luz{display:flex;flex-direction:column;align-items:center;gap:3px;flex:0 0 auto;
+  font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.v2n-djbox .luz .dot{width:12px;height:12px;border-radius:50%}
+.v2n-djbox .luz.on{color:#00ffc8}.v2n-djbox .luz.on .dot{background:#00ffc8;box-shadow:0 0 10px #00ffc8;animation:v2pulsa 1.2s ease-in-out infinite}
+.v2n-djbox .luz.off{color:#ff5470}.v2n-djbox .luz.off .dot{background:#ff5470;box-shadow:0 0 8px rgba(255,84,112,.7)}
+/* ═══ lo sheet PÍDELE AL DJ (palette cabina del mockup — perfetta, parola di Alberto) ═══ */
+#v2ShDj{background:radial-gradient(500px 300px at 90% -5%, rgba(139,92,246,.18), transparent 60%),#0a0714;
+  z-index:510;border:1.5px solid rgba(139,92,246,.5);border-bottom:0;color:#f4f0ff;
+  box-shadow:0 -8px 40px rgba(139,92,246,.3)}
+#v2ShDj .v2-handle{background:rgba(139,92,246,.5)}
+#v2ShDj .inf{padding:10px 16px 16px}
+.v2dj-head{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.v2dj-disc{width:42px;height:42px;border-radius:50%;flex:0 0 auto;position:relative;
+  background:repeating-radial-gradient(circle at 50% 50%, #0c0a14 0 2px, #171126 2px 4px);
+  border:1.5px solid rgba(255,255,255,.15);animation:v2spin 3s linear infinite}
+.v2dj-disc::after{content:'';position:absolute;inset:15px;border-radius:50%;
+  background:linear-gradient(135deg,#ff2e88,#8b5cf6)}
+.v2dj-head h2{font-size:20px;font-weight:900;margin:0}
+.v2dj-head .sub{font-size:11.5px;color:#6f668f}
+.v2dj-casa{background:#130e20;border:1.5px solid rgba(255,255,255,.09);border-radius:16px;padding:11px 13px;margin:10px 0}
+.v2dj-casa .lbl{font-size:9.5px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#ffcf6b;margin-bottom:7px}
+.v2dj-gchips{display:flex;flex-wrap:wrap;gap:6px}
+.v2dj-gchip{font-size:12px;font-weight:800;border-radius:10px;padding:5px 10px;
+  background:#1a1330;border:1.5px solid rgba(255,255,255,.09);color:#6f668f}
+.v2dj-gchip.on{border-color:#00ffc8;color:#00ffc8;background:rgba(0,255,200,.08)}
+.v2dj-buscar{position:relative;margin:10px 0 6px}
+.v2dj-buscar input{width:100%;background:#130e20;border:2px solid #8b5cf6;border-radius:16px;
+  color:#f4f0ff;padding:13px 14px 13px 44px;font-size:15px;outline:none}
+.v2dj-buscar input:focus{border-color:#00ffc8;box-shadow:0 0 20px rgba(0,255,200,.15)}
+.v2dj-buscar .lupa{position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:17px}
+.v2dj-estado{font-size:11.5px;color:#6f668f;min-height:15px;margin:0 4px 8px}
+.v2dj-res{display:flex;gap:11px;align-items:center;background:#130e20;border:1.5px solid rgba(255,255,255,.09);
+  border-radius:14px;padding:10px;margin-bottom:8px;cursor:pointer}
+.v2dj-res img{width:52px;height:52px;border-radius:10px;flex:0 0 auto;background:#1a1330}
+.v2dj-res .b{flex:1;min-width:0}
+.v2dj-res .tit{font-size:14.5px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#f4f0ff}
+.v2dj-res .art{font-size:12px;color:#a89fc7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v2dj-gen{display:inline-block;font-size:10px;font-weight:800;border-radius:7px;padding:2px 7px;margin-top:4px;
+  background:rgba(0,255,200,.1);border:1px solid rgba(0,255,200,.4);color:#00ffc8}
+.v2dj-gen.fuera{background:rgba(245,166,35,.1);border-color:rgba(255,207,107,.45);color:#ffcf6b}
+.v2dj-res .plata{font-size:14px;font-weight:900;color:#00ffc8;white-space:nowrap}
+.v2dj-prox{border:1.5px dashed rgba(139,92,246,.55);border-radius:14px;padding:12px;margin-top:6px;
+  font-size:12.5px;font-weight:800;color:#a89fc7;text-align:center;background:rgba(139,92,246,.07)}
+.v2dj-regla{font-size:10.5px;color:#6f668f;text-align:center;margin-top:8px;line-height:1.5}
 /* ── v3.3 fix ④ · destacado a PAGINA INTERA ── */
 #v2ShDest{max-height:94dvh;min-height:88dvh}
 #v2ShDest{pointer-events:none}
@@ -3695,7 +3768,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.4.0 · 12jul</span>
+<span id="ver" hidden>menu2 · v2.5.0 · 12jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4002,6 +4075,28 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 <div class="v2-sheet" id="v2ShNoche">
   <div class="v2-handle"></div><button class="v2-x" onclick="v2CerrarSheets()">✕</button>
   <div class="scroll"><div class="inf" id="v2ShNocheInf"></div></div>
+</div>
+
+<!-- round BPM-2 · PÍDELE AL DJ (sopra il mondo BPM · palette cabina del mockup)
+     Tutto vivo — buscador iTunes REALE, géneros della casa — tranne PEDIR: dorme. -->
+<div class="v2-sheet" id="v2ShDj">
+  <div class="v2-handle"></div><button class="v2-x" onclick="v2CerrarDjBox()">✕</button>
+  <div class="scroll"><div class="inf">
+    <div class="v2dj-head">
+      <div class="v2dj-disc"></div>
+      <div><h2>Pídele al DJ 🎧</h2><div class="sub" id="v2DjQuien">la cabina te escucha</div></div>
+    </div>
+    <div class="v2dj-casa">
+      <div class="lbl">🏛 La casa permite esta noche</div>
+      <div class="v2dj-gchips" id="v2DjGchips"></div>
+    </div>
+    <div class="v2dj-buscar"><span class="lupa">🔎</span>
+      <input id="v2DjQ" type="search" placeholder="Busca tu canción… (mín. 3 letras)" autocomplete="off"></div>
+    <div class="v2dj-estado" id="v2DjEstado">La búsqueda es en vivo — escribe y mira.</div>
+    <div id="v2DjRes"></div>
+    <div class="v2dj-prox" id="v2DjProx">⏳ PEDIR llega muy pronto — podrás mandarla a cabina desde aquí</div>
+    <div class="v2dj-regla">El DJ tiene la última palabra: si no la pone, <b>te devolvemos la plata solos</b>.</div>
+  </div></div>
 </div>
 
 <!-- ── TOAST ── -->
@@ -9123,6 +9218,8 @@ function v2CerrarSheets(){
   document.getElementById('v2ShId').classList.remove('up');
   document.getElementById('v2ShNoche').classList.remove('up');
   document.getElementById('v2ShDest').classList.remove('up');
+  const dj = document.getElementById('v2ShDj');
+  if(dj) dj.classList.remove('up');
   document.body.classList.remove('v2-sheet-open');
 }
 
@@ -9173,7 +9270,10 @@ async function v2AbrirNoche(){
   const inf = document.getElementById('v2ShNocheInf');
   if(!inf) return;
   document.getElementById('v2Velo').classList.add('show');
-  document.getElementById('v2ShNoche').classList.add('up');
+  // round BPM-2 oss.1 · il mondo è COMPLETO: copre tutto fino al header BKS
+  const shN = document.getElementById('v2ShNoche');
+  shN.style.maxHeight = shN.style.height = 'calc(100dvh - ' + (document.getElementById('header').offsetHeight + 2) + 'px)';
+  shN.classList.add('up');
   document.body.classList.add('v2-sheet-open');
   inf.innerHTML = '<div class="v2-nsec" style="padding:20px 0">cargando la noche…</div>';
   try { if(typeof loadCartelera === 'function') await loadCartelera(); } catch(e){}
@@ -9226,22 +9326,7 @@ async function v2AbrirNoche(){
       </div>`;
   }
 
-  // ═ 4 · QUIÉN TOCA — i DJ da headliner, con la faccia
-  const semana = (CARTELERA_DATA && CARTELERA_DATA.djs_semana) || DJS_AGENDA || [];
-  if(semana.length){
-    h += `<div class="v2-nsec">Quién toca</div><div class="v2n-djs">` +
-      semana.slice(0,8).map(s=>{
-        const ig = s.instagram ? String(s.instagram).split('/').filter(Boolean).pop() : '';
-        return `<div class="v2n-djcard">
-          ${s.foto_url ? `<img class="foto" src="${s.foto_url}" alt="" loading="lazy">` : '<div class="foto"></div>'}
-          <div class="i"><div class="n">${escapeHtml(s.nombre||s.dj_nombre||'')}</div>
-          <div class="d">${escapeHtml(s.dias_visible||'')}</div>
-          <div class="hh">${escapeHtml(s.hora_ini||'')}${s.hora_fin?' — '+escapeHtml(s.hora_fin):''}</div>
-          ${ig ? `<a class="ig" href="https://instagram.com/${ig}" target="_blank" rel="noopener">📸 @${escapeHtml(ig)}</a>` : ''}</div>
-        </div>`;}).join('') + `</div>`;
-  }
-
-  // ═ 5 · LA CASA + la porta DJ-BOX (viva col gate · teaser dormiente senza)
+  // ═ 4 · LA CASA
   if(BRAND.cartelera_footer){
     h += `<div class="v2-nsec">La casa</div>
       <div class="v2-evfila"><span class="ico">🖤</span><span><b>${escapeHtml(BRAND.cartelera_footer)}</b><small>la carta de la noche la escribe la cabina</small></span></div>`;
@@ -9249,12 +9334,126 @@ async function v2AbrirNoche(){
   if(BRAND.instagram_url){
     h += `<div class="v2-evfila"><span class="ico">📸</span><span><b>@${escapeHtml(BRAND.instagram_url.split('/').filter(Boolean).pop()||'')}</b><small>etiquétanos y tu noche entra en la historia</small></span></div>`;
   }
-  h += DJBOX_ON
-    ? `<button class="v2-via-si" style="margin-top:14px;background:linear-gradient(90deg,var(--v2-dj),#7b4bd6);color:#fff"
-        onclick="showToastMsg('🎧 DJ-BOX llega muy pronto')">🎧 DJ·BOX — pide tu canción</button>`
-    : `<button class="v2n-djbox-teaser" disabled>🎧 DJ·BOX — tu canción a cabina · ⏳ próximamente</button>`;
-  h += `<button class="v2-via-mesero" style="margin-top:10px;width:100%" onclick="v2CerrarSheets()">↓ volver a la carta</button>`;
+
+  // ═ 5 · LE PORTE (round BPM-2): 📅 DJ AGENDA · 🎉 DJ EVENTOS — accordion
+  const semana = (CARTELERA_DATA && CARTELERA_DATA.djs_semana) || DJS_AGENDA || [];
+  if(semana.length){
+    const cards = semana.slice(0,8).map(s=>{
+      const ig = s.instagram ? String(s.instagram).split('/').filter(Boolean).pop() : '';
+      return `<div class="v2n-djcard">
+        ${s.foto_url ? `<img class="foto" src="${s.foto_url}" alt="" loading="lazy">` : '<div class="foto"></div>'}
+        <div class="i"><div class="n">${escapeHtml(s.nombre||s.dj_nombre||'')}</div>
+        <div class="d">${escapeHtml(s.dias_visible||'')}</div>
+        <div class="hh">${escapeHtml(s.hora_ini||'')}${s.hora_fin?' — '+escapeHtml(s.hora_fin):''}</div>
+        ${ig ? `<a class="ig" href="https://instagram.com/${ig}" target="_blank" rel="noopener">📸 @${escapeHtml(ig)}</a>` : ''}</div>
+      </div>`;}).join('');
+    h += `<button class="v2n-door" onclick="v2ToggleDoor(this,'v2DoorAgenda')">
+        <span class="ico">📅</span><span><b>DJ AGENDA</b><small>quién toca esta semana</small></span><span class="arr">›</span></button>
+      <div class="v2n-doorbody" id="v2DoorAgenda"><div class="v2n-djs">${cards}</div></div>`;
+  }
+  const evx = CARTELERA_DATA && CARTELERA_DATA.evento;
+  if(evx && (evx.titulo_es || evx.titulo)){
+    h += `<button class="v2n-door" onclick="v2ToggleDoor(this,'v2DoorEventos')">
+        <span class="ico">🎉</span><span><b>DJ EVENTOS</b><small>${escapeHtml(evx.titulo_es||evx.titulo||'lo que se viene')}</small></span><span class="arr">›</span></button>
+      <div class="v2n-doorbody" id="v2DoorEventos">
+        ${evx.foto_url ? `<img class="v2n-poster" src="${evx.foto_url}" alt="" loading="lazy">` : ''}
+        <div class="v2n-poster-cap">${escapeHtml(evx.subtitulo_es||'')}${evx.horario_visible ? ' · 🕒 ' + escapeHtml(evx.horario_visible) : ''}</div>
+      </div>`;
+  }
+
+  // ═ 6 · DJ-BOX — il cartridge del focus group, da MARKETING: si apre SEMPRE
+  // (si capisce cosa farà), la luce dice lo stato, PEDIR dorme finché djbox_on
+  h += `<button class="v2n-djbox" onclick="v2AbrirDjBox()">
+      <span class="v2-djbox-logo"><span class="disc"></span>DJ·BOX<small>BKS</small></span>
+      <span class="t"><b>Tu canción, a la cabina</b><small>búscala, págala y suena — el DJ tiene la última palabra</small></span>
+      <span class="luz ${DJBOX_ON?'on':'off'}"><span class="dot"></span>${DJBOX_ON?'abierto':'pronto'}</span>
+    </button>`;
+  h += `<button class="v2-via-mesero" style="margin-top:12px;width:100%" onclick="v2CerrarSheets()">↓ volver a la carta</button>`;
   inf.innerHTML = h || '<div class="v2-nsec">La noche se está armando…</div>';
+}
+
+/* le porte del mondo BPM: accordion */
+function v2ToggleDoor(btn, id){
+  const body = document.getElementById(id);
+  if(!body) return;
+  const open = body.classList.toggle('open');
+  btn.classList.toggle('open', open);
+}
+
+/* ═══ round BPM-2 · PÍDELE AL DJ — tutto vivo tranne PEDIR (⏳) ═══
+   Le familias vengono dal mockup validato; nel vero le scriverà il
+   Comandante in PARAMETROS (dj_generos_permitidos + dj_modo + dj_precio). */
+const V2DJ_FAMILIAS = [
+  { id:'electro', label:'⚡ House / Electro', on:true,
+    match:['house','dance','electrónica','electronic','techno','trance','deep house'] },
+  { id:'urbano', label:'🔥 Urbano / Reggaetón', on:true,
+    match:['urbano latino','latin urban','hip-hop','rap','reggaetón','reggaeton','trap latino'] },
+  { id:'latino', label:'🕺 Latino / Cumbia', on:false,
+    match:['música mexicana','pop latino','latino','latin','salsa y tropical','cumbia','banda','norteño'] },
+  { id:'rockpop', label:'🎸 Rock / Pop', on:false,
+    match:['rock','pop','alternativa','alternative','metal','indie','singer/songwriter'] },
+];
+const V2DJ_PRECIO = 2000;
+function v2DjGeneroPermitido(gen){
+  const g = (gen || '').toLowerCase();
+  return V2DJ_FAMILIAS.some(f => f.on && f.match.some(m => g.indexOf(m) >= 0 || m.indexOf(g) >= 0));
+}
+function v2AbrirDjBox(){
+  const dj = (typeof resolveDjActual === 'function') ? resolveDjActual() : null;
+  const semana = (CARTELERA_DATA && CARTELERA_DATA.djs_semana) || [];
+  const quien = (dj && dj.nombre) || (semana[0] && semana[0].nombre) || '';
+  document.getElementById('v2DjQuien').textContent = quien ? 'Esta noche: ' + quien : 'la cabina te escucha';
+  document.getElementById('v2DjGchips').innerHTML = V2DJ_FAMILIAS.map(f =>
+    `<span class="v2dj-gchip${f.on?' on':''}">${f.label}</span>`).join('');
+  const sh = document.getElementById('v2ShDj');
+  sh.style.maxHeight = sh.style.height = 'calc(100dvh - ' + (document.getElementById('header').offsetHeight + 2) + 'px)';
+  sh.classList.add('up');
+  v2DjWireBuscador();
+  setTimeout(()=>{ try { document.getElementById('v2DjQ').focus(); } catch(e){} }, 350);
+}
+function v2CerrarDjBox(){ document.getElementById('v2ShDj').classList.remove('up'); }
+let V2DJ_ULTIMI = [], v2DjT = null, v2DjN = 0;
+function v2DjWireBuscador(){
+  const q = document.getElementById('v2DjQ');
+  if(!q || q.dataset.wired) return;
+  q.dataset.wired = '1';
+  q.addEventListener('input', () => {
+    clearTimeout(v2DjT);
+    const term = q.value.trim();
+    if(term.length < 3){ document.getElementById('v2DjRes').innerHTML = '';
+      document.getElementById('v2DjEstado').textContent = 'Escribe al menos 3 letras…'; return; }
+    document.getElementById('v2DjEstado').textContent = 'Buscando «' + term + '»…';
+    v2DjT = setTimeout(() => v2DjBuscar(term), 450);
+  });
+}
+function v2DjBuscar(term){
+  // iTunes Search via JSONP — gratuita, senza chiave, zero CORS (mockup validato)
+  const cb = 'v2DjCb' + (++v2DjN);
+  window[cb] = (data) => {
+    delete window[cb];
+    V2DJ_ULTIMI = (data.results || []).map(r => ({
+      tit: r.trackName, art: r.artistName,
+      gen: r.primaryGenreName || '—', img: (r.artworkUrl100 || '').replace('100x100','120x120') }));
+    document.getElementById('v2DjEstado').textContent = V2DJ_ULTIMI.length
+      ? V2DJ_ULTIMI.length + ' resultados — el género lo dice iTunes'
+      : 'Nada con ese nombre — prueba artista + canción.';
+    v2DjPinta();
+  };
+  const s = document.createElement('script');
+  s.src = 'https://itunes.apple.com/search?term=' + encodeURIComponent(term) +
+    '&entity=song&limit=8&country=CL&callback=' + cb;
+  s.onerror = () => { document.getElementById('v2DjEstado').textContent = '⚠ Sin conexión — reintenta.'; };
+  document.body.appendChild(s);
+}
+function v2DjPinta(){
+  document.getElementById('v2DjRes').innerHTML = V2DJ_ULTIMI.map(r => {
+    const ok = v2DjGeneroPermitido(r.gen);
+    return `<div class="v2dj-res" onclick="showToastMsg('⏳ Muy pronto — desde aquí «${(r.tit||'').replace(/['"«»]/g,'')}» viajará a la cabina')">
+      <img src="${r.img}" alt="" loading="lazy">
+      <div class="b"><div class="tit">${escapeHtml(r.tit)}</div><div class="art">${escapeHtml(r.art)}</div>
+        <span class="v2dj-gen${ok?'':' fuera'}">${escapeHtml(r.gen)}${ok?'':' · fuera de la carta'}</span></div>
+      <div class="plata">$${V2DJ_PRECIO.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')}</div></div>`;
+  }).join('');
 }
 
 /* la notte gira oltre mezzanotte: minuti «di notte» (prima delle 12 = +24h) */
