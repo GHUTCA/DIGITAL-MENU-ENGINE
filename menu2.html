@@ -3323,17 +3323,35 @@ body:not(.theme-dark) .cart-ig-follow{
   text-overflow:ellipsis;cursor:pointer}
 .v2-bell{width:34px;height:34px;border-radius:50%;border:1px solid var(--brand-border);
   background:transparent;color:var(--brand-text);font-size:16px;cursor:pointer}
-/* ── mesero a UNA riga + stelline post-pedido ── */
-#v2MeseroLine{display:none;align-items:center;gap:8px;padding:5px 16px 7px;
-  font-size:12.5px;color:var(--brand-text-muted);background:var(--header-fixed)}
-#v2MeseroLine.show{display:flex}
-#v2MeseroLine .mfoto{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:13px;background:linear-gradient(135deg,#e0a94b,#b46ae0);flex:0 0 auto}
-#v2MeseroLine b{color:var(--header-neon)}
-#v2Stars{margin-left:auto;display:none;gap:3px}
+/* ── oss.2+3 (12-lug) · mesero = PILL compatta nel row del buscador:
+   testo pieno (niente più grigio perso nel fondo), e si guadagna una riga ── */
+#v2MeseroPill{display:none;align-items:center;gap:6px;flex:0 0 auto;max-width:45vw;
+  background:var(--brand-surface);border:1.5px solid var(--brand-border);border-radius:14px;
+  padding:0 11px;font-size:12.5px;font-weight:700;color:var(--brand-text);
+  white-space:nowrap;overflow:hidden}
+#v2MeseroPill.show{display:flex}
+#v2MeseroPill .mfoto{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:12px;background:linear-gradient(135deg,#e0a94b,#b46ae0);flex:0 0 auto}
+#v2MeseroPill small{font-weight:600;color:var(--brand-text-muted);margin-right:2px}
+#v2Stars{display:none;gap:2px}
 #v2Stars.show{display:flex}
-#v2Stars span{font-size:17px;color:rgba(255,255,255,.25);cursor:pointer}
+#v2Stars span{font-size:16px;color:var(--brand-border);cursor:pointer;line-height:1}
 #v2Stars span.on{color:var(--v2-oro)}
+/* oss.1 · il chip identità invita: entra con un rimbalzo e porta la ⭐ */
+@keyframes v2chipIn{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+.v2-chip-id{animation:v2chipIn .5s .8s backwards}
+/* oss.4 · le parole del LEMA (SAPORE·COCKTAILS·BPM) si distinguono da tutto il resto */
+.v2-lema{letter-spacing:.13em;font-weight:900;color:var(--v2-neon-soft);
+  text-shadow:0 0 8px rgba(63,224,240,.55)}
+body.theme-dark[data-fascia-menu="dia"] .v2-lema{color:var(--brand-accent);text-shadow:none}
+.v2-nchip.active .v2-lema{color:#033E4C;text-shadow:none}
+body.theme-dark[data-fascia-menu="dia"] .v2-nchip.active .v2-lema{color:#fff}
+/* oss.5 · il blocco header+buscador+chip resta FISSO; il menù scorre sotto */
+#groupBar{position:sticky;z-index:28;background:var(--brand-bg)}
+/* oss.7 · con uno sheet aperto le strip di fondo si fanno da parte */
+body.v2-sheet-open #v2Barra,body.v2-sheet-open #v2Noche{display:none!important}
+.v2c-sub{font-size:10.5px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--brand-text-muted);padding:6px 0 4px}
 
 /* ── v3.3 fix ③ · buscador VERO che filtra la lista in place ── */
 #fajaBar,#catSticky,#headerSearchBtn{display:none!important}  /* mockup: via nastro semana, cat-tabs, lente */
@@ -3565,7 +3583,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.0.1 · 12jul</span>
+<span id="ver" hidden>menu2 · v2.1.0 · 12jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -3696,11 +3714,6 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
     </div>
   </div>
   <div id="memberBanner"></div>
-  <!-- v2.0 · mesero a UNA riga + stelline SOLO dopo il primo pedido (mockup ②) -->
-  <div id="v2MeseroLine">
-    <span class="mfoto">🧑</span><span id="v2MeseroTxt">Te atiende <b>—</b></span>
-    <span id="v2Stars"></span>
-  </div>
 </div>
 
 <!-- ── RHYTHM / FAJA ── -->
@@ -3711,11 +3724,18 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
   <div class="rhythm-waveform" id="rhythmWaveform"></div>
 </div>
 
-<!-- v3.3 fix ③ · buscador VERO: filtra la lista in place (cerca→＋→barra in 2 gesti) -->
-<div id="v2Buscar"><div class="wrap">
-  <span class="lupa">🔎</span>
-  <input id="v2Q" type="search" placeholder="¿Qué quieres? Busca por nombre…" autocomplete="off">
-  <button class="x" id="v2Qx" onclick="v2LimpiaQ()">✕</button>
+<!-- v3.3 fix ③ + oss.3 (12-lug) · buscador che filtra in place + PILL del mesero
+     nella stessa riga (una riga guadagnata; le stelline nascono qui dopo il 1º pedido) -->
+<div id="v2Buscar"><div style="display:flex;gap:8px;align-items:stretch">
+  <div class="wrap" style="flex:1">
+    <span class="lupa">🔎</span>
+    <input id="v2Q" type="search" placeholder="Busca por nombre…" autocomplete="off">
+    <button class="x" id="v2Qx" onclick="v2LimpiaQ()">✕</button>
+  </div>
+  <div id="v2MeseroPill">
+    <span class="mfoto">🧑</span><span id="v2MeseroTxt"><small>te atiende</small> <b>—</b></span>
+    <span id="v2Stars"></span>
+  </div>
 </div></div>
 
 <!-- ── MACRO-GROUPS ── -->
@@ -3811,6 +3831,8 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 <div id="cartOverlay" onclick="closeCart()"></div>
 <div id="cartSheet" role="dialog" aria-modal="true" aria-label="Mi pedido">
   <div class="confirm-handle"></div>
+  <!-- oss.7 (12-lug) · la ✕ per chiudere il carrello -->
+  <button class="v2-x" onclick="closeCart()" style="top:14px">✕</button>
   <div id="cartSheetContent"><!-- popolato da renderCart() --></div>
 </div>
 
@@ -3838,7 +3860,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 <div id="v2Barra"><button id="v2BarraBtn" onclick="openCart()"><span class="n" id="v2BN">0</span>
   <span id="v2BTxt">Ver tu pedido</span> <span class="tot" id="v2BTot"></span> →</button></div>
 <div id="v2Noche"><button onclick="v2AbrirNoche()"><span class="v2-vinilo"></span>
-  <span id="v2NocheTxt">⚡ BPM — quién toca · eventos</span>
+  <span id="v2NocheTxt">⚡ <span class="v2-lema" style="color:#fff;text-shadow:0 0 8px rgba(180,106,224,.8)">BPM</span> — quién toca · eventos</span>
   <span class="v2-djtag" id="v2DjTag" style="display:none"><span class="v2-ondot"></span>DJ-BOX ON</span></button></div>
 
 <div class="v2-velo" id="v2Velo" onclick="v2CerrarSheets()"></div>
@@ -4970,13 +4992,25 @@ function updateStickyTops(){
   const cats    = document.getElementById('catSticky');
   if(!header||!faja||!cats) return;
   const h1 = header.offsetHeight;
-  const h2 = faja.offsetHeight;
+  const h2 = faja.offsetHeight;   // v2: fajaBar nascosta → 0
   const h3 = (groups && groups.classList.contains('show')) ? groups.offsetHeight : 0;
   const h4 = (xs && xs.classList.contains('visible')) ? xs.offsetHeight : 0;
+  // oss.5 (12-lug) · il blocco header→buscador→chip lema resta FISSO in alto:
+  // la catena sticky ora è header(0) → v2Buscar(h1) → groupBar(h1+buscar).
+  const buscar = document.getElementById('v2Buscar');
+  const hB = buscar ? buscar.offsetHeight : 0;
+  if(buscar) buscar.style.top = h1 + 'px';
   faja.style.top = h1 + 'px';
-  if(groups) groups.style.top = (h1 + h2) + 'px';
-  if(xs) xs.style.top = (h1 + h2) + 'px';      // strip sotto fajaBar (groupBar non è sticky · scrolla via)
-  cats.style.top = (h1 + h2 + h4) + 'px';      // cat-sticky scende quando strip visible
+  if(groups) groups.style.top = (h1 + hB) + 'px';
+  if(xs) xs.style.top = (h1 + hB + h3) + 'px';
+  cats.style.top = (h1 + h2 + h4) + 'px';
+}
+/* oss.5+6 · l'altezza del blocco fisso — serve agli sheet "a metà schermo"
+   (si aprono FINO alla riga sotto i chip, e sopra si continua a navigare) */
+function v2TopBlockH(){
+  const h = (id)=>{ const el = document.getElementById(id); return el ? el.offsetHeight : 0; };
+  const groups = document.getElementById('groupBar');
+  return h('header') + h('v2Buscar') + ((groups && groups.classList.contains('show')) ? groups.offsetHeight : 0);
 }
 
 /* ════════════════════════════════════════════════════
@@ -5391,13 +5425,15 @@ function renderGroups(){
   // il motto BKS "SAPORE · COCKTAILS · BPM" È la divisione del menù.
   // Le parole del lema NON si traducono mai (sono marchio); il sottotitolo sì
   // (getGroupName → i18n). Chiavi vere del foglio: Comida / Barra / Dolci.
+  // oss.4 (12-lug) · SAPORE e COCKTAILS sono parole del LEMA (si vestono
+  // diverse, come BPM nella strip); POSTRES·café è un chip normale.
   const v2Lema = (gk)=>{
     const k = gk.toLowerCase();
-    if(k.includes('comida')) return { b:'SAPORE', s:(getGroupName(gk)||'comida').toLowerCase() };
-    if(k.includes('barra'))  return { b:'COCKTAILS', s:'' };
+    if(k.includes('comida')) return { b:'SAPORE', s:'comida', lema:true };
+    if(k.includes('barra'))  return { b:'COCKTAILS', s:'', lema:true };
     if(k.includes('dolci')||k.includes('postre')||k.includes('dulce'))
-      return { b:'SAPORE', s:(getGroupName(gk)||'postre').toLowerCase() };
-    return { b:getGroupName(gk)||gk, s:'' };
+      return { b:'POSTRES', s:'café', lema:false };
+    return { b:getGroupName(gk)||gk, s:'', lema:false };
   };
   // v3.3 fix ③ · i chip del lema SALTANO alla sezione (tutto il menù resta in
   // una lista sola — il mockup validato); Promos/Almuerzo restano filtri modali.
@@ -5411,27 +5447,16 @@ function renderGroups(){
     const L = v2Lema(gk);
     return `
       <button class="v2-nchip${isActive?' active':''}${isDisabled?' disabled':''}" ${onclick}${isDisabled?' aria-disabled="true"':''}>
-        <b>${L.b}</b>${L.s?`<small>${L.s}</small>`:''}
+        <b class="${L.lema?'v2-lema':''}">${L.b}</b>${L.s?`<small>${L.s}</small>`:''}
       </button>`;
   }).join('');
-  if(promosCount > 0){
-    const isActive = CURRENT_GROUP === '__PROMOS__';
-    html += `
-      <button class="v2-nchip${isActive?' active':''}" onclick="setGroup('__PROMOS__')">
-        <b>🎁 ${getGroupName('promos')}</b><small>${promoProductsCount}</small>
-      </button>`;
-  }
+  // oss.6 (12-lug) · niente chip PROMOS/ALMUERZO: vivono dentro ✨ Destacados
+  // (la nav resta pura: i 3 mondi del lema). I gruppi virtuali __PROMOS__/
+  // __ALMUERZO__ restano nel motore, semplicemente nessun chip li attiva.
   // v1.23 · S13fix · chip "Menú del Día" · prodotti con regola-prezzo almuerzo attiva ADESSO
   const almuerzoProdsCount = ALL_PRODUCTS.filter(p =>
     PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && !p.agotado && productInFaja(p)
   ).length;
-  if(almuerzoProdsCount > 0){
-    const isActive = CURRENT_GROUP === '__ALMUERZO__';
-    html += `
-      <button class="v2-nchip${isActive?' active':''}" onclick="setGroup('__ALMUERZO__')">
-        <b>🍽️ ${getLang('group_almuerzo') || 'Menú del Día'}</b><small>${almuerzoProdsCount}</small>
-      </button>`;
-  }
   grid.innerHTML = html;
   wrap.classList.add('show');
 }
@@ -6826,55 +6851,105 @@ function _catColor(catId){
    ② de la casa (Es_Sugerencia_Destacada)
    ③ evento attivo (CARTELERA_EVENTOS via CARTELERA_DATA, tap → cartelera)
    Max 6 card. Prodotto tap → scheda. ═══ */
+function v2AlmuerzoProds(){
+  return ALL_PRODUCTS.filter(p =>
+    PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && !p.agotado && productInFaja(p));
+}
 function v2DestacadosHTML(){
+  // oss.6 (12-lug) · QUI dentro vive tutto ciò che spinge: push del Comandante,
+  // Menú del Día, PROMOS (niente più chip), de la casa, evento di cartelera.
   const dst = [];
   ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && esPush(p))
     .forEach(p=>dst.push({ tipo:'push', p }));
-  ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && p.es_sugerencia_destacada && !esPush(p))
+  const alm = v2AlmuerzoProds();
+  if(alm.length) dst.push({ tipo:'almuerzo', alm });
+  const promoSeen = new Set();
+  ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && PROD_TO_PROMO[p.id] && !esPush(p))
+    .forEach(p=>{ if(!promoSeen.has(p.id)){ promoSeen.add(p.id); dst.push({ tipo:'promo', p }); } });
+  ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && p.es_sugerencia_destacada && !esPush(p) && !promoSeen.has(p.id))
     .forEach(p=>dst.push({ tipo:'casa', p }));
-  const ev = CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos;
-  if(ev && (ev.titulo || ev.Titulo)) dst.push({ tipo:'evento', e: ev });
+  const ev = (CARTELERA_DATA && CARTELERA_DATA.evento) || (CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos) || null;
+  if(ev && (ev.titulo_es || ev.titulo || ev.Titulo)) dst.push({ tipo:'evento', e: ev });
   if(!dst.length) return '';
-  const cards = dst.slice(0,6).map(d=>{
+  const cards = dst.slice(0,8).map(d=>{
     if(d.tipo === 'evento'){
       const e = d.e;
-      const tit = e.titulo || e.Titulo || '';
-      const eyebrow = e.eyebrow || e.Eyebrow || 'EVENTO';
+      const tit = e.titulo_es || e.titulo || e.Titulo || '';
+      const eyebrow = e.eyebrow_es || e.eyebrow || e.Eyebrow || 'EVENTO';
+      const ph = e.foto_url ? `<img src="${e.foto_url}" alt="" loading="lazy">` : '🪩';
       return `<button class="v2-dst" onclick="v2AbrirDest('ev')">
-        <span class="flag v2-flag-evento">🎧 EVENTO</span>
-        <div class="ph">🪩</div>
+        <span class="flag v2-flag-evento">🎉 EVENTO</span>
+        <div class="ph">${ph}</div>
         <div class="inf"><div class="eyebrow">${eyebrow}</div><div class="nom">${tit}</div></div></button>`;
+    }
+    if(d.tipo === 'almuerzo'){
+      const regla = PRECIOS_REGLA_MAP[d.alm[0].id];
+      const precio = regla ? formatPrice(regla.precio) : '';
+      const ph = d.alm[0].imagen ? `<img src="${d.alm[0].imagen}" alt="" loading="lazy">` : '🍱';
+      return `<button class="v2-dst" onclick="v2AbrirDest('almuerzo')">
+        <span class="flag" style="background:#3DAA68;color:#fff">🍽️ MENÚ</span>
+        <div class="ph">${ph}</div>
+        <div class="inf"><div class="eyebrow">de lunes a viernes</div>
+        <div class="nom">${getLang('group_almuerzo')||'Menú del Día'}</div>
+        <div class="precio">${precio}</div></div></button>`;
     }
     const p = d.p;
     const promo = PROD_TO_PROMO[p.id];
     const is2x1 = promo && (promo.tipo === '2x1' || promo.tipo === 'multiplo');
     const flag = d.tipo === 'push'
       ? `<span class="flag v2-flag-push">🔥 EL COMANDANTE</span>`
-      : (is2x1 ? `<span class="flag v2-flag-2x1">🎁 2x1</span>` : '');
+      : (is2x1 || d.tipo === 'promo' ? `<span class="flag v2-flag-2x1">🎁 ${is2x1?'2x1':'PROMO'}</span>` : '');
     const prices = getDisplayPrice(p);
     const ph = p.imagen ? `<img src="${p.imagen}" alt="" loading="lazy">`
       : (ALL_CATEGORIES.find(c=>c.id===p.categoria)?.emoji || '🍽️');
+    const eyebrow = d.tipo==='push' ? (p.push_frase||'push del día')
+      : d.tipo==='promo' ? (promo && promo.nombre ? promo.nombre : 'promo de hoy') : 'de la casa';
     return `<button class="v2-dst" onclick="v2AbrirDest('p:${p.id}','${d.tipo}')">${flag}
       <div class="ph">${ph}</div>
-      <div class="inf"><div class="eyebrow">${d.tipo==='push' ? (p.push_frase||'push del día') : 'de la casa'}</div>
+      <div class="inf"><div class="eyebrow">${eyebrow}</div>
       <div class="nom">${toTitleCase(p.nombre)}</div><div class="precio">${prices.main}</div></div></button>`;
   }).join('');
   return `<div class="v2-sec-t">✨ Destacados</div><div class="v2-carrusel">${cards}</div>`;
 }
 
-/* v3.3 fix ④ · il destacado si apre a PAGINA INTERA (✕ per uscire) */
+/* v3.3 fix ④ + oss.6 (12-lug) · il destacado si apre A METÀ SCHERMO: sale fino
+   alla riga sotto i chip del lema — il blocco fisso resta vivo (puoi cambiare
+   mondo, cercare, aprire il tuo chip). NIENTE velo: sopra si naviga. */
 function v2AbrirDest(key, tipo){
   const ph = document.getElementById('v2DPh'), eb = document.getElementById('v2DEyebrow'),
         nom = document.getElementById('v2DNom'), des = document.getElementById('v2DDes'),
         meta = document.getElementById('v2DMeta'), orden = document.getElementById('v2DOrden');
+  ph.style.height = ''; ph.querySelectorAll && (ph.innerHTML = '');
   if(key === 'ev'){
-    const e = (CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos) || {};
-    ph.innerHTML = '🪩';
-    eb.textContent = e.eyebrow || e.Eyebrow || 'EVENTO';
-    nom.textContent = e.titulo || e.Titulo || '';
-    des.textContent = e.detalle || e.Detalle || '';
-    meta.textContent = e.fechas || e.Fechas || '';
-    orden.innerHTML = `<button class="cta" onclick="v2CerrarSheets();v2AbrirNoche()">🌙 Ver el mundo BPM completo</button>`;
+    const e = (CARTELERA_DATA && CARTELERA_DATA.evento) || (CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos) || {};
+    // poster verticale (modo_render auto_contained) → contain, mai croppato
+    ph.innerHTML = e.foto_url
+      ? `<img src="${e.foto_url}" alt="" style="object-fit:contain;background:#0a0a14">` : '🪩';
+    eb.textContent = e.eyebrow_es || e.eyebrow || 'EVENTO';
+    nom.textContent = e.titulo_es || e.titulo || '';
+    des.textContent = e.subtitulo_es || e.detalle || '';
+    meta.textContent = e.horario_visible ? '🕒 ' + e.horario_visible : '';
+    orden.innerHTML = '';
+  } else if(key === 'almuerzo'){
+    const alm = v2AlmuerzoProds();
+    if(!alm.length) return;
+    const regla = PRECIOS_REGLA_MAP[alm[0].id];
+    ph.style.height = '0';
+    eb.textContent = '🍽️ de lunes a viernes';
+    nom.textContent = getLang('group_almuerzo') || 'Menú del Día';
+    des.textContent = (ALMUERZO_INCLUYE_TXT || '') + (regla ? ' · todo a ' + formatPriceWithSymbol(regla.precio) : '');
+    meta.innerHTML = '';
+    // la lista dei piatti del menú, ognuno col suo ＋ (si ordina da qui)
+    orden.innerHTML = '';
+    meta.innerHTML = `<div style="margin:6px -18px 0">` + alm.map(p => `
+      <div class="v2-fila" data-id="${p.id}" style="position:relative">
+        <div class="ph" onclick="v2CerrarSheets();openDetail('${p.id}')">${p.imagen?`<img src="${p.imagen}" alt="" loading="lazy">`:(ALL_CATEGORIES.find(c=>c.id===p.categoria)?.emoji||'🍱')}</div>
+        <div class="b" onclick="v2CerrarSheets();openDetail('${p.id}')">
+          <div class="nom">${toTitleCase(p.nombre)}</div>
+          <div class="pr"><span class="v2-precio">${formatPrice((PRECIOS_REGLA_MAP[p.id]||{}).precio||p.precio)}</span></div>
+        </div>
+        <span id="v2ctrlx-${p.id}">${v2CtrlHTML(p)}</span>
+      </div>`).join('') + `</div>`;
   } else {
     const p = ALL_PRODUCTS.find(x=>x.id===key.slice(2));
     if(!p) return;
@@ -6884,7 +6959,8 @@ function v2AbrirDest(key, tipo){
     const prices = getDisplayPrice(p);
     ph.innerHTML = p.imagen ? `<img src="${p.imagen}" alt="">`
       : (ALL_CATEGORIES.find(c=>c.id===p.categoria)?.emoji || '🍽️');
-    eb.textContent = tipo === 'push' ? '🔥 el Comandante lo recomienda' : '✨ de la casa';
+    eb.textContent = tipo === 'push' ? '🔥 el Comandante lo recomienda'
+      : tipo === 'promo' ? '🎁 ' + ((promo && promo.nombre) || 'promo de hoy') : '✨ de la casa';
     nom.textContent = toTitleCase(p.nombre);
     des.textContent = (tipo === 'push' && p.push_frase ? p.push_frase + ' — ' : '') +
       getProductDesc(p) + (is2x1 ? ' · 🎁 2x1: pagas 1, llevas 2' : '');
@@ -6895,12 +6971,16 @@ function v2AbrirDest(key, tipo){
         : `<button class="cta" onclick="v2Mas('${p.id}',1);v2CerrarSheets();showToastMsg('✓ ${toTitleCase(p.nombre).replace(/'/g,"\\'")} en tu pedido')">＋ Agregar · ${prices.main}</button>`)
       : '';
   }
-  document.getElementById('v2Velo').classList.add('show');
-  document.getElementById('v2ShDest').classList.add('up');
+  const sh = document.getElementById('v2ShDest');
+  sh.style.maxHeight = sh.style.height = `calc(100dvh - ${v2TopBlockH() + 6}px)`;
+  sh.style.minHeight = '0';
+  sh.classList.add('up');
+  document.body.classList.add('v2-sheet-open');   // oss.7 · le strip si fanno da parte
 }
 
 /* v3.3 fix ③ · il salto ai mondi + buscador in place */
 function v2Salta(gk){
+  v2CerrarSheets();   // oss.6 · il blocco fisso resta vivo con lo sheet aperto: il tap chiude e salta
   if(V2_Q) v2LimpiaQ();
   if(CURRENT_GROUP !== null){ CURRENT_GROUP = null; renderMenu(); }
   V2_WORLD = gk;
@@ -7138,8 +7218,11 @@ function v2Mas(id, delta){
 }
 function v2RefreshCtrl(id){
   const p = ALL_PRODUCTS.find(x=>x.id===id);
+  if(!p) return;
   const el = document.getElementById('v2ctrl-' + id);
-  if(p && el) el.innerHTML = v2CtrlHTML(p);
+  if(el) el.innerHTML = v2CtrlHTML(p);
+  const elx = document.getElementById('v2ctrlx-' + id);   // il gemello nello sheet Menú del Día
+  if(elx) elx.innerHTML = v2CtrlHTML(p);
 }
 
 function openDetail(id){
@@ -7214,6 +7297,7 @@ function openDetail(id){
   document.getElementById('detailOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('detailSheet').classList.add('open'), 10);
   document.body.style.overflow = 'hidden';
+  document.body.classList.add('v2-sheet-open');   // oss.7 · le strip non coprono la barra d'ordine
   // v2.0 · barra d'ordine fissa (gesto ②): stepper + CTA, bloccato finché
   // manca una scelta obbligatoria
   V2_DET = { p: p, qty: 1, preguntas: v2Preguntas(p), resp: {} };   // "Agregar N" è additivo: si parte da 1
@@ -7282,6 +7366,7 @@ function closeDetail(){
   document.getElementById('v2Orden').classList.remove('show');
   V2_DET = null;
   document.body.style.overflow = '';
+  document.body.classList.remove('v2-sheet-open');
 }
 
 let touchStartY = 0;
@@ -7758,6 +7843,7 @@ function openCart(){
   document.getElementById('cartOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('cartSheet').classList.add('open'), 10);
   document.body.style.overflow = 'hidden';
+  document.body.classList.add('v2-sheet-open');   // oss.7
   // v1.36 · rinfresca gli stati dello storico serata (one-shot, poi ri-renderizza)
   if(PEDIDO_DIGITAL && _nocheValidos().length > 1){
     _nocheRefrescarEstados().then(()=>{
@@ -7770,6 +7856,7 @@ function closeCart(){
   document.getElementById('cartSheet').classList.remove('open');
   document.getElementById('cartOverlay').classList.remove('open');
   document.body.style.overflow = '';
+  document.body.classList.remove('v2-sheet-open');
 }
 
 function renderCart(){
@@ -7814,7 +7901,7 @@ function renderCart(){
       <span>${formatPriceWithSymbol(total)}</span>
     </div>
     ${(ULTIMA_RONDA && ULTIMA_RONDA.length)
-      ? `<button class="v2-ronda" onclick="v2OtraRonda()">🔁 ¿Otra ronda? — repetir lo anterior</button>`
+      ? `<button class="v2-ronda" onclick="v2OtraRonda()">🔁 ¿Otra ronda? — ${v2RondaResumen()}</button>`
       : ''}
     ${(PEDIDO_DIGITAL && _nocheValidos().length > 0)
       ? `<div class="pedido-hint" style="margin-top:6px">🧾 ${getLang('pedido_ya_noche') || 'Ya pedido esta noche'}: ${_nocheValidos().length} · ${formatPriceWithSymbol(_nocheValidos().reduce((s,p)=>s+(p.total||0),0))}</div>`
@@ -7864,6 +7951,13 @@ function v2Confirmar(){
 function v2EnviarDirecto(){
   if(CART.items.length === 0) return;
   enviarPedidoDigital({ directo: true });
+}
+/* oss.7 · la ronda DICE cosa ripete ("lo anterior" non si capiva) */
+function v2RondaResumen(){
+  if(!ULTIMA_RONDA || !ULTIMA_RONDA.length) return '';
+  let s = ULTIMA_RONDA.map(i => (i.qty||1) + '× ' + toTitleCase(i.nombre)).join(' · ');
+  if(s.length > 52) s = s.slice(0, 50) + '…';
+  return s;
 }
 function v2OtraRonda(){
   if(!ULTIMA_RONDA || !ULTIMA_RONDA.length) return;
@@ -8083,6 +8177,7 @@ function renderPedidoEstado(){
       <div class="cart-recap-check${v.anim ? ' pedido-pulse' : ''}">${v.icon}</div>
       <div class="cart-recap-title">${v.t}</div>
       <div class="cart-recap-sub">${v.s}</div>
+      <div class="v2c-sub" style="text-align:left">🧾 Lo que pediste recién</div>
       <div class="cart-recap-list">
         ${(PA.items||[]).map(i => `<div class="cart-recap-item"><span>${(i.qty||1)}× ${toTitleCase(i.nombre)}</span><span>${formatPrice(i.precio*(i.qty||1))}</span></div>`).join('')}
         <div class="cart-recap-item" style="border-top:1px solid var(--brand-border);margin-top:6px;padding-top:8px;font-weight:700"><span>${getLang('mesa')||'Mesa'} ${MESA_ID} · ${PA.n} ${getLang('pedido_items')||'productos'}</span><span>${formatPriceWithSymbol(PA.total)}</span></div>
@@ -8694,10 +8789,10 @@ async function cargarMeseroDeMesa(){
     MESERO_MESA = r.mesero;
     const mb = document.getElementById('mesaNum');
     if(mb) mb.textContent = MESA_ID + ' · ' + MESERO_MESA;
-    // v2.0 · mesero a UNA riga sotto l'header (mockup ②)
-    const ml = document.getElementById('v2MeseroLine');
+    // oss.2+3 (12-lug) · il mesero vive nella PILL accanto al buscador
+    const ml = document.getElementById('v2MeseroPill');
     if(ml){
-      document.getElementById('v2MeseroTxt').innerHTML = 'Te atiende <b>' + MESERO_MESA + '</b>';
+      document.getElementById('v2MeseroTxt').innerHTML = '<small>te atiende</small> <b>' + MESERO_MESA + '</b>';
       ml.classList.add('show');
       if(typeof updateStickyTops === 'function') updateStickyTops();
     }
@@ -8839,8 +8934,11 @@ function v2PintaChip(){
   const chip = document.getElementById('v2ChipId');
   if(!chip) return;
   if(!MESA_ID || IS_VETRINA){ chip.style.display = 'none'; return; }
-  const nome = ACTIVE_MEMBER && ACTIVE_MEMBER.nombre ? ' · 🎩 ' + ACTIVE_MEMBER.nombre : '';
-  chip.textContent = 'Mesa ' + MESA_ID + nome;
+  // oss.1 (12-lug) · il chip deve INVITARE anche chi non è della Lista:
+  // Member riconosciuto → si espande col nome; ospite → la ⭐ è la porta.
+  chip.textContent = ACTIVE_MEMBER && ACTIVE_MEMBER.nombre
+    ? 'Mesa ' + MESA_ID + ' · 🎩 ' + ACTIVE_MEMBER.nombre
+    : 'Mesa ' + MESA_ID + ' · ⭐';
   chip.style.display = 'flex';
 }
 function v2AbrirId(){
@@ -8870,6 +8968,7 @@ function v2AbrirId(){
   }
   document.getElementById('v2Velo').classList.add('show');
   document.getElementById('v2ShId').classList.add('up');
+  document.body.classList.add('v2-sheet-open');
 }
 function v2LoDeSiempre(){
   const hab = ACTIVE_MEMBER && ACTIVE_MEMBER.habitual;
@@ -8887,6 +8986,7 @@ function v2CerrarSheets(){
   document.getElementById('v2ShId').classList.remove('up');
   document.getElementById('v2ShNoche').classList.remove('up');
   document.getElementById('v2ShDest').classList.remove('up');
+  document.body.classList.remove('v2-sheet-open');
 }
 
 /* ── stelline (TIP Alberto 10-lug): SOLO dopo il primo pedido · 1 per mesa/notte.
@@ -8900,7 +9000,9 @@ function v2MostrarStars(){
   try { V2_CALIF = parseInt(sessionStorage.getItem(_v2CalifKey()) || '0', 10) || 0; } catch(e){}
   st.classList.add('show');
   v2PintaStars();
-  document.getElementById('v2MeseroLine').classList.add('show');
+  // la pill si stringe: via il "te atiende", entrano le stelline (spazio contato)
+  document.getElementById('v2MeseroTxt').innerHTML = '<b>' + MESERO_MESA + '</b>';
+  document.getElementById('v2MeseroPill').classList.add('show');
 }
 function v2PintaStars(){
   const st = document.getElementById('v2Stars');
@@ -8935,6 +9037,7 @@ async function v2AbrirNoche(){
   if(!inf) return;
   document.getElementById('v2Velo').classList.add('show');
   document.getElementById('v2ShNoche').classList.add('up');
+  document.body.classList.add('v2-sheet-open');
   inf.innerHTML = '<div class="v2-nsec" style="padding:20px 0">cargando la noche…</div>';
   try { if(typeof loadCartelera === 'function') await loadCartelera(); } catch(e){}
   const dj = (typeof resolveDjActual === 'function') ? resolveDjActual() : null;
@@ -8978,6 +9081,19 @@ async function v2AbrirNoche(){
 
 /* ── boot v2: chip, campanella, strip — chiamato dal boot principale ── */
 function v2Boot(){
+  // oss.1 · DEMO Member (?demo_member=1): per vedere come saluta il locale
+  // quando Don Marcelo si siede — SOLO anteprima, niente backend.
+  if(URL_PARAMS.get('demo_member')){
+    const m1 = ALL_PRODUCTS.find(p=>/mojito/i.test(p.nombre)) || ALL_PRODUCTS[0];
+    const m2 = ALL_PRODUCTS.find(p=>/camaron/i.test(p.nombre)) || ALL_PRODUCTS[1];
+    ACTIVE_MEMBER = { nombre:'Don Marcelo', nivel:'⭐ La Lista · tu 5ª noche', tokens:'',
+      habitual:[ m1 && {id:m1.id, qty:2, nombre:m1.nombre, op:'', termino:''},
+                 m2 && {id:m2.id, qty:1, nombre:m2.nombre, op:'', termino:''} ].filter(Boolean) };
+  }
+  // il carosello beve dalla cartelera (MUNDIAL): quando arriva, ridisegna
+  if(LOCAL_ID === 'BKS' && typeof loadCartelera === 'function'){
+    loadCartelera().then(()=>{ if(!V2_Q) renderMenu(); }).catch(()=>{});
+  }
   v2PintaChip();
   // v3.3 fix ③ · il buscador in place si aggancia
   const q = document.getElementById('v2Q');
@@ -8988,6 +9104,7 @@ function v2Boot(){
       document.getElementById('v2Qx').classList.toggle('show', !!V2_Q);
       renderMenu();
     });
+    q.addEventListener('focus', () => v2CerrarSheets());   // oss.6 · cercare chiude lo sheet
   }
   const bell = document.getElementById('v2Bell');
   if(bell) bell.style.display = (LLAMAR_MESERO_ENABLED && MESA_ID && !IS_VETRINA) ? '' : 'none';
