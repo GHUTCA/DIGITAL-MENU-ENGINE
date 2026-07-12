@@ -3378,10 +3378,20 @@ body.v2-sheet-open #v2Barra,body.v2-sheet-open #v2Noche{display:none!important}
 #v2Tagline{display:none!important}
 .brand-logo-text{font-size:27px!important}
 .brand-logo-img{height:42px!important}
-/* il 4º chip: BPM — apre il mondo intero (il foot si libera) */
-.v2-nchip-bpm{background:linear-gradient(135deg,#1a0f2e,#3d2266);border-color:rgba(180,106,224,.55)}
-.v2-nchip-bpm b{color:#fff;text-shadow:0 0 8px rgba(180,106,224,.8)}
-.v2-nchip-bpm small{color:rgba(255,255,255,.55)}
+/* round4 · header a TRE ZONE: cliente | logo AL CENTRO | campana+idioma.
+   Grid minmax(0,1fr) ai lati = centro vero, i lati si troncano (mai collisioni) */
+.header-inner{display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:center;gap:6px}
+.v2-hz-left{justify-self:start;min-width:0;display:flex}
+.brand-logo-wrap{justify-self:center}
+.header-right{justify-self:end}
+.v2-chip-id{max-width:100%}
+/* il 4º chip: BPM — VESTE IL MONDO CHE APRE (stessa pelle dello sheet cabina).
+   .v2-nchip.v2-nchip-bpm: specificità doppia perché .v2-nchip è definito DOPO */
+.v2-nchip.v2-nchip-bpm{background:linear-gradient(180deg,#0f0a1c,#130e20);
+  border-color:rgba(180,106,224,.55);box-shadow:0 0 10px rgba(123,75,214,.35)}
+.v2-nchip.v2-nchip-bpm b{color:#fff;text-shadow:0 0 8px rgba(180,106,224,.8)}
+.v2-nchip.v2-nchip-bpm small{color:rgba(255,255,255,.55)}
 .v2-nchip-bpm .v2-ondot{display:inline-block;margin-left:4px;vertical-align:middle}
 #v2Buscar .wrap{position:relative}
 #v2Buscar input{width:100%;background:var(--brand-surface);border:1.5px solid var(--brand-border);
@@ -3610,7 +3620,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.2.0 · 12jul</span>
+<span id="ver" hidden>menu2 · v2.2.1 · 12jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -3717,21 +3727,21 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 <!-- ── HEADER ── -->
 <div id="header">
   <div class="header-inner">
+    <!-- round4 (12-lug) · header a TRE ZONE: cliente | LOGO AL CENTRO | campana+idioma -->
+    <div class="v2-hz-left">
+      <button class="v2-chip-id" id="v2ChipId" onclick="v2AbrirId()" style="display:none">Mesa –</button>
+    </div>
     <div class="brand-logo-wrap">
       <img class="brand-logo-img hidden" id="brandLogoImg" alt="Logo" src="">
       <div class="brand-logo-text" id="brandLogoText">●&nbsp;Menú</div>
-      <!-- round3 oss.4 · via la tagline (il lema vive nei 4 chip) · la campanella
-           sta DI QUA, il cliente di là -->
       <div class="v2-tagline" id="v2Tagline">SAPORE - COCKTAILS - BPM</div>
-      <button class="v2-bell" id="v2Bell" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero" style="display:none">🔔</button>
     </div>
     <div class="header-right">
       <!-- v1.11 · lente search nell'header (sostituisce search bar sticky) -->
       <button class="header-search-btn" id="headerSearchBtn" onclick="openSearchOverlay()" aria-label="Buscar" data-i18n-aria="nav_search">
         <span class="header-search-icon">⌕</span>
       </button>
-      <!-- v2.0 · chip identità panna: Mesa N (+ Member se riconosciuto) → sheet dall'alto -->
-      <button class="v2-chip-id" id="v2ChipId" onclick="v2AbrirId()" style="display:none">Mesa –</button>
+      <button class="v2-bell" id="v2Bell" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero" style="display:none">🔔</button>
       <div id="mesaBadge"><span class="mesa-icon">🪑</span><span id="mesaNum">–</span></div>
       <button class="lang-btn" id="langBtn" onclick="toggleLangMenu()" aria-label="Cambia idioma">
         <span class="lang-flag" id="langFlag">🌐</span>
