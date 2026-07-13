@@ -3829,7 +3829,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.8.0 · 12jul</span>
+<span id="ver" hidden>menu2 · v2.8.1 · 13jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7164,6 +7164,10 @@ function v2DestacadosHTML(){
   // oss.6 (12-lug) · QUI dentro vive tutto ciò che spinge: push del Comandante,
   // Menú del Día, PROMOS (niente più chip), de la casa, evento di cartelera.
   const dst = [];
+  // v2.8.1 (13-lug · VB Alberto) · l'EVENTO apre il carosello (primo della lista):
+  // il MUNDIAL è la scena, deve essere la prima cosa che l'occhio incontra.
+  const ev = (CARTELERA_DATA && CARTELERA_DATA.evento) || (CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos) || null;
+  if(ev && (ev.titulo_es || ev.titulo || ev.Titulo)) dst.push({ tipo:'evento', e: ev });
   ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && esPush(p))
     .forEach(p=>dst.push({ tipo:'push', p }));
   const alm = v2AlmuerzoProds();
@@ -7173,8 +7177,6 @@ function v2DestacadosHTML(){
     .forEach(p=>{ if(!promoSeen.has(p.id)){ promoSeen.add(p.id); dst.push({ tipo:'promo', p }); } });
   ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && p.es_sugerencia_destacada && !esPush(p) && !promoSeen.has(p.id))
     .forEach(p=>dst.push({ tipo:'casa', p }));
-  const ev = (CARTELERA_DATA && CARTELERA_DATA.evento) || (CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos) || null;
-  if(ev && (ev.titulo_es || ev.titulo || ev.Titulo)) dst.push({ tipo:'evento', e: ev });
   if(!dst.length) return '';
   const cards = dst.slice(0,8).map(d=>{
     if(d.tipo === 'evento'){
