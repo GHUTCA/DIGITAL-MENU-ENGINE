@@ -3,7 +3,7 @@
   "short_name": "BKS",
   "description": "El menú de BKS — SAPORE · COCKTAILS · BPM",
   "display": "standalone",
-  "start_url": "./menu2.html?local=BKS&src=pwa",
+  "start_url": "./menu_digital.html?local=BKS&src=pwa",
   "background_color": "#033E4C",
   "theme_color": "#1A1F2E",
   "icons": [

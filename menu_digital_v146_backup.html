@@ -11,33 +11,7 @@
 <meta name="supported-color-schemes" content="light" id="bvSupportedScheme">
 <meta name="theme-color" content="#F0E9DD" id="bvThemeColor">
 <title>Menú Digital</title>
-<!-- round3 oss.1 (12-lug) · PWA: salvata in pantalla de inicio si apre "BKS"
-     a TUTTO SCHERMO, senza barra indirizzo (la barra in Chrome-da-QR non è
-     sopprimibile — è chrome del browser; la via pulita per l'URL è il dominio
-     custom menu.pinsita.cl, DNS di Alberto). ⚠ allo swap di lunedì: aggiornare
-     start_url del manifest → menu_digital.html -->
-<link rel="manifest" href="menu2.webmanifest">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BKS">
-<link rel="apple-touch-icon" href="https://i.ibb.co/DHfskPMc/HOME-Comp.jpg">
 <!-- ════════════════════════════════════════════════════════════════════
-     menu2.html · v2.0.0 · 12-jul-2026 · EL MENÚ QUE VENDE (file PARALLELO)
-     Innesto del mockup MOCKUP_MENU_VENDE v3.3 (3 round focus group Alberto)
-     sul motore v1.46 INTATTO (corazza, i18n, fasce, promos, precios_regla,
-     coda notte, respaldo — niente si perde: MAPPA_VARIABILI_MENU_11JUL2026).
-     I gesti del commercio: lema-architettura (SAPORE·COCKTAILS·BPM come nav)
-     · ＋ diretto sulla card · scheda con barra d'ordine + preguntas inline
-     · barra pedido verde fissa · buscador visibile · Destacados misto
-     (push+casa+eventos) · carrello due-vie destino discriminato (via A
-     gated envio_directo_activo) · 🔁 otra ronda · chip identità → sheet
-     dall'alto · stelline post-pedido (calificarServicio fire-and-forget)
-     · strip ⚡ BPM → mondo club (DJ-BOX gated djbox_on, ancora spento)
-     · fix pointer-events (sheet chiuso non mangia MAI tap).
-     Deploy: PARALLELO al vivo — lo swap menu2→menu_digital è di lunedì 13.
-     ════════════════════════════════════════════════════════════════════
-     (sotto: il changelog storico del motore, invariato)
      menu_digital.html · v1.46 · 18-jun-2026 · Sessione S18 (11-jul · CORAZZA)
      CHANGELOG v1.45 → v1.46 (sábado 11-jul · dopo i pedidos persi del venerdì):
      · enviarPedido: 3 tentativi con backoff 2s/5s, STESSO uuid (dedup GAS)
@@ -3309,527 +3283,8 @@ body:not(.theme-dark) .cart-ig-follow{
      
 /* fine BIENVENIDA */
 </style>
-<style id="v2css">
-/* ════════════════════════════════════════════════════════════════════
-   v2.0 · LA PELLE CHE VENDE (mockup v3.3) — additiva, su token --brand-*
-   così la palette dinamica dia/tarde/noche resta padrona dei colori.
-   ════════════════════════════════════════════════════════════════════ */
-:root{
-  --v2-neon:#3FE0F0; --v2-neon-soft:#CFF6FF; --v2-oro:#FFD98A;
-  --v2-panna:#F0E9DD; --v2-ok:#3dbf7e; --v2-promo:#FF8B3D; --v2-dj:#b46ae0;
-}
-/* fix ⑤ (bug vero scovato da Alberto): uno sheet NON aperto non mangia MAI i tap */
-#detailSheet,#cartSheet,#confirmSheet,#djSheet,#carteleraSheet,#opSheet,
-#v2ShId,#v2ShNoche{pointer-events:none}
-#detailSheet.open,#cartSheet.open,#confirmSheet.open,#djSheet.open,
-#carteleraSheet.open,#opSheet.open,#v2ShId.up,#v2ShNoche.up{pointer-events:auto}
-
-/* ── header: tagline lema + chip identità panna ── */
-.v2-tagline{font-size:8.5px;font-weight:800;letter-spacing:.22em;color:var(--header-neon);
-  opacity:.75;margin-top:1px;white-space:nowrap}
-#mesaBadge{display:none!important}   /* il chip identità lo sostituisce */
-.v2-chip-id{background:var(--v2-panna);color:#2A1F1A;border:0;border-radius:20px;
-  padding:6px 12px;font-size:12px;font-weight:800;display:flex;align-items:center;gap:5px;
-  box-shadow:0 2px 10px rgba(0,0,0,.25);max-width:46vw;overflow:hidden;white-space:nowrap;
-  text-overflow:ellipsis;cursor:pointer}
-.v2-bell{width:40px;height:40px;border-radius:50%;border:1px solid var(--brand-border);
-  background:transparent;color:var(--brand-text);font-size:19px;cursor:pointer}
-/* ── oss.2+3 (12-lug) · mesero = PILL compatta nel row del buscador:
-   testo pieno (niente più grigio perso nel fondo), e si guadagna una riga ── */
-#v2MeseroPill{display:none;align-items:center;gap:6px;flex:0 0 auto;max-width:45vw;
-  background:var(--brand-surface);border:1.5px solid var(--brand-border);border-radius:14px;
-  padding:0 11px;font-size:12.5px;font-weight:700;color:var(--brand-text);
-  white-space:nowrap;overflow:hidden}
-#v2MeseroPill.show{display:flex}
-#v2MeseroPill .mfoto{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:12px;background:linear-gradient(135deg,#e0a94b,#b46ae0);flex:0 0 auto}
-#v2MeseroPill small{font-weight:600;color:var(--brand-text-muted);margin-right:2px}
-#v2Stars{display:none;gap:2px}
-#v2Stars.show{display:flex}
-#v2Stars span{font-size:16px;color:var(--brand-border);cursor:pointer;line-height:1}
-#v2Stars span.on{color:var(--v2-oro)}
-/* oss.1 · il chip identità invita: entra con un rimbalzo e porta la ⭐ */
-@keyframes v2chipIn{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
-.v2-chip-id{animation:v2chipIn .5s .8s backwards}
-/* oss.4 · le parole del LEMA (SAPORE·COCKTAILS·BPM) si distinguono da tutto il resto */
-.v2-lema{letter-spacing:.13em;font-weight:900;color:var(--v2-neon-soft);
-  text-shadow:0 0 8px rgba(63,224,240,.55)}
-body.theme-dark[data-fascia-menu="dia"] .v2-lema{color:var(--brand-accent);text-shadow:none}
-.v2-nchip.active .v2-lema{color:#033E4C;text-shadow:none}
-body.theme-dark[data-fascia-menu="dia"] .v2-nchip.active .v2-lema{color:#fff}
-/* oss.5 · il blocco header+buscador+chip resta FISSO; il menù scorre sotto */
-#groupBar{position:sticky;z-index:28;background:var(--brand-bg)}
-/* oss.7 · con uno sheet aperto le strip di fondo si fanno da parte */
-body.v2-sheet-open #v2Barra,body.v2-sheet-open #v2Noche{display:none!important}
-.v2c-sub{font-size:10.5px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--brand-text-muted);padding:6px 0 4px}
-
-/* ── v3.3 fix ③ · buscador VERO che filtra la lista in place ── */
-#fajaBar,#catSticky,#headerSearchBtn{display:none!important}  /* mockup: via nastro semana, cat-tabs, lente */
-/* oss.2 round3 · IL BLOCCO FISSO È UNA SUPERFICIE SOLA: header scuro, poi
-   buscador+chip sullo stesso fondo, UN'ombra sola in fondo al blocco (prima
-   l'ombra del buscador tagliava in due e le card sembravano scollate) */
-#v2Buscar{padding:8px 16px 2px;background:var(--brand-bg);position:sticky;top:0;z-index:30;
-  box-shadow:none}
-#groupBar.show{display:block}
-#groupBar{border-bottom:0!important;box-shadow:0 10px 18px rgba(0,0,0,.16);padding:8px 12px 10px!important}
-#groupGrid{grid-template-columns:repeat(auto-fit,minmax(0,1fr))!important}
-/* oss.4 round3 · il logo respira (via la tagline: il lema ora VIVE nei chip) */
-#v2Tagline{display:none!important}
-.brand-logo-text{font-size:27px!important}
-.brand-logo-img{height:42px!important}
-/* round4 · header a TRE ZONE: cliente | logo AL CENTRO | campana+idioma.
-   Grid minmax(0,1fr) ai lati = centro vero, i lati si troncano (mai collisioni) */
-.header-inner{display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
-  align-items:center;gap:6px}
-.v2-hz-left{justify-self:start;min-width:0;display:flex}
-.brand-logo-wrap{justify-self:center}
-.header-right{justify-self:end}
-.v2-chip-id{max-width:100%}
-/* il 4º chip: BPM — VESTE IL MONDO CHE APRE (stessa pelle dello sheet cabina).
-   .v2-nchip.v2-nchip-bpm: specificità doppia perché .v2-nchip è definito DOPO */
-.v2-nchip.v2-nchip-bpm{background:linear-gradient(180deg,#0f0a1c,#130e20);
-  border-color:rgba(180,106,224,.55);box-shadow:0 0 10px rgba(123,75,214,.35)}
-.v2-nchip.v2-nchip-bpm b{color:#fff;text-shadow:0 0 8px rgba(180,106,224,.8)}
-.v2-nchip.v2-nchip-bpm small{color:rgba(255,255,255,.55)}
-.v2-nchip-bpm .v2-ondot{display:inline-block;margin-left:4px;vertical-align:middle}
-/* round5 oss.4 · titoli dei chip TUTTI allineati in alto (COCKTAILS senza
-   sottotitolo restava centrato verticale) */
-.v2-nchip{display:flex;flex-direction:column;justify-content:flex-start;align-items:center}
-/* round5 oss.6 · il blocco fisso vive SOPRA gli overlay: con un modal aperto
-   i chip restano vivi — tap = chiude il modal e salta al mondo */
-#header{z-index:480!important}
-#v2Buscar{z-index:479!important}
-#groupBar{z-index:478!important}
-#v2ShId{z-index:500}
-#v2ShNoche{z-index:501}
-/* round5 oss.7.1 · OTRA RONDA è il chip di VENDITA: oro pieno, pulsa piano */
-.v2-ronda{border:0!important;background:linear-gradient(90deg,#FFD98A,#ffb84d)!important;
-  color:#2A1F1A!important;font-weight:900!important;font-size:15px!important;
-  box-shadow:0 4px 16px rgba(255,184,77,.45);animation:v2rondaPulse 2.6s ease-in-out infinite}
-@keyframes v2rondaPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.018)}}
-/* round5 oss.7.3 · la via diretta si VEDE ma dorme: próximamente */
-.v2-via-prox{border:1.5px dashed var(--brand-border);border-radius:14px;padding:11px;
-  font-size:13px;font-weight:700;background:transparent;color:var(--brand-text-muted);opacity:.75}
-#v2Buscar .wrap{position:relative}
-#v2Buscar input{width:100%;background:var(--brand-surface);border:1.5px solid var(--brand-border);
-  border-radius:14px;color:var(--brand-text);padding:11px 38px 11px 40px;font-size:15px;outline:none}
-#v2Buscar input:focus{border-color:var(--v2-neon)}
-#v2Buscar .lupa{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px}
-#v2Buscar .x{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:30px;height:30px;
-  border:0;border-radius:50%;background:var(--brand-surface-card,var(--brand-surface));
-  color:var(--brand-text-muted);font-size:14px;font-weight:900;cursor:pointer;display:none}
-#v2Buscar .x.show{display:block}
-
-/* ── chip lema a 2 righe (SAPORE·comida | COCKTAILS | SAPORE·postre) ── */
-.v2-nchip{border-radius:20px;padding:7px 4px 6px;text-align:center;background:var(--brand-surface);
-  border:1.5px solid var(--brand-border);color:var(--brand-text-muted);line-height:1.15;cursor:pointer}
-.v2-nchip b{display:block;font-size:12.5px;font-weight:900;letter-spacing:.06em;color:var(--brand-text)}
-.v2-nchip small{display:block;font-size:9.5px;text-transform:lowercase}
-.v2-nchip .cnt{display:none}
-.v2-nchip.active{background:var(--v2-neon);border-color:var(--v2-neon);
-  box-shadow:0 0 14px rgba(63,224,240,.4)}
-.v2-nchip.active b,.v2-nchip.active small{color:#033E4C}
-.v2-nchip.disabled{opacity:.35;pointer-events:none}
-body.theme-dark[data-fascia-menu="dia"] .v2-nchip.active{background:var(--brand-accent);border-color:var(--brand-accent)}
-body.theme-dark[data-fascia-menu="dia"] .v2-nchip.active b,
-body.theme-dark[data-fascia-menu="dia"] .v2-nchip.active small{color:#fff}
-
-/* ── DESTACADOS · carosello misto ── */
-.v2-carrusel{display:flex;gap:12px;overflow-x:auto;padding:4px 16px 10px;scrollbar-width:none}
-.v2-carrusel::-webkit-scrollbar{display:none}
-.v2-dst{flex:0 0 200px;background:var(--brand-surface-card,var(--brand-surface));
-  border:1.5px solid var(--brand-border);border-radius:20px;overflow:hidden;position:relative;
-  text-align:left;padding:0;color:var(--brand-text);cursor:pointer}
-.v2-dst .ph{height:110px;display:flex;align-items:center;justify-content:center;font-size:48px;
-  background:var(--brand-surface);overflow:hidden}
-.v2-dst .ph img{width:100%;height:100%;object-fit:cover}
-.v2-dst .inf{padding:8px 12px 11px}
-.v2-dst .eyebrow{font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--brand-text-muted)}
-.v2-dst .nom{font-size:14.5px;font-weight:800;line-height:1.2;margin-top:2px}
-.v2-dst .sub{font-size:11px;color:var(--brand-text-muted);margin-top:2px}
-.v2-dst .precio{font-size:14.5px;font-weight:900;color:var(--v2-oro);margin-top:4px}
-body.theme-dark[data-fascia-menu="dia"] .v2-dst .precio{color:#b8860b}
-.v2-dst .flag{position:absolute;top:9px;left:9px;font-size:10px;font-weight:900;border-radius:8px;
-  padding:3px 8px;z-index:2}
-.v2-flag-push{background:var(--brand-accent);color:#fff}
-.v2-flag-evento{background:var(--v2-dj);color:#fff}
-.v2-flag-2x1{background:var(--v2-promo);color:#1d0f05}
-.v2-sec-t{padding:12px 16px 6px;font-size:11.5px;font-weight:900;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--brand-text-muted)}
-
-/* ── fila prodotto compatta con ＋ diretto ── */
-.v2-fila{display:flex;gap:12px;align-items:center;padding:10px 16px;
-  border-bottom:1px solid var(--brand-border);background:var(--brand-surface-card,var(--brand-surface))}
-.v2-fila .ph{width:62px;height:62px;border-radius:14px;flex:0 0 auto;display:flex;align-items:center;
-  justify-content:center;font-size:28px;overflow:hidden;background:var(--brand-surface)}
-.v2-fila .ph img{width:100%;height:100%;object-fit:cover}
-.v2-fila .b{flex:1;min-width:0;cursor:pointer}
-.v2-fila .nom{font-size:15px;font-weight:700;color:var(--brand-text)}
-.v2-fila .des{font-size:11.5px;color:var(--brand-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.v2-fila .pr{display:flex;align-items:baseline;gap:7px;margin-top:3px;flex-wrap:wrap}
-.v2-precio{font-size:15.5px;font-weight:900;color:var(--v2-oro)}
-body.theme-dark[data-fascia-menu="dia"] .v2-precio{color:#b8860b}
-.v2-precio-orig{font-size:11.5px;color:var(--brand-text-muted);text-decoration:line-through}
-.v2-tagx{font-size:10px;font-weight:900;border-radius:6px;padding:1px 6px}
-.v2-tag2x1{color:var(--v2-promo);border:1px solid var(--v2-promo)}
-.v2-tagq{color:var(--brand-text-muted);border:1px solid var(--brand-border)}
-.v2-tagpush{color:var(--brand-accent);border:1px solid var(--brand-accent)}
-.v2-tagmenu{color:#3DAA68;border:1px solid #3DAA68}
-.v2-add{width:44px;height:44px;border-radius:14px;border:0;background:var(--brand-accent);color:#fff;
-  font-size:24px;font-weight:900;flex:0 0 auto;transition:transform .12s;cursor:pointer;
-  box-shadow:0 2px 14px rgba(233,69,96,.45)}
-.v2-add:active{transform:scale(.9)}
-.v2-step{display:flex;align-items:center;gap:2px;flex:0 0 auto;background:var(--brand-surface);
-  border:1.5px solid var(--brand-accent);border-radius:14px;padding:2px}
-.v2-step button{width:38px;height:38px;border:0;background:none;color:var(--brand-text);
-  font-size:21px;font-weight:900;cursor:pointer}
-.v2-step b{min-width:24px;text-align:center;font-size:16px;color:var(--brand-text);animation:v2pop .18s}
-@keyframes v2pop{0%{transform:scale(1.5)}100%{transform:scale(1)}}
-
-/* ── barra pedido verde fissa + strip BPM ── */
-#v2Barra{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));
-  width:100%;max-width:480px;z-index:340;padding:6px 12px;display:none}
-#v2Noche{display:none!important}   /* round3 oss.4 · BPM è salito nei chip: il foot respira */
-#v2Barra.show{display:block}
-body[data-vetrina="true"] #v2Barra{display:none!important}
-#v2Barra > button{width:100%;border:0;border-radius:16px;padding:15px 18px;font-size:16px;
-  font-weight:900;background:var(--v2-ok);color:#06170e;display:flex;align-items:center;gap:10px;
-  box-shadow:0 6px 24px rgba(0,0,0,.5);cursor:pointer}
-#v2Barra > button.estado{background:var(--brand-surface-card,var(--brand-surface));color:var(--brand-text);
-  border:1.5px solid var(--brand-border)}
-#v2Barra .n{background:rgba(0,0,0,.25);border-radius:10px;min-width:30px;padding:3px 8px}
-#v2Barra .tot{margin-left:auto;font-size:16.5px}
-#v2Barra > button.bounce{animation:v2bnc .3s}
-@keyframes v2bnc{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
-#v2Noche{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:480px;
-  z-index:339;padding:6px 12px calc(8px + env(safe-area-inset-bottom,0px));display:none}
-#v2Noche.show{display:block}
-#v2Noche > button{width:100%;border:0;border-radius:14px;padding:11px 14px;font-size:13.5px;
-  font-weight:900;background:linear-gradient(90deg,#1a0f2e,var(--v2-dj));color:#fff;
-  display:flex;align-items:center;gap:10px;box-shadow:0 4px 18px rgba(123,75,214,.5);cursor:pointer}
-.v2-vinilo{width:24px;height:24px;border-radius:50%;flex:0 0 auto;position:relative;
-  background:repeating-radial-gradient(circle at 50% 50%,#0c0a14 0 1.5px,#241f2c 1.5px 3px);
-  border:1.5px solid rgba(255,255,255,.5);animation:v2spin 3.2s linear infinite}
-.v2-vinilo::after{content:'';position:absolute;inset:7px;border-radius:50%;
-  background:linear-gradient(135deg,var(--v2-dj),var(--v2-oro))}
-@keyframes v2spin{to{transform:rotate(360deg)}}
-.v2-djtag{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:10px;
-  font-weight:900;letter-spacing:.08em;color:#00ffc8}
-.v2-ondot{width:8px;height:8px;border-radius:50%;background:#00ffc8;box-shadow:0 0 8px #00ffc8;
-  animation:v2pulsa 1.2s ease-in-out infinite}
-@keyframes v2pulsa{0%,100%{opacity:1}50%{opacity:.35}}
-#bottomNav{display:none!important}   /* v2: barra pedido + strip BPM al posto della bottom-nav */
-body{padding-bottom:130px}
-
-/* ── scheda prodotto: barra d'ordine fissa + preguntas inline ── */
-#detailSheet{display:flex;flex-direction:column;max-height:88dvh;overflow:hidden}
-#sheetContent{overflow-y:auto;flex:1;min-height:0}
-#v2Orden{display:none;border-top:1.5px solid var(--brand-border);padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));
-  gap:12px;align-items:center;background:var(--brand-surface);flex:0 0 auto}
-#v2Orden.show{display:flex}
-#v2Orden .cta{flex:1;border:0;border-radius:14px;padding:15px;font-size:15.5px;font-weight:900;
-  background:var(--brand-accent);color:#fff;cursor:pointer}
-#v2Orden .cta:disabled{opacity:.45}
-.v2-preg{margin-top:14px}
-.v2-preg .pt{font-size:11.5px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--v2-oro);margin-bottom:8px}
-body.theme-dark[data-fascia-menu="dia"] .v2-preg .pt{color:#b8860b}
-.v2-pchips{display:flex;flex-wrap:wrap;gap:8px}
-.v2-pchip{font-size:13.5px;font-weight:700;border-radius:12px;padding:10px 14px;cursor:pointer;
-  background:var(--brand-surface);border:1.5px solid var(--brand-border);color:var(--brand-text-muted)}
-.v2-pchip.on{border-color:var(--v2-oro);color:var(--brand-text);background:rgba(255,217,138,.12)}
-
-/* ── carrello: ronda + due vie ── */
-.v2-ronda{margin:10px 0 0;width:100%;border:1.5px dashed var(--v2-oro);background:rgba(255,217,138,.08);
-  color:var(--v2-oro);border-radius:14px;padding:12px;font-size:14px;font-weight:800;cursor:pointer}
-body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8860b}
-.v2-vias{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-.v2-via-si{border:0;border-radius:14px;padding:15px;font-size:15px;font-weight:900;
-  background:var(--v2-ok);color:#06170e;cursor:pointer}
-.v2-via-si small{display:block;font-size:10.5px;font-weight:700;opacity:.75}
-.v2-via-mesero{border:1.5px solid var(--brand-border);border-radius:14px;padding:13px;font-size:14px;
-  font-weight:700;background:transparent;color:var(--brand-text-muted);cursor:pointer}
-.v2-seguro-q{font-size:15.5px;font-weight:800;margin:8px 0 10px;text-align:center;color:var(--brand-text)}
-.v2-seguro-row{display:flex;gap:8px}
-.v2-seguro-row .v2-via-si{flex:1.6}
-.v2-seguro-row .v2-via-mesero{flex:1}
-
-/* ── sheet identità (dall'alto, dal chip che tocchi) + mondo club ── */
-.v2-sheet{position:fixed;left:50%;transform:translateX(-50%) translateY(110%);bottom:0;width:100%;
-  max-width:480px;background:var(--brand-surface);border-radius:24px 24px 0 0;z-index:460;
-  transition:transform .25s;display:flex;flex-direction:column;max-height:85dvh}
-.v2-sheet.up{transform:translateX(-50%) translateY(0)}
-.v2-sheet .scroll{overflow-y:auto;flex:1;min-height:0}
-.v2-handle{width:44px;height:4px;border-radius:2px;background:var(--brand-border);margin:10px auto 0;flex:0 0 auto}
-.v2-x{position:absolute;top:12px;right:14px;width:36px;height:36px;border:0;border-radius:50%;
-  background:rgba(0,0,0,.35);color:#fff;font-size:16px;font-weight:900;z-index:5;cursor:pointer}
-#v2ShId{top:0;bottom:auto;border-radius:0 0 24px 24px;transform:translateX(-50%) translateY(-110%);max-height:70dvh}
-#v2ShId.up{transform:translateX(-50%) translateY(0)}
-#v2ShId .v2-handle{order:99;margin:8px auto 10px}
-#v2ShId .inf{padding:14px 18px 10px}
-#v2ShId .saludo{font-size:18px;font-weight:900;margin-top:6px;color:var(--brand-text)}
-#v2ShId .sub{font-size:13px;color:var(--brand-text-muted);margin-top:4px}
-.v2-siempre{margin-top:14px;width:100%;border:1.5px solid var(--brand-border-strong,var(--brand-border));
-  background:linear-gradient(90deg,rgba(63,224,240,.1),rgba(255,217,138,.08));
-  border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;
-  color:var(--brand-text);text-align:left;cursor:pointer}
-.v2-siempre .t{flex:1}
-.v2-siempre .t b{font-size:14.5px;font-weight:900}
-.v2-siempre .t small{display:block;font-size:11.5px;color:var(--brand-text-muted)}
-.v2-siempre .go{width:38px;height:38px;border-radius:12px;background:var(--brand-accent);color:#fff;
-  display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;flex:0 0 auto}
-.v2-lista{margin-top:14px;background:var(--v2-panna);color:#2A1F1A;border-radius:16px;padding:13px 14px}
-.v2-lista b{font-size:14px}
-.v2-lista p{font-size:12px;margin-top:3px;color:#6B5A4F}
-/* mondo club (palette cabina — sempre notturno, è LA NOTTE) */
-/* z 498: SOPRA buscador(479) e chip(478) — il mondo copre tutto fino al header (480) */
-#v2ShNoche{background:linear-gradient(180deg,#0f0a1c,#130e20);z-index:498;
-  border:1.5px solid rgba(180,106,224,.45);border-bottom:0;
-  box-shadow:0 -8px 40px rgba(123,75,214,.35);color:#F2FDFF;max-height:92dvh}
-#v2ShNoche .v2-handle{background:rgba(180,106,224,.5)}
-#v2ShNoche .inf{padding:8px 16px 16px}
-.v2-cabina{background:linear-gradient(135deg,rgba(180,106,224,.18),rgba(63,224,240,.08));
-  border:1.5px solid rgba(180,106,224,.5);border-radius:18px;padding:14px;display:flex;gap:12px;align-items:center}
-.v2-vinilo.big{width:50px;height:50px}
-.v2-vinilo.big::after{inset:16px}
-.v2-cab-i{flex:1;min-width:0}
-.v2-cab-eyebrow{font-size:10px;font-weight:900;letter-spacing:.18em;color:var(--v2-dj);text-transform:uppercase}
-.v2-cab-nom{font-size:18px;font-weight:900}
-.v2-cab-slot{font-size:12px;color:rgba(242,253,255,.5)}
-.v2-ritmo-msg{margin-top:4px;font-size:12.5px;color:rgba(242,253,255,.72);font-style:italic}
-.v2-nsec{margin:16px 0 8px;font-size:10.5px;font-weight:900;letter-spacing:.14em;
-  text-transform:uppercase;color:rgba(242,253,255,.5)}
-.v2-sesion{display:flex;gap:10px;align-items:center;padding:8px 0;
-  border-bottom:1px dashed rgba(180,106,224,.35);font-size:13.5px}
-.v2-sesion b{color:var(--v2-oro);min-width:62px}
-.v2-evfila{display:flex;gap:10px;align-items:center;padding:10px 12px;background:rgba(255,255,255,.05);
-  border:1px solid rgba(180,106,224,.3);border-radius:14px;margin-bottom:8px;font-size:13.5px}
-.v2-evfila .ico{font-size:20px}
-.v2-evfila b{display:block}
-.v2-evfila small{color:rgba(242,253,255,.5)}
-.v2-velo{position:fixed;inset:0;background:rgba(1,25,32,.72);opacity:0;pointer-events:none;transition:.2s;z-index:455}
-.v2-velo.show{opacity:1;pointer-events:auto}
-/* ════ IL MONDO BPM v2 (12-lug sera) · l'energia della casa ════
-   Un eroe solo: l'ADESSO. Poi la subida, el trago del ritmo, los DJs. */
-.v2n-hero{background:linear-gradient(135deg,rgba(180,106,224,.22),rgba(63,224,240,.07));
-  border:1.5px solid rgba(180,106,224,.5);border-radius:20px;padding:16px 14px;position:relative;overflow:hidden}
-.v2n-live{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:900;
-  letter-spacing:.18em;color:#00ffc8;text-transform:uppercase}
-.v2n-djrow{display:flex;gap:12px;align-items:center;margin-top:8px}
-.v2n-djfoto{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:0 0 auto;
-  border:2.5px solid rgba(180,106,224,.8);box-shadow:0 0 16px rgba(180,106,224,.5)}
-.v2n-djnome{font-size:20px;font-weight:900;line-height:1.1}
-.v2n-djslot{font-size:12px;color:rgba(242,253,255,.55);margin-top:2px}
-.v2n-bpmrow{display:flex;align-items:baseline;gap:10px;margin-top:12px}
-.v2n-bpmnum{font-size:44px;font-weight:900;line-height:1;color:var(--v2-neon-soft);
-  text-shadow:0 0 14px rgba(63,224,240,.6);font-variant-numeric:tabular-nums}
-.v2n-bpmnum small{font-size:15px;font-weight:800;color:rgba(242,253,255,.5);letter-spacing:.1em}
-.v2n-etq{font-size:12.5px;font-weight:800;color:var(--v2-dj)}
-.v2n-slogan{margin-top:6px;font-size:17px;font-weight:800;font-style:italic;color:#fff}
-.v2n-eq{display:flex;gap:3px;align-items:flex-end;height:26px;margin-top:12px}
-.v2n-eq i{flex:1;background:linear-gradient(180deg,var(--v2-dj),rgba(63,224,240,.7));
-  border-radius:2px;animation:v2eq 1s ease-in-out infinite}
-@keyframes v2eq{0%,100%{height:22%}50%{height:100%}}
-/* la subida · la scala della notte */
-.v2n-sube{display:flex;gap:8px;align-items:flex-end;margin-top:4px}
-.v2n-act{flex:1;text-align:center;border-radius:12px 12px 4px 4px;padding:8px 2px 7px;
-  background:rgba(255,255,255,.05);border:1px solid rgba(180,106,224,.25);color:rgba(242,253,255,.55)}
-.v2n-act .e{font-size:16px;display:block}
-.v2n-act b{display:block;font-size:11px;font-weight:900;margin-top:2px;color:rgba(242,253,255,.75)}
-.v2n-act small{display:block;font-size:9.5px}
-.v2n-act.h60{padding-top:14px}.v2n-act.h70{padding-top:22px}.v2n-act.h80{padding-top:30px}
-.v2n-act.on{background:linear-gradient(180deg,rgba(180,106,224,.4),rgba(180,106,224,.15));
-  border-color:var(--v2-dj);color:#fff;box-shadow:0 0 14px rgba(123,75,214,.45)}
-.v2n-act.on b{color:#fff}
-.v2n-aqui{font-size:9px;font-weight:900;letter-spacing:.12em;color:#00ffc8;display:block;margin-top:3px}
-/* el trago de este ritmo */
-.v2n-trago{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.05);
-  border:1.5px solid rgba(255,217,138,.4);border-radius:16px;padding:10px 12px;margin-top:4px}
-.v2n-trago .ph{width:56px;height:56px;border-radius:12px;overflow:hidden;flex:0 0 auto;
-  display:flex;align-items:center;justify-content:center;font-size:26px;background:rgba(255,255,255,.06)}
-.v2n-trago .ph img{width:100%;height:100%;object-fit:cover}
-.v2n-trago .b{flex:1;min-width:0}
-.v2n-trago .nom{font-size:14.5px;font-weight:800;color:#fff}
-.v2n-trago .pr{font-size:14px;font-weight:900;color:var(--v2-oro);margin-top:2px}
-/* quién toca · headliner cards */
-.v2n-djs{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
-.v2n-djs::-webkit-scrollbar{display:none}
-.v2n-djcard{flex:0 0 150px;background:rgba(255,255,255,.05);border:1px solid rgba(180,106,224,.35);
-  border-radius:16px;overflow:hidden;text-align:left}
-.v2n-djcard .foto{width:100%;height:96px;object-fit:cover;display:block;background:#1a1128}
-.v2n-djcard .i{padding:8px 10px 10px}
-.v2n-djcard .n{font-size:14px;font-weight:900;color:#fff}
-.v2n-djcard .d{font-size:10.5px;color:var(--v2-oro);font-weight:800;margin-top:2px}
-.v2n-djcard .hh{font-size:10.5px;color:rgba(242,253,255,.5)}
-.v2n-djcard .ig{font-size:10.5px;color:var(--v2-dj);margin-top:4px;display:block;font-weight:700;
-  text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.v2n-djbox-teaser{margin-top:14px;width:100%;border:1.5px dashed rgba(180,106,224,.5);
-  border-radius:14px;padding:12px;font-size:13px;font-weight:800;background:transparent;
-  color:rgba(242,253,255,.6);text-align:center}
-/* ═══ FINAL round (12-lug notte) ═══ */
-/* coda finale · DJ VIVO IN HOME: quando la cabina suona, la home lo dice —
-   la strip-porta col vinile e i BPM (l'anima del nastro del menù vecchio) */
-.v2-djlive{display:flex;gap:11px;align-items:center;width:calc(100% - 32px);margin:10px 16px 2px;
-  padding:11px 13px;border:1.5px solid rgba(180,106,224,.55);border-radius:16px;cursor:pointer;
-  background:linear-gradient(90deg,#1a0f2e,#2b1846);color:#fff;text-align:left;
-  box-shadow:0 4px 18px rgba(123,75,214,.4)}
-.v2-djlive .b{flex:1;min-width:0}
-.v2-djlive b{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:900;letter-spacing:.05em}
-.v2-djlive small{display:block;font-size:11.5px;color:rgba(242,253,255,.65);margin-top:2px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.v2-djlive .eq{display:flex;gap:2px;align-items:flex-end;height:20px;width:34px;flex:0 0 auto}
-.v2-djlive .eq i{flex:1;background:linear-gradient(180deg,#00ffc8,rgba(0,255,200,.4));
-  border-radius:1.5px;animation:v2eq 1s ease-in-out infinite}
-.v2-djlive .arr{color:rgba(255,255,255,.5);font-size:16px;flex:0 0 auto}
-/* oss.1 · la ⭐ del chip brillava poco sul panna: fondo nero degradé + brillo */
-.v2-star{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
-  border-radius:50%;background:radial-gradient(circle at 35% 30%,#3a3a4a,#0a0a14 75%);
-  font-size:12px;margin-left:2px;box-shadow:0 0 8px rgba(255,217,138,.8);
-  animation:v2starGlow 2.2s ease-in-out infinite}
-@keyframes v2starGlow{0%,100%{box-shadow:0 0 6px rgba(255,217,138,.55)}50%{box-shadow:0 0 13px rgba(255,217,138,.95)}}
-/* oss.3 · le foto coprono TUTTA la testa dello sheet: maniglia e ✕ flottano
-   sopra l'immagine, niente più strisce di fondo a sx/dx/alto */
-#detailSheet .sheet-handle{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:7;margin:0;
-  background:rgba(255,255,255,.75);width:44px;height:4px;border-radius:2px}
-.sheet-img,.sheet-img img{border-radius:20px 20px 0 0}
-.sheet-img{height:250px}
-#v2ShDest .v2-handle{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:7;margin:0;
-  background:rgba(255,255,255,.75)}
-#v2ShDest .ph{border-radius:24px 24px 0 0}
-#v2ShDest .scroll{border-radius:24px 24px 0 0}
-/* oss.4b · lightbox del poster: sopra tutto, con crocetta */
-#v2Lightbox{position:fixed;inset:0;background:rgba(2,2,8,.94);z-index:520;display:none;
-  align-items:center;justify-content:center;padding:18px}
-#v2Lightbox.show{display:flex}
-#v2Lightbox img{max-width:100%;max-height:92dvh;border-radius:14px;object-fit:contain}
-#v2Lightbox .cap{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:0;right:0;
-  text-align:center;font-size:12.5px;color:rgba(255,255,255,.7);padding:0 40px}
-/* ═══ VB round · hero FUSO + le due card grandi ═══ */
-.v2n-sube.sm .v2n-act{padding:5px 2px 5px;border-radius:10px 10px 4px 4px}
-.v2n-sube.sm .v2n-act .e{font-size:13px}
-.v2n-sube.sm .v2n-act b{font-size:9.5px}
-.v2n-sube.sm .v2n-act small{font-size:8.5px}
-.v2n-sube.sm .v2n-act.h60{padding-top:9px}.v2n-sube.sm .v2n-act.h70{padding-top:13px}
-.v2n-sube.sm .v2n-act.h80{padding-top:17px}
-.v2n-sube.sm{margin-top:10px}
-.v2n-trago.inhero{margin-top:12px;background:rgba(0,0,0,.25);border-color:rgba(255,217,138,.35)}
-.v2n-2cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.v2n-bigcard{position:relative;border-radius:18px;overflow:hidden;border:1.5px solid rgba(180,106,224,.4);
-  background:#130e20;padding:0;text-align:left;cursor:pointer;color:#F2FDFF;min-height:170px;
-  display:flex;flex-direction:column}
-.v2n-bigcard .ph{width:100%;height:104px;object-fit:cover;display:block;background:#1a1128;flex:0 0 auto}
-.v2n-bigcard .i{padding:8px 10px 10px;flex:1}
-.v2n-bigcard .ey{font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#00ffc8;
-  display:flex;align-items:center;gap:5px}
-.v2n-bigcard .n{font-size:14.5px;font-weight:900;margin-top:3px;line-height:1.15}
-.v2n-bigcard .s{font-size:10.5px;color:rgba(242,253,255,.5);margin-top:3px}
-/* la scheda DJ del motore deve vivere SOPRA il mondo (tap sulla card) */
-#djSheet{z-index:506!important}
-#djOverlay{z-index:505!important}
-/* ═══ round BPM-2 · le PORTE (agenda/eventos) + DJ-BOX da marketing ═══ */
-.v2n-door{display:flex;gap:10px;align-items:center;width:100%;padding:12px;margin-bottom:8px;
-  background:rgba(255,255,255,.05);border:1px solid rgba(180,106,224,.35);border-radius:14px;
-  color:#F2FDFF;text-align:left;font-size:14px;cursor:pointer}
-.v2n-door .ico{font-size:20px;flex:0 0 auto}
-.v2n-door b{display:block;font-size:13.5px;font-weight:900;letter-spacing:.04em}
-.v2n-door small{display:block;color:rgba(242,253,255,.5);font-size:11px}
-.v2n-door .arr{margin-left:auto;color:rgba(242,253,255,.4);font-size:15px;transition:transform .2s}
-.v2n-door.open .arr{transform:rotate(90deg)}
-.v2n-doorbody{display:none;margin:-2px 0 10px;padding:2px}
-.v2n-doorbody.open{display:block}
-.v2n-poster{width:100%;border-radius:16px;display:block;border:1px solid rgba(180,106,224,.35)}
-.v2n-poster-cap{font-size:12.5px;color:rgba(242,253,255,.65);margin-top:6px;text-align:center}
-/* DJ-BOX · il cartridge (logo disegnato al focus group) — GRANDE, da marketing */
-.v2-djbox-logo{display:inline-flex;align-items:center;gap:8px;font-weight:900;
-  letter-spacing:.06em;color:#fff;background:#0a0714;border:2px solid #ff2e88;
-  border-radius:12px;padding:7px 13px;font-size:17px;
-  box-shadow:0 0 14px rgba(255,46,136,.55),inset 0 0 10px rgba(255,46,136,.15)}
-.v2-djbox-logo .disc{width:15px;height:15px;border-radius:50%;flex:0 0 auto;
-  background:radial-gradient(circle,#ff2e88 28%,#241f2c 32%);
-  border:1.5px solid rgba(255,255,255,.5);animation:v2spin 2.4s linear infinite}
-.v2-djbox-logo small{font-size:9px;font-weight:800;color:#ff9cc6;letter-spacing:.14em}
-.v2n-djbox{width:100%;margin-top:14px;padding:14px;border-radius:18px;cursor:pointer;text-align:left;
-  background:radial-gradient(300px 160px at 90% -10%, rgba(139,92,246,.25), transparent 60%),#0a0714;
-  border:1.5px solid rgba(255,46,136,.5);box-shadow:0 0 22px rgba(255,46,136,.25);
-  display:flex;align-items:center;gap:12px;color:#f4f0ff}
-.v2n-djbox .t{flex:1;min-width:0}
-.v2n-djbox .t b{display:block;font-size:14.5px;font-weight:900}
-.v2n-djbox .t small{display:block;font-size:11.5px;color:#a89fc7;margin-top:2px}
-.v2n-djbox .luz{display:flex;flex-direction:column;align-items:center;gap:3px;flex:0 0 auto;
-  font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
-.v2n-djbox .luz .dot{width:12px;height:12px;border-radius:50%}
-.v2n-djbox .luz.on{color:#00ffc8}.v2n-djbox .luz.on .dot{background:#00ffc8;box-shadow:0 0 10px #00ffc8;animation:v2pulsa 1.2s ease-in-out infinite}
-.v2n-djbox .luz.off{color:#ff5470}.v2n-djbox .luz.off .dot{background:#ff5470;box-shadow:0 0 8px rgba(255,84,112,.7)}
-/* ═══ lo sheet PÍDELE AL DJ (palette cabina del mockup — perfetta, parola di Alberto) ═══ */
-#v2ShDj{background:radial-gradient(500px 300px at 90% -5%, rgba(139,92,246,.18), transparent 60%),#0a0714;
-  z-index:510;border:1.5px solid rgba(139,92,246,.5);border-bottom:0;color:#f4f0ff;
-  box-shadow:0 -8px 40px rgba(139,92,246,.3)}
-#v2ShDj .v2-handle{background:rgba(139,92,246,.5)}
-#v2ShDj .inf{padding:10px 16px 16px}
-.v2dj-head{display:flex;align-items:center;gap:12px;margin-bottom:4px}
-.v2dj-disc{width:42px;height:42px;border-radius:50%;flex:0 0 auto;position:relative;
-  background:repeating-radial-gradient(circle at 50% 50%, #0c0a14 0 2px, #171126 2px 4px);
-  border:1.5px solid rgba(255,255,255,.15);animation:v2spin 3s linear infinite}
-.v2dj-disc::after{content:'';position:absolute;inset:15px;border-radius:50%;
-  background:linear-gradient(135deg,#ff2e88,#8b5cf6)}
-.v2dj-head h2{font-size:20px;font-weight:900;margin:0}
-.v2dj-head .sub{font-size:11.5px;color:#6f668f}
-.v2dj-casa{background:#130e20;border:1.5px solid rgba(255,255,255,.09);border-radius:16px;padding:11px 13px;margin:10px 0}
-.v2dj-casa .lbl{font-size:9.5px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#ffcf6b;margin-bottom:7px}
-.v2dj-gchips{display:flex;flex-wrap:wrap;gap:6px}
-.v2dj-gchip{font-size:12px;font-weight:800;border-radius:10px;padding:5px 10px;
-  background:#1a1330;border:1.5px solid rgba(255,255,255,.09);color:#6f668f}
-.v2dj-gchip.on{border-color:#00ffc8;color:#00ffc8;background:rgba(0,255,200,.08)}
-.v2dj-buscar{position:relative;margin:10px 0 6px}
-.v2dj-buscar input{width:100%;background:#130e20;border:2px solid #8b5cf6;border-radius:16px;
-  color:#f4f0ff;padding:13px 14px 13px 44px;font-size:15px;outline:none}
-.v2dj-buscar input:focus{border-color:#00ffc8;box-shadow:0 0 20px rgba(0,255,200,.15)}
-.v2dj-buscar .lupa{position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:17px}
-.v2dj-estado{font-size:11.5px;color:#6f668f;min-height:15px;margin:0 4px 8px}
-.v2dj-res{display:flex;gap:11px;align-items:center;background:#130e20;border:1.5px solid rgba(255,255,255,.09);
-  border-radius:14px;padding:10px;margin-bottom:8px;cursor:pointer}
-.v2dj-res img{width:52px;height:52px;border-radius:10px;flex:0 0 auto;background:#1a1330}
-.v2dj-res .b{flex:1;min-width:0}
-.v2dj-res .tit{font-size:14.5px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#f4f0ff}
-.v2dj-res .art{font-size:12px;color:#a89fc7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.v2dj-gen{display:inline-block;font-size:10px;font-weight:800;border-radius:7px;padding:2px 7px;margin-top:4px;
-  background:rgba(0,255,200,.1);border:1px solid rgba(0,255,200,.4);color:#00ffc8}
-.v2dj-gen.fuera{background:rgba(245,166,35,.1);border-color:rgba(255,207,107,.45);color:#ffcf6b}
-.v2dj-res .plata{font-size:14px;font-weight:900;color:#00ffc8;white-space:nowrap}
-.v2dj-prox{border:1.5px dashed rgba(139,92,246,.55);border-radius:14px;padding:12px;margin-top:6px;
-  font-size:12.5px;font-weight:800;color:#a89fc7;text-align:center;background:rgba(139,92,246,.07)}
-.v2dj-regla{font-size:10.5px;color:#6f668f;text-align:center;margin-top:8px;line-height:1.5}
-/* ── v3.3 fix ④ · destacado a PAGINA INTERA ── */
-#v2ShDest{max-height:94dvh;min-height:88dvh}
-#v2ShDest{pointer-events:none}
-#v2ShDest.up{pointer-events:auto}
-#v2ShDest .ph{height:300px;display:flex;align-items:center;justify-content:center;font-size:120px;
-  background:var(--brand-surface-card,var(--brand-surface));overflow:hidden;flex:0 0 auto}
-#v2ShDest .ph img{width:100%;height:100%;object-fit:cover}
-#v2ShDest .inf{padding:14px 18px 18px}
-#v2ShDest .eyebrow{font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--v2-dj)}
-#v2ShDest .nom{font-size:25px;font-weight:900;margin-top:4px;color:var(--brand-text)}
-#v2ShDest .des{font-size:15px;color:var(--brand-text-muted);margin-top:8px;line-height:1.6}
-#v2ShDest .meta{margin-top:10px;font-size:15px;color:var(--v2-oro);font-weight:800}
-body.theme-dark[data-fascia-menu="dia"] #v2ShDest .meta{color:#b8860b}
-#v2ShDest .orden{border-top:1.5px solid var(--brand-border);padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));
-  background:var(--brand-surface);flex:0 0 auto}
-#v2ShDest .orden .cta{width:100%;border:0;border-radius:14px;padding:15px;font-size:16px;
-  font-weight:900;background:var(--brand-accent);color:#fff;cursor:pointer}
-/* ── v3.3 · carrello "Tu pedido 🛎" con stepper a sinistra ── */
-.v2c-tit{padding:4px 0 8px;font-size:19px;font-weight:900;color:var(--brand-text)}
-.v2c-it{display:flex;gap:10px;align-items:center;padding:9px 0}
-.v2c-it .nom{flex:1;font-size:14.5px;font-weight:600;color:var(--brand-text);min-width:0}
-.v2c-it .nom small{display:block;color:var(--brand-text-muted);font-weight:400;font-size:12px}
-.v2c-it .imp{font-weight:800;color:var(--brand-text-muted);font-variant-numeric:tabular-nums}
-.v2c-tot{display:flex;padding:12px 0;font-size:17px;font-weight:900;color:var(--brand-text)}
-.v2c-tot span:last-child{margin-left:auto;color:var(--v2-oro)}
-body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
-</style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.8.0 · 12jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -3936,21 +3391,15 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 <!-- ── HEADER ── -->
 <div id="header">
   <div class="header-inner">
-    <!-- round4 (12-lug) · header a TRE ZONE: cliente | LOGO AL CENTRO | campana+idioma -->
-    <div class="v2-hz-left">
-      <button class="v2-chip-id" id="v2ChipId" onclick="v2AbrirId()" style="display:none">Mesa –</button>
-    </div>
     <div class="brand-logo-wrap">
       <img class="brand-logo-img hidden" id="brandLogoImg" alt="Logo" src="">
       <div class="brand-logo-text" id="brandLogoText">●&nbsp;Menú</div>
-      <div class="v2-tagline" id="v2Tagline">SAPORE - COCKTAILS - BPM</div>
     </div>
     <div class="header-right">
       <!-- v1.11 · lente search nell'header (sostituisce search bar sticky) -->
       <button class="header-search-btn" id="headerSearchBtn" onclick="openSearchOverlay()" aria-label="Buscar" data-i18n-aria="nav_search">
         <span class="header-search-icon">⌕</span>
       </button>
-      <button class="v2-bell" id="v2Bell" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero" style="display:none">🔔</button>
       <div id="mesaBadge"><span class="mesa-icon">🪑</span><span id="mesaNum">–</span></div>
       <button class="lang-btn" id="langBtn" onclick="toggleLangMenu()" aria-label="Cambia idioma">
         <span class="lang-flag" id="langFlag">🌐</span>
@@ -3969,20 +3418,6 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
   <!-- v1.10 · 24 barre generate via JS al boot (vedi initWaveform) · waveform 22px variante B -->
   <div class="rhythm-waveform" id="rhythmWaveform"></div>
 </div>
-
-<!-- v3.3 fix ③ + oss.3 (12-lug) · buscador che filtra in place + PILL del mesero
-     nella stessa riga (una riga guadagnata; le stelline nascono qui dopo il 1º pedido) -->
-<div id="v2Buscar"><div style="display:flex;gap:8px;align-items:stretch">
-  <div class="wrap" style="flex:1">
-    <span class="lupa">🔎</span>
-    <input id="v2Q" type="search" placeholder="Buscar…" autocomplete="off">
-    <button class="x" id="v2Qx" onclick="v2LimpiaQ()">✕</button>
-  </div>
-  <div id="v2MeseroPill">
-    <span class="mfoto">🧑</span><span id="v2MeseroTxt"><small>te atiende</small> <b>—</b></span>
-    <span id="v2Stars"></span>
-  </div>
-</div></div>
 
 <!-- ── MACRO-GROUPS ── -->
 <div id="groupBar"><div class="group-grid" id="groupGrid"></div></div>
@@ -4040,12 +3475,6 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
   <button class="detail-close" onclick="closeDetail()" aria-label="Cerrar">✕</button>
   <div class="sheet-handle" onclick="closeDetail()"></div>
   <div id="sheetContent"></div>
-  <!-- v2.0 · barra d'ordine fissa (gesto ②): stepper + CTA bloccato finché
-       manca una scelta obbligatoria (término/bebida) -->
-  <div id="v2Orden">
-    <span class="v2-step"><button onclick="v2DetQty(-1)">−</button><b id="v2DetQ">1</b><button onclick="v2DetQty(1)">＋</button></span>
-    <button class="cta" id="v2DetCta" onclick="v2DetAgregar()"></button>
-  </div>
 </div>
 
 <!-- ── CONFIRM SHEET ── -->
@@ -4077,8 +3506,6 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 <div id="cartOverlay" onclick="closeCart()"></div>
 <div id="cartSheet" role="dialog" aria-modal="true" aria-label="Mi pedido">
   <div class="confirm-handle"></div>
-  <!-- oss.7 (12-lug) · la ✕ per chiudere il carrello -->
-  <button class="v2-x" onclick="closeCart()" style="top:14px">✕</button>
   <div id="cartSheetContent"><!-- popolato da renderCart() --></div>
 </div>
 
@@ -4099,72 +3526,6 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
       <span class="bnav-badge" id="cartBadge">0</span>
     </button>
   </div>
-</div>
-
-<!-- ═══ v2.0 · BARRA PEDIDO verde fissa (gesto ③) + strip ⚡ BPM (il terzo
-     tempo del lema · gesto ⑧) — si impilano: barra sopra, strip sotto ═══ -->
-<div id="v2Barra"><button id="v2BarraBtn" onclick="openCart()"><span class="n" id="v2BN">0</span>
-  <span id="v2BTxt">Ver tu pedido</span> <span class="tot" id="v2BTot"></span> →</button></div>
-<div id="v2Noche"><button onclick="v2AbrirNoche()"><span class="v2-vinilo"></span>
-  <span id="v2NocheTxt">⚡ <span class="v2-lema" style="color:#fff;text-shadow:0 0 8px rgba(180,106,224,.8)">BPM</span> — quién toca · eventos</span>
-  <span class="v2-djtag" id="v2DjTag" style="display:none"><span class="v2-ondot"></span>DJ-BOX ON</span></button></div>
-
-<div class="v2-velo" id="v2Velo" onclick="v2CerrarSheets()"></div>
-
-<!-- v2.0 · chip identità → sheet che scende DALL'ALTO (dal chip che hai toccato) -->
-<div class="v2-sheet" id="v2ShId">
-  <div class="v2-handle"></div><button class="v2-x" onclick="v2CerrarSheets()">✕</button>
-  <div class="scroll"><div class="inf" id="v2ShIdInf"></div></div>
-</div>
-
-<!-- v3.3 fix ④ · destacado a PAGINA INTERA con ✕ -->
-<div class="v2-sheet" id="v2ShDest">
-  <div class="v2-handle"></div><button class="v2-x" onclick="v2CerrarSheets()">✕</button>
-  <div class="scroll">
-    <div class="ph" id="v2DPh"></div>
-    <div class="inf">
-      <div class="eyebrow" id="v2DEyebrow"></div>
-      <div class="nom" id="v2DNom"></div>
-      <div class="des" id="v2DDes"></div>
-      <div class="meta" id="v2DMeta"></div>
-    </div>
-  </div>
-  <div class="orden" id="v2DOrden"></div>
-</div>
-
-<!-- v2.0 · IL MONDO BPM (palette cabina · CARTELERA_BKS + DJS_AGENDA + porta DJ-BOX gated) -->
-<div class="v2-sheet" id="v2ShNoche">
-  <div class="v2-handle"></div><button class="v2-x" onclick="v2CerrarSheets()">✕</button>
-  <div class="scroll"><div class="inf" id="v2ShNocheInf"></div></div>
-</div>
-
-<!-- round BPM-2 · PÍDELE AL DJ (sopra il mondo BPM · palette cabina del mockup)
-     Tutto vivo — buscador iTunes REALE, géneros della casa — tranne PEDIR: dorme. -->
-<div class="v2-sheet" id="v2ShDj">
-  <div class="v2-handle"></div><button class="v2-x" onclick="v2CerrarDjBox()">✕</button>
-  <div class="scroll"><div class="inf">
-    <div class="v2dj-head">
-      <div class="v2dj-disc"></div>
-      <div><h2>Pídele al DJ 🎧</h2><div class="sub" id="v2DjQuien">la cabina te escucha</div></div>
-    </div>
-    <div class="v2dj-casa">
-      <div class="lbl">🏛 La casa permite esta noche</div>
-      <div class="v2dj-gchips" id="v2DjGchips"></div>
-    </div>
-    <div class="v2dj-buscar"><span class="lupa">🔎</span>
-      <input id="v2DjQ" type="search" placeholder="Busca tu canción… (mín. 3 letras)" autocomplete="off"></div>
-    <div class="v2dj-estado" id="v2DjEstado">La búsqueda es en vivo — escribe y mira.</div>
-    <div id="v2DjRes"></div>
-    <div class="v2dj-prox" id="v2DjProx">⏳ PEDIR llega muy pronto — podrás mandarla a cabina desde aquí</div>
-    <div class="v2dj-regla">El DJ tiene la última palabra: si no la pone, <b>te devolvemos la plata solos</b>.</div>
-  </div></div>
-</div>
-
-<!-- FINAL round oss.4b · lightbox poster (sopra tutto, ✕ per chiudere) -->
-<div id="v2Lightbox" onclick="v2LightboxClose()">
-  <button class="v2-x" onclick="v2LightboxClose()" style="top:14px">✕</button>
-  <img id="v2LightboxImg" src="" alt="">
-  <div class="cap" id="v2LightboxCap"></div>
 </div>
 
 <!-- ── TOAST ── -->
@@ -4920,16 +4281,6 @@ let ALMUERZO_OPCIONES = [];
    Tres cuartos, Bien cocida" + token 'carne' nella colonna Badges del prodotto
    → al tap si chiede il término. Data-gated come le bebidas. */
 let TERMINO_OPCIONES = [];
-/* ═══ v2.0 · stato del menù che VENDE ═══ */
-let ENVIO_DIRECTO = false;        // PARAMETROS.envio_directo_activo (via A carrello)
-let DJBOX_ON      = false;        // PARAMETROS.djbox_on (porta DJ-BOX nel mondo BPM)
-let ULTIMA_RONDA  = null;         // items dell'ultimo pedido inviato (🔁 otra ronda)
-const RONDA_KEY   = 'ultima_ronda_v1';
-let V2_DET        = null;         // {p, qty, preguntas[], resp{}} della scheda aperta
-let V2_CALIF      = 0;            // stelline date al mesero (1×/sessione)
-let V2_Q          = '';           // buscador in place (fix ③ v3.3)
-let V2_WORLD      = null;         // mondo del lema evidenziato (i chip SALTANO, non filtrano)
-try { ULTIMA_RONDA = JSON.parse(sessionStorage.getItem(RONDA_KEY) || 'null'); } catch(e){}
 
 let ALL_PRODUCTS     = [];
 let ALL_CATEGORIES   = [];
@@ -5073,9 +4424,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // v1.11 · stickyCallBar rimosso · campanella vive ora in bottom-nav (sempre visibile, no toggle)
   }
   if(MEMBER_ID) loadMember(MEMBER_ID);
-
-  // v2.0 · chip identità · campanella header · strip BPM · barra pedido
-  v2Boot();
 
   // v1.10 · genera 24 barre del waveform · solo per BKS (theme-dark)
   initWaveform();
@@ -5267,25 +4615,13 @@ function updateStickyTops(){
   const cats    = document.getElementById('catSticky');
   if(!header||!faja||!cats) return;
   const h1 = header.offsetHeight;
-  const h2 = faja.offsetHeight;   // v2: fajaBar nascosta → 0
+  const h2 = faja.offsetHeight;
   const h3 = (groups && groups.classList.contains('show')) ? groups.offsetHeight : 0;
   const h4 = (xs && xs.classList.contains('visible')) ? xs.offsetHeight : 0;
-  // oss.5 (12-lug) · il blocco header→buscador→chip lema resta FISSO in alto:
-  // la catena sticky ora è header(0) → v2Buscar(h1) → groupBar(h1+buscar).
-  const buscar = document.getElementById('v2Buscar');
-  const hB = buscar ? buscar.offsetHeight : 0;
-  if(buscar) buscar.style.top = h1 + 'px';
   faja.style.top = h1 + 'px';
-  if(groups) groups.style.top = (h1 + hB) + 'px';
-  if(xs) xs.style.top = (h1 + hB + h3) + 'px';
-  cats.style.top = (h1 + h2 + h4) + 'px';
-}
-/* oss.5+6 · l'altezza del blocco fisso — serve agli sheet "a metà schermo"
-   (si aprono FINO alla riga sotto i chip, e sopra si continua a navigare) */
-function v2TopBlockH(){
-  const h = (id)=>{ const el = document.getElementById(id); return el ? el.offsetHeight : 0; };
-  const groups = document.getElementById('groupBar');
-  return h('header') + h('v2Buscar') + ((groups && groups.classList.contains('show')) ? groups.offsetHeight : 0);
+  if(groups) groups.style.top = (h1 + h2) + 'px';
+  if(xs) xs.style.top = (h1 + h2) + 'px';      // strip sotto fajaBar (groupBar non è sticky · scrolla via)
+  cats.style.top = (h1 + h2 + h4) + 'px';      // cat-sticky scende quando strip visible
 }
 
 /* ════════════════════════════════════════════════════
@@ -5476,14 +4812,6 @@ function aplicarConfigCliente(cfg){
   else if(qsPedido === 'off') PEDIDO_DIGITAL = false;
   if(MODO_RESPALDO) PEDIDO_DIGITAL = false;          // senza GAS niente pedido
   LLAMAR_MESERO_ENABLED = PEDIDO_DIGITAL;            // campanella e pedido viaggiano insieme
-
-  // v2.0 · i due gate del mockup v3.3, data-gated da PARAMETROS (oggi non
-  // esistono nel foglio → nascono spenti · si accendono senza deploy):
-  // envio_directo_activo → via A del carrello ("¿Enviar directo a la cocina?")
-  //   — si accende quando il KDS è collaudato al 100% (decisione Alberto).
-  // djbox_on → porta DJ-BOX nel mondo BPM (modulo in build lun 20).
-  ENVIO_DIRECTO = String(cfg.envio_directo_activo || 'FALSE').trim().toUpperCase() === 'TRUE';
-  DJBOX_ON      = String(cfg.djbox_on || 'FALSE').trim().toUpperCase() === 'TRUE';
 }
 
 /* v1.32 · CSV → ALL_PRODUCTS + ALL_CATEGORIES · corpo unico vivo/respaldo */
@@ -5696,49 +5024,42 @@ function renderGroups(){
   const promoProductsCount = promoProdsSet.size;
   const totalChips = groupKeys.length + (promosCount > 0 ? 1 : 0) + (almuerzoChipCount > 0 ? 1 : 0);
   grid.className = 'group-grid g-' + totalChips;
-  // v2.0 · IL LEMA È L'ARCHITETTURA (scoperta di Alberto, focus group v3.2):
-  // il motto BKS "SAPORE · COCKTAILS · BPM" È la divisione del menù.
-  // Le parole del lema NON si traducono mai (sono marchio); il sottotitolo sì
-  // (getGroupName → i18n). Chiavi vere del foglio: Comida / Barra / Dolci.
-  // oss.4 (12-lug) · SAPORE e COCKTAILS sono parole del LEMA (si vestono
-  // diverse, come BPM nella strip); POSTRES·café è un chip normale.
-  const v2Lema = (gk)=>{
-    const k = gk.toLowerCase();
-    if(k.includes('comida')) return { b:'SAPORE', s:'comida', lema:true };
-    if(k.includes('barra'))  return { b:'COCKTAILS', s:'', lema:true };
-    if(k.includes('dolci')||k.includes('postre')||k.includes('dulce'))
-      return { b:'POSTRES', s:'café', lema:false };
-    return { b:getGroupName(gk)||gk, s:'', lema:false };
-  };
-  // v3.3 fix ③ · i chip del lema SALTANO alla sezione (tutto il menù resta in
-  // una lista sola — il mockup validato); Promos/Almuerzo restano filtri modali.
-  if(V2_WORLD === null && groupKeys.length) V2_WORLD = groupKeys[0];
   let html = groupKeys.map(gk=>{
-    const isActive = CURRENT_GROUP === null && V2_WORLD === gk;
+    const g = CATEGORY_GROUPS[gk];
+    const isActive = CURRENT_GROUP === gk;
     const count = countByGroup[gk] || 0;
     // v1.10 · count=0 → disabled grigio invece di nascosto · stabilità interfaccia
     const isDisabled = count === 0;
-    const onclick = isDisabled ? '' : `onclick="v2Salta('${gk}')"`;
-    const L = v2Lema(gk);
+    const onclick = isDisabled ? '' : `onclick="setGroup('${gk}')"`;
     return `
-      <button class="v2-nchip${isActive?' active':''}${isDisabled?' disabled':''}" ${onclick}${isDisabled?' aria-disabled="true"':''}>
-        <b class="${L.lema?'v2-lema':''}">${L.b}</b>${L.s?`<small>${L.s}</small>`:''}
+      <button class="group-chip${isActive?' active':''}${isDisabled?' disabled':''}" ${onclick}${isDisabled?' aria-disabled="true"':''}>
+        <span class="group-chip-emoji">${g.emoji||'✦'}</span>
+        <span class="group-chip-name">${getGroupName(gk)}</span>
+        <span class="group-chip-count">${count}</span>
       </button>`;
   }).join('');
-  // oss.6 (12-lug) · niente chip PROMOS/ALMUERZO: vivono dentro ✨ Destacados
-  // (la nav resta pura: i mondi del lema). I gruppi virtuali __PROMOS__/
-  // __ALMUERZO__ restano nel motore, semplicemente nessun chip li attiva.
-  // round3 oss.4 · il 4º chip: ⚡BPM — apre il MONDO INTERO (ex strip del foot).
-  // Così il lema completo (SAPORE·COCKTAILS·BPM) vive nell'header attivo.
-  let nChips = groupKeys.length;
-  if(v2NocheVisible()){
-    nChips++;
+  if(promosCount > 0){
+    const isActive = CURRENT_GROUP === '__PROMOS__';
     html += `
-      <button class="v2-nchip v2-nchip-bpm" onclick="v2AbrirNoche()">
-        <b class="v2-lema">⚡BPM${DJBOX_ON?'<span class="v2-ondot"></span>':''}</b><small>la noche</small>
+      <button class="group-chip group-chip-promos${isActive?' active':''}" onclick="setGroup('__PROMOS__')">
+        <span class="group-chip-emoji">🎁</span>
+        <span class="group-chip-name">${getGroupName('promos')}</span>
+        <span class="group-chip-count">${promoProductsCount}</span>
       </button>`;
   }
-  grid.className = 'group-grid g-' + nChips;
+  // v1.23 · S13fix · chip "Menú del Día" · prodotti con regola-prezzo almuerzo attiva ADESSO
+  const almuerzoProdsCount = ALL_PRODUCTS.filter(p =>
+    PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && !p.agotado && productInFaja(p)
+  ).length;
+  if(almuerzoProdsCount > 0){
+    const isActive = CURRENT_GROUP === '__ALMUERZO__';
+    html += `
+      <button class="group-chip group-chip-almuerzo${isActive?' active':''}" onclick="setGroup('__ALMUERZO__')">
+        <span class="group-chip-emoji">🍽️</span>
+        <span class="group-chip-name">${getLang('group_almuerzo') || 'Menú del Día'}</span>
+        <span class="group-chip-count">${almuerzoProdsCount}</span>
+      </button>`;
+  }
   grid.innerHTML = html;
   wrap.classList.add('show');
 }
@@ -5769,9 +5090,8 @@ function scrollToCategory(id){
     const cats   = document.getElementById('catSticky');
     const groups = document.getElementById('groupBar');
     const groupsH = (groups && groups.classList.contains('show')) ? groups.offsetHeight : 0;
-    const buscarH = document.getElementById('v2Buscar')?.offsetHeight || 0;   // v2: buscador sticky
-    const offset = (header?.offsetHeight||54) + (faja?.offsetHeight||0) +
-                   groupsH + (cats?.offsetHeight||0) + buscarH + 8;
+    const offset = (header?.offsetHeight||54) + (faja?.offsetHeight||50) +
+                   groupsH + (cats?.offsetHeight||44) + 8;
     window.scrollTo({top: el.offsetTop - offset, behavior:'smooth'});
   }
   document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
@@ -7128,211 +6448,8 @@ function _catColor(catId){
   return colors[catId] || '#F5F5F5';
 }
 
-/* ═══ v2.0 · DESTACADOS · carosello misto (gesto ④, mapping fogli v3.1):
-   ① push del Comandante (adminPush → Push_Hasta/Push_Frase)
-   ② de la casa (Es_Sugerencia_Destacada)
-   ③ evento attivo (CARTELERA_EVENTOS via CARTELERA_DATA, tap → cartelera)
-   Max 6 card. Prodotto tap → scheda. ═══ */
-function v2AlmuerzoProds(){
-  return ALL_PRODUCTS.filter(p =>
-    PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && !p.agotado && productInFaja(p));
-}
-/* coda finale (12-lug) · IL DJ VIVO SI VEDE DALLA HOME: quando la cabina
-   suona, sopra i Destacados appare la strip-porta — vinile, EN CABINA col
-   nome, BPM e slogan, EQ vivo — tap → il mondo BPM. Senza DJ: niente strip,
-   basta il chip ⚡BPM. (Si aggiorna col poll dei ritmi, 60s.) */
-function v2DjLiveHTML(){
-  const dj = (typeof resolveDjActual === 'function') ? resolveDjActual() : null;
-  if(!dj || !dj.nombre) return '';
-  const rit = RITMO_ACTUAL;
-  const eq = Array.from({length:6}, (_,i) =>
-    `<i style="animation-delay:${(i*160)%800}ms;animation-duration:${650+(i*70)%400}ms"></i>`).join('');
-  return `<button class="v2-djlive" onclick="v2AbrirNoche()">
-    <span class="v2-vinilo"></span>
-    <span class="b"><b><span class="v2-ondot"></span>EN CABINA · ${escapeHtml(dj.nombre)}</b>
-    <small>${rit ? `${rit.emoji||''} ${rit.bpm||''} BPM · ${escapeHtml(rit.mensaje_cliente||rit.etiqueta||'')}` : 'la música manda'}</small></span>
-    <span class="eq">${eq}</span><span class="arr">›</span>
-  </button>`;
-}
-
-function v2DestacadosHTML(){
-  // FINAL oss.2 · anti-flash: al boot il primo render parte PRIMA che ritmi e
-  // reglas arrivino → per un attimo si vedevano i destacados "vecchi". Finché
-  // i ritmi non ci sono, niente carosello; loadRitmos/loadPreciosRegla
-  // ri-renderizzano da soli quando i dati atterrano.
-  if(!RITMOS_DISP || !RITMOS_DISP.length) return '';
-  // oss.6 (12-lug) · QUI dentro vive tutto ciò che spinge: push del Comandante,
-  // Menú del Día, PROMOS (niente più chip), de la casa, evento di cartelera.
-  const dst = [];
-  ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && esPush(p))
-    .forEach(p=>dst.push({ tipo:'push', p }));
-  const alm = v2AlmuerzoProds();
-  if(alm.length) dst.push({ tipo:'almuerzo', alm });
-  const promoSeen = new Set();
-  ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && PROD_TO_PROMO[p.id] && !esPush(p))
-    .forEach(p=>{ if(!promoSeen.has(p.id)){ promoSeen.add(p.id); dst.push({ tipo:'promo', p }); } });
-  ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && p.es_sugerencia_destacada && !esPush(p) && !promoSeen.has(p.id))
-    .forEach(p=>dst.push({ tipo:'casa', p }));
-  const ev = (CARTELERA_DATA && CARTELERA_DATA.evento) || (CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos) || null;
-  if(ev && (ev.titulo_es || ev.titulo || ev.Titulo)) dst.push({ tipo:'evento', e: ev });
-  if(!dst.length) return '';
-  const cards = dst.slice(0,8).map(d=>{
-    if(d.tipo === 'evento'){
-      const e = d.e;
-      const tit = e.titulo_es || e.titulo || e.Titulo || '';
-      const eyebrow = e.eyebrow_es || e.eyebrow || e.Eyebrow || 'EVENTO';
-      const ph = e.foto_url ? `<img src="${e.foto_url}" alt="" loading="lazy" onerror="this.parentElement.textContent='🪩'">` : '🪩';
-      return `<button class="v2-dst" onclick="v2AbrirDest('ev')">
-        <span class="flag v2-flag-evento">🎉 EVENTO</span>
-        <div class="ph">${ph}</div>
-        <div class="inf"><div class="eyebrow">${eyebrow}</div><div class="nom">${tit}</div></div></button>`;
-    }
-    if(d.tipo === 'almuerzo'){
-      const regla = PRECIOS_REGLA_MAP[d.alm[0].id];
-      const precio = regla ? formatPrice(regla.precio) : '';
-      const ph = d.alm[0].imagen ? `<img src="${d.alm[0].imagen}" alt="" loading="lazy" onerror="this.parentElement.textContent='🍱'">` : '🍱';
-      return `<button class="v2-dst" onclick="v2AbrirDest('almuerzo')">
-        <span class="flag" style="background:#3DAA68;color:#fff">🍽️ MENÚ</span>
-        <div class="ph">${ph}</div>
-        <div class="inf"><div class="eyebrow">de lunes a viernes</div>
-        <div class="nom">${getLang('group_almuerzo')||'Menú del Día'}</div>
-        <div class="precio">${precio}</div></div></button>`;
-    }
-    const p = d.p;
-    const promo = PROD_TO_PROMO[p.id];
-    const is2x1 = promo && (promo.tipo === '2x1' || promo.tipo === 'multiplo');
-    const flag = d.tipo === 'push'
-      ? `<span class="flag v2-flag-push">🔥 EL COMANDANTE</span>`
-      : (is2x1 || d.tipo === 'promo' ? `<span class="flag v2-flag-2x1">🎁 ${is2x1?'2x1':'PROMO'}</span>` : '');
-    const prices = getDisplayPrice(p);
-    // coda finale · fallback emoji come le file: le URL morte del foglio (le
-    // cloudfront del vecchio POS) non mostrano MAI il fondo vuoto coi bordi
-    const catEmojiD = ALL_CATEGORIES.find(c=>c.id===p.categoria)?.emoji || '🍽️';
-    const ph = p.imagen ? `<img src="${p.imagen}" alt="" loading="lazy" onerror="this.parentElement.textContent='${catEmojiD}'">`
-      : catEmojiD;
-    const eyebrow = d.tipo==='push' ? (p.push_frase||'push del día')
-      : d.tipo==='promo' ? (promo && promo.nombre ? promo.nombre : 'promo de hoy') : 'de la casa';
-    return `<button class="v2-dst" onclick="v2AbrirDest('p:${p.id}','${d.tipo}')">${flag}
-      <div class="ph">${ph}</div>
-      <div class="inf"><div class="eyebrow">${eyebrow}</div>
-      <div class="nom">${toTitleCase(p.nombre)}</div><div class="precio">${prices.main}</div></div></button>`;
-  }).join('');
-  return `<div class="v2-sec-t">✨ Destacados</div><div class="v2-carrusel">${cards}</div>`;
-}
-
-/* v3.3 fix ④ + oss.6 (12-lug) · il destacado si apre A METÀ SCHERMO: sale fino
-   alla riga sotto i chip del lema — il blocco fisso resta vivo (puoi cambiare
-   mondo, cercare, aprire il tuo chip). NIENTE velo: sopra si naviga. */
-function v2AbrirDest(key, tipo){
-  const ph = document.getElementById('v2DPh'), eb = document.getElementById('v2DEyebrow'),
-        nom = document.getElementById('v2DNom'), des = document.getElementById('v2DDes'),
-        meta = document.getElementById('v2DMeta'), orden = document.getElementById('v2DOrden');
-  ph.style.height = ''; ph.querySelectorAll && (ph.innerHTML = '');
-  if(key === 'ev'){
-    const e = (CARTELERA_DATA && CARTELERA_DATA.evento) || (CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos) || {};
-    // poster verticale (modo_render auto_contained) → contain, mai croppato
-    ph.innerHTML = e.foto_url
-      ? `<img src="${e.foto_url}" alt="" style="object-fit:contain;background:#0a0a14">` : '🪩';
-    eb.textContent = e.eyebrow_es || e.eyebrow || 'EVENTO';
-    nom.textContent = e.titulo_es || e.titulo || '';
-    des.textContent = e.subtitulo_es || e.detalle || '';
-    meta.textContent = e.horario_visible ? '🕒 ' + e.horario_visible : '';
-    orden.innerHTML = '';
-  } else if(key === 'almuerzo'){
-    const alm = v2AlmuerzoProds();
-    if(!alm.length) return;
-    const regla = PRECIOS_REGLA_MAP[alm[0].id];
-    ph.style.height = '0';
-    eb.textContent = '🍽️ de lunes a viernes';
-    nom.textContent = getLang('group_almuerzo') || 'Menú del Día';
-    des.textContent = (ALMUERZO_INCLUYE_TXT || '') + (regla ? ' · todo a ' + formatPriceWithSymbol(regla.precio) : '');
-    meta.innerHTML = '';
-    // la lista dei piatti del menú, ognuno col suo ＋ (si ordina da qui)
-    orden.innerHTML = '';
-    meta.innerHTML = `<div style="margin:6px -18px 0">` + alm.map(p => `
-      <div class="v2-fila" data-id="${p.id}" style="position:relative">
-        <div class="ph" onclick="v2CerrarSheets();openDetail('${p.id}')">${p.imagen?`<img src="${p.imagen}" alt="" loading="lazy">`:(ALL_CATEGORIES.find(c=>c.id===p.categoria)?.emoji||'🍱')}</div>
-        <div class="b" onclick="v2CerrarSheets();openDetail('${p.id}')">
-          <div class="nom">${toTitleCase(p.nombre)}</div>
-          <div class="pr"><span class="v2-precio">${formatPrice((PRECIOS_REGLA_MAP[p.id]||{}).precio||p.precio)}</span></div>
-        </div>
-        <span id="v2ctrlx-${p.id}">${v2CtrlHTML(p)}</span>
-      </div>`).join('') + `</div>`;
-  } else {
-    const p = ALL_PRODUCTS.find(x=>x.id===key.slice(2));
-    if(!p) return;
-    trackProductView(p);
-    const promo = PROD_TO_PROMO[p.id];
-    const is2x1 = promo && (promo.tipo === '2x1' || promo.tipo === 'multiplo');
-    const prices = getDisplayPrice(p);
-    ph.innerHTML = p.imagen ? `<img src="${p.imagen}" alt="">`
-      : (ALL_CATEGORIES.find(c=>c.id===p.categoria)?.emoji || '🍽️');
-    eb.textContent = tipo === 'push' ? '🔥 el Comandante lo recomienda'
-      : tipo === 'promo' ? '🎁 ' + ((promo && promo.nombre) || 'promo de hoy') : '✨ de la casa';
-    nom.textContent = toTitleCase(p.nombre);
-    des.textContent = (tipo === 'push' && p.push_frase ? p.push_frase + ' — ' : '') +
-      getProductDesc(p) + (is2x1 ? ' · 🎁 2x1: pagas 1, llevas 2' : '');
-    meta.textContent = prices.orig ? prices.orig + ' → ' + prices.main : prices.main;
-    orden.innerHTML = (!IS_VETRINA && PEDIDO_DIGITAL)
-      ? (v2Preguntas(p).length
-        ? `<button class="cta" onclick="v2CerrarSheets();openDetail('${p.id}')">Elegir y agregar →</button>`
-        : `<button class="cta" onclick="v2Mas('${p.id}',1);v2CerrarSheets();showToastMsg('✓ ${toTitleCase(p.nombre).replace(/'/g,"\\'")} en tu pedido')">＋ Agregar · ${prices.main}</button>`)
-      : '';
-  }
-  const sh = document.getElementById('v2ShDest');
-  sh.style.maxHeight = sh.style.height = `calc(100dvh - ${v2TopBlockH() + 6}px)`;
-  sh.style.minHeight = '0';
-  sh.classList.add('up');
-  document.body.classList.add('v2-sheet-open');   // oss.7 · le strip si fanno da parte
-}
-
-/* round5 oss.6 · chiudi TUTTO ciò che copre (modal prodotto, carro, sheets v2):
-   il tap su un chip mentre un modal è aperto = chiude E salta, un gesto solo */
-function v2CerrarTodo(){
-  v2CerrarSheets();
-  try { closeDetail(); } catch(e){}
-  try { closeCart(); } catch(e){}
-}
-
-/* v3.3 fix ③ · il salto ai mondi + buscador in place */
-function v2Salta(gk){
-  v2CerrarTodo();   // oss.6 · un gesto solo: chiude il modal e salta al mondo
-  if(V2_Q) v2LimpiaQ();
-  if(CURRENT_GROUP !== null){ CURRENT_GROUP = null; renderMenu(); }
-  V2_WORLD = gk;
-  renderGroups();
-  const cats = (CATEGORY_GROUPS && CATEGORY_GROUPS[gk] && CATEGORY_GROUPS[gk].cats) || [];
-  const target = cats.find(c => document.getElementById('cat-' + c));
-  if(target) setTimeout(()=>scrollToCategory(target), 60);
-}
-function v2LimpiaQ(){
-  V2_Q = '';
-  const q = document.getElementById('v2Q');
-  if(q) q.value = '';
-  document.getElementById('v2Qx').classList.remove('show');
-  renderMenu();
-}
-function v2Norm(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
-function v2SearchHTML(){
-  const q = v2Norm(V2_Q);
-  const hits = ALL_PRODUCTS.filter(p =>
-    !p.agotado && productInFaja(p) &&
-    v2Norm(p.nombre + ' ' + (p.descripcion||'') + ' ' + getProductDesc(p)).indexOf(q) >= 0);
-  let h = `<div class="v2-sec-t">🔎 ${hits.length} para «${escapeHtml(V2_Q)}»</div>`;
-  h += hits.length
-    ? `<div class="product-list">${hits.map(p=>renderProductCard(p)).join('')}</div>`
-    : `<div style="padding:30px 16px;color:var(--brand-text-muted);text-align:center;font-size:14px">Nada con ese nombre — mira los mundos arriba 👆</div>`;
-  return h;
-}
-
 function renderMenu(){
   const wrap = document.getElementById('menuContent');
-  // v3.3 fix ③ · buscador in place: la query sostituisce la lista (cerca→＋→barra)
-  if(V2_Q && V2_Q.length >= 2){
-    document.getElementById('emptyState').classList.remove('show');
-    wrap.innerHTML = v2SearchHTML();
-    return;
-  }
   const visibleCatIds = getVisibleCategories().map(c => c.id);
   const ritmoFilterActive = RITMO_FILTER_ON && RITMO_ACTUAL && RITMO_ACTUAL.prod_ids && RITMO_ACTUAL.prod_ids.length > 0;
   const ritmoProdSet = ritmoFilterActive ? new Set(RITMO_ACTUAL.prod_ids) : null;
@@ -7379,9 +6496,7 @@ function renderMenu(){
   Object.keys(byCat).forEach(k=>{
     byCat[k].sort((a,b)=> (esPush(b)?1:0) - (esPush(a)?1:0));
   });
-  // v2.0 · DESTACADOS: carosello misto in testa (gesto ④) — solo sulla home
-  // + coda finale: la strip EN CABINA quando il DJ suona (porta al mondo BPM)
-  let html = (CURRENT_GROUP === null) ? (v2DjLiveHTML() + v2DestacadosHTML()) : '';
+  let html = '';
   visibleCats.forEach(cat=>{
     const items = byCat[cat.id];
     if(!items || items.length === 0) return;
@@ -7464,81 +6579,22 @@ function renderProductCard(p){
   const nuevoDot = isNew && !p.agotado
     ? `<div class="card-nuevo-dot" title="${getLang('nuevo')}"></div>`
     : '';
-  // ═══ v2.0 · FILA con ＋ diretto (mockup v3.3, gesto ①) ═══
-  // Il corpo apre la scheda; il ＋ compra al volo (con domanda obbligatoria
-  // — término/bebida — il ＋ apre la scheda e la domanda non si salta).
-  const thumb = p.imagen
-    ? `<img src="${p.imagen}" alt="" loading="lazy" onerror="this.style.display='none';this.parentElement.textContent='${catEmoji}'">`
-    : catEmoji;
-  const tags = [
-    isDosPorUno ? `<span class="v2-tagx v2-tag2x1">2x1</span>` : '',
-    isAlmuerzoActivo ? `<span class="v2-tagx v2-tagmenu">🍽️ ${getLang('group_almuerzo')||'Menú del Día'}</span>` : '',
-    isPushed ? `<span class="v2-tagx v2-tagpush">★ ${pushFrase}</span>` : '',
-    v2Preguntas(p).length ? `<span class="v2-tagx v2-tagq">elige al agregar</span>` : '',
-  ].join('');
+  // v1.11 · layout Strada C · nome+prezzo top, descrizione 2 righe sotto
   return `
-    <div class="v2-fila" data-id="${p.id}" style="position:relative">
-      <div class="ph" onclick="openDetail('${p.id}')">${thumb}${nuevoDot}</div>
-      <div class="b" onclick="openDetail('${p.id}')">
-        <div class="nom">${toTitleCase(p.nombre)}</div>
-        ${getProductDesc(p) ? `<div class="des">${getProductDesc(p)}</div>` : ''}
-        <div class="pr">
-          ${promoPriceOrig ? `<span class="v2-precio-orig">${promoPriceOrig}</span>` : ''}
-          <span class="v2-precio">${promoPriceMain}</span>${tags}
+    <div class="product-card${p.agotado?' agotado':''}${isNew?' nuevo-highlight':''}${promoClass}${almuerzoClass}${pushClass}" data-id="${p.id}" onclick="openDetail('${p.id}')">
+      <div class="card-img-wrap">${imgHtml}${pushFlag}${promoFlag}${almuerzoFlag}${nuevoDot}</div>
+      <div class="card-body">
+        <div class="card-top-row">
+          <div class="card-name${p.agotado?' agotado-text':''}">${toTitleCase(p.nombre)}</div>
+          <div class="card-price"${(promo && !isDosPorUno)?' style="color:#d97706;font-weight:600"':''}>
+            ${promoPriceOrig ? `<span class="card-price-orig">${promoPriceOrig}</span>` : ''}${promoPriceMain}
+          </div>
         </div>
+        ${getProductDesc(p) ? `<div class="card-desc">${getProductDesc(p)}</div>` : ''}
+        ${badgesHtml}
       </div>
-      <span id="v2ctrl-${p.id}">${v2CtrlHTML(p)}</span>
+      ${p.agotado ? `<div class="agotado-overlay"><span class="agotado-label">${getLang('agotado')}</span></div>` : ''}
     </div>`;
-}
-
-/* ═══ v2.0 · il ＋ diretto e lo stepper in-place (gesto ①) ═══ */
-function v2Preguntas(p){
-  // stessa logica di addToCart v1.42: domande data-gated incatenabili
-  const preguntas = [];
-  const esAlmuerzo = PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo';
-  const esCarne = (p.badges||'').toLowerCase().includes('carne');
-  if(esAlmuerzo && ALMUERZO_OPCIONES.length) preguntas.push({ tipo:'bebida',  opciones: ALMUERZO_OPCIONES });
-  if(esCarne && TERMINO_OPCIONES.length)     preguntas.push({ tipo:'termino', opciones: TERMINO_OPCIONES });
-  return preguntas;
-}
-function v2QtyOf(id){
-  return CART.items.filter(i=>i.id===id).reduce((s,i)=>s+(i.qty||1),0);
-}
-function v2CtrlHTML(p){
-  if(IS_VETRINA || !PEDIDO_DIGITAL) return '';   // vetrina/kill-switch: si guarda, non si ordina
-  const n = v2QtyOf(p.id);
-  if(n > 0 && !v2Preguntas(p).length){
-    return `<span class="v2-step"><button onclick="v2Mas('${p.id}',-1)">−</button><b>${n}</b><button onclick="v2Mas('${p.id}',1)">＋</button></span>`;
-  }
-  const acc = v2Preguntas(p).length ? `openDetail('${p.id}')` : `v2Mas('${p.id}',1)`;
-  return `<button class="v2-add" onclick="${acc}">＋</button>`;
-}
-function v2Mas(id, delta){
-  const p = ALL_PRODUCTS.find(x=>x.id===id);
-  if(!p) return;
-  if(delta > 0){ _pushLinea(p, '', ''); }
-  else {
-    // decrementa l'ULTIMA riga di quel prodotto (op/termino inclusi)
-    for(let i = CART.items.length - 1; i >= 0; i--){
-      if(CART.items[i].id === id){
-        CART.items[i].qty = (CART.items[i].qty||1) - 1;
-        if(CART.items[i].qty <= 0) CART.items.splice(i, 1);
-        break;
-      }
-    }
-    if(CART.items.length === 0) CART.gancho_origen = '';
-    saveCart();
-  }
-  try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
-  v2RefreshCtrl(id);
-}
-function v2RefreshCtrl(id){
-  const p = ALL_PRODUCTS.find(x=>x.id===id);
-  if(!p) return;
-  const el = document.getElementById('v2ctrl-' + id);
-  if(el) el.innerHTML = v2CtrlHTML(p);
-  const elx = document.getElementById('v2ctrlx-' + id);   // il gemello nello sheet Menú del Día
-  if(elx) elx.innerHTML = v2CtrlHTML(p);
 }
 
 function openDetail(id){
@@ -7602,125 +6658,38 @@ function openDetail(id){
           ${prices.orig ? `<span class="sheet-price-orig">${prices.orig}</span>` : ''}
           <span class="sheet-price">${prices.main}</span>
         </div>
+        ${!p.agotado ? (LLAMAR_MESERO_ENABLED ? `
+          <button class="card-call-btn" style="width:48px;height:48px;font-size:22px"
+                  onclick="closeDetail();setTimeout(()=>onCallWaiterForProduct('${p.id}'),320)"
+                  aria-label="Llamar mesero">🔔</button>
+        ` : '') : ''}
       </div>
       ${(PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && ALMUERZO_INCLUYE_TXT) ? `
         <div class="almuerzo-incluye">🍽️ ${ALMUERZO_INCLUYE_TXT}</div>
       ` : ''}
-      ${!p.agotado && !IS_VETRINA && PEDIDO_DIGITAL ? v2PreguntasHTML(p) : ''}
+      ${!p.agotado && !IS_VETRINA ? `
+        <button class="cart-agregar-btn" id="agregarBtn-${p.id}"
+                onclick="addToCart('${p.id}')">
+          <span>＋</span><span>${getLang('cart_add') || 'Agregar a mi pedido'}</span>
+        </button>
+      ` : ''}
+      ${!p.agotado && LLAMAR_MESERO_ENABLED && MESA_ID ? `
+        <div style="text-align:center;font-size:12px;color:var(--brand-text-muted);margin:10px 0 0;letter-spacing:0.3px">
+          ${getLang('call_caption_product') || 'Toca 🔔 para llamar mesero por este producto'}
+        </div>
+      ` : ''}
       </div>
       ${upsellHtml}
     </div>`;
   document.getElementById('detailOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('detailSheet').classList.add('open'), 10);
   document.body.style.overflow = 'hidden';
-  document.body.classList.add('v2-sheet-open');   // oss.7 · le strip non coprono la barra d'ordine
-  // round5 oss.6 · la scheda si ferma sotto i chip (il blocco fisso resta vivo)
-  document.getElementById('detailSheet').style.maxHeight = 'calc(100dvh - ' + (v2TopBlockH() + 6) + 'px)';
-  // v2.0 · barra d'ordine fissa (gesto ②): stepper + CTA, bloccato finché
-  // manca una scelta obbligatoria
-  // FINAL fix 2 (12-lug) · se il prodotto è GIÀ nel carro, lo stepper del
-  // modal comanda il carro IN DIRETTA (fino a 0 = fuori): casa e modal
-  // sempre allineati, anche chiudendo con la ✕. Se non c'è: "Agregar N".
-  const yaEnCarro = v2QtyOf(p.id);
-  V2_DET = { p: p, qty: yaEnCarro > 0 ? yaEnCarro : 1, preguntas: v2Preguntas(p), resp: {}, live: yaEnCarro > 0 };
-  const orden = document.getElementById('v2Orden');
-  if(!p.agotado && !IS_VETRINA && PEDIDO_DIGITAL){
-    orden.classList.add('show');
-    document.getElementById('v2DetQ').textContent = V2_DET.qty;
-    v2DetPinta();
-  } else { orden.classList.remove('show'); }
-}
-
-/* ═══ v2.0 · preguntas INLINE nella scheda (término/bebida come chips) ═══ */
-function v2PreguntasHTML(p){
-  const qs = v2Preguntas(p);
-  if(!qs.length) return '';
-  const titulos = {
-    bebida:  getLang('almuerzo_elige') || 'Elige tu bebida o copa',
-    termino: getLang('termino_elige') || 'El término de tu carne',
-  };
-  return qs.map(q => `
-    <div class="v2-preg" data-tipo="${q.tipo}">
-      <div class="pt">${titulos[q.tipo] || 'Elige'}${q.tipo==='bebida' && ALMUERZO_INCLUYE_TXT ? ' · ' + ALMUERZO_INCLUYE_TXT : ''}</div>
-      <div class="v2-pchips">${q.opciones.map(o =>
-        `<span class="v2-pchip" onclick="v2DetElige('${q.tipo}','${o.replace(/'/g,"\\'")}',this)">${o}</span>`).join('')}</div>
-    </div>`).join('');
-}
-function v2DetElige(tipo, opcion, el){
-  if(!V2_DET) return;
-  V2_DET.resp[tipo] = opcion;
-  const cont = el.closest('.v2-pchips');
-  cont.querySelectorAll('.v2-pchip').forEach(c=>c.classList.toggle('on', c===el));
-  v2DetPinta();
-}
-function v2DetQty(d){
-  if(!V2_DET) return;
-  if(V2_DET.live){
-    // in diretta sul carro (rispettando op/termino della riga esistente)
-    v2LineDelta(V2_DET.p.id, d);
-    V2_DET.qty = v2QtyOf(V2_DET.p.id);
-    document.getElementById('v2DetQ').textContent = V2_DET.qty;
-    v2DetPinta();
-    return;
-  }
-  V2_DET.qty = Math.max(1, V2_DET.qty + d);
-  document.getElementById('v2DetQ').textContent = V2_DET.qty;
-  v2DetPinta();
-}
-/* delta su una riga ESISTENTE del prodotto (l'ultima): preserva op/termino
-   in salita e in discesa — v2Mas col ＋ creava una riga nuova senza scelte */
-function v2LineDelta(id, d){
-  const p = ALL_PRODUCTS.find(x=>x.id===id);
-  if(!p) return;
-  for(let i = CART.items.length - 1; i >= 0; i--){
-    if(CART.items[i].id === id){
-      CART.items[i].qty = (CART.items[i].qty||1) + d;
-      if(CART.items[i].qty <= 0) CART.items.splice(i, 1);
-      if(CART.items.length === 0) CART.gancho_origen = '';
-      saveCart(); v2RefreshCtrl(id);
-      try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
-      return;
-    }
-  }
-  if(d > 0){ _pushLinea(p, '', ''); v2RefreshCtrl(id); }
-}
-function v2DetPinta(){
-  if(!V2_DET) return;
-  const cta = document.getElementById('v2DetCta');
-  if(V2_DET.live){
-    // il carro è già aggiornato: il CTA conferma soltanto
-    cta.disabled = false;
-    cta.textContent = V2_DET.qty > 0 ? 'Listo ✓ · ' + V2_DET.qty + ' en tu pedido' : 'Quitado del pedido ✓';
-    return;
-  }
-  const falta = V2_DET.preguntas.find(q => !V2_DET.resp[q.tipo]);
-  const regla = PRECIOS_REGLA_MAP[V2_DET.p.id];
-  const precio = (regla && parsePrice(regla.precio) > 0) ? parsePrice(regla.precio) : parsePrice(V2_DET.p.precio);
-  const precioFinal = (ACTIVE_MEMBER && V2_DET.p.precio_member) ? parsePrice(V2_DET.p.precio_member) : precio;
-  cta.disabled = !!falta;
-  cta.textContent = falta
-    ? ((getLang('elige')||'Elige') + ' ' + (falta.tipo === 'bebida' ? 'tu bebida' : 'el término'))
-    : ('Agregar ' + V2_DET.qty + ' · ' + formatPriceWithSymbol(precioFinal * V2_DET.qty));
-}
-function v2DetAgregar(){
-  if(!V2_DET) return;
-  if(V2_DET.live){ closeDetail(); return; }   // già applicato in diretta
-  const d = V2_DET;
-  for(let i = 0; i < d.qty; i++) _pushLinea(d.p, d.resp.bebida || '', d.resp.termino || '');
-  try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
-  const detalle = [d.resp.bebida, d.resp.termino].filter(Boolean).join(' · ');
-  showToastMsg('✓ ' + d.qty + '× ' + toTitleCase(d.p.nombre) + (detalle ? ' · ' + detalle : '') + ' en tu pedido');
-  v2RefreshCtrl(d.p.id);
-  closeDetail();
 }
 
 function closeDetail(){
   document.getElementById('detailSheet').classList.remove('open');
   document.getElementById('detailOverlay').classList.remove('open');
-  document.getElementById('v2Orden').classList.remove('show');
-  V2_DET = null;
   document.body.style.overflow = '';
-  document.body.classList.remove('v2-sheet-open');
 }
 
 let touchStartY = 0;
@@ -8036,51 +7005,11 @@ function saveCart(){
 }
 
 function updateCartBadge(){
-  v2RenderBarra();   // v2.0 · la barra verde È il badge adesso
   const badge = document.getElementById('cartBadge');
   if(!badge) return;
   const count = CART.items.reduce((s,i)=> s + (i.qty||1), 0);
   badge.textContent = count;
   badge.classList.toggle('show', count > 0);
-}
-
-/* ═══ v2.0 · BARRA PEDIDO verde fissa (gesto ③) — tre stati:
-   items>0 → "Ver tu pedido N · $tot" · pedido in corso → stato ·
-   serata con storia → porta al riepilogo · altrimenti nascosta ═══ */
-function v2RenderBarra(bounce){
-  const el = document.getElementById('v2Barra');
-  if(!el) return;
-  if(IS_VETRINA || !PEDIDO_DIGITAL || !MESA_ID){ el.classList.remove('show'); return; }
-  const btn = document.getElementById('v2BarraBtn');
-  const n = CART.items.reduce((s,i)=> s + (i.qty||1), 0);
-  if(n > 0){
-    const tot = CART.items.reduce((s,i)=> s + i.precio * (i.qty||1), 0);
-    btn.classList.remove('estado');
-    document.getElementById('v2BN').style.display = '';
-    document.getElementById('v2BN').textContent = n;
-    document.getElementById('v2BTxt').textContent = 'Ver tu pedido';
-    document.getElementById('v2BTot').textContent = formatPriceWithSymbol(tot);
-    el.classList.add('show');
-    if(bounce){ btn.classList.remove('bounce'); void btn.offsetWidth; btn.classList.add('bounce'); }
-    return;
-  }
-  if(PEDIDO_ACTUAL){
-    btn.classList.add('estado');
-    document.getElementById('v2BN').style.display = 'none';
-    document.getElementById('v2BTxt').textContent = '🛎 Tu pedido — mira cómo va';
-    document.getElementById('v2BTot').textContent = '';
-    el.classList.add('show');
-    return;
-  }
-  if(typeof _nocheValidos === 'function' && _nocheValidos().length > 0){
-    btn.classList.add('estado');
-    document.getElementById('v2BN').style.display = 'none';
-    document.getElementById('v2BTxt').textContent = '🧾 Lo pedido esta noche';
-    document.getElementById('v2BTot').textContent = '';
-    el.classList.add('show');
-    return;
-  }
-  el.classList.remove('show');
 }
 
 function addToCart(prodId){
@@ -8197,9 +7126,6 @@ function openCart(){
   document.getElementById('cartOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('cartSheet').classList.add('open'), 10);
   document.body.style.overflow = 'hidden';
-  document.body.classList.add('v2-sheet-open');   // oss.7
-  // round5 oss.6 · anche il carro si ferma sotto i chip
-  document.getElementById('cartSheet').style.maxHeight = 'calc(100dvh - ' + (v2TopBlockH() + 6) + 'px)';
   // v1.36 · rinfresca gli stati dello storico serata (one-shot, poi ri-renderizza)
   if(PEDIDO_DIGITAL && _nocheValidos().length > 1){
     _nocheRefrescarEstados().then(()=>{
@@ -8212,7 +7138,6 @@ function closeCart(){
   document.getElementById('cartSheet').classList.remove('open');
   document.getElementById('cartOverlay').classList.remove('open');
   document.body.style.overflow = '';
-  document.body.classList.remove('v2-sheet-open');
 }
 
 function renderCart(){
@@ -8235,102 +7160,37 @@ function renderCart(){
     return;
   }
   const total = CART.items.reduce((s,i)=> s + i.precio * (i.qty||1), 0);
-  // v3.3 · "Tu pedido 🛎" · stepper a SINISTRA, dettagli piccoli sotto il nome
   el.innerHTML = `
-    <div class="v2c-tit">Tu pedido 🛎</div>
-    ${CART.items.map((i, idx) => {
-      const detalles = [
-        i.es_menu ? '🍱 ' + (ALMUERZO_INCLUYE_TXT || 'Incluye entrada y postre') : '',
-        i.p2x1 ? `🎁 2x1 · ${getLang('promo_pagas')||'pagas'} ${i.qty||1}, ${getLang('promo_llevas')||'llevas'} ${(i.qty||1)*2}` : '',
-        i.op ? '🥤 ' + i.op : '',
-        i.termino ? '🥩 ' + i.termino : '',
-      ].filter(Boolean).join(' · ');
-      return `
-      <div class="v2c-it">
-        <span class="v2-step"><button onclick="cartChangeQty(${idx},-1)">−</button><b>${i.qty||1}</b><button onclick="cartChangeQty(${idx},1)">＋</button></span>
-        <span class="nom">${toTitleCase(i.nombre)}${detalles ? `<small>${detalles}</small>` : ''}</span>
-        <span class="imp">${formatPrice(i.precio * (i.qty||1))}</span>
-      </div>`;
-    }).join('')}
-    <div class="v2c-tot">
-      <span>${getLang('cart_total') || 'Total'}</span>
-      <span>${formatPriceWithSymbol(total)}</span>
+    <div class="cart-title">${getLang('cart_title') || 'Mi Pedido'}</div>
+    <div class="cart-subtitle">${getLang('cart_subtitle') || 'Revisa tu selección y muéstrasela al mesero.'}</div>
+    ${CART.items.map((i, idx) => `
+      <div class="cart-row">
+        <div class="cart-row-info">
+          <div class="cart-row-name">${i.es_menu ? '🍱 ' : ''}${toTitleCase(i.nombre)}</div>
+          ${i.es_menu ? `<div class="cart-row-op" style="color:var(--brand-text-muted);font-weight:500">${ALMUERZO_INCLUYE_TXT || 'Incluye entrada y postre'}</div>` : ''}
+          ${i.p2x1 ? `<div class="cart-row-op" style="color:#d97706">🎁 2x1 · ${getLang('promo_pagas')||'pagas'} ${i.qty||1}, ${getLang('promo_llevas')||'llevas'} ${(i.qty||1)*2}</div>` : ''}
+          ${i.op ? `<div class="cart-row-op">🥤 ${i.op}</div>` : ''}
+          ${i.termino ? `<div class="cart-row-op">🥩 ${i.termino}</div>` : ''}
+          <div class="cart-row-price">${formatPrice(i.precio * (i.qty||1))}</div>
+        </div>
+        <div class="cart-row-qty">
+          <button class="cart-qty-btn" onclick="cartChangeQty(${idx},-1)" aria-label="−">−</button>
+          <span class="cart-qty-num">${i.qty||1}</span>
+          <button class="cart-qty-btn" onclick="cartChangeQty(${idx},1)" aria-label="+">＋</button>
+        </div>
+      </div>
+    `).join('')}
+    <div class="cart-total-row">
+      <span class="cart-total-label">${getLang('cart_total') || 'Total'}</span>
+      <span class="cart-total-val">${formatPriceWithSymbol(total)}</span>
     </div>
-    ${(ULTIMA_RONDA && ULTIMA_RONDA.length)
-      ? `<button class="v2-ronda" onclick="v2OtraRonda()">🔁 ¿Otra ronda? — ${v2RondaResumen()}</button>`
-      : ''}
     ${(PEDIDO_DIGITAL && _nocheValidos().length > 0)
       ? `<div class="pedido-hint" style="margin-top:6px">🧾 ${getLang('pedido_ya_noche') || 'Ya pedido esta noche'}: ${_nocheValidos().length} · ${formatPriceWithSymbol(_nocheValidos().reduce((s,p)=>s+(p.total||0),0))}</div>`
       : ''}
-    ${v2ViasHTML()}`;
-}
-
-/* ═══ v2.0 · DUE VIE col destino DISCRIMINATO (gesto ⑦, mockup v3.3) ═══
-   Via A ("¿Enviar directo a la cocina/barra?") esiste SOLO se PARAMETROS
-   envio_directo_activo=TRUE (si accende quando il KDS è collaudato al 100%).
-   Via B = il flusso vivo di oggi: pedido nel sistema + campanella al mesero
-   che passa a confermare. La corazza (retry ×3, carrito intatto) è la stessa. */
-function v2DestinoDe(){
-  const barraCats = new Set((CATEGORY_GROUPS && (CATEGORY_GROUPS['Barra']||{}).cats) || []);
-  const grupos = new Set(CART.items.map(i => {
-    const p = ALL_PRODUCTS.find(x=>x.id===i.id);
-    return (p && barraCats.has(p.categoria)) ? 'barra' : 'cocina';
-  }));
-  if(grupos.size === 1) return grupos.has('barra') ? { txt:'la barra', emo:'🍸' } : { txt:'la cocina', emo:'🍳' };
-  return { txt:'cocina y barra', emo:'🍳🍸' };
-}
-function v2ViasHTML(){
-  if(!(PEDIDO_DIGITAL && MESA_ID)){
-    return `<button class="cart-listo-btn" onclick="cartListo()">${getLang('cart_listo') || 'Listo · mostrar al mesero'}</button>`;
-  }
-  const d = v2DestinoDe();
-  const mesero = MESERO_MESA ? MESERO_MESA : 'el mesero';
-  // round5 oss.7.2+7.3 · via il hint "Nuevo…" (non informava niente) · il
-  // DOPPIO CANALE del mockup si VEDE sempre: col gate spento la via diretta
-  // dorme con un "próximamente" — il cliente sa che arriva.
-  if(!ENVIO_DIRECTO){
-    return `<div class="v2-vias" id="v2Vias">
-      <button class="cart-listo-btn cart-btn-pedido" id="btnEnviarPedido" style="margin:0" onclick="cartListo()">🛎 Enviar pedido — ${mesero} pasa a confirmar</button>
-      <button class="v2-via-prox" disabled>${d.emo} Envío directo a ${d.txt} · ⏳ próximamente</button>
-    </div>`;
-  }
-  return `<div class="v2-vias" id="v2Vias">
-      <button class="v2-via-si" onclick="v2Confirmar()">${d.emo} ¿Enviar directo a ${d.txt}?<small>ya lo empiezan a preparar</small></button>
-      <button class="v2-via-mesero" onclick="cartListo()">🙋 ¿Deseas revisar tu pedido con ${mesero}?</button>
-    </div>`;
-}
-function v2Confirmar(){
-  const d = v2DestinoDe();
-  const el = document.getElementById('v2Vias');
-  if(!el) return;
-  el.innerHTML = `<div class="v2-seguro-q">¿Seguro? Va directo a ${d.txt} ${d.emo}</div>
-    <div class="v2-seguro-row">
-      <button class="v2-via-si" id="btnEnviarPedido" onclick="v2EnviarDirecto()">Sí — ¡enviar!</button>
-      <button class="v2-via-mesero" onclick="renderCart()">mmm, no</button>
-    </div>`;
-}
-function v2EnviarDirecto(){
-  if(CART.items.length === 0) return;
-  enviarPedidoDigital({ directo: true });
-}
-/* oss.7 · la ronda DICE cosa ripete ("lo anterior" non si capiva) */
-function v2RondaResumen(){
-  if(!ULTIMA_RONDA || !ULTIMA_RONDA.length) return '';
-  let s = ULTIMA_RONDA.map(i => (i.qty||1) + '× ' + toTitleCase(i.nombre)).join(' · ');
-  if(s.length > 52) s = s.slice(0, 50) + '…';
-  return s;
-}
-function v2OtraRonda(){
-  if(!ULTIMA_RONDA || !ULTIMA_RONDA.length) return;
-  ULTIMA_RONDA.forEach(r => {
-    const existing = CART.items.find(i => i.id === r.id && (i.op||'') === (r.op||'') && (i.termino||'') === (r.termino||''));
-    if(existing) existing.qty = (existing.qty||1) + (r.qty||1);
-    else CART.items.push(JSON.parse(JSON.stringify(r)));
-  });
-  saveCart();
-  try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
-  renderCart();
-  showToastMsg('🔁 Ronda repetida — revisa y envía');
+    ${(PEDIDO_DIGITAL && MESA_ID)
+      ? `<div class="pedido-hint">${getLang('pedido_hint') || '🛎 Nuevo — tu pedido le llega al mesero al tiro'}</div>
+         <button class="cart-listo-btn cart-btn-pedido" id="btnEnviarPedido" onclick="cartListo()">${getLang('pedido_btn') || '🛎 Enviar pedido y llamar al mesero'}</button>`
+      : `<button class="cart-listo-btn" onclick="cartListo()">${getLang('cart_listo') || 'Listo · mostrar al mesero'}</button>`}`;
 }
 
 function cartListo(){
@@ -8414,7 +7274,7 @@ function _nuevoUuid(){
   return 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
 }
 
-async function enviarPedidoDigital(opts){
+async function enviarPedidoDigital(){
   if(CART.items.length === 0) return;
   const btn = document.getElementById('btnEnviarPedido');
   if(btn){ btn.disabled = true; btn.textContent = getLang('pedido_enviando') || 'Enviando…'; }
@@ -8458,10 +7318,6 @@ async function enviarPedidoDigital(opts){
     ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
     member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
     items_json: JSON.stringify(items),
-    // v2.0 · via A (gated envio_directo_activo): il GAS di oggi ignora i campi
-    // extra senza danno; quando il KDS sarà al 100% li leggerà per instradare
-    envio_directo: !!(opts && opts.directo),
-    destino: (opts && opts.directo) ? v2DestinoDe().txt : '',
     ts: Date.now(),
   };
   let resp = null, lastErr = '';
@@ -8490,17 +7346,11 @@ async function enviarPedidoDigital(opts){
     PEDIDOS_NOCHE.push(PEDIDO_ACTUAL);   // v1.36 · entra nello storico della serata
     _nocheSave();
     try { sessionStorage.setItem(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
-    // v2.0 · 🔁 la ronda si ricorda: l'ultimo pedido inviato diventa ripetibile
-    // in UN tap (i bar vivono di ronde — il paradigma rotto, gesto ⑤)
-    ULTIMA_RONDA = snapshot.items.map(i => JSON.parse(JSON.stringify(i)));
-    try { sessionStorage.setItem(RONDA_KEY, JSON.stringify(ULTIMA_RONDA)); } catch(e){}
     CART = { items: [], updated_ts: 0, gancho_origen: '' };
     sessionStorage.removeItem(CART_KEY);
     updateCartBadge();
     renderPedidoEstado();
     iniciarPollPedido();
-    // v2.0 · stelline: il momento giusto per giudicare è DOPO il primo pedido
-    setTimeout(v2MostrarStars, 1200);
   } catch(e){
     // v1.46 · dopo 3 tentativi veri: il carrito RESTA INTATTO e il bottone
     // diventa "Reintentar" — l'ordine non muore mai in silenzio (prima:
@@ -8517,8 +7367,7 @@ function renderPedidoEstado(){
   if(!el || !PEDIDO_ACTUAL) return;
   const PA = PEDIDO_ACTUAL;
   const VISTAS = {
-    // round5 oss.7.3 · sappiamo CHI è il mesero: si chiama per nome
-    pendiente:  { icon:'🛎', anim:true,  t: MESERO_MESA ? ('Avisando a ' + MESERO_MESA + '…') : (getLang('pedido_st_pendiente') || 'Llamando al mesero…'),
+    pendiente:  { icon:'🛎', anim:true,  t: getLang('pedido_st_pendiente') || 'Llamando al mesero…',
                   s: getLang('pedido_st_pendiente_sub') || 'Tu pedido ya está en el sistema' },
     atendido:   { icon:'✓',  anim:false, t: (getLang('pedido_st_atendido') || '{nombre} va en camino').replace('{nombre}', PA.mesero || (getLang('pedido_el_mesero')||'El mesero')),
                   s: getLang('pedido_st_atendido_sub') || 'Confirma tu pedido cuando llegue a la mesa' },
@@ -8539,7 +7388,6 @@ function renderPedidoEstado(){
       <div class="cart-recap-check${v.anim ? ' pedido-pulse' : ''}">${v.icon}</div>
       <div class="cart-recap-title">${v.t}</div>
       <div class="cart-recap-sub">${v.s}</div>
-      <div class="v2c-sub" style="text-align:left">🧾 Lo que pediste recién</div>
       <div class="cart-recap-list">
         ${(PA.items||[]).map(i => `<div class="cart-recap-item"><span>${(i.qty||1)}× ${toTitleCase(i.nombre)}</span><span>${formatPrice(i.precio*(i.qty||1))}</span></div>`).join('')}
         <div class="cart-recap-item" style="border-top:1px solid var(--brand-border);margin-top:6px;padding-top:8px;font-weight:700"><span>${getLang('mesa')||'Mesa'} ${MESA_ID} · ${PA.n} ${getLang('pedido_items')||'productos'}</span><span>${formatPriceWithSymbol(PA.total)}</span></div>
@@ -9102,7 +7950,6 @@ async function loadMember(memberId){
       banner.textContent = `${getLang('hi_member')} ${data.nombre} · ${data.nivel} · ${data.tokens} ${getLang('tokens')}`;
       banner.classList.add('show');
       renderMenu();
-      v2PintaChip();   // v2.0 · il chip identità saluta il Member
     }
   } catch(e){ console.warn('Member load failed', e); }
 }
@@ -9151,18 +7998,6 @@ async function cargarMeseroDeMesa(){
     MESERO_MESA = r.mesero;
     const mb = document.getElementById('mesaNum');
     if(mb) mb.textContent = MESA_ID + ' · ' + MESERO_MESA;
-    // oss.2+3 (12-lug) · il mesero vive nella PILL accanto al buscador
-    const ml = document.getElementById('v2MeseroPill');
-    if(ml){
-      document.getElementById('v2MeseroTxt').innerHTML = '<small>te atiende</small> <b>' + MESERO_MESA + '</b>';
-      ml.classList.add('show');
-      if(typeof updateStickyTops === 'function') updateStickyTops();
-    }
-    // v2.0 · le stelline aspettavano il nome (v2Boot corre prima di questa
-    // risposta): se la serata ha già un pedido, ora possono accendersi
-    if(PEDIDO_ACTUAL || (typeof _nocheValidos === 'function' && _nocheValidos().length > 0)){
-      v2MostrarStars();
-    }
     if(!sessionStorage.getItem('saludo_mesero_v1')){
       try { sessionStorage.setItem('saludo_mesero_v1', '1'); } catch(e){}
       // v1.45 · il saluto sa che ore sono (oss. Alberto: "esta noche" a pranzo stona)
@@ -9255,21 +8090,6 @@ function onCallWaiterGeneric(){
   const hintPedido = (PEDIDO_DIGITAL && CART.items && CART.items.length === 0)
     ? ' · ' + (getLang('llamada_hint_pedido') || '💡 ¿Sabías que puedes mandarme tu pedido desde el carrito? Llego con todo listo')
     : '';
-  // FINAL fix 1 (12-lug) · sappiamo CHI ti attende: la campanella lo dice per
-  // nome. Genere: euristica sul nome (finisce in -a → la) finché il foglio
-  // STAFF non porterà il campo vero.
-  const nomeM = MESERO_MESA;
-  if(nomeM){
-    const esNoche = new Date().getHours() >= 18 || new Date().getHours() < 6;
-    const fem = /a$/i.test(nomeM.trim());
-    openConfirmSheet({
-      title:    (esNoche ? 'Esta noche' : 'Hoy') + ' te atiende ' + nomeM,
-      subtitle: `${getLang('mesa')} ${MESA_ID} · ¿Deseas llamar${fem ? 'la' : 'lo'}? Viene al tiro a tu mesa${hintPedido}`,
-      payload:  { tipo_llamada :'generica', prod_id: null },
-      okLabel:  'Sí — que venga ' + nomeM,
-    });
-    return;
-  }
   openConfirmSheet({
     title:    getLang('call_generic_title') || '¿Llamar mesero?',
     subtitle: `${getLang('mesa')} ${MESA_ID} · ${getLang('call_generic_subtitle') || 'El mesero llegará a tu mesa en breve'}${hintPedido}`,
@@ -9295,383 +8115,11 @@ function notifyWaiter(payload){
   try {
     navigator.sendBeacon(BRAND.gas_url, JSON.stringify(body));
     _llamadaMarcaTs();   // v1.37 · parte il cooldown
-    showToastMsg(MESERO_MESA ? '🔔 ' + MESERO_MESA + ' viene en camino' : (getLang('call_sent') || '🔔 Mesero llamado · llega pronto'));
+    showToastMsg(getLang('call_sent') || '🔔 Mesero llamado · llega pronto');
   } catch(e) {
     console.warn('[v1.10] notifyWaiter failed:', e);
     showToastMsg(getLang('call_retry_error'));
   }
-}
-
-/* ════════════════════════════════════════════════════════════════════
-   v2.0 · IDENTITÀ · STELLINE · MONDO BPM · BOOT
-   ════════════════════════════════════════════════════════════════════ */
-
-/* ── chip identità panna (mockup ①): Mesa N (+ Member riconosciuto) ── */
-function v2PintaChip(){
-  const chip = document.getElementById('v2ChipId');
-  if(!chip) return;
-  if(!MESA_ID || IS_VETRINA){ chip.style.display = 'none'; return; }
-  // oss.1 (12-lug) · il chip deve INVITARE anche chi non è della Lista:
-  // Member riconosciuto → si espande col nome; ospite → la ⭐ è la porta
-  // (FINAL: su fondo nero degradé che brilla — sul panna si perdeva).
-  chip.innerHTML = ACTIVE_MEMBER && ACTIVE_MEMBER.nombre
-    ? 'Mesa ' + escapeHtml(MESA_ID) + ' · 🎩 ' + escapeHtml(ACTIVE_MEMBER.nombre)
-    : 'Mesa ' + escapeHtml(MESA_ID) + ' <span class="v2-star">⭐</span>';
-  chip.style.display = 'flex';
-}
-function v2AbrirId(){
-  const inf = document.getElementById('v2ShIdInf');
-  if(!inf) return;
-  const esNoche = new Date().getHours() >= 18 || new Date().getHours() < 6;
-  if(ACTIVE_MEMBER && ACTIVE_MEMBER.nombre){
-    // il Member riconosciuto: il locale che ti riconosce E si ricorda cosa bevi.
-    // "¿Lo de siempre?" appare SOLO quando il GAS manderà `habitual` (getMember
-    // futuro) — data-gated, oggi non esiste → non si mostra.
-    const hab = ACTIVE_MEMBER.habitual && ACTIVE_MEMBER.habitual.length ? ACTIVE_MEMBER.habitual : null;
-    inf.innerHTML = `
-      <div class="saludo">🎩 ¡Bienvenido de vuelta, ${escapeHtml(ACTIVE_MEMBER.nombre)}!</div>
-      <div class="sub">${escapeHtml(ACTIVE_MEMBER.nivel||'')} · Mesa ${escapeHtml(MESA_ID||'')}${ACTIVE_MEMBER.tokens?` · ${ACTIVE_MEMBER.tokens} ${getLang('tokens')||'tokens'}`:''}</div>
-      ${hab ? `<button class="v2-siempre" onclick="v2LoDeSiempre()">
-        <span style="font-size:24px">🥃</span>
-        <span class="t"><b>¿Lo de siempre?</b><small>${hab.map(h=>`${h.qty}× ${escapeHtml(h.nombre)}`).join(' · ')}</small></span>
-        <span class="go">＋</span></button>` : ''}
-      <div class="v2-lista"><b>⭐ Estás en la Lista</b>
-        <p>Tu precio en productos marcados 💳 · tus pedidos te siguen · y lo que viene, lo sabrás primero.</p></div>`;
-  } else {
-    inf.innerHTML = `
-      <div class="saludo">${esNoche ? '¡Buenas noches!' : '¡Hola!'} Estás en la mesa ${escapeHtml(MESA_ID||'—')}</div>
-      <div class="sub">${MESERO_MESA ? 'Te atiende ' + escapeHtml(MESERO_MESA) + ' · ' : ''}pide desde aquí y te llega al tiro</div>
-      <div class="v2-lista"><b>⭐ La Lista</b>
-        <p>El club de la casa: precios para ti, tu pedido de siempre en un toque, y lo que viene lo sabes primero. Pregunta al pedir tu boleta.</p></div>`;
-  }
-  document.getElementById('v2Velo').classList.add('show');
-  document.getElementById('v2ShId').classList.add('up');
-  document.body.classList.add('v2-sheet-open');
-}
-function v2LoDeSiempre(){
-  const hab = ACTIVE_MEMBER && ACTIVE_MEMBER.habitual;
-  if(!hab || !hab.length) return;
-  hab.forEach(h => {
-    const p = ALL_PRODUCTS.find(x=>x.id===h.id);
-    if(!p) return;
-    for(let i = 0; i < (h.qty||1); i++) _pushLinea(p, h.op||'', h.termino||'');
-  });
-  v2CerrarSheets();
-  showToastMsg('🥃 Lo de siempre en tu pedido — revisa y envía');
-}
-function v2CerrarSheets(){
-  document.getElementById('v2Velo').classList.remove('show');
-  document.getElementById('v2ShId').classList.remove('up');
-  document.getElementById('v2ShNoche').classList.remove('up');
-  document.getElementById('v2ShDest').classList.remove('up');
-  const dj = document.getElementById('v2ShDj');
-  if(dj) dj.classList.remove('up');
-  document.body.classList.remove('v2-sheet-open');
-}
-
-/* ── stelline (TIP Alberto 10-lug): SOLO dopo il primo pedido · 1 per mesa/notte.
-   calificarServicio parte fire-and-forget: quando il verbo GAS esisterà, ≤3★
-   avvisa il JL col cliente ancora seduto. Il GAS di oggi risponde unknown_action
-   senza danno. ── */
-function _v2CalifKey(){ return 'calif_' + new Date().toISOString().slice(0,10); }
-function v2MostrarStars(){
-  const st = document.getElementById('v2Stars');
-  if(!st || !MESERO_MESA) return;
-  try { V2_CALIF = parseInt(sessionStorage.getItem(_v2CalifKey()) || '0', 10) || 0; } catch(e){}
-  st.classList.add('show');
-  v2PintaStars();
-  // la pill si stringe: via il "te atiende", entrano le stelline (spazio contato)
-  document.getElementById('v2MeseroTxt').innerHTML = '<b>' + MESERO_MESA + '</b>';
-  document.getElementById('v2MeseroPill').classList.add('show');
-}
-function v2PintaStars(){
-  const st = document.getElementById('v2Stars');
-  st.innerHTML = [1,2,3,4,5].map(n =>
-    `<span class="${n<=V2_CALIF?'on':''}" onclick="v2Califica(${n})">★</span>`).join('');
-}
-function v2Califica(n){
-  let yaDada = 0;
-  try { yaDada = parseInt(sessionStorage.getItem(_v2CalifKey()) || '0', 10) || 0; } catch(e){}
-  if(yaDada){ showToastMsg('★ Ya calificaste esta noche — ¡gracias!'); return; }
-  V2_CALIF = n;
-  try { sessionStorage.setItem(_v2CalifKey(), String(n)); } catch(e){}
-  try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
-  v2PintaStars();
-  try {
-    navigator.sendBeacon(BRAND.gas_url || GAS_URL, JSON.stringify({
-      action:'calificarServicio', local:LOCAL_ID, mesa:MESA_ID,
-      mesero:MESERO_MESA, estrellas:n, member:MEMBER_ID||'', ts:Date.now(),
-    }));
-  } catch(e){}
-  showToastMsg(n >= 4 ? '★'.repeat(n) + ' para ' + MESERO_MESA + ' — ¡gracias!'
-                      : '★'.repeat(n) + ' — gracias, lo vamos a mejorar esta misma noche ✊');
-}
-
-/* ── ⚡ BPM · il mondo notturno (gesto ⑧): cabina + DJS_AGENDA + CARTELERA_BKS
-   + porta DJ-BOX (gated djbox_on — modulo in build lun 20) ── */
-function v2NocheVisible(){
-  return LOCAL_ID === 'BKS' && !MODO_RESPALDO;
-}
-async function v2AbrirNoche(){
-  const inf = document.getElementById('v2ShNocheInf');
-  if(!inf) return;
-  document.getElementById('v2Velo').classList.add('show');
-  // round BPM-2 oss.1 · il mondo è COMPLETO: copre tutto fino al header BKS
-  const shN = document.getElementById('v2ShNoche');
-  shN.style.maxHeight = shN.style.height = 'calc(100dvh - ' + (document.getElementById('header').offsetHeight + 2) + 'px)';
-  shN.classList.add('up');
-  document.body.classList.add('v2-sheet-open');
-  inf.innerHTML = '<div class="v2-nsec" style="padding:20px 0">cargando la noche…</div>';
-  try { if(typeof loadCartelera === 'function') await loadCartelera(); } catch(e){}
-  const dj = (typeof resolveDjActual === 'function') ? resolveDjActual() : null;
-  const rit = RITMO_ACTUAL;
-  let h = '';
-
-  // ═ 1 · HERO FUSO (VB round · oss.1): la subida (piccola) + slogan + el
-  // trago — UNA card sola che dice: «aquí en un rato se arma la fiesta»
-  const eq = '<div class="v2n-eq">' + Array.from({length:18}, (_,i) =>
-    `<i style="animation-delay:${(i*137)%900}ms;animation-duration:${700+(i*53)%500}ms"></i>`).join('') + '</div>';
-  const acts = (RITMOS_DISP||[]).filter(r=>r && (r.bpm||r.bpm_valor)).slice()
-    .sort((a,b)=>(a.bpm||a.bpm_valor)-(b.bpm||b.bpm_valor));
-  const alt = ['','h60','h70','h80'];
-  const subeHtml = acts.length > 1 ? `<div class="v2n-sube sm">` +
-    acts.map((r,i)=>`<div class="v2n-act ${alt[Math.min(i,3)]}${rit && r.id===rit.id?' on':''}">
-      <span class="e">${r.emoji||''}</span><b>${r.bpm||r.bpm_valor} BPM</b><small>${escapeHtml(r.nombre||'')}</small>
-      ${rit && r.id===rit.id ? '<span class="v2n-aqui">estás aquí</span>' : ''}</div>`).join('') + `</div>` : '';
-  const trago = v2TragoDelRitmo();
-  let tragoHtml = '';
-  if(trago && !IS_VETRINA && PEDIDO_DIGITAL){
-    const pr = getDisplayPrice(trago);
-    tragoHtml = `<div class="v2n-trago inhero">
-      <div class="ph">${trago.imagen?`<img src="${trago.imagen}" alt="">`:'🍸'}</div>
-      <div class="b"><div class="nom">${toTitleCase(trago.nombre)}</div><div class="pr">${pr.main} · el trago de este ritmo</div></div>
-      <span id="v2ctrlx-${trago.id}">${v2CtrlHTML(trago)}</span>
-    </div>`;
-  }
-  h += `<div class="v2n-hero">
-    <span class="v2n-live" style="color:var(--v2-dj)">⚡ LA NOCHE SUBE — aquí se arma la fiesta</span>
-    ${subeHtml}
-    ${rit && rit.mensaje_cliente ? `<div class="v2n-slogan" style="margin-top:10px">«${escapeHtml(rit.mensaje_cliente)}»<span style="font-style:normal;font-size:11.5px;font-weight:700;color:rgba(242,253,255,.5)"> · ${rit.emoji||''} ${escapeHtml(rit.etiqueta||'')}</span></div>` : ''}
-    ${eq}
-    ${tragoHtml}
-  </div>`;
-
-  // ═ 2 · LE DUE CARD GRANDI (VB round · oss.2): il DJ della serata — o il
-  // PRÓXIMO, con foto e tap→scheda del motore (bio+IG) — accanto DJ EVENTS:
-  // il poster di CARTELERA_BKS (col H3), anche se non attivo, per vederlo
-  const semana = (CARTELERA_DATA && CARTELERA_DATA.djs_semana) || DJS_AGENDA || [];
-  const djShow = (dj && dj.nombre) ? dj : (semana[0] || null);
-  window._v2DjShow = djShow;
-  const cbks = CARTELERA_DATA && CARTELERA_DATA.cartelera_bks;
-  let cards = '';
-  if(djShow){
-    cards += `<button class="v2n-bigcard" onclick="v2VerDj()">
-      ${djShow.foto_url ? `<img class="ph" src="${djShow.foto_url}" alt="">` : '<div class="ph"></div>'}
-      <div class="i"><div class="ey">${(dj && dj.nombre) ? '<span class="v2-ondot"></span> esta noche' : '⏭ próximo · ' + escapeHtml(djShow.dias_visible||'')}</div>
-      <div class="n">${escapeHtml(djShow.nombre||'')}</div>
-      <div class="s">${escapeHtml(djShow.hora_ini||'')}${djShow.hora_fin?' — '+escapeHtml(djShow.hora_fin):''} · tócalo para verlo</div></div>
-    </button>`;
-  }
-  if(cbks && cbks.foto_url){
-    window._v2Cbks = cbks;   // per il lightbox (FINAL oss.4b)
-    cards += `<button class="v2n-bigcard" onclick="v2LightboxOpen(window._v2Cbks.foto_url, window._v2Cbks.subtitulo_es||'')">
-      <img class="ph" src="${cbks.foto_url}" alt="">
-      <div class="i"><div class="ey" style="color:${cbks.header_color||'#5fd0c5'}">🎧 DJ EVENTS</div>
-      <div class="n">${escapeHtml(cbks.eyebrow_es||'LA SEMANA BKS')}</div>
-      <div class="s">${escapeHtml((cbks.subtitulo_es||'').slice(0,42))}</div></div>
-    </button>`;
-  }
-  if(cards) h += `<div class="v2n-2cards">${cards}</div>`;
-
-  // FINAL oss.5 · via «la música manda» e «etiquétanos» — qui non servivano.
-  // ═ 4 · LA PORTA 📅 DJ AGENDA — accordion, come LISTA (FINAL oss.6: la
-  // foto del DJ vive già nella card grande sopra, qui contano giorni e orari)
-  if(semana.length){
-    const agRows = semana.slice(0,10).map(s=>{
-      const ig = s.instagram ? String(s.instagram).split('/').filter(Boolean).pop() : '';
-      return `<div class="v2-sesion"><b>${escapeHtml((s.dias_visible||'').toString().slice(0,16))}</b>
-        ${escapeHtml(s.nombre||s.dj_nombre||'')} · ${escapeHtml(s.hora_ini||'')}${s.hora_fin?' — '+escapeHtml(s.hora_fin):''}
-        ${ig ? ` · <a style="color:var(--v2-dj);text-decoration:none" href="https://instagram.com/${ig}" target="_blank" rel="noopener">@${escapeHtml(ig)}</a>` : ''}</div>`;
-    }).join('');
-    h += `<button class="v2n-door" style="margin-top:12px" onclick="v2ToggleDoor(this,'v2DoorAgenda')">
-        <span class="ico">📅</span><span><b>DJ AGENDA</b><small>quién toca esta semana</small></span><span class="arr">›</span></button>
-      <div class="v2n-doorbody" id="v2DoorAgenda">${agRows}</div>`;
-  }
-
-  // ═ 6 · DJ-BOX — il cartridge del focus group, da MARKETING: si apre SEMPRE
-  // (si capisce cosa farà), la luce dice lo stato, PEDIR dorme finché djbox_on
-  h += `<button class="v2n-djbox" onclick="v2AbrirDjBox()">
-      <span class="v2-djbox-logo"><span class="disc"></span>DJ·BOX<small>BKS</small></span>
-      <span class="t"><b>Tu canción, a la cabina</b><small>búscala, págala y suena — el DJ tiene la última palabra</small></span>
-      <span class="luz ${DJBOX_ON?'on':'off'}"><span class="dot"></span>${DJBOX_ON?'abierto':'pronto'}</span>
-    </button>`;
-  // VB round oss.5 · niente "volver": la ✕ basta, spazio guadagnato
-  inf.innerHTML = h || '<div class="v2-nsec">La noche se está armando…</div>';
-  // FINAL oss.4 · si apre SEMPRE in cima (sul blocco «la noche sube»)
-  const scr = shN.querySelector('.scroll');
-  if(scr) scr.scrollTop = 0;
-}
-
-/* FINAL oss.4b · il poster si apre SOPRA lo schermo, ✕ per chiudere */
-function v2LightboxOpen(url, cap){
-  document.getElementById('v2LightboxImg').src = url;
-  document.getElementById('v2LightboxCap').textContent = cap || '';
-  document.getElementById('v2Lightbox').classList.add('show');
-}
-function v2LightboxClose(){
-  document.getElementById('v2Lightbox').classList.remove('show');
-}
-
-/* VB round oss.2 · tap sulla card DJ → la scheda DJ del motore (foto+bio+IG) */
-function v2VerDj(){
-  if(window._v2DjShow && typeof openDjSheet === 'function') openDjSheet(window._v2DjShow);
-}
-
-/* le porte del mondo BPM: accordion */
-function v2ToggleDoor(btn, id){
-  const body = document.getElementById(id);
-  if(!body) return;
-  const open = body.classList.toggle('open');
-  btn.classList.toggle('open', open);
-}
-
-/* ═══ round BPM-2 · PÍDELE AL DJ — tutto vivo tranne PEDIR (⏳) ═══
-   Le familias vengono dal mockup validato; nel vero le scriverà il
-   Comandante in PARAMETROS (dj_generos_permitidos + dj_modo + dj_precio). */
-const V2DJ_FAMILIAS = [
-  { id:'electro', label:'⚡ House / Electro', on:true,
-    match:['house','dance','electrónica','electronic','techno','trance','deep house'] },
-  { id:'urbano', label:'🔥 Urbano / Reggaetón', on:true,
-    match:['urbano latino','latin urban','hip-hop','rap','reggaetón','reggaeton','trap latino'] },
-  { id:'latino', label:'🕺 Latino / Cumbia', on:false,
-    match:['música mexicana','pop latino','latino','latin','salsa y tropical','cumbia','banda','norteño'] },
-  { id:'rockpop', label:'🎸 Rock / Pop', on:false,
-    match:['rock','pop','alternativa','alternative','metal','indie','singer/songwriter'] },
-];
-const V2DJ_PRECIO = 2000;
-function v2DjGeneroPermitido(gen){
-  const g = (gen || '').toLowerCase();
-  return V2DJ_FAMILIAS.some(f => f.on && f.match.some(m => g.indexOf(m) >= 0 || m.indexOf(g) >= 0));
-}
-function v2AbrirDjBox(){
-  const dj = (typeof resolveDjActual === 'function') ? resolveDjActual() : null;
-  const semana = (CARTELERA_DATA && CARTELERA_DATA.djs_semana) || [];
-  const quien = (dj && dj.nombre) || (semana[0] && semana[0].nombre) || '';
-  document.getElementById('v2DjQuien').textContent = quien ? 'Esta noche: ' + quien : 'la cabina te escucha';
-  document.getElementById('v2DjGchips').innerHTML = V2DJ_FAMILIAS.map(f =>
-    `<span class="v2dj-gchip${f.on?' on':''}">${f.label}</span>`).join('');
-  const sh = document.getElementById('v2ShDj');
-  sh.style.maxHeight = sh.style.height = 'calc(100dvh - ' + (document.getElementById('header').offsetHeight + 2) + 'px)';
-  sh.classList.add('up');
-  v2DjWireBuscador();
-  setTimeout(()=>{ try { document.getElementById('v2DjQ').focus(); } catch(e){} }, 350);
-}
-function v2CerrarDjBox(){ document.getElementById('v2ShDj').classList.remove('up'); }
-let V2DJ_ULTIMI = [], v2DjT = null, v2DjN = 0;
-function v2DjWireBuscador(){
-  const q = document.getElementById('v2DjQ');
-  if(!q || q.dataset.wired) return;
-  q.dataset.wired = '1';
-  q.addEventListener('input', () => {
-    clearTimeout(v2DjT);
-    const term = q.value.trim();
-    if(term.length < 3){ document.getElementById('v2DjRes').innerHTML = '';
-      document.getElementById('v2DjEstado').textContent = 'Escribe al menos 3 letras…'; return; }
-    document.getElementById('v2DjEstado').textContent = 'Buscando «' + term + '»…';
-    v2DjT = setTimeout(() => v2DjBuscar(term), 450);
-  });
-}
-function v2DjBuscar(term){
-  // iTunes Search via JSONP — gratuita, senza chiave, zero CORS (mockup validato)
-  const cb = 'v2DjCb' + (++v2DjN);
-  window[cb] = (data) => {
-    delete window[cb];
-    V2DJ_ULTIMI = (data.results || []).map(r => ({
-      tit: r.trackName, art: r.artistName,
-      gen: r.primaryGenreName || '—', img: (r.artworkUrl100 || '').replace('100x100','120x120') }));
-    document.getElementById('v2DjEstado').textContent = V2DJ_ULTIMI.length
-      ? V2DJ_ULTIMI.length + ' resultados — el género lo dice iTunes'
-      : 'Nada con ese nombre — prueba artista + canción.';
-    v2DjPinta();
-  };
-  const s = document.createElement('script');
-  s.src = 'https://itunes.apple.com/search?term=' + encodeURIComponent(term) +
-    '&entity=song&limit=8&country=CL&callback=' + cb;
-  s.onerror = () => { document.getElementById('v2DjEstado').textContent = '⚠ Sin conexión — reintenta.'; };
-  document.body.appendChild(s);
-}
-function v2DjPinta(){
-  document.getElementById('v2DjRes').innerHTML = V2DJ_ULTIMI.map(r => {
-    const ok = v2DjGeneroPermitido(r.gen);
-    return `<div class="v2dj-res" onclick="showToastMsg('⏳ Muy pronto — desde aquí «${(r.tit||'').replace(/['"«»]/g,'')}» viajará a la cabina')">
-      <img src="${r.img}" alt="" loading="lazy">
-      <div class="b"><div class="tit">${escapeHtml(r.tit)}</div><div class="art">${escapeHtml(r.art)}</div>
-        <span class="v2dj-gen${ok?'':' fuera'}">${escapeHtml(r.gen)}${ok?'':' · fuera de la carta'}</span></div>
-      <div class="plata">$${V2DJ_PRECIO.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')}</div></div>`;
-  }).join('');
-}
-
-/* la notte gira oltre mezzanotte: minuti «di notte» (prima delle 12 = +24h) */
-function v2MinNoche(hhmm){
-  const m = (typeof parseHHMMtoMin === 'function') ? parseHHMMtoMin(hhmm) : null;
-  if(m === null || isNaN(m)) return 9999;
-  return m < 720 ? m + 1440 : m;
-}
-/* el trago del ritmo: push > destacado > un trago della barra — dentro i
-   prod_ids del ritmo vivo (la musica cura la carta, la carta vende) */
-function v2TragoDelRitmo(){
-  const rit = RITMO_ACTUAL;
-  if(!rit || !rit.prod_ids || !rit.prod_ids.length) return null;
-  const set = new Set(rit.prod_ids);
-  const barraCats = new Set((CATEGORY_GROUPS && (CATEGORY_GROUPS['Barra']||{}).cats) || []);
-  const vivos = ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && set.has(p.id));
-  return vivos.find(p=>esPush(p) && barraCats.has(p.categoria))
-      || vivos.find(p=>p.es_sugerencia_destacada && barraCats.has(p.categoria))
-      || vivos.find(p=>barraCats.has(p.categoria))
-      || null;
-}
-
-/* ── boot v2: chip, campanella, strip — chiamato dal boot principale ── */
-function v2Boot(){
-  // oss.1 · DEMO Member (?demo_member=1): per vedere come saluta il locale
-  // quando Don Marcelo si siede — SOLO anteprima, niente backend.
-  if(URL_PARAMS.get('demo_member')){
-    const m1 = ALL_PRODUCTS.find(p=>/mojito/i.test(p.nombre)) || ALL_PRODUCTS[0];
-    const m2 = ALL_PRODUCTS.find(p=>/camaron/i.test(p.nombre)) || ALL_PRODUCTS[1];
-    ACTIVE_MEMBER = { nombre:'Don Marcelo', nivel:'⭐ La Lista · tu 5ª noche', tokens:'',
-      habitual:[ m1 && {id:m1.id, qty:2, nombre:m1.nombre, op:'', termino:''},
-                 m2 && {id:m2.id, qty:1, nombre:m2.nombre, op:'', termino:''} ].filter(Boolean) };
-  }
-  // il carosello beve dalla cartelera (MUNDIAL): quando arriva, ridisegna
-  if(LOCAL_ID === 'BKS' && typeof loadCartelera === 'function'){
-    loadCartelera().then(()=>{ if(!V2_Q) renderMenu(); }).catch(()=>{});
-  }
-  v2PintaChip();
-  // v3.3 fix ③ · il buscador in place si aggancia
-  const q = document.getElementById('v2Q');
-  if(q && !q.dataset.wired){
-    q.dataset.wired = '1';
-    q.addEventListener('input', () => {
-      V2_Q = q.value.trim();
-      document.getElementById('v2Qx').classList.toggle('show', !!V2_Q);
-      renderMenu();
-    });
-    q.addEventListener('focus', () => v2CerrarTodo());   // oss.6 · cercare chiude qualsiasi sheet
-  }
-  const bell = document.getElementById('v2Bell');
-  if(bell) bell.style.display = (LLAMAR_MESERO_ENABLED && MESA_ID && !IS_VETRINA) ? '' : 'none';
-  const noche = document.getElementById('v2Noche');
-  if(noche) noche.classList.toggle('show', v2NocheVisible());
-  const tag = document.getElementById('v2DjTag');
-  if(tag) tag.style.display = DJBOX_ON ? '' : 'none';
-  const tagline = document.getElementById('v2Tagline');
-  if(tagline) tagline.style.display = (LOCAL_ID === 'BKS') ? '' : 'none';
-  v2RenderBarra();
-  // pedido già in corso da un rientro → le stelline hanno senso subito
-  if(PEDIDO_ACTUAL || (typeof _nocheValidos === 'function' && _nocheValidos().length > 0)){
-    setTimeout(v2MostrarStars, 800);
-  }
-  if(typeof updateStickyTops === 'function') updateStickyTops();
 }
 </script>
 </body>
