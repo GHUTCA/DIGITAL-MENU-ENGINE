@@ -3829,7 +3829,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.8.1 · 13jul</span>
+<span id="ver" hidden>menu2 · v2.8.2 · 13jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7184,7 +7184,11 @@ function v2DestacadosHTML(){
       const tit = e.titulo_es || e.titulo || e.Titulo || '';
       const eyebrow = e.eyebrow_es || e.eyebrow || e.Eyebrow || 'EVENTO';
       const ph = e.foto_url ? `<img src="${e.foto_url}" alt="" loading="lazy" onerror="this.parentElement.textContent='🪩'">` : '🪩';
-      return `<button class="v2-dst" onclick="v2AbrirDest('ev')">
+      // v2.8.2 (13-lug · VB Alberto) · il poster dell'evento si apre a TUTTA
+      // PAGINA in lightbox (come il poster DJ EVENTS), non nello sheet a metà.
+      window._v2EvPoster = e.foto_url ? { url: e.foto_url, cap: (e.subtitulo_es || e.titulo_es || tit || '') } : null;
+      const evClick = e.foto_url ? "v2LightboxOpen(window._v2EvPoster.url, window._v2EvPoster.cap)" : "v2AbrirDest('ev')";
+      return `<button class="v2-dst" onclick="${evClick}">
         <span class="flag v2-flag-evento">🎉 EVENTO</span>
         <div class="ph">${ph}</div>
         <div class="inf"><div class="eyebrow">${eyebrow}</div><div class="nom">${tit}</div></div></button>`;
