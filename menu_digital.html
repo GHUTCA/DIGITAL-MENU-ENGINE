@@ -3570,6 +3570,16 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 #v2ShId .inf{padding:14px 18px 10px}
 #v2ShId .saludo{font-size:18px;font-weight:900;margin-top:6px;color:var(--brand-text)}
 #v2ShId .sub{font-size:13px;color:var(--brand-text-muted);margin-top:4px}
+/* v2.9 · ¿Te cambiaste de mesa? */
+.v2-cambiomesa{margin-top:14px;padding-top:12px;border-top:1px solid var(--brand-border)}
+.v2-cm-link{background:none;border:none;color:var(--brand-text-muted);font-size:13px;
+  font-weight:700;text-decoration:underline;cursor:pointer;padding:4px 0}
+.v2-cm-form{display:flex;gap:8px;align-items:center}
+.v2-cm-form input{flex:1;min-width:0;padding:10px 12px;border:1.5px solid var(--brand-border);
+  border-radius:12px;font-size:16px;font-weight:800;text-align:center;background:var(--brand-bg,#fff);
+  color:var(--brand-text)}
+.v2-cm-ok{border:none;border-radius:12px;padding:10px 16px;font-size:14px;font-weight:900;
+  background:var(--brand-accent,#12b886);color:#fff;cursor:pointer;white-space:nowrap}
 .v2-siempre{margin-top:14px;width:100%;border:1.5px solid var(--brand-border-strong,var(--brand-border));
   background:linear-gradient(90deg,rgba(63,224,240,.1),rgba(255,217,138,.08));
   border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;
@@ -3829,7 +3839,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.8.2 · 13jul</span>
+<span id="ver" hidden>menu2 · v2.9.0 · 14jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4177,7 +4187,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 const URL_PARAMS = new URLSearchParams(location.search);
 const LOCAL_RAW  = URL_PARAMS.get('local') || '';
 const LOCAL_ID   = LOCAL_RAW.toUpperCase();   // sempre UPPERCASE per match GAS
-const MESA_ID    = URL_PARAMS.get('mesa')  || null;
+let   MESA_ID    = URL_PARAMS.get('mesa')  || null;   // v2.9 · mutable: «¿Te cambiaste de mesa?»
 const MEMBER_ID  = URL_PARAMS.get('member')|| null;
 // v1.19 · S10 · vetrina = QR fuori locale (?local=X senza ?mesa=N)
 const IS_VETRINA = !MESA_ID && !!LOCAL_RAW.trim();
@@ -8296,7 +8306,7 @@ function v2ViasHTML(){
   // dorme con un "próximamente" — il cliente sa che arriva.
   if(!ENVIO_DIRECTO){
     return `<div class="v2-vias" id="v2Vias">
-      <button class="cart-listo-btn cart-btn-pedido" id="btnEnviarPedido" style="margin:0" onclick="cartListo()">🛎 Enviar pedido — ${mesero} pasa a confirmar</button>
+      <button class="cart-listo-btn cart-btn-pedido" id="btnEnviarPedido" style="margin:0" onclick="cartListo()">🛎 Enviar a la MESA ${MESA_ID} — ${mesero} pasa a confirmar</button>
       <button class="v2-via-prox" disabled>${d.emo} Envío directo a ${d.txt} · ⏳ próximamente</button>
     </div>`;
   }
@@ -9350,6 +9360,8 @@ function v2AbrirId(){
       <div class="v2-lista"><b>⭐ La Lista</b>
         <p>El club de la casa: precios para ti, tu pedido de siempre en un toque, y lo que viene lo sabes primero. Pregunta al pedir tu boleta.</p></div>`;
   }
+  // v2.9 · «¿Te cambiaste de mesa?» — antídoto a la mesa fantasma (en ambos ramos)
+  inf.insertAdjacentHTML('beforeend', v2CambiarMesaFooterHTML());
   document.getElementById('v2Velo').classList.add('show');
   document.getElementById('v2ShId').classList.add('up');
   document.body.classList.add('v2-sheet-open');
@@ -9373,6 +9385,52 @@ function v2CerrarSheets(){
   const dj = document.getElementById('v2ShDj');
   if(dj) dj.classList.remove('up');
   document.body.classList.remove('v2-sheet-open');
+}
+
+/* ── v2.9 · «¿Te cambiaste de mesa?» — el cliente que se movió de mesa deja de
+   quedar pegado al QR viejo (mesa fantasma). Input inline (prompt() se traga en
+   la PWA standalone de iOS) → cambia MESA_ID + replaceState → un reload mantiene
+   la mesa nueva. Re-resuelve mesero, chip, barra y CTA "Enviar a la MESA N". ── */
+function v2CambiarMesaFooterHTML(){
+  return `<div class="v2-cambiomesa" id="v2CambioMesa">
+      <button class="v2-cm-link" onclick="v2CambiarMesaAbrir()">🪑 ¿Te cambiaste de mesa?</button>
+      <div class="v2-cm-form" id="v2CmForm" hidden>
+        <input id="v2CmInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="4"
+               placeholder="N° mesa" value="${escapeHtml(MESA_ID||'')}"
+               onkeydown="if(event.key==='Enter')v2GuardarMesa()">
+        <button class="v2-cm-ok" onclick="v2GuardarMesa()">Cambiar</button>
+      </div>
+    </div>`;
+}
+function v2CambiarMesaAbrir(){
+  const f = document.getElementById('v2CmForm');
+  const l = document.querySelector('#v2CambioMesa .v2-cm-link');
+  if(!f) return;
+  f.hidden = false;
+  if(l) l.style.display = 'none';
+  const inp = document.getElementById('v2CmInput');
+  if(inp){ inp.focus(); inp.select(); }
+}
+function v2GuardarMesa(){
+  const inp = document.getElementById('v2CmInput');
+  if(!inp) return;
+  const nueva = String(inp.value||'').trim();
+  if(!nueva){ inp.focus(); return; }
+  if(nueva === (MESA_ID||'')){ v2CerrarSheets(); return; }   // sin cambio
+  MESA_ID = nueva;
+  try {                                    // replaceState: el reload no vuelve al QR viejo
+    const u = new URL(location.href);
+    u.searchParams.set('mesa', nueva);
+    history.replaceState(null, '', u.toString());
+  } catch(e){}
+  MESERO_MESA = '';                        // se re-resuelve para la mesa nueva
+  const mp = document.getElementById('v2MeseroPill');
+  if(mp) mp.classList.remove('show');
+  if(typeof cargarMeseroDeMesa === 'function') cargarMeseroDeMesa();
+  v2PintaChip();                           // chip con mesa nueva
+  updateCartBadge();                       // barra + CTA "Enviar a la MESA N" con mesa nueva
+  v2CerrarSheets();
+  showToastMsg('🪑 Ahora estás en la mesa ' + nueva);
 }
 
 /* ── stelline (TIP Alberto 10-lug): SOLO dopo il primo pedido · 1 per mesa/notte.
