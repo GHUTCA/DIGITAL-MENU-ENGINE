@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pinsita · Menú</title>
+  <script>
+    // Redirige la raíz al menú conservando la query (?mesa=N&member=...&local=...).
+    // Así el QR limpio menu.pinsita.cl/?mesa=50 abre menu_digital.html?mesa=50.
+    (function () {
+      var qs = location.search || '';
+      var hash = location.hash || '';
+      location.replace('menu_digital.html' + qs + hash);
+    })();
+  </script>
+  <meta http-equiv="refresh" content="0; url=menu_digital.html">
+</head>
+<body style="font-family:system-ui,sans-serif;background:#111;color:#eee;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
+  <p>Abriendo el menú… <a href="menu_digital.html" style="color:#3fe0f0">toca aquí si no carga</a></p>
+</body>
+</html>
