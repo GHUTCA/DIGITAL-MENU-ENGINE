@@ -3839,7 +3839,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.9.0 · 14jul</span>
+<span id="ver" hidden>menu2 · v2.9.1 · 14jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8478,6 +8478,9 @@ async function enviarPedidoDigital(opts){
     // extra senza danno; quando il KDS sarà al 100% li leggerà per instradare
     envio_directo: !!(opts && opts.directo),
     destino: (opts && opts.directo) ? v2DestinoDe().txt : '',
+    // v2.9.1 · mesa fantasma strato ②: dopo una mesa_limpia recente il GAS
+    // chiede conferma (need:mesa_confirmar) — questo flag è la risposta "sí"
+    confirmado: !!(opts && opts.confirmado),
     ts: Date.now(),
   };
   let resp = null, lastErr = '';
@@ -8486,10 +8489,25 @@ async function enviarPedidoDigital(opts){
     try {
       resp = await _postGAS(payloadPedido);
       if (resp && resp.ok) break;
+      if (resp && resp.need === 'mesa_confirmar') break;   // v2.9.1 · non è un errore di rete
       lastErr = (resp && resp.error) || 'enviar_failed';
       resp = null;
       if (lastErr === 'carrito_vacio' || lastErr === 'items_json_invalid') break;   // duri: inutile insistere
     } catch (e) { lastErr = e.message || 'network'; resp = null; }
+  }
+
+  // v2.9.1 · «¿Sigues en la mesa N?» — il brownie della 86 (limpia 21:25 →
+  // pedido 21:31) muore qui. Carrito intatto, due vie: confermo o cambio mesa.
+  if (resp && !resp.ok && resp.need === 'mesa_confirmar') {
+    const vias = document.getElementById('v2Vias');
+    const q = `<div class="v2-seguro-q">🪑 ¿Sigues en la mesa ${escapeHtml(MESA_ID||'')}?</div>
+      <div class="v2-seguro-row">
+        <button class="v2-via-si" onclick='enviarPedidoDigital(${JSON.stringify(Object.assign({}, opts||{}, { confirmado:true }))})'>Sí — ¡enviar!</button>
+        <button class="v2-via-mesero" onclick="closeCart();v2AbrirId();v2CambiarMesaAbrir()">Me cambié de mesa</button>
+      </div>`;
+    if (vias) vias.innerHTML = q;
+    else { showToastMsg('🪑 ¿Sigues en la mesa ' + (MESA_ID||'') + '? Ábrelo de nuevo y confirma'); if(btn){ btn.disabled=false; btn.textContent=getLang('pedido_reintentar_btn')||'Reintentar envío 🛎'; } }
+    return;
   }
 
   try {
