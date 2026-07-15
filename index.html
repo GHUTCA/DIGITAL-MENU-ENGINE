@@ -7,10 +7,15 @@
   <script>
     // Redirige la raíz al menú conservando la query (?mesa=N&member=...&local=...).
     // Así el QR limpio menu.pinsita.cl/?mesa=50 abre menu_digital.html?mesa=50.
+    // v2 (15-jul) · FIX QR NUOVI: il QR pulito ?mesa=N NON porta ?local= e
+    // menu_digital senza local mostra "Invalid QR" (validateLocal). Il DOMINIO
+    // è il locale: qui la porta d'ingresso aggiunge local=BKS se manca.
+    // Un ?local= esplicito nella query VINCE sempre (multilocal salvo).
     (function () {
-      var qs = location.search || '';
       var hash = location.hash || '';
-      location.replace('menu_digital.html' + qs + hash);
+      var p = new URLSearchParams(location.search || '');
+      if (!p.get('local')) p.set('local', 'BKS');
+      location.replace('menu_digital.html?' + p.toString() + hash);
     })();
   </script>
   <meta http-equiv="refresh" content="0; url=menu_digital.html">
