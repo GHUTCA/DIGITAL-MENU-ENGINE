@@ -23,6 +23,16 @@
 <meta name="apple-mobile-web-app-title" content="BKS">
 <link rel="apple-touch-icon" href="https://i.ibb.co/DHfskPMc/HOME-Comp.jpg">
 <!-- ════════════════════════════════════════════════════════════════════
+     menu_digital.html · v2.11.0 · 15-jul-2026 noche · DISCOVERABILITY (#16 MVP)
+     CHANGELOG v2.10.0 → v2.11.0 (osservazione campo 14-lug: «i clienti non
+     capiscono che le righe si toccano»):
+     · CHEVRON › dopo il nome di ogni riga (CSS ::after, zero markup) —
+       l'affordance del tap si vede.
+     · COACH una-tantum per device (localStorage): «👆 Toca cualquier plato
+       para verlo en grande» ~6s dopo il load, solo con mesa.
+     · Chip nav lema: corpo +1px e bordo idle più presente (nav più forte).
+     · Chunking/nav v2 profonda → cantiere di disegno #10 (con Alberto).
+     ════════════════════════════════════════════════════════════════════
      menu_digital.html · v2.10.0 · 15-jul-2026 · LA COLA OFFLINE (#20)
      CHANGELOG v2.9.1 → v2.10.0 (miércoles 15-jul · buco AURORA 20:22-21:21 del 14):
      · COLA OFFLINE PERSISTENTE del pedido (localStorage, idempotente per uuid):
@@ -3443,6 +3453,12 @@ body.v2-sheet-open #v2Barra,body.v2-sheet-open #v2Noche{display:none!important}
   box-shadow:0 0 14px rgba(63,224,240,.4)}
 .v2-nchip.active b,.v2-nchip.active small{color:#033E4C}
 .v2-nchip.disabled{opacity:.35;pointer-events:none}
+/* v2.11 · #16 · nav più forte: corpo +1px, bordo idle più presente */
+.v2-nchip{border-color:rgba(255,255,255,.16)}
+.v2-nchip b{font-size:13.5px}
+/* v2.11 · #16 · affordance del tap: chevron dopo il nome (zero markup) */
+.v2-fila .b .nom::after{content:'›';margin-left:6px;color:var(--brand-text-muted);
+  font-weight:700;opacity:.55}
 body.theme-dark[data-fascia-menu="dia"] .v2-nchip.active{background:var(--brand-accent);border-color:var(--brand-accent)}
 body.theme-dark[data-fascia-menu="dia"] .v2-nchip.active b,
 body.theme-dark[data-fascia-menu="dia"] .v2-nchip.active small{color:#fff}
@@ -3851,7 +3867,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.10.0 · 15jul</span>
+<span id="ver" hidden>menu2 · v2.11.0 · 15jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -5103,6 +5119,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // v2.0 · chip identità · campanella header · strip BPM · barra pedido
   v2Boot();
+
+  // v2.11 · #16 · coach una-tantum: l'affordance del tap non è ovvia (campo
+  // 14-lug). Un toast, una volta per device, ~6s dopo il load (il saluto del
+  // mesero è già passato), solo con mesa vera.
+  try {
+    if(MESA_ID && !localStorage.getItem('v2_coach_tap_v1')){
+      setTimeout(function(){
+        showToastMsg('👆 ' + (getLang('coach_tap') || 'Toca cualquier plato para verlo en grande'));
+        try { localStorage.setItem('v2_coach_tap_v1', '1'); } catch(e){}
+      }, 6000);
+    }
+  } catch(e){}
 
   // v1.10 · genera 24 barre del waveform · solo per BKS (theme-dark)
   initWaveform();
