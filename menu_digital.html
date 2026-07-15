@@ -31,6 +31,14 @@
      · COACH una-tantum per device (localStorage): «👆 Toca cualquier plato
        para verlo en grande» ~6s dopo il load, solo con mesa.
      · Chip nav lema: corpo +1px e bordo idle più presente (nav più forte).
+     · RIGA SUPERIORE (richiesta Alberto): il chip mesa si presenta
+       («🪑 Mesa 12 ⭐ ▾» — sedia = tuo tavolo, ▾ = si apre) · la campanella
+       DICE chi chiama: etichetta «Mesero» sotto la campana, impronta 44px
+       (la riga a 3 zone non sborda mai — misurato a 375px reali).
+     · BONIFICA getLang: getLang(k) ritorna la CHIAVE se manca in tabella →
+       i toast v1.46/v2.10 (pedido_reintentar*, pedido_cola_*) mostravano
+       chiavi raw ai clienti. Ora stringhe dirette ES; le chiavi entrano in
+       tabella (8 lingue) lunedì col #9.
      · Chunking/nav v2 profonda → cantiere di disegno #10 (con Alberto).
      ════════════════════════════════════════════════════════════════════
      menu_digital.html · v2.10.0 · 15-jul-2026 · LA COLA OFFLINE (#20)
@@ -3354,8 +3362,16 @@ body:not(.theme-dark) .cart-ig-follow{
   padding:6px 12px;font-size:12px;font-weight:800;display:flex;align-items:center;gap:5px;
   box-shadow:0 2px 10px rgba(0,0,0,.25);max-width:46vw;overflow:hidden;white-space:nowrap;
   text-overflow:ellipsis;cursor:pointer}
-.v2-bell{width:40px;height:40px;border-radius:50%;border:1px solid var(--brand-border);
-  background:transparent;color:var(--brand-text);font-size:19px;cursor:pointer}
+/* v2.11 · #16 · la campanella DICE chi chiama: etichetta «Mesero» SOTTO la
+   campana (prima: icona nuda = decorazione). Stessa impronta ~44px: la riga
+   a 3 zone non sborda mai, nemmeno a 360px. */
+.v2-bell{width:44px;height:40px;border-radius:12px;border:1.5px solid var(--brand-border);
+  background:var(--brand-surface);color:var(--brand-text);cursor:pointer;padding:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:0;font-size:14px;line-height:1.15}
+.v2-bell small{font-size:8.5px;font-weight:800;letter-spacing:.03em;color:var(--brand-text-muted)}
+/* v2.11 · #16 · il chip mesa dichiara che si APRE */
+.v2-chev-id{opacity:.55;font-size:10px;margin-left:1px}
 /* ── oss.2+3 (12-lug) · mesero = PILL compatta nel row del buscador:
    testo pieno (niente più grigio perso nel fondo), e si guadagna una riga ── */
 #v2MeseroPill{display:none;align-items:center;gap:6px;flex:0 0 auto;max-width:45vw;
@@ -3988,7 +4004,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
       <button class="header-search-btn" id="headerSearchBtn" onclick="openSearchOverlay()" aria-label="Buscar" data-i18n-aria="nav_search">
         <span class="header-search-icon">⌕</span>
       </button>
-      <button class="v2-bell" id="v2Bell" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero" style="display:none">🔔</button>
+      <button class="v2-bell" id="v2Bell" onclick="onCallWaiterGeneric()" aria-label="Llamar mesero" style="display:none">🔔<small id="v2BellTxt">Mesero</small></button>
       <div id="mesaBadge"><span class="mesa-icon">🪑</span><span id="mesaNum">–</span></div>
       <button class="lang-btn" id="langBtn" onclick="toggleLangMenu()" aria-label="Cambia idioma">
         <span class="lang-flag" id="langFlag">🌐</span>
@@ -5126,7 +5142,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     if(MESA_ID && !localStorage.getItem('v2_coach_tap_v1')){
       setTimeout(function(){
-        showToastMsg('👆 ' + (getLang('coach_tap') || 'Toca cualquier plato para verlo en grande'));
+        // ⚠ niente getLang su chiavi non in tabella: ritorna la CHIAVE (#9 lunedì)
+        showToastMsg('👆 Toca cualquier plato para verlo en grande');
         try { localStorage.setItem('v2_coach_tap_v1', '1'); } catch(e){}
       }, 6000);
     }
@@ -8524,7 +8541,7 @@ async function _colaFlush(){
         if (_cartPendUuid() === entry.payload.uuid) _cartPendClear();
         showToastMsg('🪑 ¿Sigues en la mesa ' + (entry.payload.mesa || '') + '? Abre tu pedido y reenvíalo');
         const btnC = document.getElementById('btnEnviarPedido');
-        if (btnC) { btnC.disabled = false; btnC.textContent = getLang('pedido_reintentar_btn') || 'Reintentar envío 🛎'; }
+        if (btnC) { btnC.disabled = false; btnC.textContent = 'Reintentar envío 🛎'; }
         continue;
       }
       // errore applicativo duro: rinviare lo stesso payload non serve — fuori dalla cola
@@ -8532,7 +8549,7 @@ async function _colaFlush(){
       if (_cartPendUuid() === entry.payload.uuid) {
         _cartPendClear();
         const btnE = document.getElementById('btnEnviarPedido');
-        if (btnE) { btnE.disabled = false; btnE.textContent = getLang('pedido_reintentar_btn') || 'Reintentar envío 🛎'; }
+        if (btnE) { btnE.disabled = false; btnE.textContent = 'Reintentar envío 🛎'; }
       }
     }
   } finally {
@@ -8638,7 +8655,7 @@ async function enviarPedidoDigital(opts){
         <button class="v2-via-mesero" onclick="closeCart();v2AbrirId();v2CambiarMesaAbrir()">Me cambié de mesa</button>
       </div>`;
     if (vias) vias.innerHTML = q;
-    else { showToastMsg('🪑 ¿Sigues en la mesa ' + (MESA_ID||'') + '? Ábrelo de nuevo y confirma'); if(btn){ btn.disabled=false; btn.textContent=getLang('pedido_reintentar_btn')||'Reintentar envío 🛎'; } }
+    else { showToastMsg('🪑 ¿Sigues en la mesa ' + (MESA_ID||'') + '? Ábrelo de nuevo y confirma'); if(btn){ btn.disabled=false; btn.textContent='Reintentar envío 🛎'; } }
     return;
   }
 
@@ -8653,8 +8670,8 @@ async function enviarPedidoDigital(opts){
       // e si rinvia da solo — evento online + timer 15s + boot. Il bottone
       // resta comunque un Reintentar manuale (stesso uuid → mai doppioni).
       console.warn('[v2.10] enviarPedido sin red — pedido en cola offline:', uuid);
-      showToastMsg(getLang('pedido_cola_guardado') || '📡 Sin señal — tu pedido quedó guardado y se enviará solo al volver la conexión');
-      if(btn){ btn.disabled = false; btn.textContent = getLang('pedido_cola_btn') || 'Se enviará solo · o reintenta 🛎'; }
+      showToastMsg('📡 Sin señal — tu pedido quedó guardado y se enviará solo al volver la conexión');
+      if(btn){ btn.disabled = false; btn.textContent = 'Se enviará solo · o reintenta 🛎'; }
       _colaArm();
     } else {
       // v1.46 · errore applicativo dopo 3 tentativi veri: il carrito RESTA
@@ -8662,8 +8679,8 @@ async function enviarPedidoDigital(opts){
       // in automatico non servirebbe (v2.10: esce dalla cola)
       _colaRemove(uuid); _cartPendClear();
       console.warn('[v1.46] enviarPedido fallito dopo 3 intenti:', e.message);
-      showToastMsg(getLang('pedido_reintentar') || 'No pude enviarlo — tu pedido sigue aquí, dale Reintentar 🛎');
-      if(btn){ btn.disabled = false; btn.textContent = getLang('pedido_reintentar_btn') || 'Reintentar envío 🛎'; }
+      showToastMsg('No pude enviarlo — tu pedido sigue aquí, dale Reintentar 🛎');
+      if(btn){ btn.disabled = false; btn.textContent = 'Reintentar envío 🛎'; }
     }
   }
 }
@@ -8709,7 +8726,7 @@ function _pedidoRegistrarExito(entry, resp){
     // v2.0 · stelline: il momento giusto per giudicare è DOPO il primo pedido
     setTimeout(v2MostrarStars, 1200);
   } else {
-    showToastMsg(getLang('pedido_cola_llego') || '✅ Tu pedido guardado ya llegó al sistema');
+    showToastMsg('✅ Tu pedido guardado ya llegó al sistema');
   }
 }
 
@@ -9516,9 +9533,11 @@ function v2PintaChip(){
   // oss.1 (12-lug) · il chip deve INVITARE anche chi non è della Lista:
   // Member riconosciuto → si espande col nome; ospite → la ⭐ è la porta
   // (FINAL: su fondo nero degradé che brilla — sul panna si perdeva).
-  chip.innerHTML = ACTIVE_MEMBER && ACTIVE_MEMBER.nombre
+  // v2.11 · #16 · il chip si presenta: 🪑 = «questo è il TUO tavolo», ▾ = «si apre»
+  chip.innerHTML = '🪑 ' + (ACTIVE_MEMBER && ACTIVE_MEMBER.nombre
     ? 'Mesa ' + escapeHtml(MESA_ID) + ' · 🎩 ' + escapeHtml(ACTIVE_MEMBER.nombre)
-    : 'Mesa ' + escapeHtml(MESA_ID) + ' <span class="v2-star">⭐</span>';
+    : 'Mesa ' + escapeHtml(MESA_ID) + ' <span class="v2-star">⭐</span>')
+    + ' <span class="v2-chev-id">▾</span>';
   chip.style.display = 'flex';
 }
 function v2AbrirId(){
@@ -9910,6 +9929,11 @@ function v2Boot(){
   }
   const bell = document.getElementById('v2Bell');
   if(bell) bell.style.display = (LLAMAR_MESERO_ENABLED && MESA_ID && !IS_VETRINA) ? '' : 'none';
+  // v2.11 · #16 · etichetta campanella. ⚠ getLang ritorna la CHIAVE se manca
+  // (non vuoto) → niente getLang qui finché la chiave non entra nella tabella
+  // i18n (#9, lunedì col KDS). 'Mesero' si legge in tutte le lingue accanto al 🔔.
+  const bellTxt = document.getElementById('v2BellTxt');
+  if(bellTxt) bellTxt.textContent = 'Mesero';
   const noche = document.getElementById('v2Noche');
   if(noche) noche.classList.toggle('show', v2NocheVisible());
   const tag = document.getElementById('v2DjTag');
