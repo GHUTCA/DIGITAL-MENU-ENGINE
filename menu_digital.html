@@ -23,6 +23,18 @@
 <meta name="apple-mobile-web-app-title" content="BKS">
 <link rel="apple-touch-icon" href="https://i.ibb.co/DHfskPMc/HOME-Comp.jpg">
 <!-- ════════════════════════════════════════════════════════════════════
+     menu_digital.html · v2.10.0 · 15-jul-2026 · LA COLA OFFLINE (#20)
+     CHANGELOG v2.9.1 → v2.10.0 (miércoles 15-jul · buco AURORA 20:22-21:21 del 14):
+     · COLA OFFLINE PERSISTENTE del pedido (localStorage, idempotente per uuid):
+       l'intento si salva PRIMA del primo tentativo → sopravvive a buchi di
+       rete, reload e chiusura tab. Dopo i 3 tentativi inline il pedido NON
+       muore più col "Reintentar" che nessuno tocca: resta in cola e si
+       rinvia DA SOLO (evento online + timer 15s + boot). TTL 45 min
+       (allineato al tope KDS). Il GAS deduplica per uuid → mai doppioni.
+     · Reintentar RIUSA lo stesso uuid se il carrito non è cambiato (prima:
+       uuid nuovo a ogni tap → doppione possibile se la risposta si era persa
+       dopo che il GAS aveva già scritto).
+     ════════════════════════════════════════════════════════════════════
      menu2.html · v2.0.0 · 12-jul-2026 · EL MENÚ QUE VENDE (file PARALLELO)
      Innesto del mockup MOCKUP_MENU_VENDE v3.3 (3 round focus group Alberto)
      sul motore v1.46 INTATTO (corazza, i18n, fasce, promos, precios_regla,
@@ -3839,7 +3851,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.9.1 · 14jul</span>
+<span id="ver" hidden>menu2 · v2.10.0 · 15jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -5072,7 +5084,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const fab = document.getElementById('bnavFab');
     if(fab) fab.classList.remove('is-disabled');
   }
-  if(PEDIDO_DIGITAL) restaurarPedidoActual();
+  if(PEDIDO_DIGITAL){
+    restaurarPedidoActual();
+    // v2.10 · cola offline: i pedidos rimasti in canna (buco di rete, reload,
+    // tab chiusa) ripartono da soli al boot
+    if(_colaPendientes().length){ _colaFlush(); _colaArm(); }
+  }
 
   if(MESA_ID){
     document.getElementById('mesaBadge').classList.add('show');
@@ -8430,6 +8447,76 @@ function _nuevoUuid(){
   return 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
 }
 
+/* ── v2.10 · LA COLA OFFLINE (#20 · buco AURORA 20:22-21:21 del 14-lug) ──
+   L'intento di pedido si persiste in localStorage PRIMA del primo colpo:
+   sopravvive a buchi di rete, reload e chiusura tab. Si rinvia da solo
+   (evento online + timer 15s + boot) con lo STESSO uuid — il GAS deduplica
+   → mai doppioni. TTL 45 min (tope KDS): oltre, niente auto-invio — un tap
+   esplicito del cliente resta sempre valido (uuid nuovo). */
+const COLA_PED_KEY  = 'cola_pedidos_v1';
+const CART_PEND_KEY = 'cart_pend_uuid_v1';   // sessionStorage: uuid in canna del carrito di QUESTA tab
+const COLA_TTL_MS   = 45 * 60 * 1000;
+const COLA_TICK_MS  = 15000;
+let COLA_TIMER = null, COLA_FLUSHING = false;
+
+function _colaLoad(){ try { const a = JSON.parse(localStorage.getItem(COLA_PED_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch(e){ return []; } }
+function _colaSave(a){ try { localStorage.setItem(COLA_PED_KEY, JSON.stringify(a)); } catch(e){} }
+function _colaGet(uuid){ return uuid ? (_colaLoad().find(x => x && x.payload && x.payload.uuid === uuid) || null) : null; }
+function _colaPut(entry){ const a = _colaLoad().filter(x => !(x && x.payload && x.payload.uuid === entry.payload.uuid)); a.push(entry); _colaSave(a); }
+function _colaRemove(uuid){ _colaSave(_colaLoad().filter(x => !(x && x.payload && x.payload.uuid === uuid))); }
+function _colaPendientes(){
+  const ahora = Date.now();
+  const a = _colaLoad();
+  const vivos = a.filter(x => x && x.payload && (ahora - (x.ts_creado || 0)) < COLA_TTL_MS);
+  if (vivos.length !== a.length) _colaSave(vivos);   // poda TTL silenziosa
+  return vivos;
+}
+function _cartPendUuid(){ try { return sessionStorage.getItem(CART_PEND_KEY) || ''; } catch(e){ return ''; } }
+function _cartPendSet(u){ try { sessionStorage.setItem(CART_PEND_KEY, u); } catch(e){} }
+function _cartPendClear(){ try { sessionStorage.removeItem(CART_PEND_KEY); } catch(e){} }
+
+function _colaArm(){
+  if (COLA_TIMER || !_colaPendientes().length) return;
+  COLA_TIMER = setInterval(_colaFlush, COLA_TICK_MS);
+}
+async function _colaFlush(){
+  if (COLA_FLUSHING) return;
+  const pend = _colaPendientes();
+  if (!pend.length){ if (COLA_TIMER){ clearInterval(COLA_TIMER); COLA_TIMER = null; } return; }
+  COLA_FLUSHING = true;
+  try {
+    for (const entry of pend) {
+      let resp = null;
+      try { resp = await _postGAS(entry.payload); }
+      catch(e){ entry.intentos = (entry.intentos || 0) + 1; _colaPut(entry); break; }   // ancora senza rete: al prossimo giro
+      if (resp && resp.ok) { _pedidoRegistrarExito(entry, resp); continue; }
+      if (resp && resp.need === 'mesa_confirmar') {
+        // il GAS non ha scritto: fuori dalla cola, il tap del cliente riapre il flusso di conferma
+        _colaRemove(entry.payload.uuid);
+        if (_cartPendUuid() === entry.payload.uuid) _cartPendClear();
+        showToastMsg('🪑 ¿Sigues en la mesa ' + (entry.payload.mesa || '') + '? Abre tu pedido y reenvíalo');
+        const btnC = document.getElementById('btnEnviarPedido');
+        if (btnC) { btnC.disabled = false; btnC.textContent = getLang('pedido_reintentar_btn') || 'Reintentar envío 🛎'; }
+        continue;
+      }
+      // errore applicativo duro: rinviare lo stesso payload non serve — fuori dalla cola
+      _colaRemove(entry.payload.uuid);
+      if (_cartPendUuid() === entry.payload.uuid) {
+        _cartPendClear();
+        const btnE = document.getElementById('btnEnviarPedido');
+        if (btnE) { btnE.disabled = false; btnE.textContent = getLang('pedido_reintentar_btn') || 'Reintentar envío 🛎'; }
+      }
+    }
+  } finally {
+    COLA_FLUSHING = false;
+    if (!_colaPendientes().length && COLA_TIMER){ clearInterval(COLA_TIMER); COLA_TIMER = null; }
+  }
+}
+window.addEventListener('online', () => { _colaFlush(); _colaArm(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && _colaPendientes().length){ _colaFlush(); _colaArm(); }
+});
+
 async function enviarPedidoDigital(opts){
   if(CART.items.length === 0) return;
   const btn = document.getElementById('btnEnviarPedido');
@@ -8459,7 +8546,18 @@ async function enviarPedidoDigital(opts){
       op: i.op||'', termino: i.termino||'', es_menu: !!i.es_menu, promo: i.p2x1 ? '2x1' : '',
       cat: p ? p.categoria : '' };
   });
-  const uuid = _nuevoUuid();
+  // v2.10 · stesso carrito = STESSO uuid: se c'è un intento in canna con
+  // items identici, un Reintentar non può mai creare un doppione (il GAS
+  // deduplica) — nemmeno se la risposta precedente si era persa dopo la
+  // scrittura. Carrito cambiato = intento nuovo: il vecchio esce dalla cola.
+  let uuid = _nuevoUuid();
+  const itemsJson = JSON.stringify(items);
+  const pendPrev = _colaGet(_cartPendUuid());
+  if (pendPrev && pendPrev.payload.items_json === itemsJson && String(pendPrev.payload.mesa) === String(MESA_ID)) {
+    uuid = pendPrev.payload.uuid;
+  } else if (pendPrev) {
+    _colaRemove(pendPrev.payload.uuid);
+  }
 
   submitCarrito(snapshot);   // telemetria intenzioni · invariata
 
@@ -8473,7 +8571,7 @@ async function enviarPedidoDigital(opts){
     mesa: MESA_ID, total: snapshot.total,
     ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
     member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
-    items_json: JSON.stringify(items),
+    items_json: itemsJson,
     // v2.0 · via A (gated envio_directo_activo): il GAS di oggi ignora i campi
     // extra senza danno; quando il KDS sarà al 100% li leggerà per instradare
     envio_directo: !!(opts && opts.directo),
@@ -8483,22 +8581,28 @@ async function enviarPedidoDigital(opts){
     confirmado: !!(opts && opts.confirmado),
     ts: Date.now(),
   };
-  let resp = null, lastErr = '';
+  // v2.10 · l'intento si persiste PRIMA del primo colpo: se la rete cade
+  // (o la pagina muore) il pedido è già al sicuro nella cola offline
+  _colaPut({ payload: payloadPedido, snapshot_items: snapshot.items, ts_creado: Date.now(), intentos: 0 });
+  _cartPendSet(uuid);
+  let resp = null, lastErr = '', esRed = false;
   for (let intento = 0; intento < 3; intento++) {
     if (intento) await new Promise(r => setTimeout(r, intento === 1 ? 2000 : 5000));
     try {
       resp = await _postGAS(payloadPedido);
+      esRed = false;   // v2.10 · il GAS ha risposto: qualunque cosa dica, la rete c'è
       if (resp && resp.ok) break;
       if (resp && resp.need === 'mesa_confirmar') break;   // v2.9.1 · non è un errore di rete
       lastErr = (resp && resp.error) || 'enviar_failed';
       resp = null;
       if (lastErr === 'carrito_vacio' || lastErr === 'items_json_invalid') break;   // duri: inutile insistere
-    } catch (e) { lastErr = e.message || 'network'; resp = null; }
+    } catch (e) { lastErr = e.message || 'network'; resp = null; esRed = true; }
   }
 
   // v2.9.1 · «¿Sigues en la mesa N?» — il brownie della 86 (limpia 21:25 →
   // pedido 21:31) muore qui. Carrito intatto, due vie: confermo o cambio mesa.
   if (resp && !resp.ok && resp.need === 'mesa_confirmar') {
+    _colaRemove(uuid); _cartPendClear();   // v2.10 · il GAS non ha scritto: l'intento esce dalla cola
     const vias = document.getElementById('v2Vias');
     const q = `<div class="v2-seguro-q">🪑 ¿Sigues en la mesa ${escapeHtml(MESA_ID||'')}?</div>
       <div class="v2-seguro-row">
@@ -8512,36 +8616,72 @@ async function enviarPedidoDigital(opts){
 
   try {
     if (!resp || !resp.ok) throw new Error(lastErr || 'enviar_failed');
+    // v2.10 · il percorso di successo vive in _pedidoRegistrarExito (condiviso
+    // col flush della cola): noche, PEDIDO_ACTUAL, ronda, carrito, poll, stelline
+    _pedidoRegistrarExito({ payload: payloadPedido, snapshot_items: snapshot.items }, resp);
+  } catch(e){
+    if (esRed) {
+      // v2.10 · SENZA RETE il pedido non muore: è già in cola (localStorage)
+      // e si rinvia da solo — evento online + timer 15s + boot. Il bottone
+      // resta comunque un Reintentar manuale (stesso uuid → mai doppioni).
+      console.warn('[v2.10] enviarPedido sin red — pedido en cola offline:', uuid);
+      showToastMsg(getLang('pedido_cola_guardado') || '📡 Sin señal — tu pedido quedó guardado y se enviará solo al volver la conexión');
+      if(btn){ btn.disabled = false; btn.textContent = getLang('pedido_cola_btn') || 'Se enviará solo · o reintenta 🛎'; }
+      _colaArm();
+    } else {
+      // v1.46 · errore applicativo dopo 3 tentativi veri: il carrito RESTA
+      // INTATTO e il bottone diventa "Reintentar" — rinviare lo stesso payload
+      // in automatico non servirebbe (v2.10: esce dalla cola)
+      _colaRemove(uuid); _cartPendClear();
+      console.warn('[v1.46] enviarPedido fallito dopo 3 intenti:', e.message);
+      showToastMsg(getLang('pedido_reintentar') || 'No pude enviarlo — tu pedido sigue aquí, dale Reintentar 🛎');
+      if(btn){ btn.disabled = false; btn.textContent = getLang('pedido_reintentar_btn') || 'Reintentar envío 🛎'; }
+    }
+  }
+}
 
-    PEDIDO_ACTUAL = {
-      uuid: uuid, ts: Date.now(), total: snapshot.total,
-      n: items.reduce((s,i)=> s + (i.qty||1), 0),
-      // v1.35 · fix prova generale: il cliente DEVE poter ricontrollare cosa ha
-      // ordinato (non solo il totale) — gli items viaggiano nella vista stato
-      items: items.map(i=>({ nombre:i.nombre, precio:i.precio, qty:i.qty||1 })),
-      estado: resp.estado || 'pendiente', mesero: '',
-    };
-    PEDIDOS_NOCHE.push(PEDIDO_ACTUAL);   // v1.36 · entra nello storico della serata
-    _nocheSave();
+/* v2.10 · l'atterraggio del pedido riuscito — UNICO per via inline e cola.
+   Registra in PEDIDOS_NOCHE (dedup per uuid: inline e flush possono correre
+   sullo stesso pedido, vince il primo), aggiorna PEDIDO_ACTUAL, e SOLO se il
+   carrito di questa tab è ancora quello dell'intento (marker sessionStorage)
+   svuota carro + ronda + render + stelline. Da un'altra sessione (tab chiusa
+   e riaperta) il pedido entra nello storico con un toast. */
+function _pedidoRegistrarExito(entry, resp){
+  const pl = entry.payload;
+  _colaRemove(pl.uuid);
+  if (PEDIDOS_NOCHE.some(p => p && p.uuid === pl.uuid)) {
+    if (_cartPendUuid() === pl.uuid) _cartPendClear();
+    return;   // già registrato (doppio canale inline+flush)
+  }
+  let items = []; try { items = JSON.parse(pl.items_json || '[]'); } catch(e){}
+  const esDelCarrito = _cartPendUuid() === pl.uuid;
+  const ped = {
+    uuid: pl.uuid, ts: Date.now(), total: pl.total,
+    n: items.reduce((s,i)=> s + (i.qty||1), 0),
+    // v1.35 · il cliente DEVE poter ricontrollare cosa ha ordinato
+    items: items.map(i=>({ nombre:i.nombre, precio:i.precio, qty:i.qty||1 })),
+    estado: (resp && resp.estado) || 'pendiente', mesero: '',
+  };
+  PEDIDOS_NOCHE.push(ped);   // v1.36 · entra nello storico della serata
+  _nocheSave();
+  if (esDelCarrito || !PEDIDO_ACTUAL) {
+    PEDIDO_ACTUAL = ped;   // v1.36 · STESSO oggetto dentro PEDIDOS_NOCHE
     try { sessionStorage.setItem(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
-    // v2.0 · 🔁 la ronda si ricorda: l'ultimo pedido inviato diventa ripetibile
-    // in UN tap (i bar vivono di ronde — il paradigma rotto, gesto ⑤)
-    ULTIMA_RONDA = snapshot.items.map(i => JSON.parse(JSON.stringify(i)));
-    try { sessionStorage.setItem(RONDA_KEY, JSON.stringify(ULTIMA_RONDA)); } catch(e){}
+    iniciarPollPedido();
+  }
+  if (esDelCarrito) {
+    // v2.0 · 🔁 la ronda si ricorda: l'ultimo pedido inviato è ripetibile in UN tap
+    ULTIMA_RONDA = (entry.snapshot_items || []).map(i => JSON.parse(JSON.stringify(i)));
+    if (ULTIMA_RONDA.length) { try { sessionStorage.setItem(RONDA_KEY, JSON.stringify(ULTIMA_RONDA)); } catch(e){} }
     CART = { items: [], updated_ts: 0, gancho_origen: '' };
     sessionStorage.removeItem(CART_KEY);
+    _cartPendClear();
     updateCartBadge();
     renderPedidoEstado();
-    iniciarPollPedido();
     // v2.0 · stelline: il momento giusto per giudicare è DOPO il primo pedido
     setTimeout(v2MostrarStars, 1200);
-  } catch(e){
-    // v1.46 · dopo 3 tentativi veri: il carrito RESTA INTATTO e il bottone
-    // diventa "Reintentar" — l'ordine non muore mai in silenzio (prima:
-    // 1 tentativo, carrito svuotato, toast che nessuno leggeva)
-    console.warn('[v1.46] enviarPedido fallito dopo 3 intenti:', e.message);
-    showToastMsg(getLang('pedido_reintentar') || 'No pude enviarlo — tu pedido sigue aquí, dale Reintentar 🛎');
-    if(btn){ btn.disabled = false; btn.textContent = getLang('pedido_reintentar_btn') || 'Reintentar envío 🛎'; }
+  } else {
+    showToastMsg(getLang('pedido_cola_llego') || '✅ Tu pedido guardado ya llegó al sistema');
   }
 }
 
