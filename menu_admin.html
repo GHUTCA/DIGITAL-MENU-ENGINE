@@ -342,7 +342,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">v2.1 · 4jul</div>
+    <div class="hub-footer-version" id="ver">v2.2 · 15jul</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -456,7 +456,19 @@
     <div class="lst-chips" style="background:transparent;border:none;padding:0 0 10px" id="franjaChips"></div>
     <input type="text" class="input-field" id="asignarFranja" placeholder="19–cierre" maxlength="20">
     <label class="input-label">Mesero <span class="opt">(vacío = liberar la franja)</span></label>
+    <!-- v2.2 · STAFF_SALA (#18): dropdown dall'anagrafica — il nome non si digita
+         più. Il campo testo resta: fallback (GAS pre-v3.5.0) e via manuale multi-nome. -->
+    <select class="input-field" id="asignarMeseroSel" style="display:none" onchange="onMeseroSelChange()"></select>
     <input type="text" class="input-field" id="asignarMesero" placeholder="Nombre" maxlength="30" autocomplete="off">
+    <div id="staffAltaBox" style="display:none">
+      <label class="input-label">Nuevo mesero · nombre</label>
+      <input type="text" class="input-field" id="staffAltaNombre" placeholder="Anthony" maxlength="30" autocomplete="off">
+      <label class="input-label">Chat ID Telegram <span class="opt">(opcional · campanilla)</span></label>
+      <input type="text" class="input-field" id="staffAltaChat" placeholder="123456789" maxlength="20" inputmode="numeric">
+      <div class="bs-actions" style="margin-top:6px">
+        <button class="bs-btn bs-btn-confirm" id="staffAltaBtn" onclick="confirmStaffAlta()">Guardar mesero</button>
+      </div>
+    </div>
     <div class="bs-actions" style="margin-top:8px">
       <button class="bs-btn bs-btn-cancel" onclick="backToTurno()">Cancelar</button>
       <button class="bs-btn bs-btn-confirm" id="asignarBtn" onclick="confirmAsignar()">Guardar</button>
@@ -1469,7 +1481,77 @@ function showQr(){
 }
 function closeQr(){ document.getElementById('qrOverlay').classList.remove('show'); }
 
-/* Asignar mesero */
+/* Asignar mesero · v2.2 · STAFF_SALA (#18): dropdown dall'anagrafica.
+   Fallback INTERO al campo testo storico se il GAS non conosce getStaffSala
+   (deploy sganciati) o se l'anagrafica è ancora vuota. */
+let STAFF_CACHE = null;       // null = fallback testo · array = lista attivi
+let STAFF_CACHE_TS = 0;
+
+async function loadStaff(force){
+  if (!force && STAFF_CACHE && (Date.now() - STAFF_CACHE_TS) < 5*60*1000) return STAFF_CACHE;
+  try {
+    const r = await withRetry(() => gasPost('getStaffSala', { pin: lastSavedPin }), 'getStaffSala');
+    if (r && r.ok && Array.isArray(r.staff)) { STAFF_CACHE = r.staff; STAFF_CACHE_TS = Date.now(); return STAFF_CACHE; }
+  } catch (e) { /* GAS vecchio o rete giù → campo testo */ }
+  STAFF_CACHE = null;
+  return null;
+}
+
+function renderMeseroControl(meseroActual){
+  const sel = document.getElementById('asignarMeseroSel');
+  const inp = document.getElementById('asignarMesero');
+  document.getElementById('staffAltaBox').style.display = 'none';
+  if (!STAFF_CACHE || !STAFF_CACHE.length) {
+    sel.style.display = 'none'; inp.style.display = ''; inp.value = meseroActual || '';
+    return;
+  }
+  const esMulti = (meseroActual || '').indexOf(',') >= 0;
+  const enLista = !!meseroActual && STAFF_CACHE.some(s => s.nombre === meseroActual);
+  sel.innerHTML =
+    '<option value="">— libre —</option>' +
+    STAFF_CACHE.map(s => `<option value="${s.nombre.replace(/"/g,'&quot;')}">${s.nombre}${s.tiene_chat ? ' 🔔' : ''}</option>`).join('') +
+    (meseroActual && !enLista && !esMulti ? `<option value="${meseroActual.replace(/"/g,'&quot;')}">${meseroActual} (fuera del staff)</option>` : '') +
+    '<option value="__nuevo__">➕ agregar mesero nuevo…</option>' +
+    '<option value="__manual__">✍️ escribir a mano (varios, coma)</option>';
+  if (esMulti) {   // multi-nome: si edita a mano, il server valida ogni nome
+    sel.style.display = 'none'; inp.style.display = ''; inp.value = meseroActual;
+  } else {
+    sel.style.display = ''; inp.style.display = 'none'; inp.value = '';
+    sel.value = meseroActual || '';
+    if (sel.value === '__nuevo__' || sel.value === '__manual__') sel.value = '';
+  }
+}
+
+function onMeseroSelChange(){
+  const sel = document.getElementById('asignarMeseroSel');
+  const inp = document.getElementById('asignarMesero');
+  const alta = document.getElementById('staffAltaBox');
+  if (sel.value === '__manual__') { sel.style.display = 'none'; inp.style.display = ''; inp.value = ''; inp.focus(); }
+  else if (sel.value === '__nuevo__') { alta.style.display = ''; document.getElementById('staffAltaNombre').focus(); }
+  else alta.style.display = 'none';
+}
+
+async function confirmStaffAlta(){
+  const nombre = document.getElementById('staffAltaNombre').value.trim();
+  const chat = document.getElementById('staffAltaChat').value.trim();
+  if (!nombre) { showToast('error', 'Ingresa el nombre'); return; }
+  const btn = document.getElementById('staffAltaBtn'); btn.disabled = true;
+  try {
+    const payload = { pin: lastSavedPin, nombre: nombre };
+    if (chat) payload.chat_id = chat;
+    const r = await withRetry(() => gasPost('guardarStaff', payload), 'guardarStaff');
+    if (r && r.ok) {
+      showToast('success', `${r.nombre} en el staff${r.actualizado ? ' (actualizado)' : ''}`);
+      document.getElementById('staffAltaNombre').value = '';
+      document.getElementById('staffAltaChat').value = '';
+      await loadStaff(true);
+      renderMeseroControl(r.nombre);
+    } else showToast('error', r && r.error ? 'Error: ' + r.error : 'No se pudo guardar');
+  } catch (err) {
+    showToast('error', err.message === 'timeout' ? 'Tiempo agotado · reintenta' : 'Sin conexión');
+  } finally { btn.disabled = false; }
+}
+
 function openAsignar(plazaEnc, franjaEnc, meseroEnc){
   const plaza = decodeURIComponent(plazaEnc||'');
   const franja = decodeURIComponent(franjaEnc||'');
@@ -1477,22 +1559,30 @@ function openAsignar(plazaEnc, franjaEnc, meseroEnc){
   STATE.asignarCtx = { plaza };
   document.getElementById('asignarSub').textContent = plaza;
   document.getElementById('asignarFranja').value = franja || FRANJAS_SUGERIDAS[0];
-  document.getElementById('asignarMesero').value = mesero;
   document.getElementById('franjaChips').innerHTML = FRANJAS_SUGERIDAS.map(f=>
     `<button class="lst-chip" onclick="document.getElementById('asignarFranja').value='${f}'">${f}</button>`).join('');
+  // v2.2 · primo paint con cache (o fallback), poi re-render solo se il fetch cambia le carte
+  renderMeseroControl(mesero);
+  const had = !!STAFF_CACHE;
+  loadStaff().then(() => { if (!!STAFF_CACHE !== had) renderMeseroControl(mesero); });
   showView('viewAsignar');
 }
 async function confirmAsignar(){
   const ctx = STATE.asignarCtx; if(!ctx) return backToTurno();
   const franja = document.getElementById('asignarFranja').value.trim();
-  const mesero = document.getElementById('asignarMesero').value.trim();
+  // v2.2 · il valore viene dal controllo visibile (select o campo testo)
+  const sel = document.getElementById('asignarMeseroSel');
+  const usaSel = sel.style.display !== 'none' && sel.value !== '__nuevo__' && sel.value !== '__manual__';
+  const mesero = usaSel ? sel.value.trim() : document.getElementById('asignarMesero').value.trim();
   if(!franja){ showToast('error','Ingresa la franja'); return; }
   const btn = document.getElementById('asignarBtn'); btn.disabled = true;
   try {
     const r = await withRetry(() => gasPost('asignarPlaza', { pin: lastSavedPin, plaza: ctx.plaza, franja: franja, mesero: mesero }), 'asignarPlaza');
     if (r && r.ok) {
-      showToast('success', mesero ? `${ctx.plaza} · ${franja} → ${mesero}` : `${ctx.plaza} · ${franja} liberada`);
+      showToast('success', r.mesero || mesero ? `${ctx.plaza} · ${franja} → ${r.mesero || mesero}` : `${ctx.plaza} · ${franja} liberada`);
       await loadTurno(); backToTurno();
+    } else if (r && r.error === 'mesero_desconocido') {
+      showToast('error', `⚠️ ${r.mesero || 'Ese nombre'} no está en el staff — agrégalo con ➕`);
     } else showToast('error', r && r.error ? 'Error: '+r.error : 'No se pudo guardar');
   } catch (err) {
     showToast('error', err.message==='timeout' ? 'Tiempo agotado · reintenta' : 'Sin conexión');
