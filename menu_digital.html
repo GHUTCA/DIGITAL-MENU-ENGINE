@@ -3883,7 +3883,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.11.1 · 17jul</span>
+<span id="ver" hidden>menu2 · v2.12.0 · 17jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8411,12 +8411,44 @@ function v2OtraRonda(){
   showToastMsg('🔁 Ronda repetida — revisa y envía');
 }
 
+/* ── v2.12 · REVISA TU PEDIDO (riflessione Alberto 17-lug) ────────────────
+   Le tre ansie del cliente: «¿lo envié?» · «¿alguien lo vio?» · «¿pedí bien?».
+   La terza si cura QUI: un vistazo obbligato prima dell'invio, con le
+   cantidades GRANDI (≥2 evidenziate — l'errore di Q nasce cieco). Le prime
+   due le cura la vista stato col N° d'ordine (sotto) + el poll che già c'era. */
+function renderRevisionPedido(){
+  const el = document.getElementById('cartSheetContent');
+  if(!el) return;
+  const total = CART.items.reduce((s,i)=> s + i.precio * (i.qty||1), 0);
+  const n = CART.items.reduce((s,i)=> s + (i.qty||1), 0);
+  el.innerHTML = `
+    <div class="cart-recap">
+      <div class="cart-recap-check">🧾</div>
+      <div class="cart-recap-title">Revisa tu pedido</div>
+      <div class="cart-recap-sub">Un vistazo — sobre todo a las cantidades</div>
+      <div class="cart-recap-list">
+        ${CART.items.map(i => {
+          const q = i.qty||1;
+          const qBadge = q >= 2
+            ? `<span style="display:inline-block;min-width:34px;text-align:center;font-weight:800;font-size:1.05em;background:rgba(240,196,63,.18);border:1px solid rgba(240,196,63,.55);border-radius:8px;padding:1px 6px;margin-right:6px">×${q}</span>`
+            : `<span style="opacity:.75;margin-right:6px">1×</span>`;
+          return `<div class="cart-recap-item"><span>${qBadge}${toTitleCase(i.nombre)}</span><span>${formatPrice(i.precio*q)}</span></div>`;
+        }).join('')}
+        <div class="cart-recap-item" style="border-top:1px solid var(--brand-border);margin-top:6px;padding-top:8px;font-weight:700"><span>${getLang('mesa')||'Mesa'} ${MESA_ID} · ${n} ${getLang('pedido_items')||'productos'}</span><span>${formatPriceWithSymbol(total)}</span></div>
+      </div>
+      <div class="v2-seguro-row" style="margin-top:10px">
+        <button class="v2-via-mesero" onclick="renderCart()">✏️ Corregir algo</button>
+        <button class="v2-via-si" id="btnEnviarPedido" onclick='this.disabled=true;this.textContent="Enviando…";enviarPedidoDigital()'>✅ Todo bien — ¡enviar!</button>
+      </div>
+    </div>`;
+}
+
 function cartListo(){
   if(CART.items.length === 0) return;
   // v1.32 · TAP UNICO: col kill-switch acceso e una mesa vera, il carrito
   // diventa la llamada (spec 03-jul). Switch spento = comportamento storico.
   if(PEDIDO_DIGITAL && MESA_ID){
-    enviarPedidoDigital();
+    renderRevisionPedido();   // v2.12 · il vistazo prima dell'invio
     return;
   }
   const total = CART.items.reduce((s,i)=> s + i.precio * (i.qty||1), 0);
@@ -8718,6 +8750,8 @@ function _pedidoRegistrarExito(entry, resp){
     // v1.35 · il cliente DEVE poter ricontrollare cosa ha ordinato
     items: items.map(i=>({ nombre:i.nombre, precio:i.precio, qty:i.qty||1 })),
     estado: (resp && resp.estado) || 'pendiente', mesero: '',
+    // v2.12 · il N° d'ordine è l'ancora del «sí, lo recibieron»
+    id: (resp && resp.id_pedido) || '',
   };
   PEDIDOS_NOCHE.push(ped);   // v1.36 · entra nello storico della serata
   _nocheSave();
@@ -8765,10 +8799,13 @@ function renderPedidoEstado(){
   };
   const v = VISTAS[PA.estado] || VISTAS.pendiente;
   const terminal = ['entregado','cerrado','expirado','cancelado'].includes(PA.estado);
+  // v2.12 · «Pedido N° 076 · recibido ✓» — il numero uccide l'ansia del re-invio
+  const numPed = PA.id ? ('Pedido N° ' + String(PA.id).slice(-3) + ' · recibido ✓') : '';
   el.innerHTML = `
     <div class="cart-recap">
       <div class="cart-recap-check${v.anim ? ' pedido-pulse' : ''}">${v.icon}</div>
       <div class="cart-recap-title">${v.t}</div>
+      ${numPed ? `<div class="cart-recap-sub" style="font-weight:800;letter-spacing:.4px">${numPed}</div>` : ''}
       <div class="cart-recap-sub">${v.s}</div>
       <div class="v2c-sub" style="text-align:left">🧾 Lo que pediste recién</div>
       <div class="cart-recap-list">
