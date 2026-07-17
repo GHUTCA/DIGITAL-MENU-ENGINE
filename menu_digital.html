@@ -3883,7 +3883,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.11.0 · 15jul</span>
+<span id="ver" hidden>menu2 · v2.11.1 · 17jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8562,7 +8562,19 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && _colaPendientes().length){ _colaFlush(); _colaArm(); }
 });
 
+/* v2.11.1 · CASO MESA 34 (16-lug sera): tap ripetuti su «Sí — ¡enviar!»
+   (bottone mai disabilitato) = N enviarPedidoDigital PARALLELI; i primi tap
+   riusano lo stesso uuid dalla cola → 8 righe identiche in un secondo.
+   Il GAS ora ha il lock (@53) e non scrive doppioni, ma il telefono non
+   deve sparare raffiche: UN solo invio in volo per tab, qualsiasi bottone. */
+let ENVIO_EN_CURSO = false;
 async function enviarPedidoDigital(opts){
+  if (ENVIO_EN_CURSO) return;
+  ENVIO_EN_CURSO = true;
+  try { return await _enviarPedidoDigitalInner(opts); }
+  finally { ENVIO_EN_CURSO = false; }
+}
+async function _enviarPedidoDigitalInner(opts){
   if(CART.items.length === 0) return;
   const btn = document.getElementById('btnEnviarPedido');
   if(btn){ btn.disabled = true; btn.textContent = getLang('pedido_enviando') || 'Enviando…'; }
@@ -8651,7 +8663,7 @@ async function enviarPedidoDigital(opts){
     const vias = document.getElementById('v2Vias');
     const q = `<div class="v2-seguro-q">🪑 ¿Sigues en la mesa ${escapeHtml(MESA_ID||'')}?</div>
       <div class="v2-seguro-row">
-        <button class="v2-via-si" onclick='enviarPedidoDigital(${JSON.stringify(Object.assign({}, opts||{}, { confirmado:true }))})'>Sí — ¡enviar!</button>
+        <button class="v2-via-si" onclick='this.disabled=true;this.textContent="Enviando…";enviarPedidoDigital(${JSON.stringify(Object.assign({}, opts||{}, { confirmado:true }))})'>Sí — ¡enviar!</button>
         <button class="v2-via-mesero" onclick="closeCart();v2AbrirId();v2CambiarMesaAbrir()">Me cambié de mesa</button>
       </div>`;
     if (vias) vias.innerHTML = q;
