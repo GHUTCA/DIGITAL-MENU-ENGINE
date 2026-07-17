@@ -3883,7 +3883,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.12.0 · 17jul</span>
+<span id="ver" hidden>menu2 · v2.13.0 · 17jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7684,6 +7684,9 @@ function openDetail(id){
       ${(PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo' && ALMUERZO_INCLUYE_TXT) ? `
         <div class="almuerzo-incluye">🍽️ ${ALMUERZO_INCLUYE_TXT}</div>
       ` : ''}
+      ${(!p.agotado && !IS_VETRINA && PEDIDO_DIGITAL && MESA_ID && REGALO_CATS.includes(p.categoria)) ? `
+        <button style="width:100%;margin:4px 0 2px;padding:11px;background:transparent;border:1.5px dashed rgba(240,196,63,.6);border-radius:12px;color:inherit;font-size:14.5px;font-weight:600;cursor:pointer" onclick="regaloAbrir('${p.id}')">🎁 Enviar a otra mesa</button>
+      ` : ''}
       ${!p.agotado && !IS_VETRINA && PEDIDO_DIGITAL ? v2PreguntasHTML(p) : ''}
       </div>
       ${upsellHtml}
@@ -8593,6 +8596,102 @@ window.addEventListener('online', () => { _colaFlush(); _colaArm(); });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && _colaPendientes().length){ _colaFlush(); _colaArm(); }
 });
+
+/* ═══ v2.13 · #13 · 🎁 REGALO DRINK — il drink all'altra mesa, digitalizzato ═══
+   Il rito esiste già (tribale, col mesero messaggero): qui si CATTURA, non si
+   inventa. Il conto è del mittente (Mesa = la tua), il ring va al mesero della
+   mesa DESTINO, il consenso è umano (v1). Rifiuto = nadie paga. */
+const REGALO_CATS = ['bar','sour','mojitos','spritz','cervezas','vinos','jarras','destilados','jugos','bebidas'];
+let REGALO_FIRMA = 'anon';
+
+function regaloAbrir(prodId){
+  const p = ALL_PRODUCTS.find(x => x.id === prodId);
+  if(!p || !MESA_ID) return;
+  REGALO_FIRMA = 'anon';
+  const precio = parsePrice(ACTIVE_MEMBER && p.precio_member ? p.precio_member : p.precio);
+  document.getElementById('sheetContent').innerHTML = `
+    <div class="sheet-body">
+      <div class="sheet-name">🎁 ${toTitleCase(p.nombre)}</div>
+      <div class="sheet-desc">Mándalo a otra mesa — el mesero se lo lleva y pregunta si lo aceptan.<br><b>Va a tu cuenta</b> (${formatPriceWithSymbol(precio)}). Si no lo aceptan, no se cobra.</div>
+      <div style="margin:14px 0 4px;font-weight:700;font-size:14px">¿A qué mesa?</div>
+      <input id="regaloMesa" type="text" inputmode="numeric" maxlength="3" placeholder="n° de mesa"
+        style="width:100%;padding:12px;border-radius:12px;border:1.5px solid rgba(240,196,63,.6);background:transparent;color:inherit;font-size:18px;font-weight:700;text-align:center">
+      <div style="margin:12px 0 4px;font-weight:700;font-size:14px">Un mensaje (opcional)</div>
+      <input id="regaloNota" type="text" maxlength="60" placeholder="ej: ¡feliz final! 🏆"
+        style="width:100%;padding:11px;border-radius:12px;border:1px solid var(--brand-border);background:transparent;color:inherit;font-size:15px">
+      <div style="display:flex;gap:8px;margin:14px 0 4px">
+        <button id="regaloFirmaAnon" onclick="regaloFirma('anon')" style="flex:1;padding:10px;border-radius:12px;border:1.5px solid rgba(240,196,63,.7);background:rgba(240,196,63,.15);color:inherit;font-weight:700;cursor:pointer">🕶 Anónimo</button>
+        <button id="regaloFirmaMesa" onclick="regaloFirma('mesa')" style="flex:1;padding:10px;border-radius:12px;border:1px solid var(--brand-border);background:transparent;color:inherit;font-weight:700;cursor:pointer">🪑 De la mesa ${escapeHtml(MESA_ID)}</button>
+      </div>
+      <div id="regaloErr" style="color:#ff7a8f;font-size:14px;min-height:18px;margin:4px 0"></div>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button onclick="openDetail('${p.id}')" style="flex:1;padding:13px;border-radius:12px;border:1px solid var(--brand-border);background:transparent;color:inherit;font-weight:700;cursor:pointer">Volver</button>
+        <button id="regaloGo" onclick="regaloEnviar('${p.id}')" style="flex:2;padding:13px;border-radius:12px;border:none;background:#f0c43f;color:#000;font-weight:800;font-size:15px;cursor:pointer">🎁 ¡Enviar!</button>
+      </div>
+    </div>`;
+  const orden = document.getElementById('v2Orden');
+  if(orden) orden.classList.remove('show');
+  setTimeout(()=>{ const m = document.getElementById('regaloMesa'); if(m) m.focus(); }, 150);
+}
+
+function regaloFirma(cual){
+  REGALO_FIRMA = cual;
+  const a = document.getElementById('regaloFirmaAnon'), m = document.getElementById('regaloFirmaMesa');
+  if(!a || !m) return;
+  const on  = 'flex:1;padding:10px;border-radius:12px;border:1.5px solid rgba(240,196,63,.7);background:rgba(240,196,63,.15);color:inherit;font-weight:700;cursor:pointer';
+  const off = 'flex:1;padding:10px;border-radius:12px;border:1px solid var(--brand-border);background:transparent;color:inherit;font-weight:700;cursor:pointer';
+  a.style.cssText = cual === 'anon' ? on : off;
+  m.style.cssText = cual === 'mesa' ? on : off;
+}
+
+async function regaloEnviar(prodId){
+  if (ENVIO_EN_CURSO) return;
+  const p = ALL_PRODUCTS.find(x => x.id === prodId);
+  const err = document.getElementById('regaloErr');
+  const destino = (document.getElementById('regaloMesa')?.value || '').trim();
+  if(!p) return;
+  if(!/^\d{1,3}$/.test(destino)){ if(err) err.textContent = 'Pon el número de la mesa (está en su QR)'; return; }
+  if(destino === String(MESA_ID)){ if(err) err.textContent = 'Esa es tu mesa 😄 — elige otra'; return; }
+  const btn = document.getElementById('regaloGo');
+  if(btn){ btn.disabled = true; btn.textContent = 'Enviando…'; }
+  ENVIO_EN_CURSO = true;
+  try {
+    const precio = parsePrice(ACTIVE_MEMBER && p.precio_member ? p.precio_member : p.precio);
+    const nota = (document.getElementById('regaloNota')?.value || '').trim().slice(0, 60);
+    const payload = {
+      action: 'enviarPedido', local: LOCAL_ID, uuid: _nuevoUuid(),
+      mesa: MESA_ID, total: precio,
+      ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
+      member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
+      items_json: JSON.stringify([{ id: p.id, nombre: '🎁 ' + p.nombre, precio: precio, qty: 1, llevar: 1, op: '', termino: '', es_menu: false, promo: '', cat: p.categoria }]),
+      regalo_para: destino, regalo_nota: nota,
+      regalo_firma: REGALO_FIRMA === 'mesa' ? ('de la mesa ' + MESA_ID) : '',
+      confirmado: true,   // gesto deliberato: niente prompt fantasma sul mittente
+      ts: Date.now(),
+    };
+    let resp = null;
+    for (let i = 0; i < 2; i++) {
+      if (i) await new Promise(r => setTimeout(r, 2000));
+      try { resp = await _postGAS(payload); if (resp) break; } catch(e){ resp = null; }
+    }
+    if (resp && resp.ok) {
+      _pedidoRegistrarExito({ payload: payload, snapshot_items: [] }, resp);
+      document.getElementById('sheetContent').innerHTML = `
+        <div class="sheet-body" style="text-align:center;padding-top:26px">
+          <div style="font-size:52px">🎁</div>
+          <div class="sheet-name">¡Enviado a la mesa ${escapeHtml(destino)}!</div>
+          <div class="sheet-desc">El mesero de esa mesa se lo lleva y pregunta.<br>Va a tu cuenta: <b>${formatPriceWithSymbol(precio)}</b> — si no lo aceptan, no se cobra.<br><br>${REGALO_FIRMA === 'mesa' ? 'Firmado: de la mesa ' + escapeHtml(MESA_ID) : 'Anónimo 🕶'}</div>
+          <button onclick="closeDetail()" style="margin-top:14px;padding:13px 26px;border-radius:12px;border:none;background:#f0c43f;color:#000;font-weight:800;font-size:15px;cursor:pointer">Listo</button>
+        </div>`;
+    } else if (resp && resp.error === 'regalo_misma_mesa') {
+      if(err) err.textContent = 'Esa es tu mesa 😄 — elige otra';
+      if(btn){ btn.disabled = false; btn.textContent = '🎁 ¡Enviar!'; }
+    } else {
+      if(err) err.textContent = 'No se pudo enviar — intenta de nuevo';
+      if(btn){ btn.disabled = false; btn.textContent = '🎁 ¡Enviar!'; }
+    }
+  } finally { ENVIO_EN_CURSO = false; }
+}
 
 /* v2.11.1 · CASO MESA 34 (16-lug sera): tap ripetuti su «Sí — ¡enviar!»
    (bottone mai disabilitato) = N enviarPedidoDigital PARALLELI; i primi tap
