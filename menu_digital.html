@@ -3883,7 +3883,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.13.0 · 17jul</span>
+<span id="ver" hidden>menu2 · v2.13.1 · 17jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8439,6 +8439,10 @@ function renderRevisionPedido(){
         }).join('')}
         <div class="cart-recap-item" style="border-top:1px solid var(--brand-border);margin-top:6px;padding-top:8px;font-weight:700"><span>${getLang('mesa')||'Mesa'} ${MESA_ID} · ${n} ${getLang('pedido_items')||'productos'}</span><span>${formatPriceWithSymbol(total)}</span></div>
       </div>
+      <!-- v2.13.1 · CASO 17-lug sera: il branch mesa_confirmar scrive in #v2Vias —
+           senza questo div nella revisione il dialogo «¿Sigues en la mesa?» non
+           appariva MAI e il cliente restava nel loop «Reintentar» (sala bloccata) -->
+      <div class="v2-vias" id="v2Vias"></div>
       <div class="v2-seguro-row" style="margin-top:10px">
         <button class="v2-via-mesero" onclick="renderCart()">✏️ Corregir algo</button>
         <button class="v2-via-si" id="btnEnviarPedido" onclick='this.disabled=true;this.textContent="Enviando…";enviarPedidoDigital()'>✅ Todo bien — ¡enviar!</button>
