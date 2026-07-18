@@ -3888,7 +3888,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.16.0 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.16.1 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -6008,13 +6008,13 @@ async function loadBienvenida(){
      {MENU_PRECIO} {MENU_DIAS} {MENU_DESDE} {MENU_HASTA} {MENU_N}
    e i valori arrivano VIVI da PRECIOS_REGLA via menu_info (una fonte sola).
    Menú OFF (domenica-partita) → la riga che parla del menú sparisce da sola. */
-function bvTokens(str){
+function bvTokens(str, pt){
   if(!str || str.indexOf('{MENU_') < 0) return str;
   const mi = (typeof MENU_INFO !== 'undefined') ? MENU_INFO : null;
   if(!mi || mi.estado !== 'on') return '';   // niente menú → niente frase
   return str
     .replace(/\{MENU_PRECIO\}/g, formatPriceWithSymbol(mi.precio))
-    .replace(/\{MENU_DIAS\}/g, mi.dias_str || '')
+    .replace(/\{MENU_DIAS\}/g, (pt ? mi.dias_str_pt : mi.dias_str) || mi.dias_str || '')
     .replace(/\{MENU_DESDE\}/g, mi.desde || '')
     .replace(/\{MENU_HASTA\}/g, mi.hasta || '')
     .replace(/\{MENU_N\}/g, String(mi.n || ''));
@@ -6036,12 +6036,12 @@ function showBienvenidaSplash(){
   const lang = (LANG_CODE === 'pt') ? 'pt' : 'es';
   const useT = (lang === 'pt' && franja.pt && franja.pt.propuesta_titulo);
 
-  const saludo  = bvTokens(useT ? franja.pt.saludo          : franja.saludo);
-  const estado  = bvTokens(useT ? franja.pt.estado_linea    : franja.estado_linea);
-  const propTit = bvTokens(useT ? franja.pt.propuesta_titulo: franja.propuesta_titulo);
-  const propDet = bvTokens(useT ? franja.pt.propuesta_detalle: franja.propuesta_detalle);
-  const propExt = bvTokens(useT ? franja.pt.propuesta_extra : franja.propuesta_extra);
-  const ctaLab  = bvTokens(useT ? franja.pt.cta_label       : franja.cta_label);
+  const saludo  = bvTokens(useT ? franja.pt.saludo          : franja.saludo, useT);
+  const estado  = bvTokens(useT ? franja.pt.estado_linea    : franja.estado_linea, useT);
+  const propTit = bvTokens(useT ? franja.pt.propuesta_titulo: franja.propuesta_titulo, useT);
+  const propDet = bvTokens(useT ? franja.pt.propuesta_detalle: franja.propuesta_detalle, useT);
+  const propExt = bvTokens(useT ? franja.pt.propuesta_extra : franja.propuesta_extra, useT);
+  const ctaLab  = bvTokens(useT ? franja.pt.cta_label       : franja.cta_label, useT);
   // v1.24 · S14 · CTA target · letto da Sheet (CTA_Target / CTA_Target_PT) · PT fallback a ES
   BIENVENIDA_CTA_TARGET = (useT && franja.pt.cta_target) ? franja.pt.cta_target : (franja.cta_target || '');
 
@@ -6152,9 +6152,15 @@ document.getElementById('bvPropEyebrow').textContent = saludo || (lang === 'pt' 
   // Se override attivo · prezzo principale = override price (BBQ 18.500)
   // Se override no · prezzo principale = base price (Negroni 7.500)
   // GAS espone propuesta_precio_override = 0 quando non override o cella vuota.
-  const precioMain = (franja.override_activo && franja.propuesta_precio_override > 0)
+  let precioMain = (franja.override_activo && franja.propuesta_precio_override > 0)
     ? franja.propuesta_precio_override
     : franja.propuesta_precio;
+  // v2.16.1 · la proposta ALMUERZO parla del Menú del Día: il prezzo lo dice
+  // menu_info (segue leva/OFF), MAI la cella fissa (colonna J = solo fallback).
+  if(franja.id === 'ALMUERZO' && !franja.override_activo && MENU_INFO){
+    if(MENU_INFO.estado === 'on' && MENU_INFO.precio > 0) precioMain = MENU_INFO.precio;
+    else if(MENU_INFO.estado === 'off') precioMain = 0;   // menú spento → niente prezzo
+  }
   if(precioMain && precioMain > 0){
     document.getElementById('bvPropPriceRow').style.display = 'flex';
     document.getElementById('bvPropPrice').textContent = formatPrice(precioMain);
