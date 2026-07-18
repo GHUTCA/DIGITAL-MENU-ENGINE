@@ -3821,6 +3821,16 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2n-djbox .luz .dot{width:12px;height:12px;border-radius:50%}
 .v2n-djbox .luz.on{color:#00ffc8}.v2n-djbox .luz.on .dot{background:#00ffc8;box-shadow:0 0 10px #00ffc8;animation:v2pulsa 1.2s ease-in-out infinite}
 .v2n-djbox .luz.off{color:#ff5470}.v2n-djbox .luz.off .dot{background:#ff5470;box-shadow:0 0 8px rgba(255,84,112,.7)}
+/* v2.18 · fuego + mis + risultato armato */
+.v2dj-fuego{flex:0 0 auto;background:rgba(255,46,136,.10);border:2px solid #ff2e88;color:#fff;
+  border-radius:14px;padding:9px 14px;font-size:16px;font-weight:900;cursor:pointer}
+.v2dj-fuego.pop{animation:v2fuegoPop .35s ease-out}
+@keyframes v2fuegoPop{40%{transform:scale(1.25)}}
+.v2dj-mi{display:flex;gap:9px;align-items:center;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,.07);font-size:14px}
+.v2dj-mi b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v2dj-mi small{color:#a89fc7;flex:0 0 auto}
+#v2DjMis .lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#948ab5;margin:16px 0 4px}
+.v2dj-res.arm{border-color:#00ffc8 !important;box-shadow:0 0 14px rgba(0,255,200,.25)}
 /* ═══ lo sheet PÍDELE AL DJ (palette cabina del mockup — perfetta, parola di Alberto) ═══ */
 #v2ShDj{background:radial-gradient(500px 300px at 90% -5%, rgba(139,92,246,.18), transparent 60%),#0a0714;
   z-index:510;border:1.5px solid rgba(139,92,246,.5);border-bottom:0;color:#f4f0ff;
@@ -3902,7 +3912,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.17.2 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.18.0 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4218,7 +4228,8 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
   <div class="scroll"><div class="inf">
     <div class="v2dj-head">
       <div class="v2dj-disc"></div>
-      <div><h2>Pídele al DJ 🎧</h2><div class="sub" id="v2DjQuien">la cabina te escucha</div></div>
+      <div style="flex:1;min-width:0"><h2>Pídele al DJ 🎧</h2><div class="sub" id="v2DjQuien">la cabina te escucha</div></div>
+      <button class="v2dj-fuego" id="v2DjFuego" onclick="v2DjAplaudir()">🔥 <b>0</b></button>
     </div>
     <div class="v2dj-casa">
       <div class="lbl">🏛 La casa permite esta noche</div>
@@ -4228,7 +4239,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
       <input id="v2DjQ" type="search" placeholder="Busca tu canción… (mín. 3 letras)" autocomplete="off"></div>
     <div class="v2dj-estado" id="v2DjEstado">La búsqueda es en vivo — escribe y mira.</div>
     <div id="v2DjRes"></div>
-    <div class="v2dj-prox" id="v2DjProx">⏳ PEDIR llega muy pronto — podrás mandarla a cabina desde aquí</div>
+    <div id="v2DjMis"></div>
     <div class="v2dj-regla">El DJ tiene la última palabra: si no la pone, <b>te devolvemos la plata solos</b>.</div>
   </div></div>
 </div>
@@ -5184,6 +5195,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // v1.23 · S13fix · carrello-intenzione · carica da sessionStorage + cintura 45min
   loadCart();
   updateCartBadge();
+  // v2.18 · DJ-BOX cliente: primo stato al boot (chips vive nel mondo BPM)
+  loadDjBoxCliente();
   // v1.23 · S13fix · prezzo per fascia · load al boot + poll 60s (tutti i local)
   const preciosFirst = loadPreciosRegla();   // v2.16 · la splash aspetta anche questo (token menú)
   if(!PRECIOS_REGLA_POLL_TIMER){
@@ -10108,22 +10121,66 @@ const V2DJ_FAMILIAS = [
     match:['rock','pop','alternativa','alternative','metal','indie','singer/songwriter'] },
 ];
 const V2DJ_PRECIO = 2000;
+/* v2.18 · DJ-BOX VIVO (GAS v3.13 @65): stato cliente da getDjBoxCliente —
+   estilos del SET della cabina (13 del Comandante), precio, acepta, e le
+   richieste della MIA mesa con stato. Fallback: famiglie hardcoded. */
+let DJBOX_CLI = null;
+let DJBOX_POLL = null;
+async function loadDjBoxCliente(){
+  if(!BRAND.gas_url && !GAS_URL) return;
+  try {
+    const url = (BRAND.gas_url || GAS_URL) + '?action=getDjBoxCliente&local=' + LOCAL_ID +
+      (MESA_ID ? '&mesa=' + encodeURIComponent(MESA_ID) : '') + '&t=' + Date.now();
+    const r = await fetch(url); const data = await r.json();
+    if(data && data.ok){ DJBOX_CLI = data; if(document.getElementById('v2ShDj').classList.contains('up')) v2DjRefrescaSheet(); }
+  } catch(e){ /* poll silenzioso */ }
+}
+function v2DjFamilias(){
+  if(DJBOX_CLI && DJBOX_CLI.estilos && DJBOX_CLI.estilos.length){
+    return DJBOX_CLI.estilos.map(e => ({ id: e.id, label: e.label, on: e.on, match: e.match || [] }));
+  }
+  return V2DJ_FAMILIAS;
+}
+function v2DjPrecio(){ return (DJBOX_CLI && DJBOX_CLI.precio) || V2DJ_PRECIO; }
 function v2DjGeneroPermitido(gen){
   const g = (gen || '').toLowerCase();
-  return V2DJ_FAMILIAS.some(f => f.on && f.match.some(m => g.indexOf(m) >= 0 || m.indexOf(g) >= 0));
+  return v2DjFamilias().some(f => f.on && f.match.some(m => g.indexOf(m) >= 0 || m.indexOf(g) >= 0));
 }
 function v2AbrirDjBox(){
-  const dj = (typeof resolveDjActual === 'function') ? resolveDjActual() : null;
-  const semana = (CARTELERA_DATA && CARTELERA_DATA.djs_semana) || [];
-  const quien = (dj && dj.nombre) || (semana[0] && semana[0].nombre) || '';
-  document.getElementById('v2DjQuien').textContent = quien ? 'Esta noche: ' + quien : 'la cabina te escucha';
-  document.getElementById('v2DjGchips').innerHTML = V2DJ_FAMILIAS.map(f =>
-    `<span class="v2dj-gchip${f.on?' on':''}">${f.label}</span>`).join('');
+  v2DjRefrescaSheet();
+  loadDjBoxCliente();
+  if(!DJBOX_POLL) DJBOX_POLL = setInterval(loadDjBoxCliente, 30000);   // vivo finché la pagina vive
   const sh = document.getElementById('v2ShDj');
   sh.style.maxHeight = sh.style.height = 'calc(100dvh - ' + (document.getElementById('header').offsetHeight + 2) + 'px)';
   sh.classList.add('up');
   v2DjWireBuscador();
   setTimeout(()=>{ try { document.getElementById('v2DjQ').focus(); } catch(e){} }, 350);
+}
+/* v2.18 · ridipinge la testa dello sheet coi dati vivi (chips, DJ, mis, fuego) */
+function v2DjRefrescaSheet(){
+  const dj = (typeof resolveDjActual === 'function') ? resolveDjActual() : null;
+  const semana = (CARTELERA_DATA && CARTELERA_DATA.djs_semana) || [];
+  const quien = (DJBOX_CLI && DJBOX_CLI.dj) || (dj && dj.nombre) || (semana[0] && semana[0].nombre) || '';
+  const pausa = DJBOX_CLI && DJBOX_CLI.on && !DJBOX_CLI.acepta;
+  document.getElementById('v2DjQuien').textContent =
+    pausa ? '⏸ el DJ está en pausa — vuelve en un rato'
+          : (quien ? 'Esta noche: ' + quien : 'la cabina te escucha');
+  document.getElementById('v2DjGchips').innerHTML = v2DjFamilias().filter(f=>f.on).map(f =>
+    `<span class="v2dj-gchip on">${f.label}</span>`).join('') ||
+    V2DJ_FAMILIAS.map(f => `<span class="v2dj-gchip${f.on?' on':''}">${f.label}</span>`).join('');
+  // 🔥 fuego + mis pedidas del giorno (solo con mesa)
+  const fu = document.getElementById('v2DjFuego');
+  if(fu) fu.innerHTML = '🔥 <b>' + ((DJBOX_CLI && DJBOX_CLI.fuegos) || 0) + '</b>';
+  const misEl = document.getElementById('v2DjMis');
+  if(misEl){
+    const mis = (DJBOX_CLI && DJBOX_CLI.mis) || [];
+    misEl.innerHTML = mis.length ? '<div class="lbl">🎶 Las tuyas de esta noche</div>' + mis.map(m => {
+      const ico = m.estado === 'puesta' ? '✅' : m.estado === 'pasada' ? '✕' : '⏳';
+      const txt = m.estado === 'puesta' ? 'sonó' : m.estado === 'pasada' ? 'el DJ pasó — te devolvemos la plata' : 'en cola de cabina';
+      return '<div class="v2dj-mi"><span>' + ico + '</span><b>' + escapeHtml(m.cancion) + '</b><small>' + txt + '</small></div>';
+    }).join('') : '';
+  }
+  if(V2DJ_ULTIMI.length) v2DjPinta();   // riprezza/riabilita i risultati
 }
 function v2CerrarDjBox(){ document.getElementById('v2ShDj').classList.remove('up'); }
 let V2DJ_ULTIMI = [], v2DjT = null, v2DjN = 0;
@@ -10159,15 +10216,58 @@ function v2DjBuscar(term){
   s.onerror = () => { document.getElementById('v2DjEstado').textContent = '⚠ Sin conexión — reintenta.'; };
   document.body.appendChild(s);
 }
+let V2DJ_ARM = null;   // {idx, timer} — doppio-tap di conferma
 function v2DjPinta(){
-  document.getElementById('v2DjRes').innerHTML = V2DJ_ULTIMI.map(r => {
+  const vivo = DJBOX_CLI && DJBOX_CLI.on;
+  document.getElementById('v2DjRes').innerHTML = V2DJ_ULTIMI.map((r, i) => {
     const ok = v2DjGeneroPermitido(r.gen);
-    return `<div class="v2dj-res" onclick="showToastMsg('⏳ Muy pronto — desde aquí «${(r.tit||'').replace(/['"«»]/g,'')}» viajará a la cabina')">
+    const armado = V2DJ_ARM && V2DJ_ARM.idx === i;
+    return `<div class="v2dj-res${armado?' arm':''}" onclick="v2DjPedir(${i})">
       <img src="${r.img}" alt="" loading="lazy">
       <div class="b"><div class="tit">${escapeHtml(r.tit)}</div><div class="art">${escapeHtml(r.art)}</div>
-        <span class="v2dj-gen${ok?'':' fuera'}">${escapeHtml(r.gen)}${ok?'':' · fuera de la carta'}</span></div>
-      <div class="plata">$${V2DJ_PRECIO.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')}</div></div>`;
+        <span class="v2dj-gen${ok?'':' fuera'}">${armado ? '¿A la cabina? · toca de nuevo' : escapeHtml(r.gen) + (ok?'':' · fuera de la carta')}</span></div>
+      <div class="plata">${v2DjPrecio().toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')}</div></div>`;
   }).join('');
+}
+/* v2.18 · il tap che manda in cabina (doppio-tap, guardie chiare) */
+async function v2DjPedir(i){
+  const r = V2DJ_ULTIMI[i]; if(!r) return;
+  if(!(DJBOX_CLI && DJBOX_CLI.on)){ showToastMsg('⏳ Muy pronto — la cabina aún no recibe desde el menú'); return; }
+  if(!MESA_ID){ showToastMsg('📱 Escanea el QR de tu mesa para mandarla a cabina'); return; }
+  if(DJBOX_CLI && !DJBOX_CLI.acepta){ showToastMsg('⏸ El DJ está en pausa — intenta en un rato'); return; }
+  if(!v2DjGeneroPermitido(r.gen)){ showToastMsg('🎛 Fuera de los estilos de esta noche'); return; }
+  if(!V2DJ_ARM || V2DJ_ARM.idx !== i){
+    if(V2DJ_ARM) clearTimeout(V2DJ_ARM.timer);
+    V2DJ_ARM = { idx: i, timer: setTimeout(()=>{ V2DJ_ARM = null; v2DjPinta(); }, 3500) };
+    v2DjPinta(); return;
+  }
+  clearTimeout(V2DJ_ARM.timer); V2DJ_ARM = null; v2DjPinta();
+  const uuid = 'djc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  try {
+    const resp = await fetch(BRAND.gas_url || GAS_URL, { method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'pedirCancion', local: LOCAL_ID, mesa: MESA_ID, uuid: uuid,
+        cancion: r.tit, artista: r.art, estilo: r.gen,
+        cliente: (ACTIVE_MEMBER && ACTIVE_MEMBER.nombre) || '' }) });
+    const j = await resp.json();
+    if(j.ok){ showToastMsg('🎧 «' + r.tit + '» en cola de cabina — el DJ tiene la última palabra'); loadDjBoxCliente(); }
+    else if(j.error === 'dj_en_pausa') showToastMsg('⏸ El DJ está en pausa — intenta en un rato');
+    else showToastMsg('No se pudo — reintenta');
+  } catch(e){ showToastMsg('Sin conexión — reintenta'); }
+}
+/* v2.18 · 🔥 el aplauso (throttle 1.5s, ottimista) */
+let V2DJ_FUEGO_T = 0;
+async function v2DjAplaudir(){
+  const now = Date.now();
+  if(now - V2DJ_FUEGO_T < 1500) return;
+  V2DJ_FUEGO_T = now;
+  if(!(DJBOX_CLI && DJBOX_CLI.on)){ showToastMsg('⏳ Muy pronto'); return; }
+  const fu = document.getElementById('v2DjFuego');
+  if(fu && DJBOX_CLI){ DJBOX_CLI.fuegos = (DJBOX_CLI.fuegos||0) + 1; fu.innerHTML = '🔥 <b>' + DJBOX_CLI.fuegos + '</b>'; fu.classList.remove('pop'); void fu.offsetWidth; fu.classList.add('pop'); }
+  try {
+    fetch(BRAND.gas_url || GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'aplaudir', local: LOCAL_ID, mesa: MESA_ID || '' }) });
+  } catch(e){}
 }
 
 /* la notte gira oltre mezzanotte: minuti «di notte» (prima delle 12 = +24h) */
