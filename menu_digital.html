@@ -3825,6 +3825,9 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2n-djbox .luz.off{color:#ff5470}.v2n-djbox .luz.off .dot{background:#ff5470;box-shadow:0 0 8px rgba(255,84,112,.7)}
 .v2n-djbox .luz.pausa{color:#ffcf6b}.v2n-djbox .luz.pausa .dot{background:#ffcf6b;box-shadow:0 0 9px rgba(255,207,107,.75);animation:none}
 /* v2.18 · fuego + mis + risultato armato */
+.v2dj-fuego{display:none}
+#v2ShNoche{position:relative}
+#v2ShNoche.up .v2dj-fuego.sem-ok{display:flex;align-items:center;gap:5px}
 .v2dj-fuego{position:absolute;bottom:22px;right:16px;z-index:8;
   background:linear-gradient(135deg,rgba(255,46,136,.32),rgba(139,92,246,.28)),#1a1030;
   border:2px solid #ff2e88;color:#fff;border-radius:999px;padding:15px 22px;
@@ -3921,7 +3924,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.19.0 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.19.1 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4226,8 +4229,9 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 
 <!-- v2.0 · IL MONDO BPM (palette cabina · CARTELERA_BKS + DJS_AGENDA + porta DJ-BOX gated) -->
 <div class="v2-sheet" id="v2ShNoche">
-  <!-- v2.19 · il 🔥 vive nel mondo BPM, vicino alla DJ AGENDA (VB sab sera) -->
-  <button class="v2dj-fuego" id="v2DjFuego" onclick="v2DjAplaudir()" style="display:none">🔥 <b>0</b></button>
+  <!-- v2.19.1 · il 🔥 vive nel mondo BPM — visibile SOLO a sheet aperto (.up)
+       e con semaforo pronto/on: il gate è CSS, non può mai galleggiare sul menu -->
+  <button class="v2dj-fuego" id="v2DjFuego" onclick="v2DjAplaudir()">🔥 <b>0</b></button>
   <div class="v2-handle"></div><button class="v2-x" onclick="v2CerrarSheets()">✕</button>
   <div class="scroll"><div class="inf" id="v2ShNocheInf"></div></div>
 </div>
@@ -10198,9 +10202,10 @@ function v2DjRefrescaSheet(){
       ? '🔴 <b>La cabina está cerrada</b> — cuando el DJ la abra, esto se enciende.'
       : '🟡 <b>El DJ está calentando</b> — los pedidos abren pronto. Los aplausos ya suenan 🔥';
   }
-  // il fuego vive nel mondo BPM: visibile solo se la cabina respira (pronto/on)
+  // il fuego vive nel mondo BPM: classe sem-ok (la visibilità vera la dà il CSS
+  // solo dentro #v2ShNoche.up — mai sopra il menu)
   const fuFab = document.getElementById('v2DjFuego');
-  if(fuFab) fuFab.style.display = (sem === 'pronto' || sem === 'on') ? '' : 'none';
+  if(fuFab) fuFab.classList.toggle('sem-ok', sem === 'pronto' || sem === 'on');
   // la spia della PORTA (mondo BPM) segue lo stato vivo anche se già dipinta
   const luz = document.getElementById('v2DjLuz');
   if(luz){ luz.outerHTML = v2DjLuzHTML(); }
