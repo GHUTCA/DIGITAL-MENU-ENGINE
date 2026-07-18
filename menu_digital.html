@@ -3888,7 +3888,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.15.0 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.16.0 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -5171,7 +5171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadCart();
   updateCartBadge();
   // v1.23 · S13fix · prezzo per fascia · load al boot + poll 60s (tutti i local)
-  loadPreciosRegla();
+  const preciosFirst = loadPreciosRegla();   // v2.16 · la splash aspetta anche questo (token menú)
   if(!PRECIOS_REGLA_POLL_TIMER){
     PRECIOS_REGLA_POLL_TIMER = setInterval(loadPreciosRegla, 60000);
   }
@@ -5181,6 +5181,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Aspetto un tick perché ritmo+DJ devono prima arrivare per popolare slogan+DJ ribbon NOCHE
   setTimeout(async () => {
     await bvPromise;       // riprendo il fetch già partito
+    // v2.16 · MENU_INFO per i token {MENU_*}: max 2.5s di attesa, poi si va
+    await Promise.race([preciosFirst, new Promise(r => setTimeout(r, 2500))]);
     showBienvenidaSplash(); // no-op se MESA_ID, no-op se no franja_actual
   }, 600);
 
@@ -5742,7 +5744,8 @@ function renderCatTabs(){
 }
 
 function getVisibleCategories(){
-  if(!CATEGORY_GROUPS || !CURRENT_GROUP) return ALL_CATEGORIES;
+  // v2.16 · la categoria di LANDING è la prima sezione (sotto i Destacados)
+  if(!CATEGORY_GROUPS || !CURRENT_GROUP) return v2LandingOrder(ALL_CATEGORIES);
   // Gruppi virtuali (promos, almuerzo): prodotti sparsi su più categorie → mostra tutte, il filtro prodotti le raccoglie
   if(CURRENT_GROUP === '__PROMOS__' || CURRENT_GROUP === '__ALMUERZO__') return ALL_CATEGORIES;
   const group = CATEGORY_GROUPS[CURRENT_GROUP];
@@ -6000,6 +6003,23 @@ async function loadBienvenida(){
   }
 }
 
+/* v2.16 · TOKEN del Menú del Día nei testi bienvenida (VB sab 18: «linkato a
+   ciò che settiamo»). Nel foglio BIENVENIDA si scrive UNA volta:
+     {MENU_PRECIO} {MENU_DIAS} {MENU_DESDE} {MENU_HASTA} {MENU_N}
+   e i valori arrivano VIVI da PRECIOS_REGLA via menu_info (una fonte sola).
+   Menú OFF (domenica-partita) → la riga che parla del menú sparisce da sola. */
+function bvTokens(str){
+  if(!str || str.indexOf('{MENU_') < 0) return str;
+  const mi = (typeof MENU_INFO !== 'undefined') ? MENU_INFO : null;
+  if(!mi || mi.estado !== 'on') return '';   // niente menú → niente frase
+  return str
+    .replace(/\{MENU_PRECIO\}/g, formatPriceWithSymbol(mi.precio))
+    .replace(/\{MENU_DIAS\}/g, mi.dias_str || '')
+    .replace(/\{MENU_DESDE\}/g, mi.desde || '')
+    .replace(/\{MENU_HASTA\}/g, mi.hasta || '')
+    .replace(/\{MENU_N\}/g, String(mi.n || ''));
+}
+
 /**
  * Renderizza e mostra lo splash bienvenida.
  * Ritorna true se mostrato, false se skipped (no franja, no data, ecc).
@@ -6016,12 +6036,12 @@ function showBienvenidaSplash(){
   const lang = (LANG_CODE === 'pt') ? 'pt' : 'es';
   const useT = (lang === 'pt' && franja.pt && franja.pt.propuesta_titulo);
 
-  const saludo  = useT ? franja.pt.saludo          : franja.saludo;
-  const estado  = useT ? franja.pt.estado_linea    : franja.estado_linea;
-  const propTit = useT ? franja.pt.propuesta_titulo: franja.propuesta_titulo;
-  const propDet = useT ? franja.pt.propuesta_detalle: franja.propuesta_detalle;
-  const propExt = useT ? franja.pt.propuesta_extra : franja.propuesta_extra;
-  const ctaLab  = useT ? franja.pt.cta_label       : franja.cta_label;
+  const saludo  = bvTokens(useT ? franja.pt.saludo          : franja.saludo);
+  const estado  = bvTokens(useT ? franja.pt.estado_linea    : franja.estado_linea);
+  const propTit = bvTokens(useT ? franja.pt.propuesta_titulo: franja.propuesta_titulo);
+  const propDet = bvTokens(useT ? franja.pt.propuesta_detalle: franja.propuesta_detalle);
+  const propExt = bvTokens(useT ? franja.pt.propuesta_extra : franja.propuesta_extra);
+  const ctaLab  = bvTokens(useT ? franja.pt.cta_label       : franja.cta_label);
   // v1.24 · S14 · CTA target · letto da Sheet (CTA_Target / CTA_Target_PT) · PT fallback a ES
   BIENVENIDA_CTA_TARGET = (useT && franja.pt.cta_target) ? franja.pt.cta_target : (franja.cta_target || '');
 
@@ -8103,34 +8123,51 @@ async function loadPreciosRegla(){
     const data = await r.json();
     if(!data || !data.ok) return;
     PRECIOS_REGLA_MAP = data.reglas || {};
-    // v2.14 · LANDING_LISTA: la categoria di apertura dichiarata per fascia
-    V2_LANDING_CAT = (data.landing && data.landing.categoria) || '';
+    // v2.16 · menu_info: carta d'identità del menú (estado/precio/giorni) —
+    // alimenta i token bienvenida, indipendente dalla fascia
+    MENU_INFO = data.menu_info || null;
+    // v2.14 · LANDING_LISTA · v2.16: si CONGELA alla prima risposta (per-visita:
+    // niente riordini a metà navigazione quando la fascia gira)
+    if(!V2_LANDING_INIT){
+      V2_LANDING_INIT = true;
+      V2_LANDING_CAT = (data.landing && data.landing.categoria) || '';
+    }
     renderMenu();  // re-render per applicare prezzi aggiornati
     v2AplicarLanding();
   } catch(e){ console.warn('[v1.23] loadPreciosRegla failed:', e.message); }
 }
 
-/* v2.14 · LANDING_LISTA (VB 17-lug): il menu si APRE nella categoria che il
-   foglio dichiara per la fascia (es. ALMUERZO a mezzogiorno). Regola UX
-   scolpita: vale SOLO all'apertura — mai teletrasporto sui poll successivi,
-   mai sopra una scelta già fatta dal cliente (gruppo attivo o ricerca). */
+/* v2.14 · LANDING_LISTA (VB 17-lug) · RIDISEGNO v2.16 (VB sab 18): niente
+   scroll-teletrasporto che seppellisce i ✨Destacados. La categoria dichiarata
+   diventa la PRIMA SEZIONE sotto i Destacados (hoist in getVisibleCategories):
+   si apre in cima, Destacados visibili, la categoria subito lì. Congelata alla
+   prima risposta (per-visita). ALMUERZO virtuale resta un salto di gruppo. */
+let MENU_INFO = null;
 let V2_LANDING_CAT = '';
+let V2_LANDING_INIT = false;
 let V2_LANDING_DONE = false;
+function v2EsLandingAlmuerzo(k){ return /^(almuerzo|menu|__almuerzo__)$/i.test((k || '').trim()); }
+function v2LandingOrder(cats){
+  if(!V2_LANDING_CAT || v2EsLandingAlmuerzo(V2_LANDING_CAT)) return cats;
+  const k = V2_LANDING_CAT.trim().toLowerCase();
+  const i = cats.findIndex(c => (c.id || '').toLowerCase() === k || (c.nombre || '').toLowerCase() === k);
+  if(i <= 0) return cats;
+  const out = cats.slice(); const hoisted = out.splice(i, 1)[0]; out.unshift(hoisted);
+  return out;
+}
 function v2AplicarLanding(){
   if(V2_LANDING_DONE || !V2_LANDING_CAT) return;
   V2_LANDING_DONE = true;
   if(CURRENT_GROUP !== null || (typeof V2_Q === 'string' && V2_Q)) return;
-  const key = V2_LANDING_CAT.trim();
-  setTimeout(() => { try {
-    if(/^(almuerzo|menu|__almuerzo__)$/i.test(key)){
+  if(v2EsLandingAlmuerzo(V2_LANDING_CAT)){
+    setTimeout(() => { try {
       if(v2AlmuerzoProds().length && CURRENT_GROUP === null) setGroup('__ALMUERZO__');
-      return;
-    }
-    const k = key.toLowerCase();
-    const cat = (ALL_CATEGORIES || []).find(c =>
-      (c.id || '').toLowerCase() === k || (c.nombre || '').toLowerCase() === k);
-    if(cat && document.getElementById('cat-' + cat.id)) scrollToCategory(cat.id);
-  } catch(e){} }, 900);
+    } catch(e){} }, 900);
+    return;
+  }
+  // categoria normale: l'hoist di v2LandingOrder ha già fatto tutto al
+  // renderMenu — resta solo assicurare la vista in cima (Destacados in vista)
+  renderCatTabs(); renderMenu();
 }
 
 /* ════════════════════════════════════════════════════

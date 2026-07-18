@@ -260,6 +260,20 @@
   .promo-act-flag { background:var(--accent); color:#fff; font-size:10px; font-weight:800;
     letter-spacing:0.08em; padding:3px 8px; border-radius:999px; flex-shrink:0; }
   .promo-acts-sub { font-size:11px; color:var(--text-muted); padding:4px 2px 6px; }
+  /* v2.6 · GANCHO a bottoni-prezzo (verde/rojo/gris) */
+  .gancho-card { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius); padding:13px 14px; margin-bottom:8px; }
+  .gancho-title { font-family:'Outfit',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.04em; margin-bottom:10px; }
+  .gancho-row { display:flex; gap:8px; }
+  .gancho-btn { flex:1; border-radius:12px; padding:14px 6px; font-family:'Outfit',sans-serif;
+    font-size:16px; font-weight:800; cursor:pointer; background:var(--surface-2);
+    color:var(--text-muted); border:2px solid var(--border); }
+  .gancho-btn.verde.sel { background:#2e8a52; border-color:#3DAA68; color:#fff; }
+  .gancho-btn.rojo.sel { background:#c0392b; border-color:#e74c3c; color:#fff; }
+  .gancho-btn.gris.sel { background:#3a3a44; border-color:#6b6b78; color:#fff; }
+  .gancho-btn.gris { font-size:13px; }
+  .gancho-btn.armado { border-color:var(--warning); color:var(--warning); font-size:11.5px; }
+  .gancho-btn:disabled { opacity:0.5; cursor:default; }
+  .gancho-estado { font-size:11.5px; color:var(--text-muted); margin-top:9px; }
 
   /* Push active banner in lista push */
   .push-active-banner { background:linear-gradient(135deg,rgba(233,69,96,0.18),rgba(233,69,96,0.08)); border:1px solid var(--accent-line); border-radius:var(--radius); padding:12px 14px; margin-bottom:12px; display:flex; align-items:center; gap:12px; }
@@ -361,7 +375,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">v2.5 · 18jul</div>
+    <div class="hub-footer-version" id="ver">v2.6 · 18jul</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -1453,7 +1467,7 @@ function renderTurno(loadFailed){
    promozione, la prima della serie). Stato + flip via GAS getLevaMenu/
    setLevaMenu v3.9.0. Doppio tap per confermare (pattern cerrarTurno). */
 let LEVA = null;
-let GANCHO_ARMADO = null;   // timeout del doppio-tap
+let GANCHO_ARMADO = null;   // {target, timer} del doppio-tap
 async function loadLeva(){
   if(!lastSavedPin) return false;
   try {
@@ -1469,20 +1483,30 @@ function renderGanchoPanel(){
   if(!box) return;
   if(STATE.listMode !== 'push'){ box.innerHTML = ''; return; }
   const l = LEVA;
-  const esEsca = l && l.escalon === 'esca';
-  const sub = !l ? 'cargando… (¿backend pre-v3.9.0?)'
-    : esEsca ? `ACTIVO · menú a ${fmtCl(l.esca.precio)} — tap para volver a ${fmtCl(l.estandar.precio)}`
-    : l.escalon === 'estandar' ? `menú a ${fmtCl(l.estandar.precio)} — tap para lanzar el gancho a ${fmtCl(l.esca.precio)}`
-    : `⚠ estado ${esc(l.escalon)} — tap para normalizar`;
+  // v2.6 (VB sab 18, «conoscendo i miei pesci»): bottoni-PREZZO, non testo.
+  // Verde = gancho a $11.900 · rojo = estándar $16.990 · gris = SIN MENÚ (dom).
+  const cur = !l ? '' : (l.escalon === 'apagado' ? 'off' : l.escalon);
+  const arm = GANCHO_ARMADO ? GANCHO_ARMADO.target : '';
+  const btn = (target, cls, label) =>
+    `<button class="gancho-btn ${cls}${cur === target ? ' sel' : ''}${arm === target ? ' armado' : ''}"
+      onclick="doGancho('${target}')" ${l ? '' : 'disabled'}>${arm === target ? '¿SEGURO? · TAP DE NUEVO' : label}</button>`;
+  const estadoTxt = !l ? 'cargando… (¿backend pre-v3.9.0?)'
+    : cur === 'esca' ? `🎣 gancho lanzado · ${l.esca.n} platos a ${fmtCl(l.esca.precio)}`
+    : cur === 'estandar' ? `precio estándar · ${l.esca.n} platos a ${fmtCl(l.estandar.precio)}`
+    : cur === 'off' ? '⛔ menú apagado · hoy sin Menú del Día'
+    : `⚠ escalones mezclados (${esc(l.escalon)}) — pulsa un precio para normalizar`;
   box.innerHTML = `
     <div class="promo-acts">
       <div class="hub-section-label" style="margin:0 0 8px">Acciones de promoción</div>
-      <button class="promo-act${esEsca ? ' on' : ''}${GANCHO_ARMADO ? ' armado' : ''}" onclick="doGancho()" ${l ? '' : 'disabled'}>
-        <span class="promo-act-ico">🎣</span>
-        <span class="promo-act-b"><span class="promo-act-t">Gancho · Menú del Día</span>
-        <span class="promo-act-s">${GANCHO_ARMADO ? '¿Seguro? · tap de nuevo para confirmar' : sub}</span></span>
-        ${esEsca ? '<span class="promo-act-flag">ON</span>' : ''}
-      </button>
+      <div class="gancho-card">
+        <div class="gancho-title">🎣 GANCHO MENÚ DEL DÍA · SETEO DE PRECIO</div>
+        <div class="gancho-row">
+          ${btn('esca', 'verde', l ? fmtCl(l.esca.precio) : '$—')}
+          ${btn('estandar', 'rojo', l ? fmtCl(l.estandar.precio) : '$—')}
+          ${btn('off', 'gris', 'SIN MENÚ')}
+        </div>
+        <div class="gancho-estado">${estadoTxt}</div>
+      </div>
       <button class="promo-act soon" disabled><span class="promo-act-ico">🏷</span>
         <span class="promo-act-b"><span class="promo-act-t">Promo 2x1 / combo</span><span class="promo-act-s">Pronto</span></span></button>
       <button class="promo-act soon" disabled><span class="promo-act-ico">🔥</span>
@@ -1490,23 +1514,27 @@ function renderGanchoPanel(){
       <div class="promo-acts-sub">Push producto · elige abajo a quién destacar 👇</div>
     </div>`;
 }
-async function doGancho(){
+async function doGancho(target){
   if(!LEVA) return;
-  // doppio tap: il primo arma (3.5s per ripensarci), il secondo esegue
-  if(!GANCHO_ARMADO){
-    GANCHO_ARMADO = setTimeout(() => { GANCHO_ARMADO = null; renderGanchoPanel(); }, 3500);
+  const cur = LEVA.escalon === 'apagado' ? 'off' : LEVA.escalon;
+  if(target === cur){ showToast('success', 'Ya está en ese seteo'); return; }
+  // doppio tap SULLO STESSO bottone: il primo arma (3.5s), il secondo esegue
+  if(!GANCHO_ARMADO || GANCHO_ARMADO.target !== target){
+    if(GANCHO_ARMADO) clearTimeout(GANCHO_ARMADO.timer);
+    GANCHO_ARMADO = { target: target, timer: setTimeout(() => { GANCHO_ARMADO = null; renderGanchoPanel(); }, 3500) };
     renderGanchoPanel();
     return;
   }
-  clearTimeout(GANCHO_ARMADO); GANCHO_ARMADO = null;
-  const escalon = LEVA.escalon === 'esca' ? 'estandar' : 'esca';
+  clearTimeout(GANCHO_ARMADO.timer); GANCHO_ARMADO = null;
   try {
-    const r = await withRetry(() => gasPost('setLevaMenu', { pin: lastSavedPin, escalon: escalon }), 'setLevaMenu');
+    const r = await withRetry(() => gasPost('setLevaMenu', { pin: lastSavedPin, escalon: target }), 'setLevaMenu');
     if(r && r.ok){
-      LEVA = r; renderGanchoPanel();
-      showToast('success', escalon === 'esca'
+      LEVA = r;
+      showToast('success', target === 'esca'
         ? '🎣 Gancho lanzado · menú a ' + fmtCl(r.esca.precio) + ' — a llenar mesas'
-        : 'Gancho recogido · menú a ' + fmtCl(r.estandar.precio));
+        : target === 'estandar'
+          ? 'Menú a precio estándar ' + fmtCl(r.estandar.precio)
+          : '⛔ Menú APAGADO — hoy sin Menú del Día');
     } else showToast('error', r && r.error ? 'Error: ' + r.error : 'No se pudo cambiar');
   } catch(e){ showToast('error', 'Sin conexión — reintenta'); }
   renderGanchoPanel();
