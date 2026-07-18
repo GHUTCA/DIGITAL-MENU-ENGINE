@@ -3821,6 +3821,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2n-djbox .luz .dot{width:12px;height:12px;border-radius:50%}
 .v2n-djbox .luz.on{color:#00ffc8}.v2n-djbox .luz.on .dot{background:#00ffc8;box-shadow:0 0 10px #00ffc8;animation:v2pulsa 1.2s ease-in-out infinite}
 .v2n-djbox .luz.off{color:#ff5470}.v2n-djbox .luz.off .dot{background:#ff5470;box-shadow:0 0 8px rgba(255,84,112,.7)}
+.v2n-djbox .luz.pausa{color:#ffcf6b}.v2n-djbox .luz.pausa .dot{background:#ffcf6b;box-shadow:0 0 9px rgba(255,207,107,.75);animation:none}
 /* v2.18 · fuego + mis + risultato armato */
 .v2dj-fuego{position:absolute;bottom:22px;right:16px;z-index:8;
   background:linear-gradient(135deg,rgba(255,46,136,.32),rgba(139,92,246,.28)),#1a1030;
@@ -3834,6 +3835,9 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2dj-mi small{color:#a89fc7;flex:0 0 auto}
 #v2DjMis .lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#948ab5;margin:16px 0 4px}
 .v2dj-res.arm{border-color:#00ffc8 !important;box-shadow:0 0 14px rgba(0,255,200,.25)}
+.v2dj-pausa{background:rgba(255,207,107,.10);border:1.5px solid rgba(255,207,107,.55);color:#ffe3a8;
+  border-radius:14px;padding:12px 14px;font-size:14.5px;margin-bottom:12px}
+.v2dj-pausa b{color:#ffcf6b}
 /* ═══ lo sheet PÍDELE AL DJ (palette cabina del mockup — perfetta, parola di Alberto) ═══ */
 #v2ShDj{background:radial-gradient(500px 300px at 90% -5%, rgba(139,92,246,.18), transparent 60%),#0a0714;
   z-index:510;border:1.5px solid rgba(139,92,246,.5);border-bottom:0;color:#f4f0ff;
@@ -3915,7 +3919,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.18.1 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.18.2 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4237,6 +4241,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
       <div class="lbl">🏛 La casa permite esta noche</div>
       <div class="v2dj-gchips" id="v2DjGchips"></div>
     </div>
+    <div class="v2dj-pausa" id="v2DjPausaBanner" style="display:none">⏸ <b>El DJ está en pausa</b> — los pedidos vuelven en un rato. Los aplausos siguen abiertos 🔥</div>
     <div class="v2dj-buscar"><span class="lupa">🔎</span>
       <input id="v2DjQ" type="search" placeholder="Busca tu canción… (mín. 3 letras)" autocomplete="off"></div>
     <div class="v2dj-estado" id="v2DjEstado">La búsqueda es en vivo — escribe y mira.</div>
@@ -10079,7 +10084,11 @@ async function v2AbrirNoche(){
   h += `<button class="v2n-djbox" onclick="v2AbrirDjBox()">
       <span class="v2-djbox-logo"><span class="wm">DJ-BOX</span><small>BKS</small></span>
       <span class="t"><b>Tu canción, a la cabina</b><small>búscala, págala y suena — el DJ tiene la última palabra</small></span>
-      <span class="luz ${DJBOX_ON?'on':'off'}"><span class="dot"></span>${DJBOX_ON?'abierto':'pronto'}</span>
+      ${(function(){ const on = DJBOX_CLI ? DJBOX_CLI.on : DJBOX_ON;
+        const pausa = on && DJBOX_CLI && !DJBOX_CLI.acepta;
+        const cls = pausa ? 'pausa' : on ? 'on' : 'off';
+        const txt = pausa ? 'pausa' : on ? 'abierto' : 'pronto';
+        return '<span class="luz ' + cls + '" id="v2DjLuz"><span class="dot"></span>' + txt + '</span>'; })()}
     </button>`;
   // VB round oss.5 · niente "volver": la ✕ basta, spazio guadagnato
   inf.innerHTML = h || '<div class="v2-nsec">La noche se está armando…</div>';
@@ -10136,7 +10145,7 @@ async function loadDjBoxCliente(){
     const url = (BRAND.gas_url || GAS_URL) + '?action=getDjBoxCliente&local=' + LOCAL_ID +
       (MESA_ID ? '&mesa=' + encodeURIComponent(MESA_ID) : '') + '&t=' + Date.now();
     const r = await fetch(url); const data = await r.json();
-    if(data && data.ok){ DJBOX_CLI = data; if(document.getElementById('v2ShDj').classList.contains('up')) v2DjRefrescaSheet(); }
+    if(data && data.ok){ DJBOX_CLI = data; v2DjRefrescaSheet(); }
   } catch(e){ /* poll silenzioso */ }
 }
 function v2DjFamilias(){
@@ -10153,7 +10162,7 @@ function v2DjGeneroPermitido(gen){
 function v2AbrirDjBox(){
   v2DjRefrescaSheet();
   loadDjBoxCliente();
-  if(!DJBOX_POLL) DJBOX_POLL = setInterval(loadDjBoxCliente, 30000);   // vivo finché la pagina vive
+  if(!DJBOX_POLL) DJBOX_POLL = setInterval(loadDjBoxCliente, 10000);   // vivo finché la pagina vive
   const sh = document.getElementById('v2ShDj');
   sh.style.maxHeight = sh.style.height = 'calc(100dvh - ' + (document.getElementById('header').offsetHeight + 2) + 'px)';
   sh.classList.add('up');
@@ -10169,6 +10178,15 @@ function v2DjRefrescaSheet(){
   document.getElementById('v2DjQuien').textContent =
     pausa ? '⏸ el DJ está en pausa — vuelve en un rato'
           : (quien ? 'Esta noche: ' + quien : 'la cabina te escucha');
+  const pb = document.getElementById('v2DjPausaBanner');
+  if(pb) pb.style.display = pausa ? 'block' : 'none';
+  // la spia della PORTA (mondo BPM) segue lo stato vivo anche se già dipinta
+  const luz = document.getElementById('v2DjLuz');
+  if(luz){
+    const on = DJBOX_CLI ? DJBOX_CLI.on : DJBOX_ON;
+    luz.className = 'luz ' + (pausa ? 'pausa' : on ? 'on' : 'off');
+    luz.innerHTML = '<span class="dot"></span>' + (pausa ? 'pausa' : on ? 'abierto' : 'pronto');
+  }
   document.getElementById('v2DjGchips').innerHTML = v2DjFamilias().filter(f=>f.on).map(f =>
     `<span class="v2dj-gchip on">${f.label}</span>`).join('') ||
     V2DJ_FAMILIAS.map(f => `<span class="v2dj-gchip${f.on?' on':''}">${f.label}</span>`).join('');
