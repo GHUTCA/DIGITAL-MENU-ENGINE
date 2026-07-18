@@ -3826,7 +3826,8 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2n-djbox .luz.pausa{color:#ffcf6b}.v2n-djbox .luz.pausa .dot{background:#ffcf6b;box-shadow:0 0 9px rgba(255,207,107,.75);animation:none}
 /* v2.18 · fuego + mis + risultato armato */
 .v2dj-fuego{display:none}
-#v2ShNoche{position:relative}
+/* v2.19.2 · NIENTE position:relative qui: #v2ShNoche è .v2-sheet (fixed) — già
+   contenitore del FAB assoluto; relative lo faceva cadere nel flusso = card fantasma */
 #v2ShNoche.up .v2dj-fuego.sem-ok{display:flex;align-items:center;gap:5px}
 .v2dj-fuego{position:absolute;bottom:22px;right:16px;z-index:8;
   background:linear-gradient(135deg,rgba(255,46,136,.32),rgba(139,92,246,.28)),#1a1030;
@@ -3924,7 +3925,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.19.1 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.19.2 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
