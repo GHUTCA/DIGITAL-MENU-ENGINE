@@ -3560,6 +3560,8 @@ body[data-vetrina="true"] #v2Barra{display:none!important}
 @keyframes v2spin{to{transform:rotate(360deg)}}
 .v2-djtag{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:10px;
   font-weight:900;letter-spacing:.08em;color:#00ffc8}
+.v2-ondot.gialla{background:#ffcf6b !important;box-shadow:0 0 8px #ffcf6b !important}
+.v2-ondot.rossa{background:#ff5470 !important;box-shadow:0 0 8px rgba(255,84,112,.8) !important;animation:none !important}
 .v2-ondot{width:8px;height:8px;border-radius:50%;background:#00ffc8;box-shadow:0 0 8px #00ffc8;
   animation:v2pulsa 1.2s ease-in-out infinite}
 @keyframes v2pulsa{0%,100%{opacity:1}50%{opacity:.35}}
@@ -3919,7 +3921,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.18.3 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.19.0 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4224,6 +4226,8 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 
 <!-- v2.0 · IL MONDO BPM (palette cabina · CARTELERA_BKS + DJS_AGENDA + porta DJ-BOX gated) -->
 <div class="v2-sheet" id="v2ShNoche">
+  <!-- v2.19 · il 🔥 vive nel mondo BPM, vicino alla DJ AGENDA (VB sab sera) -->
+  <button class="v2dj-fuego" id="v2DjFuego" onclick="v2DjAplaudir()" style="display:none">🔥 <b>0</b></button>
   <div class="v2-handle"></div><button class="v2-x" onclick="v2CerrarSheets()">✕</button>
   <div class="scroll"><div class="inf" id="v2ShNocheInf"></div></div>
 </div>
@@ -4249,8 +4253,6 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
     <div id="v2DjMis"></div>
     <div class="v2dj-regla">El DJ tiene la última palabra: si no la pone, <b>te devolvemos la plata solos</b>.</div>
   </div></div>
-  <!-- v2.18.1 · il fuego è un FAB in zona pollice (VB: troppo vicino alla ✕) -->
-  <button class="v2dj-fuego" id="v2DjFuego" onclick="v2DjAplaudir()">🔥 <b>0</b></button>
 </div>
 
 <!-- FINAL round oss.4b · lightbox poster (sopra tutto, ✕ per chiudere) -->
@@ -5851,7 +5853,7 @@ function renderGroups(){
     nChips++;
     html += `
       <button class="v2-nchip v2-nchip-bpm" onclick="v2AbrirNoche()">
-        <b class="v2-lema">⚡BPM${DJBOX_ON?'<span class="v2-ondot"></span>':''}</b><small>la noche</small>
+        <b class="v2-lema">⚡BPM${DJBOX_ON?'<span class="v2-ondot ' + (v2DjSemaforo()==='on'?'':v2DjSemaforo()==='pronto'?'gialla':'rossa') + '" id="v2BpmDot"></span>':''}</b><small>la noche</small>
       </button>`;
   }
   grid.className = 'group-grid g-' + nChips;
@@ -10165,13 +10167,18 @@ function v2AbrirDjBox(){
   v2DjWireBuscador();
   setTimeout(()=>{ try { document.getElementById('v2DjQ').focus(); } catch(e){} }, 350);
 }
-/* v2.18.3 · la spia a 4 stati: vuota (cabina sin DJ) > pausa > abierto > pronto */
+/* v2.19 · IL SEMAFORO (VB sab sera): 🔴 off=cerrada · 🟡 pronto=solo 🔥 · 🟢 on=tutto.
+   Cabina morta (tablet spento 3+ min) = rossa comunque. Modulo spento = grigio. */
+function v2DjSemaforo(){
+  if(!(DJBOX_CLI ? DJBOX_CLI.on : DJBOX_ON)) return 'apagado';
+  if(DJBOX_CLI && !DJBOX_CLI.cabina) return 'off';
+  const e = (DJBOX_CLI && DJBOX_CLI.estado) || (DJBOX_CLI && DJBOX_CLI.acepta ? 'on' : 'off');
+  return e;
+}
 function v2DjLuzHTML(){
-  const on = DJBOX_CLI ? DJBOX_CLI.on : DJBOX_ON;
-  const viva = DJBOX_CLI ? DJBOX_CLI.cabina : true;
-  const pausa = on && viva && DJBOX_CLI && !DJBOX_CLI.acepta;
-  const cls = !on ? 'off' : !viva ? 'off' : pausa ? 'pausa' : 'on';
-  const txt = !on ? 'pronto' : !viva ? 'cabina vacía' : pausa ? 'pausa' : 'abierto';
+  const sem = v2DjSemaforo();
+  const cls = sem === 'on' ? 'on' : sem === 'pronto' ? 'pausa' : 'off';
+  const txt = sem === 'apagado' ? 'pronto' : sem === 'on' ? 'abierta' : sem === 'pronto' ? 'pronto' : 'cerrada';
   return '<span class="luz ' + cls + '" id="v2DjLuz"><span class="dot"></span>' + txt + '</span>';
 }
 /* v2.18 · ridipinge la testa dello sheet coi dati vivi (chips, DJ, mis, fuego) */
@@ -10179,23 +10186,26 @@ function v2DjRefrescaSheet(){
   const dj = (typeof resolveDjActual === 'function') ? resolveDjActual() : null;
   const semana = (CARTELERA_DATA && CARTELERA_DATA.djs_semana) || [];
   const quien = (DJBOX_CLI && DJBOX_CLI.dj) || (dj && dj.nombre) || (semana[0] && semana[0].nombre) || '';
-  const viva = !DJBOX_CLI || DJBOX_CLI.cabina;
-  const pausa = DJBOX_CLI && DJBOX_CLI.on && viva && !DJBOX_CLI.acepta;
-  const vacia = DJBOX_CLI && DJBOX_CLI.on && !viva;
+  const sem = v2DjSemaforo();
   document.getElementById('v2DjQuien').textContent =
-    vacia ? '🎧 la cabina está tranquila — aún no llega el DJ'
-    : pausa ? '⏸ el DJ está en pausa — vuelve en un rato'
+    sem === 'off' ? '🔴 la cabina está cerrada'
+    : sem === 'pronto' ? '🟡 el DJ está calentando — los pedidos abren pronto'
     : (quien ? 'Esta noche: ' + quien : 'la cabina te escucha');
   const pb = document.getElementById('v2DjPausaBanner');
   if(pb){
-    pb.style.display = (pausa || vacia) ? 'block' : 'none';
-    pb.innerHTML = vacia
-      ? '🎧 <b>La cabina está tranquila</b> — cuando llegue el DJ, esto se enciende.'
-      : '⏸ <b>El DJ está en pausa</b> — los pedidos vuelven en un rato. Los aplausos siguen abiertos 🔥';
+    pb.style.display = (sem === 'off' || sem === 'pronto') ? 'block' : 'none';
+    pb.innerHTML = sem === 'off'
+      ? '🔴 <b>La cabina está cerrada</b> — cuando el DJ la abra, esto se enciende.'
+      : '🟡 <b>El DJ está calentando</b> — los pedidos abren pronto. Los aplausos ya suenan 🔥';
   }
+  // il fuego vive nel mondo BPM: visibile solo se la cabina respira (pronto/on)
+  const fuFab = document.getElementById('v2DjFuego');
+  if(fuFab) fuFab.style.display = (sem === 'pronto' || sem === 'on') ? '' : 'none';
   // la spia della PORTA (mondo BPM) segue lo stato vivo anche se già dipinta
   const luz = document.getElementById('v2DjLuz');
   if(luz){ luz.outerHTML = v2DjLuzHTML(); }
+  const dot = document.getElementById('v2BpmDot');
+  if(dot) dot.className = 'v2-ondot' + (sem === 'on' ? '' : sem === 'pronto' ? ' gialla' : ' rossa');
   document.getElementById('v2DjGchips').innerHTML = v2DjFamilias().filter(f=>f.on).map(f =>
     `<span class="v2dj-gchip on">${f.label}</span>`).join('') ||
     V2DJ_FAMILIAS.map(f => `<span class="v2dj-gchip${f.on?' on':''}">${f.label}</span>`).join('');
@@ -10265,8 +10275,9 @@ async function v2DjPedir(i){
   const r = V2DJ_ULTIMI[i]; if(!r) return;
   if(!(DJBOX_CLI && DJBOX_CLI.on)){ showToastMsg('⏳ Muy pronto — la cabina aún no recibe desde el menú'); return; }
   if(!MESA_ID){ showToastMsg('📱 Escanea el QR de tu mesa para mandarla a cabina'); return; }
-  if(DJBOX_CLI && !DJBOX_CLI.cabina){ showToastMsg('🎧 La cabina está tranquila — aún no llega el DJ'); return; }
-  if(DJBOX_CLI && !DJBOX_CLI.acepta){ showToastMsg('⏸ El DJ está en pausa — intenta en un rato'); return; }
+  const semP = v2DjSemaforo();
+  if(semP === 'off'){ showToastMsg('🔴 La cabina está cerrada'); return; }
+  if(semP === 'pronto'){ showToastMsg('🟡 El DJ está calentando — los pedidos abren pronto'); return; }
   if(!v2DjGeneroPermitido(r.gen)){ showToastMsg('🎛 Fuera de los estilos de esta noche'); return; }
   if(!V2DJ_ARM || V2DJ_ARM.idx !== i){
     if(V2DJ_ARM) clearTimeout(V2DJ_ARM.timer);
@@ -10296,8 +10307,9 @@ async function v2DjAplaudir(){
   if(!(DJBOX_CLI && DJBOX_CLI.on)){ showToastMsg('⏳ Muy pronto'); return; }
   // v2.18.1 · il fuego si dà DALLA SALA: fuori locale si guarda, non si applaude
   if(!MESA_ID){ showToastMsg('🔥 Los aplausos se dan desde la mesa — escanea el QR'); return; }
-  // v2.18.3 · non si applaude una cabina vuota
-  if(DJBOX_CLI && !DJBOX_CLI.cabina){ showToastMsg('🎧 La cabina está tranquila — aún no llega el DJ'); return; }
+  // v2.19 · il fuego suona solo con la cabina accesa (pronto o on)
+  const semF = v2DjSemaforo();
+  if(semF !== 'pronto' && semF !== 'on'){ showToastMsg('🔴 La cabina está cerrada'); return; }
   const fu = document.getElementById('v2DjFuego');
   if(fu && DJBOX_CLI){ DJBOX_CLI.fuegos = (DJBOX_CLI.fuegos||0) + 1; fu.innerHTML = '🔥 <b>' + DJBOX_CLI.fuegos + '</b>'; fu.classList.remove('pop'); void fu.offsetWidth; fu.classList.add('pop'); }
   try {
