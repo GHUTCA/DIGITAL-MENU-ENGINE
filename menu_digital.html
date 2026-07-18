@@ -3919,7 +3919,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.18.2 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.18.3 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10084,11 +10084,7 @@ async function v2AbrirNoche(){
   h += `<button class="v2n-djbox" onclick="v2AbrirDjBox()">
       <span class="v2-djbox-logo"><span class="wm">DJ-BOX</span><small>BKS</small></span>
       <span class="t"><b>Tu canción, a la cabina</b><small>búscala, págala y suena — el DJ tiene la última palabra</small></span>
-      ${(function(){ const on = DJBOX_CLI ? DJBOX_CLI.on : DJBOX_ON;
-        const pausa = on && DJBOX_CLI && !DJBOX_CLI.acepta;
-        const cls = pausa ? 'pausa' : on ? 'on' : 'off';
-        const txt = pausa ? 'pausa' : on ? 'abierto' : 'pronto';
-        return '<span class="luz ' + cls + '" id="v2DjLuz"><span class="dot"></span>' + txt + '</span>'; })()}
+      ${(function(){ return v2DjLuzHTML(); })()}
     </button>`;
   // VB round oss.5 · niente "volver": la ✕ basta, spazio guadagnato
   inf.innerHTML = h || '<div class="v2-nsec">La noche se está armando…</div>';
@@ -10169,24 +10165,37 @@ function v2AbrirDjBox(){
   v2DjWireBuscador();
   setTimeout(()=>{ try { document.getElementById('v2DjQ').focus(); } catch(e){} }, 350);
 }
+/* v2.18.3 · la spia a 4 stati: vuota (cabina sin DJ) > pausa > abierto > pronto */
+function v2DjLuzHTML(){
+  const on = DJBOX_CLI ? DJBOX_CLI.on : DJBOX_ON;
+  const viva = DJBOX_CLI ? DJBOX_CLI.cabina : true;
+  const pausa = on && viva && DJBOX_CLI && !DJBOX_CLI.acepta;
+  const cls = !on ? 'off' : !viva ? 'off' : pausa ? 'pausa' : 'on';
+  const txt = !on ? 'pronto' : !viva ? 'cabina vacía' : pausa ? 'pausa' : 'abierto';
+  return '<span class="luz ' + cls + '" id="v2DjLuz"><span class="dot"></span>' + txt + '</span>';
+}
 /* v2.18 · ridipinge la testa dello sheet coi dati vivi (chips, DJ, mis, fuego) */
 function v2DjRefrescaSheet(){
   const dj = (typeof resolveDjActual === 'function') ? resolveDjActual() : null;
   const semana = (CARTELERA_DATA && CARTELERA_DATA.djs_semana) || [];
   const quien = (DJBOX_CLI && DJBOX_CLI.dj) || (dj && dj.nombre) || (semana[0] && semana[0].nombre) || '';
-  const pausa = DJBOX_CLI && DJBOX_CLI.on && !DJBOX_CLI.acepta;
+  const viva = !DJBOX_CLI || DJBOX_CLI.cabina;
+  const pausa = DJBOX_CLI && DJBOX_CLI.on && viva && !DJBOX_CLI.acepta;
+  const vacia = DJBOX_CLI && DJBOX_CLI.on && !viva;
   document.getElementById('v2DjQuien').textContent =
-    pausa ? '⏸ el DJ está en pausa — vuelve en un rato'
-          : (quien ? 'Esta noche: ' + quien : 'la cabina te escucha');
+    vacia ? '🎧 la cabina está tranquila — aún no llega el DJ'
+    : pausa ? '⏸ el DJ está en pausa — vuelve en un rato'
+    : (quien ? 'Esta noche: ' + quien : 'la cabina te escucha');
   const pb = document.getElementById('v2DjPausaBanner');
-  if(pb) pb.style.display = pausa ? 'block' : 'none';
+  if(pb){
+    pb.style.display = (pausa || vacia) ? 'block' : 'none';
+    pb.innerHTML = vacia
+      ? '🎧 <b>La cabina está tranquila</b> — cuando llegue el DJ, esto se enciende.'
+      : '⏸ <b>El DJ está en pausa</b> — los pedidos vuelven en un rato. Los aplausos siguen abiertos 🔥';
+  }
   // la spia della PORTA (mondo BPM) segue lo stato vivo anche se già dipinta
   const luz = document.getElementById('v2DjLuz');
-  if(luz){
-    const on = DJBOX_CLI ? DJBOX_CLI.on : DJBOX_ON;
-    luz.className = 'luz ' + (pausa ? 'pausa' : on ? 'on' : 'off');
-    luz.innerHTML = '<span class="dot"></span>' + (pausa ? 'pausa' : on ? 'abierto' : 'pronto');
-  }
+  if(luz){ luz.outerHTML = v2DjLuzHTML(); }
   document.getElementById('v2DjGchips').innerHTML = v2DjFamilias().filter(f=>f.on).map(f =>
     `<span class="v2dj-gchip on">${f.label}</span>`).join('') ||
     V2DJ_FAMILIAS.map(f => `<span class="v2dj-gchip${f.on?' on':''}">${f.label}</span>`).join('');
@@ -10256,6 +10265,7 @@ async function v2DjPedir(i){
   const r = V2DJ_ULTIMI[i]; if(!r) return;
   if(!(DJBOX_CLI && DJBOX_CLI.on)){ showToastMsg('⏳ Muy pronto — la cabina aún no recibe desde el menú'); return; }
   if(!MESA_ID){ showToastMsg('📱 Escanea el QR de tu mesa para mandarla a cabina'); return; }
+  if(DJBOX_CLI && !DJBOX_CLI.cabina){ showToastMsg('🎧 La cabina está tranquila — aún no llega el DJ'); return; }
   if(DJBOX_CLI && !DJBOX_CLI.acepta){ showToastMsg('⏸ El DJ está en pausa — intenta en un rato'); return; }
   if(!v2DjGeneroPermitido(r.gen)){ showToastMsg('🎛 Fuera de los estilos de esta noche'); return; }
   if(!V2DJ_ARM || V2DJ_ARM.idx !== i){
@@ -10286,6 +10296,8 @@ async function v2DjAplaudir(){
   if(!(DJBOX_CLI && DJBOX_CLI.on)){ showToastMsg('⏳ Muy pronto'); return; }
   // v2.18.1 · il fuego si dà DALLA SALA: fuori locale si guarda, non si applaude
   if(!MESA_ID){ showToastMsg('🔥 Los aplausos se dan desde la mesa — escanea el QR'); return; }
+  // v2.18.3 · non si applaude una cabina vuota
+  if(DJBOX_CLI && !DJBOX_CLI.cabina){ showToastMsg('🎧 La cabina está tranquila — aún no llega el DJ'); return; }
   const fu = document.getElementById('v2DjFuego');
   if(fu && DJBOX_CLI){ DJBOX_CLI.fuegos = (DJBOX_CLI.fuegos||0) + 1; fu.innerHTML = '🔥 <b>' + DJBOX_CLI.fuegos + '</b>'; fu.classList.remove('pop'); void fu.offsetWidth; fu.classList.add('pop'); }
   try {
