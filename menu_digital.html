@@ -3871,6 +3871,14 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 #v2ShDest .v2-fila .ph{width:62px;height:62px;min-height:0;border-radius:14px;font-size:28px;flex:0 0 auto}
 #v2ShDest .v2-fila .ph img{border-radius:14px}
 #v2ShDest .v2-fila .nom{font-size:15px;margin-top:0}
+/* v2.17 · niente scrollbar visibili dentro i sheet/modali (su PC erano
+   orribili — VB sab 18) · il touch/rotella scrolla uguale */
+#detailSheet, #detailSheet *, .v2-sheet, .v2-sheet *, #opSheet, #opSheet *,
+#cartSheet, #cartSheet *{scrollbar-width:none; -ms-overflow-style:none}
+#detailSheet::-webkit-scrollbar, #detailSheet *::-webkit-scrollbar,
+.v2-sheet::-webkit-scrollbar, .v2-sheet *::-webkit-scrollbar,
+#opSheet::-webkit-scrollbar, #opSheet *::-webkit-scrollbar,
+#cartSheet::-webkit-scrollbar, #cartSheet *::-webkit-scrollbar{width:0;height:0;display:none}
 body.theme-dark[data-fascia-menu="dia"] #v2ShDest .meta{color:#b8860b}
 #v2ShDest .orden{border-top:1.5px solid var(--brand-border);padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));
   background:var(--brand-surface);flex:0 0 auto}
@@ -3888,7 +3896,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.16.1 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.17.0 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7626,7 +7634,7 @@ function v2Preguntas(p){
   const preguntas = [];
   const esAlmuerzo = PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo';
   const esCarne = (p.badges||'').toLowerCase().includes('carne');
-  if(esAlmuerzo && ALMUERZO_OPCIONES.length) preguntas.push({ tipo:'bebida',  opciones: ALMUERZO_OPCIONES });
+  if(esAlmuerzo && menuOpcionesNombres().length) preguntas.push({ tipo:'bebida',  opciones: menuOpcionesNombres() });   // v2.17 · prodotti veri (fallback chips testo)
   if(esCarne && TERMINO_OPCIONES.length)     preguntas.push({ tipo:'termino', opciones: TERMINO_OPCIONES });
   return preguntas;
 }
@@ -8132,6 +8140,10 @@ async function loadPreciosRegla(){
     // v2.16 · menu_info: carta d'identità del menú (estado/precio/giorni) —
     // alimenta i token bienvenida, indipendente dalla fascia
     MENU_INFO = data.menu_info || null;
+    // v2.17 · opciones = PRODOTTI VERI per la bebida del menú (id+cat per
+    // l'esplosione a $0 verso Barra) · mappa nombre → {id, cat}
+    MENU_OP_MAP = {};
+    ((MENU_INFO && MENU_INFO.opciones) || []).forEach(o => { MENU_OP_MAP[o.nombre] = o; });
     // v2.14 · LANDING_LISTA · v2.16: si CONGELA alla prima risposta (per-visita:
     // niente riordini a metà navigazione quando la fascia gira)
     if(!V2_LANDING_INIT){
@@ -8149,6 +8161,11 @@ async function loadPreciosRegla(){
    si apre in cima, Destacados visibili, la categoria subito lì. Congelata alla
    prima risposta (per-visita). ALMUERZO virtuale resta un salto di gruppo. */
 let MENU_INFO = null;
+let MENU_OP_MAP = {};   // v2.17 · nombre bebida → {id, cat} (prodotti veri)
+function menuOpcionesNombres(){
+  const ops = (MENU_INFO && MENU_INFO.opciones) || [];
+  return ops.length ? ops.map(o => o.nombre) : ALMUERZO_OPCIONES;
+}
 let V2_LANDING_CAT = '';
 let V2_LANDING_INIT = false;
 let V2_LANDING_DONE = false;
@@ -8267,7 +8284,7 @@ function addToCart(prodId){
   const esAlmuerzo = PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo';
   const esCarne = (p.badges||'').toLowerCase().includes('carne');
   const preguntas = [];
-  if(esAlmuerzo && ALMUERZO_OPCIONES.length) preguntas.push({ tipo:'bebida',  opciones: ALMUERZO_OPCIONES });
+  if(esAlmuerzo && menuOpcionesNombres().length) preguntas.push({ tipo:'bebida',  opciones: menuOpcionesNombres() });   // v2.17 · prodotti veri (fallback chips testo)
   if(esCarne && TERMINO_OPCIONES.length)     preguntas.push({ tipo:'termino', opciones: TERMINO_OPCIONES });
   if(preguntas.length){
     iniciarPreguntas(prodId, preguntas);
@@ -8832,6 +8849,27 @@ async function _enviarPedidoDigitalInner(opts){
       op: i.op||'', termino: i.termino||'', es_menu: !!i.es_menu, promo: i.p2x1 ? '2x1' : '',
       cat: p ? p.categoria : '' };
   });
+  // v2.17 · LA BEBIDA DEL MENÚ È UNA RIGA VERA (VB sab 18: da lunedì Barra e
+  // Cocina separate, per codice). Il carrito resta com'è (una riga per plato,
+  // etichetta op); QUI si esplode: per ogni plato-menú con bebida-prodotto
+  // parte una riga in più a $0 con id/cat veri → _estacionDe la manda a Barra.
+  // Etichetta legacy senza prodotto → resta solo dentro il nombre (com'era).
+  (function(){
+    const bebidas = {};
+    snapshot.items.forEach(i => {
+      if(!i.es_menu || !i.op) return;
+      const opInfo = MENU_OP_MAP[i.op];
+      if(!opInfo) return;
+      const qty = i.qty||1;
+      if(bebidas[opInfo.id]){ bebidas[opInfo.id].qty += qty; bebidas[opInfo.id].llevar += qty; }
+      else bebidas[opInfo.id] = {
+        id: opInfo.id,
+        nombre: (getLang('group_almuerzo')||'Menú del Día') + ' · ' + opInfo.nombre,
+        precio: 0, qty: qty, llevar: qty,
+        op: '', termino: '', es_menu: true, promo: '', cat: opInfo.cat };
+    });
+    Object.keys(bebidas).forEach(k => items.push(bebidas[k]));
+  })();
   // v2.10 · stesso carrito = STESSO uuid: se c'è un intento in canna con
   // items identici, un Reintentar non può mai creare un doppione (il GAS
   // deduplica) — nemmeno se la risposta precedente si era persa dopo la
