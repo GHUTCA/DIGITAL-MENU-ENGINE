@@ -3866,6 +3866,11 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 #v2ShDest .nom{font-size:25px;font-weight:900;margin-top:4px;color:var(--brand-text)}
 #v2ShDest .des{font-size:15px;color:var(--brand-text-muted);margin-top:8px;line-height:1.6}
 #v2ShDest .meta{margin-top:10px;font-size:15px;color:var(--v2-oro);font-weight:800}
+/* v2.15 · le file DENTRO la scheda (lista platos del Menú del Día): il .ph
+   300px e il .nom 25px del sheet NON valgono qui — thumb 62px come ogni fila */
+#v2ShDest .v2-fila .ph{width:62px;height:62px;min-height:0;border-radius:14px;font-size:28px;flex:0 0 auto}
+#v2ShDest .v2-fila .ph img{border-radius:14px}
+#v2ShDest .v2-fila .nom{font-size:15px;margin-top:0}
 body.theme-dark[data-fascia-menu="dia"] #v2ShDest .meta{color:#b8860b}
 #v2ShDest .orden{border-top:1.5px solid var(--brand-border);padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));
   background:var(--brand-surface);flex:0 0 auto}
@@ -3883,7 +3888,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.14.0 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.15.0 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7267,14 +7272,32 @@ function v2DestacadosHTML(){
     }
     if(d.tipo === 'almuerzo'){
       // v2.14 · CARD-FORMULA (VB 17-lug): la card MENÚ vende la FORMULA
-      // («N platos a elección · $X»), mai la foto di un piatto solo — la foto
-      // singola mentiva (il menú è una scelta, non quel piatto).
+      // («N platos a elección · $X»), mai la foto di un piatto solo.
+      // v2.15 (VB sab 18): niente giorni in card · illustrazione calda al
+      // posto del piatto mezzo morto (cloche + vapore, disegno inline).
       const regla = PRECIOS_REGLA_MAP[d.alm[0].id];
       const precio = regla ? formatPrice(regla.precio) : '';
+      const dibujo = '<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block">' +
+        '<defs><linearGradient id="mdBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6E8"/><stop offset="1" stop-color="#FFE3B8"/></linearGradient>' +
+        '<linearGradient id="mdDome" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4CBF7A"/><stop offset="1" stop-color="#2E8A52"/></linearGradient></defs>' +
+        '<rect width="200" height="110" fill="url(#mdBg)"/>' +
+        '<circle cx="100" cy="60" r="42" fill="#FFD98F" opacity="0.5"/>' +
+        '<path d="M86 26c-3 5 3 7 0 12" stroke="#C98A3B" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.65"/>' +
+        '<path d="M100 20c-3 5 3 7 0 12" stroke="#C98A3B" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.85"/>' +
+        '<path d="M114 26c-3 5 3 7 0 12" stroke="#C98A3B" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.65"/>' +
+        '<path d="M63 76a37 30 0 0 1 74 0z" fill="url(#mdDome)"/>' +
+        '<circle cx="100" cy="42" r="4.5" fill="#2E8A52"/><circle cx="99" cy="41" r="2.6" fill="#7ED9A5"/>' +
+        '<ellipse cx="100" cy="80" rx="48" ry="8" fill="#E8DFCF"/>' +
+        '<ellipse cx="100" cy="78" rx="48" ry="8" fill="#FFFFFF"/>' +
+        '<ellipse cx="100" cy="78" rx="31" ry="4.6" fill="#F2EBDD"/>' +
+        '<g stroke="#8A5A2B" stroke-width="3" stroke-linecap="round">' +
+        '<line x1="37" y1="54" x2="37" y2="90"/><line x1="31" y1="54" x2="31" y2="64"/><line x1="43" y1="54" x2="43" y2="64"/><path d="M31 64h12" fill="none"/></g>' +
+        '<g stroke="#8A5A2B" stroke-width="3" stroke-linecap="round"><line x1="165" y1="54" x2="165" y2="90"/><path d="M165 54c7 6 7 14 0 19" fill="none"/></g>' +
+        '<circle cx="52" cy="28" r="2" fill="#E8A54C"/><circle cx="150" cy="24" r="2.5" fill="#E8A54C"/><circle cx="166" cy="40" r="1.6" fill="#E8A54C"/></svg>';
       return `<button class="v2-dst" onclick="v2AbrirDest('almuerzo')">
         <span class="flag" style="background:#3DAA68;color:#fff">🍽️ MENÚ</span>
-        <div class="ph">🍽️</div>
-        <div class="inf"><div class="eyebrow">${getLang('group_almuerzo')||'Menú del Día'} · lun a vie</div>
+        <div class="ph">${dibujo}</div>
+        <div class="inf"><div class="eyebrow">${getLang('group_almuerzo')||'Menú del Día'}</div>
         <div class="nom">${d.alm.length} platos a elección</div>
         <div class="precio">${precio}</div></div></button>`;
     }
@@ -7323,7 +7346,7 @@ function v2AbrirDest(key, tipo){
     if(!alm.length) return;
     const regla = PRECIOS_REGLA_MAP[alm[0].id];
     ph.style.height = '0';
-    eb.textContent = '🍽️ de lunes a viernes';
+    eb.textContent = '🍽️ ' + alm.length + ' platos a elección';   // v2.15 · niente giorni
     nom.textContent = getLang('group_almuerzo') || 'Menú del Día';
     des.textContent = (ALMUERZO_INCLUYE_TXT || '') + (regla ? ' · todo a ' + formatPriceWithSymbol(regla.precio) : '');
     meta.innerHTML = '';

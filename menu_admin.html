@@ -242,6 +242,25 @@
   .duration-label { font-family:'Outfit',sans-serif; font-size:14px; font-weight:500; flex:1; }
   .duration-sub { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; }
 
+  /* v2.5 · Acciones de promoción (Gancho & co.) — bottoni-azione, non lista */
+  .promo-acts { padding:12px 16px 4px; }
+  .promo-act { display:flex; align-items:center; gap:12px; width:100%; text-align:left;
+    background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius);
+    padding:13px 14px; margin-bottom:8px; cursor:pointer; color:var(--text); font-family:inherit; }
+  .promo-act.on { border-color:var(--accent); background:linear-gradient(135deg,rgba(233,69,96,0.14),rgba(233,69,96,0.05)); }
+  .promo-act.armado { border-color:var(--warning); background:rgba(240,196,63,0.10); }
+  .promo-act.soon { opacity:0.45; cursor:default; }
+  .promo-act:disabled { cursor:default; }
+  .promo-act-ico { font-size:24px; flex-shrink:0; }
+  .promo-act-b { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .promo-act-t { font-family:'Outfit',sans-serif; font-size:15px; font-weight:600; }
+  .promo-act-s { font-size:11px; color:var(--text-muted); }
+  .promo-act.on .promo-act-s { color:var(--accent); font-weight:600; }
+  .promo-act.armado .promo-act-s { color:var(--warning); font-weight:700; }
+  .promo-act-flag { background:var(--accent); color:#fff; font-size:10px; font-weight:800;
+    letter-spacing:0.08em; padding:3px 8px; border-radius:999px; flex-shrink:0; }
+  .promo-acts-sub { font-size:11px; color:var(--text-muted); padding:4px 2px 6px; }
+
   /* Push active banner in lista push */
   .push-active-banner { background:linear-gradient(135deg,rgba(233,69,96,0.18),rgba(233,69,96,0.08)); border:1px solid var(--accent-line); border-radius:var(--radius); padding:12px 14px; margin-bottom:12px; display:flex; align-items:center; gap:12px; }
   .push-active-icon { width:36px; height:36px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -342,7 +361,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">v2.4 · 18jul</div>
+    <div class="hub-footer-version" id="ver">v2.5 · 18jul</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -357,6 +376,7 @@
     </div>
     <div class="lst-search-bar" id="searchBar"><input type="search" id="searchInput" placeholder="Nombre del producto…" autocomplete="off"></div>
   </div>
+  <div id="promoActions"></div><!-- v2.5 · azioni di promozione (solo modo push) -->
   <div class="lst-chips" id="catChips"></div>
   <div class="lst-body" id="lstBody"></div>
 </section>
@@ -808,7 +828,7 @@ function renderHub(){
     metaActive: STATE.turno ? `Código ${STATE.turno.codigo} · turno abierto` : null,
     onclick:'openTurnoView()', active:true, hasActive:!!STATE.turno });
   html += card({ icon:iconNoSign(), title:'86 productos', meta:`${c86} activos · tap para abrir`, counter:c86, counterClass:c86>0?'':'zero', onclick:'open86View()', active:true });
-  html += card({ icon:iconStar(), title:'Push producto', meta:pushed?'':'Destacar uno por unas horas', metaActive:pushed?`${pushed.nombre} · hasta ${pushed.pushed.until}`:null, counter:pushed?1:0, counterClass:pushed?'':'zero', onclick:'openPushList()', active:true, hasActive:!!pushed });
+  html += card({ icon:iconStar(), title:'Push & Promos', meta:pushed?'':'Gancho 🎣 · destacar producto', metaActive:pushed?`${pushed.nombre} · hasta ${pushed.pushed.until}`:null, counter:pushed?1:0, counterClass:pushed?'':'zero', onclick:'openPushList()', active:true, hasActive:!!pushed });
   if(isOp){ html += card({ icon:iconAlert(), iconClass:'warn', title:'Reportar error precio', meta:'Precio diferente vs ALOHA', onclick:'openReportList()', active:true }); }
   if(isGerente){ const rc = reports.length; html += card({ icon:iconDollar(), iconClass:'gold', title:'Cambiar precio', meta:rc>0?`${rc} reportes pendientes`:'Editar precios del menú', counter:rc, counterClass:rc>0?'warn':'zero', onclick:'openPriceList()', active:true, hasActive:rc>0 }); }
   if(isGerente){
@@ -849,7 +869,11 @@ const iconQr = ()=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 
 /* LIST */
 function open86View(){ STATE.listMode='86'; enterList(); }
-function openPushList(){ STATE.listMode='push'; enterList(); }
+function openPushList(){
+  STATE.listMode='push'; enterList();
+  // v2.5 · il Gancho vive qui: stato fresco a ogni ingresso
+  loadLeva().then(()=>{ if(STATE.listMode==='push') renderGanchoPanel(); });
+}
 function openReportList(){ STATE.listMode='report'; enterList(); }
 function openPriceList(){ STATE.listMode='price'; enterList(); }
 function openVentasDashboard(){
@@ -863,13 +887,13 @@ function enterList(){
   STATE.searchQuery=''; document.getElementById('searchBar').classList.remove('show'); document.getElementById('searchInput').value='';
   const titles = {
     '86':{ t:'86 Productos', s:`<strong>${getCount86()}</strong> en 86 hoy` },
-    'push':{ t:'Push producto', s:'Elige producto a destacar' },
+    'push':{ t:'Push & Promos', s:'Acciones arriba · producto a destacar abajo' },
     'report':{ t:'Reportar precio', s:'Elige producto con error' },
     'price':{ t:'Cambiar precio', s: getReports().length>0?`<strong>${getReports().length}</strong> reportes pendientes`:'Lista de productos' }
   };
   document.getElementById('listTitle').textContent = titles[STATE.listMode].t;
   document.getElementById('listSub').innerHTML = titles[STATE.listMode].s;
-  renderChips(); renderList(); showView('viewList');
+  renderChips(); renderList(); renderGanchoPanel(); showView('viewList');
 }
 function backToHub(){ renderHub(); showView('viewHub'); }
 
@@ -1356,7 +1380,6 @@ function openTurnoView(){
   showView('viewTurno');
   renderTurno();
   loadTurno().then(ok=>{ if(document.getElementById('viewTurno').classList.contains('active')) renderTurno(!ok); });
-  loadLeva().then(()=>{ if(document.getElementById('viewTurno').classList.contains('active')) renderLeva(); });   // v2.4 · leva 🎣
 }
 function backToTurno(){ showView('viewTurno'); renderTurno(); }
 
@@ -1383,12 +1406,6 @@ function renderTurno(loadFailed){
   } else {
     html += `<button class="turno-abrir" id="btnAbrirTurno" onclick="doAbrirTurno()">Abrir turno · generar código</button>`;
   }
-
-  // v2.4 · LEVA 🎣 MENÚ DEL DÍA — due escalones, stessa formula. Il JL riempie
-  // i tavoli con l'esca e torna a estándar quando vuole. Il flip vive nel GAS
-  // (setLevaMenu: LActiva + audit fossile) — qui solo la leva.
-  html += `<div class="hub-section-label">Menú del Día · escalón de precio</div>
-    <div id="levaBox" class="plaza-card"><div class="plaza-meta">Cargando…</div></div>`;
 
   // Plazas
   html += `<div class="hub-section-label">Plazas de esta noche</div>`;
@@ -1430,11 +1447,13 @@ function renderTurno(loadFailed){
   html += `<button class="turno-sec-btn" onclick="doRepetirSemana()">↻ Repetir asignación de la semana pasada</button>`;
   html += `<button class="turno-sec-btn" onclick="openPlazaCfg()">＋ Nueva plaza</button>`;
   el.innerHTML = html;
-  renderLeva();   // v2.4 · il re-render del turno rifà anche la card leva
 }
 
-/* v2.4 · LEVA 🎣 — stato + flip via GAS (getLevaMenu / setLevaMenu v3.9.0) */
+/* v2.5 · GANCHO 🎣 (VB sab 18: vive in PUSH, non in Turno — è un'azione di
+   promozione, la prima della serie). Stato + flip via GAS getLevaMenu/
+   setLevaMenu v3.9.0. Doppio tap per confermare (pattern cerrarTurno). */
 let LEVA = null;
+let GANCHO_ARMADO = null;   // timeout del doppio-tap
 async function loadLeva(){
   if(!lastSavedPin) return false;
   try {
@@ -1445,32 +1464,52 @@ async function loadLeva(){
   return false;
 }
 function fmtCl(n){ return '$' + (n || 0).toLocaleString('es-CL'); }
-function renderLeva(){
-  const box = document.getElementById('levaBox');
+function renderGanchoPanel(){
+  const box = document.getElementById('promoActions');
   if(!box) return;
-  if(!LEVA){ box.innerHTML = '<div class="plaza-meta">Cargando… (si no aparece, el backend espera la New Version v3.9.0)</div>'; return; }
-  const esEsca = LEVA.escalon === 'esca';
-  const esStd  = LEVA.escalon === 'estandar';
-  const vigente = esEsca ? LEVA.esca.precio : LEVA.estandar.precio;
+  if(STATE.listMode !== 'push'){ box.innerHTML = ''; return; }
+  const l = LEVA;
+  const esEsca = l && l.escalon === 'esca';
+  const sub = !l ? 'cargando… (¿backend pre-v3.9.0?)'
+    : esEsca ? `ACTIVO · menú a ${fmtCl(l.esca.precio)} — tap para volver a ${fmtCl(l.estandar.precio)}`
+    : l.escalon === 'estandar' ? `menú a ${fmtCl(l.estandar.precio)} — tap para lanzar el gancho a ${fmtCl(l.esca.precio)}`
+    : `⚠ estado ${esc(l.escalon)} — tap para normalizar`;
   box.innerHTML = `
-    <div class="plaza-top"><span class="plaza-nom">${esEsca ? '🎣 Modo esca activo' : esStd ? 'Precio estándar' : '⚠ Estado ' + esc(LEVA.escalon)}</span>
-      <span class="plaza-meta">${LEVA.esca.n} platos · hoy a ${fmtCl(vigente)}</span></div>
-    <div style="display:flex;gap:8px;padding-top:10px">
-      <button class="turno-btn-sm${esEsca ? ' qr' : ''}" onclick="doLeva('esca')" ${esEsca ? 'disabled' : ''}>🎣 Esca · ${fmtCl(LEVA.esca.precio)}</button>
-      <button class="turno-btn-sm${esStd ? ' qr' : ''}" onclick="doLeva('estandar')" ${esStd ? 'disabled' : ''}>Estándar · ${fmtCl(LEVA.estandar.precio)}</button>
-    </div>
-    ${LEVA.escalon === 'mixto' ? '<div class="plaza-alerta">⚠ escalones mezclados — pulsa uno para normalizar</div>' : ''}`;
+    <div class="promo-acts">
+      <div class="hub-section-label" style="margin:0 0 8px">Acciones de promoción</div>
+      <button class="promo-act${esEsca ? ' on' : ''}${GANCHO_ARMADO ? ' armado' : ''}" onclick="doGancho()" ${l ? '' : 'disabled'}>
+        <span class="promo-act-ico">🎣</span>
+        <span class="promo-act-b"><span class="promo-act-t">Gancho · Menú del Día</span>
+        <span class="promo-act-s">${GANCHO_ARMADO ? '¿Seguro? · tap de nuevo para confirmar' : sub}</span></span>
+        ${esEsca ? '<span class="promo-act-flag">ON</span>' : ''}
+      </button>
+      <button class="promo-act soon" disabled><span class="promo-act-ico">🏷</span>
+        <span class="promo-act-b"><span class="promo-act-t">Promo 2x1 / combo</span><span class="promo-act-s">Pronto</span></span></button>
+      <button class="promo-act soon" disabled><span class="promo-act-ico">🔥</span>
+        <span class="promo-act-b"><span class="promo-act-t">Override estacional</span><span class="promo-act-s">Pronto</span></span></button>
+      <div class="promo-acts-sub">Push producto · elige abajo a quién destacar 👇</div>
+    </div>`;
 }
-async function doLeva(escalon){
+async function doGancho(){
+  if(!LEVA) return;
+  // doppio tap: il primo arma (3.5s per ripensarci), il secondo esegue
+  if(!GANCHO_ARMADO){
+    GANCHO_ARMADO = setTimeout(() => { GANCHO_ARMADO = null; renderGanchoPanel(); }, 3500);
+    renderGanchoPanel();
+    return;
+  }
+  clearTimeout(GANCHO_ARMADO); GANCHO_ARMADO = null;
+  const escalon = LEVA.escalon === 'esca' ? 'estandar' : 'esca';
   try {
     const r = await withRetry(() => gasPost('setLevaMenu', { pin: lastSavedPin, escalon: escalon }), 'setLevaMenu');
     if(r && r.ok){
-      LEVA = r; renderLeva();
+      LEVA = r; renderGanchoPanel();
       showToast('success', escalon === 'esca'
-        ? '🎣 Menú del Día a ' + fmtCl(r.esca.precio) + ' — a llenar mesas'
-        : 'Menú del Día a precio estándar ' + fmtCl(r.estandar.precio));
-    } else showToast('error', r && r.error ? 'Error: ' + r.error : 'No se pudo cambiar el escalón');
+        ? '🎣 Gancho lanzado · menú a ' + fmtCl(r.esca.precio) + ' — a llenar mesas'
+        : 'Gancho recogido · menú a ' + fmtCl(r.estandar.precio));
+    } else showToast('error', r && r.error ? 'Error: ' + r.error : 'No se pudo cambiar');
   } catch(e){ showToast('error', 'Sin conexión — reintenta'); }
+  renderGanchoPanel();
 }
 
 /* v2.3 · #17 · unir/separar tavolate */
