@@ -342,7 +342,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">v2.3 · 15jul</div>
+    <div class="hub-footer-version" id="ver">v2.4 · 18jul</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -1356,6 +1356,7 @@ function openTurnoView(){
   showView('viewTurno');
   renderTurno();
   loadTurno().then(ok=>{ if(document.getElementById('viewTurno').classList.contains('active')) renderTurno(!ok); });
+  loadLeva().then(()=>{ if(document.getElementById('viewTurno').classList.contains('active')) renderLeva(); });   // v2.4 · leva 🎣
 }
 function backToTurno(){ showView('viewTurno'); renderTurno(); }
 
@@ -1382,6 +1383,12 @@ function renderTurno(loadFailed){
   } else {
     html += `<button class="turno-abrir" id="btnAbrirTurno" onclick="doAbrirTurno()">Abrir turno · generar código</button>`;
   }
+
+  // v2.4 · LEVA 🎣 MENÚ DEL DÍA — due escalones, stessa formula. Il JL riempie
+  // i tavoli con l'esca e torna a estándar quando vuole. Il flip vive nel GAS
+  // (setLevaMenu: LActiva + audit fossile) — qui solo la leva.
+  html += `<div class="hub-section-label">Menú del Día · escalón de precio</div>
+    <div id="levaBox" class="plaza-card"><div class="plaza-meta">Cargando…</div></div>`;
 
   // Plazas
   html += `<div class="hub-section-label">Plazas de esta noche</div>`;
@@ -1423,6 +1430,47 @@ function renderTurno(loadFailed){
   html += `<button class="turno-sec-btn" onclick="doRepetirSemana()">↻ Repetir asignación de la semana pasada</button>`;
   html += `<button class="turno-sec-btn" onclick="openPlazaCfg()">＋ Nueva plaza</button>`;
   el.innerHTML = html;
+  renderLeva();   // v2.4 · il re-render del turno rifà anche la card leva
+}
+
+/* v2.4 · LEVA 🎣 — stato + flip via GAS (getLevaMenu / setLevaMenu v3.9.0) */
+let LEVA = null;
+async function loadLeva(){
+  if(!lastSavedPin) return false;
+  try {
+    const r = await gasGet('getLevaMenu', { pin: lastSavedPin });
+    // guardia: il GAS pre-v3.9.0 risponde col default generico senza `escalon`
+    if (r && r.ok && r.escalon){ LEVA = r; return true; }
+  } catch(e){ /* silenzioso */ }
+  return false;
+}
+function fmtCl(n){ return '$' + (n || 0).toLocaleString('es-CL'); }
+function renderLeva(){
+  const box = document.getElementById('levaBox');
+  if(!box) return;
+  if(!LEVA){ box.innerHTML = '<div class="plaza-meta">Cargando… (si no aparece, el backend espera la New Version v3.9.0)</div>'; return; }
+  const esEsca = LEVA.escalon === 'esca';
+  const esStd  = LEVA.escalon === 'estandar';
+  const vigente = esEsca ? LEVA.esca.precio : LEVA.estandar.precio;
+  box.innerHTML = `
+    <div class="plaza-top"><span class="plaza-nom">${esEsca ? '🎣 Modo esca activo' : esStd ? 'Precio estándar' : '⚠ Estado ' + esc(LEVA.escalon)}</span>
+      <span class="plaza-meta">${LEVA.esca.n} platos · hoy a ${fmtCl(vigente)}</span></div>
+    <div style="display:flex;gap:8px;padding-top:10px">
+      <button class="turno-btn-sm${esEsca ? ' qr' : ''}" onclick="doLeva('esca')" ${esEsca ? 'disabled' : ''}>🎣 Esca · ${fmtCl(LEVA.esca.precio)}</button>
+      <button class="turno-btn-sm${esStd ? ' qr' : ''}" onclick="doLeva('estandar')" ${esStd ? 'disabled' : ''}>Estándar · ${fmtCl(LEVA.estandar.precio)}</button>
+    </div>
+    ${LEVA.escalon === 'mixto' ? '<div class="plaza-alerta">⚠ escalones mezclados — pulsa uno para normalizar</div>' : ''}`;
+}
+async function doLeva(escalon){
+  try {
+    const r = await withRetry(() => gasPost('setLevaMenu', { pin: lastSavedPin, escalon: escalon }), 'setLevaMenu');
+    if(r && r.ok){
+      LEVA = r; renderLeva();
+      showToast('success', escalon === 'esca'
+        ? '🎣 Menú del Día a ' + fmtCl(r.esca.precio) + ' — a llenar mesas'
+        : 'Menú del Día a precio estándar ' + fmtCl(r.estandar.precio));
+    } else showToast('error', r && r.error ? 'Error: ' + r.error : 'No se pudo cambiar el escalón');
+  } catch(e){ showToast('error', 'Sin conexión — reintenta'); }
 }
 
 /* v2.3 · #17 · unir/separar tavolate */

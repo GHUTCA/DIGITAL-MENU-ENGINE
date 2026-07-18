@@ -3883,7 +3883,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.13.1 · 17jul</span>
+<span id="ver" hidden>menu2 · v2.14.0 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7266,14 +7266,16 @@ function v2DestacadosHTML(){
         <div class="inf"><div class="eyebrow">${eyebrow}</div><div class="nom">${tit}</div></div></button>`;
     }
     if(d.tipo === 'almuerzo'){
+      // v2.14 · CARD-FORMULA (VB 17-lug): la card MENÚ vende la FORMULA
+      // («N platos a elección · $X»), mai la foto di un piatto solo — la foto
+      // singola mentiva (il menú è una scelta, non quel piatto).
       const regla = PRECIOS_REGLA_MAP[d.alm[0].id];
       const precio = regla ? formatPrice(regla.precio) : '';
-      const ph = d.alm[0].imagen ? `<img src="${d.alm[0].imagen}" alt="" loading="lazy" onerror="this.parentElement.textContent='🍱'">` : '🍱';
       return `<button class="v2-dst" onclick="v2AbrirDest('almuerzo')">
         <span class="flag" style="background:#3DAA68;color:#fff">🍽️ MENÚ</span>
-        <div class="ph">${ph}</div>
-        <div class="inf"><div class="eyebrow">de lunes a viernes</div>
-        <div class="nom">${getLang('group_almuerzo')||'Menú del Día'}</div>
+        <div class="ph">🍽️</div>
+        <div class="inf"><div class="eyebrow">${getLang('group_almuerzo')||'Menú del Día'} · lun a vie</div>
+        <div class="nom">${d.alm.length} platos a elección</div>
         <div class="precio">${precio}</div></div></button>`;
     }
     const p = d.p;
@@ -8078,8 +8080,34 @@ async function loadPreciosRegla(){
     const data = await r.json();
     if(!data || !data.ok) return;
     PRECIOS_REGLA_MAP = data.reglas || {};
+    // v2.14 · LANDING_LISTA: la categoria di apertura dichiarata per fascia
+    V2_LANDING_CAT = (data.landing && data.landing.categoria) || '';
     renderMenu();  // re-render per applicare prezzi aggiornati
+    v2AplicarLanding();
   } catch(e){ console.warn('[v1.23] loadPreciosRegla failed:', e.message); }
+}
+
+/* v2.14 · LANDING_LISTA (VB 17-lug): il menu si APRE nella categoria che il
+   foglio dichiara per la fascia (es. ALMUERZO a mezzogiorno). Regola UX
+   scolpita: vale SOLO all'apertura — mai teletrasporto sui poll successivi,
+   mai sopra una scelta già fatta dal cliente (gruppo attivo o ricerca). */
+let V2_LANDING_CAT = '';
+let V2_LANDING_DONE = false;
+function v2AplicarLanding(){
+  if(V2_LANDING_DONE || !V2_LANDING_CAT) return;
+  V2_LANDING_DONE = true;
+  if(CURRENT_GROUP !== null || (typeof V2_Q === 'string' && V2_Q)) return;
+  const key = V2_LANDING_CAT.trim();
+  setTimeout(() => { try {
+    if(/^(almuerzo|menu|__almuerzo__)$/i.test(key)){
+      if(v2AlmuerzoProds().length && CURRENT_GROUP === null) setGroup('__ALMUERZO__');
+      return;
+    }
+    const k = key.toLowerCase();
+    const cat = (ALL_CATEGORIES || []).find(c =>
+      (c.id || '').toLowerCase() === k || (c.nombre || '').toLowerCase() === k);
+    if(cat && document.getElementById('cat-' + cat.id)) scrollToCategory(cat.id);
+  } catch(e){} }, 900);
 }
 
 /* ════════════════════════════════════════════════════
