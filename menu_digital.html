@@ -3920,6 +3920,8 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
   background:rgba(0,255,200,.1);border:1px solid rgba(0,255,200,.4);color:#00ffc8}
 .v2dj-gen.fuera{background:rgba(245,166,35,.1);border-color:rgba(255,207,107,.45);color:#ffcf6b}
 .v2dj-res .plata{font-size:14px;font-weight:900;color:#00ffc8;white-space:nowrap}
+/* v2.23 · el regalo se VE: precio 0 en oro cálido, no el ciano del precio normal */
+.v2dj-res .plata.free{color:#ffd76b}
 .v2dj-prox{border:1.5px dashed rgba(139,92,246,.55);border-radius:14px;padding:12px;margin-top:6px;
   font-size:12.5px;font-weight:800;color:#a89fc7;text-align:center;background:rgba(139,92,246,.07)}
 .v2dj-regla{font-size:10.5px;color:#6f668f;text-align:center;margin-top:8px;line-height:1.5}
@@ -3965,7 +3967,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.22.1 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.23.0 · 19jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4488,7 +4490,7 @@ const TRANSLATIONS = {
     // v1.12 · S5 · DJ sheet
     dj_now_label:'Ahora en cabina', dj_next_label:'Próximas sesiones', dj_close:'Cerrar',
     /* v2.20 · DJ-BOX i18n completo (importante quanto el menú) */
-    djx_title:'Pídele al DJ', djx_escucha:'la cabina te escucha', djx_estanoche:'Esta noche:',
+    djx_title:'Pídele al DJ', djx_gratis:'Gratis', djx_escucha:'la cabina te escucha', djx_estanoche:'Esta noche:',
     djx_nodisp:'El DJ-BOX lo habilita el DJ',
     djx_off_s:'Cuando la cabina se prende, tu canción entra a la pista — búscala y déjala lista.',
     djx_pronto:'el DJ está calentando — los pedidos abren pronto',
@@ -4593,7 +4595,7 @@ const TRANSLATIONS = {
     xs_label:'Of-the-moment pick',
     xs_intro_default:'Try it with',
     dj_now_label:'Now in the booth', dj_next_label:'Up next', dj_close:'Close',
-    djx_title:'Ask the DJ', djx_escucha:'the booth is listening', djx_estanoche:'Tonight:',
+    djx_title:'Ask the DJ', djx_gratis:'Free', djx_escucha:'the booth is listening', djx_estanoche:'Tonight:',
     djx_nodisp:'The DJ-BOX is switched on by the DJ',
     djx_off_s:'When the booth lights up, your song hits the dancefloor — find it and have it ready.',
     djx_pronto:'the DJ is warming up — requests open soon',
@@ -4677,7 +4679,7 @@ const TRANSLATIONS = {
     xs_label:'Sugestão do momento',
     xs_intro_default:'Experimente com',
     dj_now_label:'Agora na cabine', dj_next_label:'Próximas sessões', dj_close:'Fechar',
-    djx_title:'Pede ao DJ', djx_escucha:'a cabine te escuta', djx_estanoche:'Hoje à noite:',
+    djx_title:'Pede ao DJ', djx_gratis:'Grátis', djx_escucha:'a cabine te escuta', djx_estanoche:'Hoje à noite:',
     djx_nodisp:'O DJ-BOX quem liga é o DJ',
     djx_off_s:'Quando a cabine acende, tua música entra na pista — busca e deixa pronta.',
     djx_pronto:'o DJ está esquentando — os pedidos abrem em breve',
@@ -4761,7 +4763,7 @@ const TRANSLATIONS = {
     xs_label:'Suggerito ora',
     xs_intro_default:'Provalo con',
     dj_now_label:'In console adesso', dj_next_label:'Prossime serate', dj_close:'Chiudi',
-    djx_title:'Chiedi al DJ', djx_escucha:'la cabina ti ascolta', djx_estanoche:'Stasera:',
+    djx_title:'Chiedi al DJ', djx_gratis:'Gratis', djx_escucha:'la cabina ti ascolta', djx_estanoche:'Stasera:',
     djx_nodisp:'Il DJ-BOX lo accende il DJ',
     djx_off_s:'Quando la cabina si accende, la tua canzone entra in pista — cercala e tienila pronta.',
     djx_pronto:'il DJ si sta scaldando — le richieste aprono a breve',
@@ -4845,7 +4847,7 @@ const TRANSLATIONS = {
     xs_label:'Empfehlung des Moments',
     xs_intro_default:'Probier es mit',
     dj_now_label:'Jetzt am Pult', dj_next_label:'Demnächst', dj_close:'Schließen',
-    djx_title:'Wünsch dir was vom DJ', djx_escucha:'die Kabine hört dich', djx_estanoche:'Heute Nacht:',
+    djx_title:'Wünsch dir was vom DJ', djx_gratis:'Gratis', djx_escucha:'die Kabine hört dich', djx_estanoche:'Heute Nacht:',
     djx_nodisp:'Die DJ-BOX schaltet der DJ ein',
     djx_off_s:'Sobald die Kabine angeht, landet dein Song auf der Tanzfläche — such ihn schon mal raus.',
     djx_pronto:'der DJ wärmt sich auf — Wünsche öffnen bald',
@@ -4929,7 +4931,7 @@ const TRANSLATIONS = {
     xs_label:'Suggestion du moment',
     xs_intro_default:'Essaie avec',
     dj_now_label:'En cabine maintenant', dj_next_label:'À venir', dj_close:'Fermer',
-    djx_title:'Demande au DJ', djx_escucha:'la cabine t\'écoute', djx_estanoche:'Ce soir :',
+    djx_title:'Demande au DJ', djx_gratis:'Offert', djx_escucha:'la cabine t\'écoute', djx_estanoche:'Ce soir :',
     djx_nodisp:'Le DJ-BOX, c\'est le DJ qui l\'allume',
     djx_off_s:'Quand la cabine s\'allume, ta chanson entre en piste — cherche-la et garde-la prête.',
     djx_pronto:'le DJ chauffe — les demandes ouvrent bientôt',
@@ -5013,7 +5015,7 @@ const TRANSLATIONS = {
     xs_label:'此刻推荐',
     xs_intro_default:'搭配',
     dj_now_label:'现场DJ', dj_next_label:'即将登场', dj_close:'关闭',
-    djx_title:'DJ点歌', djx_escucha:'DJ台在听你', djx_estanoche:'今晚：',
+    djx_title:'DJ点歌', djx_gratis:'免费', djx_escucha:'DJ台在听你', djx_estanoche:'今晚：',
     djx_nodisp:'DJ-BOX由DJ开启',
     djx_off_s:'DJ台一亮，你的歌就能上舞池 — 先搜好备着。',
     djx_pronto:'DJ正在热场 — 点歌即将开放',
@@ -5097,7 +5099,7 @@ const TRANSLATIONS = {
     xs_label:'今のおすすめ',
     xs_intro_default:'こちらと一緒に',
     dj_now_label:'ブース内', dj_next_label:'次回の出演', dj_close:'閉じる',
-    djx_title:'DJにリクエスト', djx_escucha:'ブースが聴いてる', djx_estanoche:'今夜：',
+    djx_title:'DJにリクエスト', djx_gratis:'無料', djx_escucha:'ブースが聴いてる', djx_estanoche:'今夜：',
     djx_nodisp:'DJ-BOXはDJがオンにします',
     djx_off_s:'ブースが点いたら、あなたの曲がフロアへ — 今のうちに探しておいて。',
     djx_pronto:'DJがウォームアップ中 — リクエストはまもなく',
@@ -10463,7 +10465,14 @@ function v2DjFamilias(){
   }
   return V2DJ_FAMILIAS;
 }
-function v2DjPrecio(){ return (DJBOX_CLI && DJBOX_CLI.precio) || V2DJ_PRECIO; }
+// v2.23 · precio rispettando lo ZERO (VB Alberto · lancio GRATIS): il vecchio
+// `|| V2DJ_PRECIO` mangiava lo 0 (falsy) → mostrava 2.000 anche col foglio a 0.
+function v2DjPrecio(){ return (DJBOX_CLI && DJBOX_CLI.precio != null) ? DJBOX_CLI.precio : V2DJ_PRECIO; }
+// label: 0 = 🎁 il regalo si VEDE (crea l'abitudine) · resto = numero puntato, come prima
+function v2DjPrecioLabel(){
+  const p = v2DjPrecio();
+  return p === 0 ? '🎁 ' + getLang('djx_gratis') : p.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
 function v2DjGeneroPermitido(gen){
   const g = (gen || '').toLowerCase();
   return v2DjFamilias().some(f => f.on && f.match.some(m => g.indexOf(m) >= 0 || m.indexOf(g) >= 0));
@@ -10595,7 +10604,7 @@ function v2DjPinta(){
       <img src="${r.img}" alt="" loading="lazy">
       <div class="b"><div class="tit">${escapeHtml(r.tit)}</div><div class="art">${escapeHtml(r.art)}</div>
         <span class="v2dj-gen${ok?'':' fuera'}">${armado ? escapeHtml(getLang('djx_confirm')) : escapeHtml(r.gen) + (ok?'':' · ' + escapeHtml(getLang('djx_fuera')))}</span></div>
-      <div class="plata">${v2DjPrecio().toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')}</div></div>`;
+      <div class="plata${v2DjPrecio()===0?' free':''}">${v2DjPrecioLabel()}</div></div>`;
   }).join('');
 }
 /* v2.18 · il tap che manda in cabina (doppio-tap, guardie chiare) */
