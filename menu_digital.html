@@ -3955,7 +3955,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.21.1 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.21.2 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10432,8 +10432,10 @@ function v2DjRefrescaSheet(){
   if(inv) inv.style.display = MESA_ID ? 'none' : 'flex';
   // il fuego vive nel mondo BPM: classe sem-ok (la visibilità vera la dà il CSS
   // solo dentro #v2ShNoche.up — mai sopra il menu)
+  // v2.21.2 (VB Alberto): la fiamma si accende con la CABINA VIVA (DJ dentro,
+  // PWD+heartbeat) — il semaforo governa i pedidos, non gli applausi
   const fuFab = document.getElementById('v2DjFuego');
-  if(fuFab) fuFab.classList.toggle('sem-ok', sem === 'pronto' || sem === 'on');
+  if(fuFab) fuFab.classList.toggle('sem-ok', !!(DJBOX_CLI && DJBOX_CLI.on && DJBOX_CLI.cabina));
   // la spia della PORTA (mondo BPM) segue lo stato vivo anche se già dipinta
   const luz = document.getElementById('v2DjLuz');
   if(luz){ luz.outerHTML = v2DjLuzHTML(); }
@@ -10572,9 +10574,8 @@ async function v2DjAplaudir(){
   if(!(DJBOX_CLI && DJBOX_CLI.on)){ showToastMsg('⏳ ' + getLang('djx_nodisp')); return; }
   // v2.18.1 · il fuego si dà DALLA SALA · v2.20: fuori locale si INVITA, non si sgrida
   if(!MESA_ID){ showToastMsg('🪑 ' + getLang('djx_invite'), 4500); return; }
-  // v2.19 · il fuego suona solo con la cabina accesa (pronto o on)
-  const semF = v2DjSemaforo();
-  if(semF !== 'pronto' && semF !== 'on'){ showToastMsg('🎧 ' + getLang('djx_nodisp')); return; }
+  // v2.21.2 · il fuego suona con la CABINA VIVA (VB: perché un'altra condizione?)
+  if(!(DJBOX_CLI && DJBOX_CLI.cabina)){ showToastMsg('🎧 ' + getLang('djx_nodisp')); return; }
   const fu = document.getElementById('v2DjFuego');
   if(fu && DJBOX_CLI){ DJBOX_CLI.fuegos = (DJBOX_CLI.fuegos||0) + 1; fu.innerHTML = '🔥 <b>' + DJBOX_CLI.fuegos + '</b>'; fu.classList.remove('pop'); void fu.offsetWidth; fu.classList.add('pop'); }
   v2DjFuegoWow();
