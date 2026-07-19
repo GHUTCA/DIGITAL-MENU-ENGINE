@@ -3936,7 +3936,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.20.0 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.20.1 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10534,6 +10534,8 @@ function v2DjFuegoWow(){
     f.style.setProperty('--d', (0.9 + Math.random() * 0.7).toFixed(2) + 's');
     f.style.animationDelay = (k * 45) + 'ms';
     f.addEventListener('animationend', () => f.remove());
+    // rete: se animationend non scatta (renderer sotto stress), via comunque
+    setTimeout(() => f.remove(), 3000);
     sh.appendChild(f);
   }
 }
