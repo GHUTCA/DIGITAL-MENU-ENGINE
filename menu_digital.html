@@ -1819,7 +1819,10 @@ body:not(.theme-dark) .dj-sheet-close{background:rgba(10,10,20,0.55);color:#fff;
 #emptyState.show{display:flex}
 .empty-emoji{font-size:48px;opacity:0.2}
 .empty-text{font-size:14px;color:var(--brand-text-muted)}
-#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--brand-primary);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:all 0.3s ease;z-index:500;white-space:nowrap;pointer-events:none;}
+/* v2.20.2 · il toast vive SOPRA gli sheet (era z-index:500, sotto v2ShDj a 510:
+   ogni avviso sparato a sheet aperto — l'invito a sedersi! — restava invisibile)
+   + testo lungo a capo (era nowrap: l'invito sbordava dallo schermo) */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--brand-primary);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:all 0.3s ease;z-index:1200;white-space:normal;max-width:88vw;width:max-content;text-align:center;line-height:1.4;pointer-events:none;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 /* v1.11 · LENTE search nell'header alto (sostituisce searchBarWrap sticky)
    ─ tap → apre overlay search full-screen */
@@ -3936,7 +3939,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.20.1 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.20.2 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -9860,12 +9863,12 @@ function addItem(id){
 }
 
 let toastTimer;
-function showToastMsg(msg){
+function showToastMsg(msg, ms){
   const el = document.getElementById('toast');
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>el.classList.remove('show'), 2500);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), ms || 2500);
 }
 
 function scrollToTop(){ window.scrollTo({top:0, behavior:'smooth'}); }
@@ -10496,7 +10499,7 @@ async function v2DjPedir(i){
   }
   clearTimeout(V2DJ_ARM.timer); V2DJ_ARM = null; v2DjPinta();
   // v2.20 · vetrina: la conferma non manda — invita («entra, siéntate…»)
-  if(!MESA_ID){ showToastMsg('🪑 ' + getLang('djx_invite')); return; }
+  if(!MESA_ID){ showToastMsg('🪑 ' + getLang('djx_invite'), 4500); return; }
   const uuid = 'djc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   try {
     const resp = await fetch(BRAND.gas_url || GAS_URL, { method:'POST',
@@ -10545,7 +10548,7 @@ async function v2DjAplaudir(){
   V2DJ_FUEGO_T = now;
   if(!(DJBOX_CLI && DJBOX_CLI.on)){ showToastMsg('⏳ ' + getLang('djx_nodisp')); return; }
   // v2.18.1 · il fuego si dà DALLA SALA · v2.20: fuori locale si INVITA, non si sgrida
-  if(!MESA_ID){ showToastMsg('🪑 ' + getLang('djx_invite')); return; }
+  if(!MESA_ID){ showToastMsg('🪑 ' + getLang('djx_invite'), 4500); return; }
   // v2.19 · il fuego suona solo con la cabina accesa (pronto o on)
   const semF = v2DjSemaforo();
   if(semF !== 'pronto' && semF !== 'on'){ showToastMsg('🎧 ' + getLang('djx_nodisp')); return; }
