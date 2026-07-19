@@ -3874,6 +3874,16 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2dj-scard.pronto b{color:#ffe3a8}
 /* v2.21 · la porta del mondo BPM da spenta non ha semafori: solo la freccia (si entra) */
 .v2n-djbox .arr{margin-left:auto;color:rgba(242,253,255,.4);font-size:17px;flex:0 0 auto}
+/* v2.22.1 · DJ senza foto: mai il buco nero — vinile che gira + iniziali (palette cabina) */
+.v2n-bigcard .phv{display:flex;align-items:center;justify-content:center;gap:10px;
+  background:linear-gradient(135deg,#1a0f2e,#2b1846)}
+.v2n-bigcard .phv .vinilone{width:52px;height:52px;border-radius:50%;flex:0 0 auto;position:relative;
+  background:repeating-radial-gradient(circle at 50% 50%, #0c0a14 0 2px, #171126 2px 4px);
+  border:1.5px solid rgba(255,255,255,.22);animation:v2spin 5s linear infinite}
+.v2n-bigcard .phv .vinilone::after{content:'';position:absolute;inset:17px;border-radius:50%;
+  background:linear-gradient(135deg,#ff2e88,#8b5cf6)}
+.v2n-bigcard .phv b{font-size:24px;font-weight:900;letter-spacing:2px;color:rgba(242,253,255,.85);
+  text-shadow:0 0 14px rgba(139,92,246,.6)}
 /* ═══ lo sheet PÍDELE AL DJ (palette cabina del mockup — perfetta, parola di Alberto) ═══ */
 #v2ShDj{background:radial-gradient(500px 300px at 90% -5%, rgba(139,92,246,.18), transparent 60%),#0a0714;
   z-index:510;border:1.5px solid rgba(139,92,246,.5);border-bottom:0;color:#f4f0ff;
@@ -3955,7 +3965,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.22.0 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.22.1 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10347,8 +10357,10 @@ async function v2AbrirNoche(){
   const cbks = CARTELERA_DATA && CARTELERA_DATA.cartelera_bks;
   let cards = '';
   if(djShow){
+    // v2.22.1 · niente foto in agenda → vinile che gira + iniziali (mai il buco nero)
+    const djIni = (djShow.nombre || 'DJ').split(/[\s&]+/).filter(Boolean).map(w => w[0]).slice(0, 3).join('').toUpperCase();
     cards += `<button class="v2n-bigcard" onclick="v2VerDj()">
-      ${djShow.foto_url ? `<img class="ph" src="${djShow.foto_url}" alt="">` : '<div class="ph"></div>'}
+      ${djShow.foto_url ? `<img class="ph" src="${djShow.foto_url}" alt="">` : `<div class="ph phv"><span class="vinilone"></span><b>${escapeHtml(djIni)}</b></div>`}
       <div class="i"><div class="ey">${(dj && dj.nombre) ? '<span class="v2-ondot"></span> esta noche' : '⏭ próximo · ' + escapeHtml(djShow.dias_visible||'')}</div>
       <div class="n">${escapeHtml(djShow.nombre||'')}</div>
       <div class="s">${escapeHtml(djShow.hora_ini||'')}${djShow.hora_fin?' — '+escapeHtml(djShow.hora_fin):''} · tócalo para verlo</div></div>
