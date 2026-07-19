@@ -3955,7 +3955,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.21.2 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.21.3 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8743,10 +8743,12 @@ function v2Confirmar(){
   const d = v2DestinoDe();
   const el = document.getElementById('v2Vias');
   if(!el) return;
-  el.innerHTML = `<div class="v2-seguro-q">¿Seguro? Va directo a ${d.txt} ${d.emo}</div>
+  // v2.21.3 · la conferma DICE la verità intera (VB Alberto, accensione dom 19):
+  // va in cucina E sul conto, e da lì non si modifica più — detto prima, non dopo
+  el.innerHTML = `<div class="v2-seguro-q">¿Lo revisaste bien? Va directo a ${d.txt} ${d.emo} y a tu cuenta — ya no se puede modificar</div>
     <div class="v2-seguro-row">
-      <button class="v2-via-si" id="btnEnviarPedido" onclick="v2EnviarDirecto()">Sí — ¡enviar!</button>
-      <button class="v2-via-mesero" onclick="renderCart()">mmm, no</button>
+      <button class="v2-via-si" id="btnEnviarPedido" onclick="v2EnviarDirecto()">Sí, está listo — ¡enviar!</button>
+      <button class="v2-via-mesero" onclick="renderCart()">mmm, déjame ver</button>
     </div>`;
 }
 function v2EnviarDirecto(){
