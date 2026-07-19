@@ -3955,7 +3955,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.21.3 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.22.0 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4500,6 +4500,15 @@ const TRANSLATIONS = {
     djx_t_fail:'No se pudo — reintenta', djx_t_conn:'Sin conexión — reintenta',
     djx_luz_on:'abierta', djx_luz_pronto:'pronto', djx_luz_off:'no disponible',
     djx_porta_t:'Tu canción, a la cabina', djx_porta_s:'búscala, págala y suena — el DJ tiene la última palabra',
+    /* v2.22 · giro carrello due-vie i18n (VB dom 19: i furbetti non hanno scuse) */
+    via_mesa:'Enviar a la MESA {mesa} — {mesero} pasa a confirmar',
+    via_prox:'Envío directo a {dest} · ⏳ próximamente',
+    via_directa_q:'¿Enviar directo a {dest}?', via_directa_sub:'ya lo empiezan a preparar',
+    via_revisar:'¿Deseas revisar tu pedido con {mesero}?',
+    via_seguro:'¿Lo revisaste bien? Va directo a {dest} y a tu cuenta — ya no se puede modificar',
+    via_si:'Sí, está listo — ¡enviar!', via_no:'mmm, déjame ver',
+    dest_cocina:'la cocina', dest_barra:'la barra', dest_ambos:'cocina y barra',
+    via_mesero:'el mesero',
   },
   en:{
     loading:'Loading menu...',
@@ -4596,6 +4605,14 @@ const TRANSLATIONS = {
     djx_t_fail:'Couldn\'t send it — try again', djx_t_conn:'No connection — try again',
     djx_luz_on:'open', djx_luz_pronto:'soon', djx_luz_off:'unavailable',
     djx_porta_t:'Your song, to the booth', djx_porta_s:'find it, pay it, hear it — the DJ has the final word',
+    via_mesa:'Send to TABLE {mesa} — {mesero} will come to confirm',
+    via_prox:'Direct send to {dest} · ⏳ coming soon',
+    via_directa_q:'Send straight to {dest}?', via_directa_sub:'they start making it right away',
+    via_revisar:'Want to review your order with {mesero}?',
+    via_seguro:'Did you double-check? It goes straight to {dest} and onto your bill — it can\'t be changed anymore',
+    via_si:'Yes, it\'s ready — send!', via_no:'hmm, let me look',
+    dest_cocina:'the kitchen', dest_barra:'the bar', dest_ambos:'kitchen and bar',
+    via_mesero:'your waiter',
   },
   pt:{
     loading:'Carregando cardápio...',
@@ -4672,6 +4689,14 @@ const TRANSLATIONS = {
     djx_t_fail:'Não deu — tenta de novo', djx_t_conn:'Sem conexão — tenta de novo',
     djx_luz_on:'aberta', djx_luz_pronto:'em breve', djx_luz_off:'indisponível',
     djx_porta_t:'Tua música, na cabine', djx_porta_s:'busca, paga e toca — o DJ tem a última palavra',
+    via_mesa:'Enviar à MESA {mesa} — {mesero} passa para confirmar',
+    via_prox:'Envio direto para {dest} · ⏳ em breve',
+    via_directa_q:'Enviar direto para {dest}?', via_directa_sub:'já começam a preparar',
+    via_revisar:'Quer revisar teu pedido com {mesero}?',
+    via_seguro:'Revisou bem? Vai direto para {dest} e para a tua conta — não dá mais para mudar',
+    via_si:'Sim, está pronto — enviar!', via_no:'hmm, deixa eu ver',
+    dest_cocina:'a cozinha', dest_barra:'o bar', dest_ambos:'cozinha e bar',
+    via_mesero:'o garçom',
   },
   it:{
     loading:'Caricamento menu...',
@@ -4748,6 +4773,14 @@ const TRANSLATIONS = {
     djx_t_fail:'Non è andata — riprova', djx_t_conn:'Senza connessione — riprova',
     djx_luz_on:'aperta', djx_luz_pronto:'a breve', djx_luz_off:'non disponibile',
     djx_porta_t:'La tua canzone, in cabina', djx_porta_s:'cercala, pagala e suona — il DJ ha l\'ultima parola',
+    via_mesa:'Invia al TAVOLO {mesa} — {mesero} passa a confermare',
+    via_prox:'Invio diretto a {dest} · ⏳ in arrivo',
+    via_directa_q:'Inviare diretto a {dest}?', via_directa_sub:'iniziano subito a prepararlo',
+    via_revisar:'Vuoi rivedere l\'ordine con {mesero}?',
+    via_seguro:'Hai controllato bene? Va diretto a {dest} e sul tuo conto — non si può più modificare',
+    via_si:'Sì, è pronto — invia!', via_no:'mmm, fammi vedere',
+    dest_cocina:'la cucina', dest_barra:'il bar', dest_ambos:'cucina e bar',
+    via_mesero:'il cameriere',
   },
   de:{
     loading:'Menü wird geladen...',
@@ -4824,6 +4857,14 @@ const TRANSLATIONS = {
     djx_t_fail:'Hat nicht geklappt — nochmal', djx_t_conn:'Keine Verbindung — nochmal',
     djx_luz_on:'offen', djx_luz_pronto:'bald', djx_luz_off:'nicht verfügbar',
     djx_porta_t:'Dein Song, in die Kabine', djx_porta_s:'suchen, zahlen, hören — der DJ hat das letzte Wort',
+    via_mesa:'An TISCH {mesa} senden — wird am Tisch bestätigt',
+    via_prox:'Direkt an {dest} · ⏳ bald',
+    via_directa_q:'Direkt an {dest} senden?', via_directa_sub:'sie fangen sofort an',
+    via_revisar:'Bestellung erst mit {mesero} durchgehen?',
+    via_seguro:'Alles geprüft? Geht direkt an {dest} und auf deine Rechnung — lässt sich nicht mehr ändern',
+    via_si:'Ja, passt — senden!', via_no:'hmm, nochmal schauen',
+    dest_cocina:'die Küche', dest_barra:'die Bar', dest_ambos:'Küche und Bar',
+    via_mesero:'dem Team',
   },
   fr:{
     loading:'Chargement du menu...',
@@ -4900,6 +4941,14 @@ const TRANSLATIONS = {
     djx_t_fail:'Échec — réessaie', djx_t_conn:'Pas de connexion — réessaie',
     djx_luz_on:'ouverte', djx_luz_pronto:'bientôt', djx_luz_off:'indisponible',
     djx_porta_t:'Ta chanson, en cabine', djx_porta_s:'cherche-la, paie-la, écoute-la — le DJ a le dernier mot',
+    via_mesa:'Envoyer à la TABLE {mesa} — {mesero} passe confirmer',
+    via_prox:'Envoi direct à {dest} · ⏳ bientôt',
+    via_directa_q:'Envoyer direct à {dest} ?', via_directa_sub:'ils commencent tout de suite',
+    via_revisar:'Revoir ta commande avec {mesero} ?',
+    via_seguro:'Tu as bien vérifié ? Ça part direct à {dest} et sur ta note — plus modifiable ensuite',
+    via_si:'Oui, c\'est bon — envoyer !', via_no:'mmm, je regarde encore',
+    dest_cocina:'la cuisine', dest_barra:'le bar', dest_ambos:'cuisine et bar',
+    via_mesero:'le serveur',
   },
   zh:{
     loading:'菜单加载中...',
@@ -4976,6 +5025,14 @@ const TRANSLATIONS = {
     djx_t_fail:'没成功 — 请重试', djx_t_conn:'无网络 — 请重试',
     djx_luz_on:'开放', djx_luz_pronto:'即将', djx_luz_off:'不可用',
     djx_porta_t:'你的歌，送进DJ台', djx_porta_s:'搜歌、付款、开播 — DJ有最终决定权',
+    via_mesa:'发送到 {mesa} 桌 — {mesero}会来确认',
+    via_prox:'直送{dest} · ⏳ 即将开放',
+    via_directa_q:'直接发送到{dest}？', via_directa_sub:'马上开始制作',
+    via_revisar:'想和{mesero}一起确认订单吗？',
+    via_seguro:'确认好了吗？直接进{dest}并记入你的账单 — 之后不能再修改',
+    via_si:'好了 — 发送！', via_no:'嗯，再看看',
+    dest_cocina:'厨房', dest_barra:'吧台', dest_ambos:'厨房和吧台',
+    via_mesero:'服务员',
   },
   ja:{
     loading:'メニュー読み込み中...',
@@ -5052,6 +5109,14 @@ const TRANSLATIONS = {
     djx_t_fail:'送れませんでした — もう一度', djx_t_conn:'接続なし — もう一度',
     djx_luz_on:'オープン', djx_luz_pronto:'まもなく', djx_luz_off:'利用不可',
     djx_porta_t:'あなたの曲を、ブースへ', djx_porta_s:'探して、払って、かかる — 最終判断はDJ',
+    via_mesa:'テーブル {mesa} に送る — {mesero}が確認に来ます',
+    via_prox:'{dest}へ直接送信 · ⏳ まもなく',
+    via_directa_q:'{dest}へ直接送る？', via_directa_sub:'すぐに作り始めます',
+    via_revisar:'{mesero}と一緒に確認する？',
+    via_seguro:'よく確認した？{dest}に直行し、お会計にも入ります — もう変更できません',
+    via_si:'はい、OK — 送る！', via_no:'うーん、もう一度見る',
+    dest_cocina:'キッチン', dest_barra:'バー', dest_ambos:'キッチンとバー',
+    via_mesero:'スタッフ',
   },
 };
 
@@ -8716,27 +8781,39 @@ function v2DestinoDe(){
     const p = ALL_PRODUCTS.find(x=>x.id===i.id);
     return (p && barraCats.has(p.categoria)) ? 'barra' : 'cocina';
   }));
-  if(grupos.size === 1) return grupos.has('barra') ? { txt:'la barra', emo:'🍸' } : { txt:'la cocina', emo:'🍳' };
-  return { txt:'cocina y barra', emo:'🍳🍸' };
+  // v2.22 · txt = lingua del cliente (i18n) · es = canonico spagnolo per il
+  // payload GAS/KDS (il foglio non deve mai vedere «a cozinha»)
+  if(grupos.size === 1) return grupos.has('barra')
+    ? { txt:getLang('dest_barra'), es:'la barra', emo:'🍸' }
+    : { txt:getLang('dest_cocina'), es:'la cocina', emo:'🍳' };
+  return { txt:getLang('dest_ambos'), es:'cocina y barra', emo:'🍳🍸' };
+}
+/* v2.22 · mini-template i18n del giro carrello: {mesa} {mesero} {dest} */
+function v2T(key, map){
+  let s = getLang(key);
+  if(map) for(const k in map) s = s.replace('{' + k + '}', map[k]);
+  return s;
 }
 function v2ViasHTML(){
   if(!(PEDIDO_DIGITAL && MESA_ID)){
     return `<button class="cart-listo-btn" onclick="cartListo()">${getLang('cart_listo') || 'Listo · mostrar al mesero'}</button>`;
   }
   const d = v2DestinoDe();
-  const mesero = MESERO_MESA ? MESERO_MESA : 'el mesero';
+  const mesero = MESERO_MESA ? MESERO_MESA : getLang('via_mesero');
   // round5 oss.7.2+7.3 · via il hint "Nuevo…" (non informava niente) · il
   // DOPPIO CANALE del mockup si VEDE sempre: col gate spento la via diretta
   // dorme con un "próximamente" — il cliente sa che arriva.
+  // v2.22 · tutto il giro parla la lingua del cliente (VB dom 19: coi
+  // brasiliani in sala l'irreversibilità detta solo in spagnolo non vale)
   if(!ENVIO_DIRECTO){
     return `<div class="v2-vias" id="v2Vias">
-      <button class="cart-listo-btn cart-btn-pedido" id="btnEnviarPedido" style="margin:0" onclick="cartListo()">🛎 Enviar a la MESA ${MESA_ID} — ${mesero} pasa a confirmar</button>
-      <button class="v2-via-prox" disabled>${d.emo} Envío directo a ${d.txt} · ⏳ próximamente</button>
+      <button class="cart-listo-btn cart-btn-pedido" id="btnEnviarPedido" style="margin:0" onclick="cartListo()">🛎 ${escapeHtml(v2T('via_mesa', {mesa: MESA_ID, mesero: mesero}))}</button>
+      <button class="v2-via-prox" disabled>${d.emo} ${escapeHtml(v2T('via_prox', {dest: d.txt}))}</button>
     </div>`;
   }
   return `<div class="v2-vias" id="v2Vias">
-      <button class="v2-via-si" onclick="v2Confirmar()">${d.emo} ¿Enviar directo a ${d.txt}?<small>ya lo empiezan a preparar</small></button>
-      <button class="v2-via-mesero" onclick="cartListo()">🙋 ¿Deseas revisar tu pedido con ${mesero}?</button>
+      <button class="v2-via-si" onclick="v2Confirmar()">${d.emo} ${escapeHtml(v2T('via_directa_q', {dest: d.txt}))}<small>${escapeHtml(getLang('via_directa_sub'))}</small></button>
+      <button class="v2-via-mesero" onclick="cartListo()">🙋 ${escapeHtml(v2T('via_revisar', {mesero: mesero}))}</button>
     </div>`;
 }
 function v2Confirmar(){
@@ -8744,11 +8821,12 @@ function v2Confirmar(){
   const el = document.getElementById('v2Vias');
   if(!el) return;
   // v2.21.3 · la conferma DICE la verità intera (VB Alberto, accensione dom 19):
-  // va in cucina E sul conto, e da lì non si modifica più — detto prima, non dopo
-  el.innerHTML = `<div class="v2-seguro-q">¿Lo revisaste bien? Va directo a ${d.txt} ${d.emo} y a tu cuenta — ya no se puede modificar</div>
+  // va in cucina E sul conto, e da lì non si modifica più — detto prima, non dopo,
+  // e nella lingua del cliente (v2.22)
+  el.innerHTML = `<div class="v2-seguro-q">${escapeHtml(v2T('via_seguro', {dest: d.txt + ' ' + d.emo}))}</div>
     <div class="v2-seguro-row">
-      <button class="v2-via-si" id="btnEnviarPedido" onclick="v2EnviarDirecto()">Sí, está listo — ¡enviar!</button>
-      <button class="v2-via-mesero" onclick="renderCart()">mmm, déjame ver</button>
+      <button class="v2-via-si" id="btnEnviarPedido" onclick="v2EnviarDirecto()">${escapeHtml(getLang('via_si'))}</button>
+      <button class="v2-via-mesero" onclick="renderCart()">${escapeHtml(getLang('via_no'))}</button>
     </div>`;
 }
 function v2EnviarDirecto(){
@@ -9149,7 +9227,8 @@ async function _enviarPedidoDigitalInner(opts){
     // v2.0 · via A (gated envio_directo_activo): il GAS di oggi ignora i campi
     // extra senza danno; quando il KDS sarà al 100% li leggerà per instradare
     envio_directo: !!(opts && opts.directo),
-    destino: (opts && opts.directo) ? v2DestinoDe().txt : '',
+    // v2.22 · .es canonico: sul foglio/KDS mai «a cozinha» — la lingua è del cliente, non del dato
+    destino: (opts && opts.directo) ? v2DestinoDe().es : '',
     // v2.9.1 · mesa fantasma strato ②: dopo una mesa_limpia recente il GAS
     // chiede conferma (need:mesa_confirmar) — questo flag è la risposta "sí"
     confirmado: !!(opts && opts.confirmado),
