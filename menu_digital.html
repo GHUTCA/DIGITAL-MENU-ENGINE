@@ -3846,18 +3846,34 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
   0%{transform:translate(0,0) scale(.4) rotate(0deg);opacity:0}
   10%{opacity:1}
   100%{transform:translate(var(--x,0px),var(--y,-340px)) scale(var(--s,1.8)) rotate(var(--r,0deg));opacity:0}}
-/* v2.20 · vetrina: l'invito a sedersi (caldo, non un blocco) */
-.v2dj-invite{background:linear-gradient(90deg,rgba(255,46,136,.14),rgba(139,92,246,.14));
-  border:1.5px solid rgba(255,46,136,.5);color:#ffd7ea;border-radius:14px;
-  padding:12px 14px;font-size:14.5px;font-weight:800;margin-bottom:12px}
+/* v2.20 · vetrina: l'invito a sedersi · v2.21 stessa lingua della carta di stato */
+.v2dj-invite{display:flex;gap:13px;align-items:center;border-radius:16px;padding:13px 15px;margin-bottom:12px;
+  background:linear-gradient(135deg,rgba(255,46,136,.14),rgba(139,92,246,.12) 70%),#160b1c;
+  border:1.5px solid rgba(255,46,136,.4);color:#ffd7ea;font-size:14px;font-weight:800;line-height:1.45}
+.v2dj-invite .sil{font-size:24px;flex:0 0 auto}
 .v2dj-mi{display:flex;gap:9px;align-items:center;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,.07);font-size:14px}
 .v2dj-mi b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .v2dj-mi small{color:#a89fc7;flex:0 0 auto}
 #v2DjMis .lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#948ab5;margin:16px 0 4px}
 .v2dj-res.arm{border-color:#00ffc8 !important;box-shadow:0 0 14px rgba(0,255,200,.25)}
-.v2dj-pausa{background:rgba(255,207,107,.10);border:1.5px solid rgba(255,207,107,.55);color:#ffe3a8;
-  border-radius:14px;padding:12px 14px;font-size:14.5px;margin-bottom:12px}
-.v2dj-pausa b{color:#ffcf6b}
+/* v2.21 · LA CARTA DI STATO (ridisegno VB: mai un'avvertenza, sempre una promessa) —
+   vinile che gira + titolo + sussurro, palette cabina. .pronto = variante oro. */
+.v2dj-scard{display:flex;gap:13px;align-items:center;border-radius:16px;padding:13px 15px;margin-bottom:12px;
+  background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(255,46,136,.08) 70%),#120b22;
+  border:1.5px solid rgba(139,92,246,.45);box-shadow:0 0 18px rgba(139,92,246,.12) inset}
+.v2dj-scard .vin{width:34px;height:34px;border-radius:50%;flex:0 0 auto;position:relative;
+  background:repeating-radial-gradient(circle at 50% 50%, #0c0a14 0 2px, #171126 2px 4px);
+  border:1.5px solid rgba(255,255,255,.18);animation:v2spin 6s linear infinite}
+.v2dj-scard .vin::after{content:'';position:absolute;inset:11px;border-radius:50%;
+  background:linear-gradient(135deg,#ff2e88,#8b5cf6)}
+.v2dj-scard .tx{flex:1;min-width:0}
+.v2dj-scard b{display:block;font-size:14.5px;color:#f4f0ff}
+.v2dj-scard small{display:block;font-size:12.5px;color:#a89fc7;line-height:1.45;margin-top:2px}
+.v2dj-scard.pronto{border-color:rgba(255,207,107,.55);
+  background:linear-gradient(135deg,rgba(255,207,107,.14),rgba(255,46,136,.07) 70%),#1a1410}
+.v2dj-scard.pronto b{color:#ffe3a8}
+/* v2.21 · la porta del mondo BPM da spenta non ha semafori: solo la freccia (si entra) */
+.v2n-djbox .arr{margin-left:auto;color:rgba(242,253,255,.4);font-size:17px;flex:0 0 auto}
 /* ═══ lo sheet PÍDELE AL DJ (palette cabina del mockup — perfetta, parola di Alberto) ═══ */
 #v2ShDj{background:radial-gradient(500px 300px at 90% -5%, rgba(139,92,246,.18), transparent 60%),#0a0714;
   z-index:510;border:1.5px solid rgba(139,92,246,.5);border-bottom:0;color:#f4f0ff;
@@ -3939,7 +3955,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.20.2 · 18jul</span>
+<span id="ver" hidden>menu2 · v2.21.0 · 18jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4261,7 +4277,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
       <div style="flex:1;min-width:0"><h2><span data-i18n="djx_title">Pídele al DJ</span> 🎧</h2><div class="sub" id="v2DjQuien">la cabina te escucha</div></div>
     </div>
     <!-- v2.20 · vetrina: l'invito a sedersi (si vede solo senza mesa) -->
-    <div class="v2dj-invite" id="v2DjInvite" style="display:none">🪑 <span data-i18n="djx_invite">Entra, siéntate en una mesa y disfruta de nuestro DJ-BOX 🎧</span></div>
+    <div class="v2dj-invite" id="v2DjInvite" style="display:none"><span class="sil">🪑</span><span data-i18n="djx_invite">Entra, siéntate en una mesa y disfruta de nuestro DJ-BOX 🎧</span></div>
     <div class="v2dj-casa">
       <div class="lbl">🏛 <span data-i18n="djx_casa">La casa permite esta noche</span></div>
       <div class="v2dj-gchips" id="v2DjGchips"></div>
@@ -4463,11 +4479,11 @@ const TRANSLATIONS = {
     dj_now_label:'Ahora en cabina', dj_next_label:'Próximas sesiones', dj_close:'Cerrar',
     /* v2.20 · DJ-BOX i18n completo (importante quanto el menú) */
     djx_title:'Pídele al DJ', djx_escucha:'la cabina te escucha', djx_estanoche:'Esta noche:',
-    djx_nodisp:'DJ-BOX no disponible en este momento',
-    djx_nodisp_banner:'DJ-BOX no está disponible en este momento — cuando se encienda, aquí se prende.',
+    djx_nodisp:'El DJ-BOX lo habilita el DJ',
+    djx_off_s:'Cuando la cabina se prende, tu canción entra a la pista — búscala y déjala lista.',
     djx_pronto:'el DJ está calentando — los pedidos abren pronto',
-    djx_pronto_banner:'El DJ está calentando — los pedidos abren pronto. Los aplausos ya suenan 🔥',
-    djx_pausa_banner:'El DJ está en pausa — los pedidos vuelven en un rato. Los aplausos siguen abiertos 🔥',
+    djx_pronto_t:'El DJ está calentando',
+    djx_pronto_s:'Los pedidos abren pronto — los aplausos ya suenan 🔥',
     djx_casa:'La casa permite esta noche', djx_ph:'Busca tu canción… (mín. 3 letras)',
     djx_live:'La búsqueda es en vivo — escribe y mira.', djx_min3:'Escribe al menos 3 letras…',
     djx_buscando:'Buscando', djx_result:'resultados — el género lo dice iTunes',
@@ -4559,11 +4575,11 @@ const TRANSLATIONS = {
     xs_intro_default:'Try it with',
     dj_now_label:'Now in the booth', dj_next_label:'Up next', dj_close:'Close',
     djx_title:'Ask the DJ', djx_escucha:'the booth is listening', djx_estanoche:'Tonight:',
-    djx_nodisp:'DJ-BOX not available right now',
-    djx_nodisp_banner:'DJ-BOX isn\'t available right now — when it lights up, you\'ll see it here.',
+    djx_nodisp:'The DJ-BOX is switched on by the DJ',
+    djx_off_s:'When the booth lights up, your song hits the dancefloor — find it and have it ready.',
     djx_pronto:'the DJ is warming up — requests open soon',
-    djx_pronto_banner:'The DJ is warming up — requests open soon. Applause already counts 🔥',
-    djx_pausa_banner:'The DJ is on a break — requests will be back shortly. Applause stays open 🔥',
+    djx_pronto_t:'The DJ is warming up',
+    djx_pronto_s:'Requests open soon — applause already counts 🔥',
     djx_casa:'Tonight the house allows', djx_ph:'Search your song… (min. 3 letters)',
     djx_live:'Search is live — type and watch.', djx_min3:'Type at least 3 letters…',
     djx_buscando:'Searching', djx_result:'results — genre according to iTunes',
@@ -4635,11 +4651,11 @@ const TRANSLATIONS = {
     xs_intro_default:'Experimente com',
     dj_now_label:'Agora na cabine', dj_next_label:'Próximas sessões', dj_close:'Fechar',
     djx_title:'Pede ao DJ', djx_escucha:'a cabine te escuta', djx_estanoche:'Hoje à noite:',
-    djx_nodisp:'DJ-BOX indisponível neste momento',
-    djx_nodisp_banner:'O DJ-BOX não está disponível agora — quando acender, você vê aqui.',
+    djx_nodisp:'O DJ-BOX quem liga é o DJ',
+    djx_off_s:'Quando a cabine acende, tua música entra na pista — busca e deixa pronta.',
     djx_pronto:'o DJ está esquentando — os pedidos abrem em breve',
-    djx_pronto_banner:'O DJ está esquentando — os pedidos abrem em breve. Os aplausos já valem 🔥',
-    djx_pausa_banner:'O DJ está em pausa — os pedidos voltam já já. Os aplausos continuam abertos 🔥',
+    djx_pronto_t:'O DJ está esquentando',
+    djx_pronto_s:'Os pedidos abrem em breve — os aplausos já valem 🔥',
     djx_casa:'Hoje a casa permite', djx_ph:'Busca tua música… (mín. 3 letras)',
     djx_live:'A busca é ao vivo — escreve e olha.', djx_min3:'Escreve pelo menos 3 letras…',
     djx_buscando:'Buscando', djx_result:'resultados — o gênero é do iTunes',
@@ -4711,11 +4727,11 @@ const TRANSLATIONS = {
     xs_intro_default:'Provalo con',
     dj_now_label:'In console adesso', dj_next_label:'Prossime serate', dj_close:'Chiudi',
     djx_title:'Chiedi al DJ', djx_escucha:'la cabina ti ascolta', djx_estanoche:'Stasera:',
-    djx_nodisp:'DJ-BOX non disponibile al momento',
-    djx_nodisp_banner:'Il DJ-BOX non è disponibile al momento — quando si accende, lo vedi qui.',
+    djx_nodisp:'Il DJ-BOX lo accende il DJ',
+    djx_off_s:'Quando la cabina si accende, la tua canzone entra in pista — cercala e tienila pronta.',
     djx_pronto:'il DJ si sta scaldando — le richieste aprono a breve',
-    djx_pronto_banner:'Il DJ si sta scaldando — le richieste aprono a breve. Gli applausi valgono già 🔥',
-    djx_pausa_banner:'Il DJ è in pausa — le richieste tornano tra poco. Gli applausi restano aperti 🔥',
+    djx_pronto_t:'Il DJ si sta scaldando',
+    djx_pronto_s:'Le richieste aprono a breve — gli applausi valgono già 🔥',
     djx_casa:'Stasera la casa permette', djx_ph:'Cerca la tua canzone… (min. 3 lettere)',
     djx_live:'La ricerca è live — scrivi e guarda.', djx_min3:'Scrivi almeno 3 lettere…',
     djx_buscando:'Cerco', djx_result:'risultati — il genere lo dice iTunes',
@@ -4787,11 +4803,11 @@ const TRANSLATIONS = {
     xs_intro_default:'Probier es mit',
     dj_now_label:'Jetzt am Pult', dj_next_label:'Demnächst', dj_close:'Schließen',
     djx_title:'Wünsch dir was vom DJ', djx_escucha:'die Kabine hört dich', djx_estanoche:'Heute Nacht:',
-    djx_nodisp:'DJ-BOX gerade nicht verfügbar',
-    djx_nodisp_banner:'Die DJ-BOX ist gerade nicht verfügbar — sobald sie angeht, siehst du es hier.',
+    djx_nodisp:'Die DJ-BOX schaltet der DJ ein',
+    djx_off_s:'Sobald die Kabine angeht, landet dein Song auf der Tanzfläche — such ihn schon mal raus.',
     djx_pronto:'der DJ wärmt sich auf — Wünsche öffnen bald',
-    djx_pronto_banner:'Der DJ wärmt sich auf — Wünsche öffnen bald. Applaus zählt schon 🔥',
-    djx_pausa_banner:'Der DJ macht Pause — Wünsche gehen gleich weiter. Applaus bleibt offen 🔥',
+    djx_pronto_t:'Der DJ wärmt sich auf',
+    djx_pronto_s:'Wünsche öffnen bald — Applaus zählt schon 🔥',
     djx_casa:'Heute erlaubt das Haus', djx_ph:'Such deinen Song… (mind. 3 Buchstaben)',
     djx_live:'Die Suche ist live — tippen und schauen.', djx_min3:'Mindestens 3 Buchstaben…',
     djx_buscando:'Suche', djx_result:'Treffer — das Genre sagt iTunes',
@@ -4863,11 +4879,11 @@ const TRANSLATIONS = {
     xs_intro_default:'Essaie avec',
     dj_now_label:'En cabine maintenant', dj_next_label:'À venir', dj_close:'Fermer',
     djx_title:'Demande au DJ', djx_escucha:'la cabine t\'écoute', djx_estanoche:'Ce soir :',
-    djx_nodisp:'DJ-BOX indisponible pour le moment',
-    djx_nodisp_banner:'Le DJ-BOX n\'est pas disponible pour le moment — dès qu\'il s\'allume, tu le vois ici.',
+    djx_nodisp:'Le DJ-BOX, c\'est le DJ qui l\'allume',
+    djx_off_s:'Quand la cabine s\'allume, ta chanson entre en piste — cherche-la et garde-la prête.',
     djx_pronto:'le DJ chauffe — les demandes ouvrent bientôt',
-    djx_pronto_banner:'Le DJ chauffe — les demandes ouvrent bientôt. Les applaudissements comptent déjà 🔥',
-    djx_pausa_banner:'Le DJ fait une pause — les demandes reviennent vite. Les applaudissements restent ouverts 🔥',
+    djx_pronto_t:'Le DJ chauffe',
+    djx_pronto_s:'Les demandes ouvrent bientôt — les applaudissements comptent déjà 🔥',
     djx_casa:'Ce soir la maison permet', djx_ph:'Cherche ta chanson… (min. 3 lettres)',
     djx_live:'La recherche est en direct — écris et regarde.', djx_min3:'Écris au moins 3 lettres…',
     djx_buscando:'Recherche', djx_result:'résultats — le genre selon iTunes',
@@ -4939,11 +4955,11 @@ const TRANSLATIONS = {
     xs_intro_default:'搭配',
     dj_now_label:'现场DJ', dj_next_label:'即将登场', dj_close:'关闭',
     djx_title:'DJ点歌', djx_escucha:'DJ台在听你', djx_estanoche:'今晚：',
-    djx_nodisp:'DJ-BOX暂不可用',
-    djx_nodisp_banner:'DJ-BOX暂时不可用 — 一旦开启，这里就会亮起。',
+    djx_nodisp:'DJ-BOX由DJ开启',
+    djx_off_s:'DJ台一亮，你的歌就能上舞池 — 先搜好备着。',
     djx_pronto:'DJ正在热场 — 点歌即将开放',
-    djx_pronto_banner:'DJ正在热场 — 点歌即将开放。掌声已经生效 🔥',
-    djx_pausa_banner:'DJ暂停中 — 点歌马上回来。掌声继续开放 🔥',
+    djx_pronto_t:'DJ正在热场',
+    djx_pronto_s:'点歌即将开放 — 掌声已经生效 🔥',
     djx_casa:'今晚本店开放', djx_ph:'搜索你的歌…（至少3个字母）',
     djx_live:'实时搜索 — 边写边看。', djx_min3:'至少输入3个字母…',
     djx_buscando:'搜索中', djx_result:'个结果 — 曲风由iTunes判定',
@@ -5015,11 +5031,11 @@ const TRANSLATIONS = {
     xs_intro_default:'こちらと一緒に',
     dj_now_label:'ブース内', dj_next_label:'次回の出演', dj_close:'閉じる',
     djx_title:'DJにリクエスト', djx_escucha:'ブースが聴いてる', djx_estanoche:'今夜：',
-    djx_nodisp:'DJ-BOXは現在ご利用いただけません',
-    djx_nodisp_banner:'DJ-BOXは今は使えません — 点灯したらここでわかります。',
+    djx_nodisp:'DJ-BOXはDJがオンにします',
+    djx_off_s:'ブースが点いたら、あなたの曲がフロアへ — 今のうちに探しておいて。',
     djx_pronto:'DJがウォームアップ中 — リクエストはまもなく',
-    djx_pronto_banner:'DJがウォームアップ中 — リクエストはまもなく。拍手はもう届きます 🔥',
-    djx_pausa_banner:'DJが休憩中 — リクエストはすぐ戻ります。拍手は受付中 🔥',
+    djx_pronto_t:'DJがウォームアップ中',
+    djx_pronto_s:'リクエストはまもなく — 拍手はもう届きます 🔥',
     djx_casa:'今夜のOKジャンル', djx_ph:'曲を検索…（3文字以上）',
     djx_live:'検索はライブ — 打てば出ます。', djx_min3:'3文字以上入力…',
     djx_buscando:'検索中', djx_result:'件 — ジャンルはiTunes調べ',
@@ -10379,10 +10395,12 @@ function v2DjSemaforo(){
 }
 function v2DjLuzHTML(){
   const sem = v2DjSemaforo();
-  const cls = sem === 'on' ? 'on' : sem === 'pronto' ? 'pausa' : 'off';
-  // v2.20 · mai «cerrada»: la cabina può suonare col servizio spento — la luce
-  // parla del DJ-BOX, non della cabina. E parla la lingua del cliente.
-  const txt = sem === 'on' ? getLang('djx_luz_on') : sem === 'pronto' ? getLang('djx_luz_pronto') : getLang('djx_luz_off');
+  // v2.21 · ridisegno VB: da spenta la porta NON avverte («no disponible» = non
+  // entrare) — mostra solo la freccia, si entra e si scopre. La luce esiste solo
+  // quando è una buona notizia: gialla pronto, verde abierta.
+  if(sem !== 'on' && sem !== 'pronto') return '<span class="arr" id="v2DjLuz">›</span>';
+  const cls = sem === 'on' ? 'on' : 'pausa';
+  const txt = sem === 'on' ? getLang('djx_luz_on') : getLang('djx_luz_pronto');
   return '<span class="luz ' + cls + '" id="v2DjLuz"><span class="dot"></span>' + txt + '</span>';
 }
 /* v2.18 · ridipinge la testa dello sheet coi dati vivi (chips, DJ, mis, fuego) */
@@ -10391,22 +10409,27 @@ function v2DjRefrescaSheet(){
   const semana = (CARTELERA_DATA && CARTELERA_DATA.djs_semana) || [];
   const quien = (DJBOX_CLI && DJBOX_CLI.dj) || (dj && dj.nombre) || (semana[0] && semana[0].nombre) || '';
   const sem = v2DjSemaforo();
-  // v2.20 · copy DJ-BOX-centrico (mai «cabina cerrada»: il DJ può suonare col
-  // servizio spento) + tutto via i18n
+  // v2.21 · ridisegno VB: da spento niente rosso né «no disponible» (era
+  // un'avvertenza a non entrare) — la promessa: «El DJ-BOX lo habilita el DJ»
   document.getElementById('v2DjQuien').textContent =
-    sem === 'off' ? '🔴 ' + getLang('djx_nodisp')
+    sem === 'off' ? '🎧 ' + getLang('djx_nodisp')
     : sem === 'pronto' ? '🟡 ' + getLang('djx_pronto')
     : (quien ? getLang('djx_estanoche') + ' ' + quien : getLang('djx_escucha'));
+  // v2.21 · UNA carta sola, mai due box impilate: senza mesa parla l'INVITO;
+  // con mesa parla la carta di stato (violeta-promessa da spento, oro quando scalda)
   const pb = document.getElementById('v2DjPausaBanner');
   if(pb){
-    pb.style.display = (sem === 'off' || sem === 'pronto') ? 'block' : 'none';
-    pb.innerHTML = sem === 'off'
-      ? '🎧 ' + escapeHtml(getLang('djx_nodisp_banner'))
-      : '🟡 ' + escapeHtml(getLang('djx_pronto_banner'));
+    const mostra = MESA_ID && (sem === 'off' || sem === 'pronto');
+    pb.style.display = mostra ? 'flex' : 'none';
+    if(mostra){
+      pb.className = 'v2dj-scard' + (sem === 'pronto' ? ' pronto' : '');
+      pb.innerHTML = '<span class="vin"></span><span class="tx"><b>' +
+        escapeHtml(sem === 'off' ? getLang('djx_nodisp') : getLang('djx_pronto_t')) + '</b><small>' +
+        escapeHtml(sem === 'off' ? getLang('djx_off_s') : getLang('djx_pronto_s')) + '</small></span>';
+    }
   }
-  // v2.20 · vetrina (senza mesa): l'invito a sedersi, sempre visibile
   const inv = document.getElementById('v2DjInvite');
-  if(inv) inv.style.display = MESA_ID ? 'none' : 'block';
+  if(inv) inv.style.display = MESA_ID ? 'none' : 'flex';
   // il fuego vive nel mondo BPM: classe sem-ok (la visibilità vera la dà il CSS
   // solo dentro #v2ShNoche.up — mai sopra il menu)
   const fuFab = document.getElementById('v2DjFuego');
