@@ -3972,7 +3972,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.24.0 · 20jul</span>
+<span id="ver" hidden>menu2 · v2.25.0 · 20jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -5957,6 +5957,94 @@ function construirProductos(text){
     id, name: id.charAt(0).toUpperCase()+id.slice(1),
     emoji: catMap[id]||'✦', orden: i+1
   }));
+
+  // v2.25 · 🧹 igiene · qui ALL_PRODUCTS e CATEGORY_GROUPS sono entrambi pronti
+  // (aplicarConfigCliente gira sempre prima, sia nel vivo sia nel RESPALDO).
+  chequearCategoriasHuerfanas();
+}
+
+/* v2.25 · 🧹 GUARDIA D'IGIENE · categoría huérfana (BIBBIA DEL SUSSURRO).
+   La due-vie v2DestinoDe() manda a 'barra' SOLO le categorie mappate in
+   category_groups.Barra; qualunque categoria non presente in NESSUN grupo cade a
+   'cocina' in silenzio. Oggi tutte mappate — ma una categoria nuova dimenticata
+   (o il nuovo catalogo che NEA monterà in PINSA) finirebbe a cocina di nascosto.
+   Per la BIBBIA questa NON è un sussurro spinto (è igiene di config, senza finestra
+   temporale, destinatario = chi edita PARAMETROS) → è archivio che si interroga (L2)
+   + silenzio quando pulito (L5). Su un menù client-facing niente pixel per il cliente:
+     · TACE quando tutto è mappato,
+     · console.warn una riga sola quando trova un'orfana (l'admin che guarda la vede),
+     · lascia il dettaglio in window.__IGIENE_CATEGORIAS per l'interrogazione.
+   Gira solo se category_groups ESISTE (la due-vie è attiva): nei local senza gruppi
+   il destino non si discrimina per categoria → nessun falso allarme. */
+function chequearCategoriasHuerfanas(){
+  const out = { huerfanas: [], mapeadas: 0, grupos: 0 };
+  try { window.__IGIENE_CATEGORIAS = out; } catch(e){}
+  if(!CATEGORY_GROUPS || typeof CATEGORY_GROUPS !== 'object') return out;
+
+  // Unione di tutte le cats dichiarate in ogni grupo (case-insensitive come le categorie prodotto).
+  const mapeadas = new Set();
+  for(const gk of Object.keys(CATEGORY_GROUPS)){
+    const cats = (CATEGORY_GROUPS[gk] && CATEGORY_GROUPS[gk].cats) || [];
+    for(const c of cats) if(c) mapeadas.add(String(c).toLowerCase());
+  }
+  out.grupos   = Object.keys(CATEGORY_GROUPS).length;
+  out.mapeadas = mapeadas.size;
+  if(mapeadas.size === 0) return out;   // gruppi tutti vuoti = config a metà, non è un'orfana
+
+  // Categorie presenti nei prodotti ma assenti da OGNI grupo, col conteggio prodotti.
+  const conteo = {};
+  for(const p of ALL_PRODUCTS){
+    const c = (p.categoria||'').toLowerCase();
+    if(c && !mapeadas.has(c)) conteo[c] = (conteo[c]||0) + 1;
+  }
+  out.huerfanas = Object.keys(conteo).map(c => ({ categoria: c, productos: conteo[c] }));
+
+  // L5 · la normalità non si notifica: parla solo con un'orfana in casa.
+  if(out.huerfanas.length){
+    const detalle = out.huerfanas.map(h => `${h.categoria} (${h.productos})`).join(', ');
+    console.warn(
+      `🧹 IGIENE menú · ${LOCAL_ID}: ${out.huerfanas.length} categoría(s) huérfana(s) → ` +
+      `van a COCINA en silencio: ${detalle}. Gesto: agrégalas a un grupo en category_groups ` +
+      `(PARAMETROS) para decidir su destino. Detalle → window.__IGIENE_CATEGORIAS`
+    );
+  }
+
+  // La CARTA che si interroga (BIBBIA L2): l'admin apre …?igiene=1 e VEDE lo stato.
+  // Pulled, non pushed → il cliente normale non lo incontra mai; qui, siccome è stato
+  // chiesto esplicitamente, mostriamo anche il ✓ quando tutto è a posto.
+  try {
+    if(new URLSearchParams(location.search).get('igiene') === '1') pintarBannerIgiene(out);
+  } catch(e){}
+  return out;
+}
+
+/* v2.25 · 🧹 banner d'igiene a richiesta (?igiene=1) · autocontenuto, stili inline,
+   zero dipendenze dal CSS della carta → rischio zero sul cliente. */
+function pintarBannerIgiene(out){
+  const prev = document.getElementById('igiene-banner');
+  if(prev) prev.remove();
+  const hay = out.huerfanas.length > 0;
+  const el = document.createElement('div');
+  el.id = 'igiene-banner';
+  el.setAttribute('style',
+    'position:fixed;left:0;right:0;top:0;z-index:99999;padding:12px 16px;'+
+    'font:600 13px/1.45 system-ui,-apple-system,sans-serif;color:#fff;'+
+    'box-shadow:0 2px 12px rgba(0,0,0,.28);'+
+    (hay ? 'background:#8a1c1c;' : 'background:#1c6b3a;'));
+  const cuerpo = hay
+    ? `🧹 IGIENE · ${out.huerfanas.length} categoría(s) huérfana(s) en <b>${LOCAL_ID}</b> → van a `+
+      `COCINA en silencio: <b>${out.huerfanas.map(h=>`${h.categoria} (${h.productos})`).join(', ')}</b>.`+
+      `<br><span style="opacity:.9;font-weight:500">Gesto: agrégalas a un grupo en `+
+      `<b>category_groups</b> (hoja PARAMETROS) para decidir barra/cocina.</span>`
+    : `🧹 IGIENE · <b>${LOCAL_ID}</b>: todas las categorías están mapeadas `+
+      `(${out.mapeadas} en ${out.grupos} grupos) · nada huérfano ✓`;
+  el.innerHTML =
+    `<div style="max-width:720px;margin:0 auto;display:flex;gap:12px;align-items:flex-start">`+
+    `<div style="flex:1">${cuerpo}</div>`+
+    `<button onclick="this.closest('#igiene-banner').remove()" `+
+    `style="background:rgba(255,255,255,.18);border:0;color:#fff;border-radius:8px;`+
+    `padding:6px 10px;font:600 12px system-ui;cursor:pointer;flex:none">cerrar</button></div>`;
+  document.body.appendChild(el);
 }
 
 /* v1.32 · esPush / esForzado · parse date CL (d/m/yyyy hh:mm) o ISO · scadenza inclusa */
