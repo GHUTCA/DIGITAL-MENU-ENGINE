@@ -3597,8 +3597,13 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2-via-si{border:0;border-radius:14px;padding:15px;font-size:15px;font-weight:900;
   background:var(--v2-ok);color:#06170e;cursor:pointer}
 .v2-via-si small{display:block;font-size:10.5px;font-weight:700;opacity:.75}
-.v2-via-mesero{border:1.5px solid var(--brand-border);border-radius:14px;padding:13px;font-size:14px;
-  font-weight:700;background:transparent;color:var(--brand-text-muted);cursor:pointer}
+/* v2.24 · secondario LEGGIBILE (VB Alberto): il beige-fantasma (bordo nero 9% +
+   testo #888 su teal scuro) leggeva come «disabilitato» → tutti mandavano directo
+   senza dubitare. Ora outline onesto: bordo netto + testo pieno + velo che lo stacca
+   dal fondo. Resta chiaramente SECONDARIO al verde pieno — valvola, non invito. */
+.v2-via-mesero{border:1.5px solid rgba(255,255,255,.42);border-radius:14px;padding:13px;font-size:14px;
+  font-weight:800;background:rgba(255,255,255,.06);color:#eaf6f8;cursor:pointer}
+.v2-via-mesero:active{background:rgba(255,255,255,.12)}
 .v2-seguro-q{font-size:15.5px;font-weight:800;margin:8px 0 10px;text-align:center;color:var(--brand-text)}
 .v2-seguro-row{display:flex;gap:8px}
 .v2-seguro-row .v2-via-si{flex:1.6}
@@ -3967,7 +3972,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.23.0 · 19jul</span>
+<span id="ver" hidden>menu2 · v2.24.0 · 20jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
