@@ -3972,7 +3972,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.25.2 · 20jul</span>
+<span id="ver" hidden>menu2 · v2.26.0 · 20jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4496,6 +4496,7 @@ const TRANSLATIONS = {
     dj_now_label:'Ahora en cabina', dj_next_label:'Próximas sesiones', dj_close:'Cerrar',
     /* v2.20 · DJ-BOX i18n completo (importante quanto el menú) */
     djx_title:'Pídele al DJ', djx_gratis:'Gratis', djx_escucha:'la cabina te escucha', djx_estanoche:'Esta noche:',
+    alcohol_elige:'¿Con o sin alcohol?',
     djx_nodisp:'El DJ-BOX lo habilita el DJ',
     djx_off_s:'Cuando la cabina se prende, tu canción entra a la pista — búscala y déjala lista.',
     djx_pronto:'el DJ está calentando — los pedidos abren pronto',
@@ -4601,6 +4602,7 @@ const TRANSLATIONS = {
     xs_intro_default:'Try it with',
     dj_now_label:'Now in the booth', dj_next_label:'Up next', dj_close:'Close',
     djx_title:'Ask the DJ', djx_gratis:'Free', djx_escucha:'the booth is listening', djx_estanoche:'Tonight:',
+    alcohol_elige:'With or without alcohol?',
     djx_nodisp:'The DJ-BOX is switched on by the DJ',
     djx_off_s:'When the booth lights up, your song hits the dancefloor — find it and have it ready.',
     djx_pronto:'the DJ is warming up — requests open soon',
@@ -4685,6 +4687,7 @@ const TRANSLATIONS = {
     xs_intro_default:'Experimente com',
     dj_now_label:'Agora na cabine', dj_next_label:'Próximas sessões', dj_close:'Fechar',
     djx_title:'Pede ao DJ', djx_gratis:'Grátis', djx_escucha:'a cabine te escuta', djx_estanoche:'Hoje à noite:',
+    alcohol_elige:'Com ou sem álcool?',
     djx_nodisp:'O DJ-BOX quem liga é o DJ',
     djx_off_s:'Quando a cabine acende, tua música entra na pista — busca e deixa pronta.',
     djx_pronto:'o DJ está esquentando — os pedidos abrem em breve',
@@ -4769,6 +4772,7 @@ const TRANSLATIONS = {
     xs_intro_default:'Provalo con',
     dj_now_label:'In console adesso', dj_next_label:'Prossime serate', dj_close:'Chiudi',
     djx_title:'Chiedi al DJ', djx_gratis:'Gratis', djx_escucha:'la cabina ti ascolta', djx_estanoche:'Stasera:',
+    alcohol_elige:'Con o senza alcol?',
     djx_nodisp:'Il DJ-BOX lo accende il DJ',
     djx_off_s:'Quando la cabina si accende, la tua canzone entra in pista — cercala e tienila pronta.',
     djx_pronto:'il DJ si sta scaldando — le richieste aprono a breve',
@@ -4853,6 +4857,7 @@ const TRANSLATIONS = {
     xs_intro_default:'Probier es mit',
     dj_now_label:'Jetzt am Pult', dj_next_label:'Demnächst', dj_close:'Schließen',
     djx_title:'Wünsch dir was vom DJ', djx_gratis:'Gratis', djx_escucha:'die Kabine hört dich', djx_estanoche:'Heute Nacht:',
+    alcohol_elige:'Mit oder ohne Alkohol?',
     djx_nodisp:'Die DJ-BOX schaltet der DJ ein',
     djx_off_s:'Sobald die Kabine angeht, landet dein Song auf der Tanzfläche — such ihn schon mal raus.',
     djx_pronto:'der DJ wärmt sich auf — Wünsche öffnen bald',
@@ -4937,6 +4942,7 @@ const TRANSLATIONS = {
     xs_intro_default:'Essaie avec',
     dj_now_label:'En cabine maintenant', dj_next_label:'À venir', dj_close:'Fermer',
     djx_title:'Demande au DJ', djx_gratis:'Offert', djx_escucha:'la cabine t\'écoute', djx_estanoche:'Ce soir :',
+    alcohol_elige:'Avec ou sans alcool ?',
     djx_nodisp:'Le DJ-BOX, c\'est le DJ qui l\'allume',
     djx_off_s:'Quand la cabine s\'allume, ta chanson entre en piste — cherche-la et garde-la prête.',
     djx_pronto:'le DJ chauffe — les demandes ouvrent bientôt',
@@ -5021,6 +5027,7 @@ const TRANSLATIONS = {
     xs_intro_default:'搭配',
     dj_now_label:'现场DJ', dj_next_label:'即将登场', dj_close:'关闭',
     djx_title:'DJ点歌', djx_gratis:'免费', djx_escucha:'DJ台在听你', djx_estanoche:'今晚：',
+    alcohol_elige:'要酒精吗？',
     djx_nodisp:'DJ-BOX由DJ开启',
     djx_off_s:'DJ台一亮，你的歌就能上舞池 — 先搜好备着。',
     djx_pronto:'DJ正在热场 — 点歌即将开放',
@@ -5105,6 +5112,7 @@ const TRANSLATIONS = {
     xs_intro_default:'こちらと一緒に',
     dj_now_label:'ブース内', dj_next_label:'次回の出演', dj_close:'閉じる',
     djx_title:'DJにリクエスト', djx_gratis:'無料', djx_escucha:'ブースが聴いてる', djx_estanoche:'今夜：',
+    alcohol_elige:'アルコールあり？なし？',
     djx_nodisp:'DJ-BOXはDJがオンにします',
     djx_off_s:'ブースが点いたら、あなたの曲がフロアへ — 今のうちに探しておいて。',
     djx_pronto:'DJがウォームアップ中 — リクエストはまもなく',
@@ -8048,8 +8056,12 @@ function v2Preguntas(p){
   const preguntas = [];
   const esAlmuerzo = PRECIOS_REGLA_MAP[p.id] && PRECIOS_REGLA_MAP[p.id].tipo === 'almuerzo';
   const esCarne = (p.badges||'').toLowerCase().includes('carne');
+  // v2.26 · CON/SIN ALCOHOL (VB Alberto): mojitos + coladas → la barra deve saperlo.
+  // Rilevato per pattern (categoría/nombre), niente token nel foglio.
+  const esAlcohol = (p.categoria === 'mojitos') || /colada/i.test(p.nombre || '');
   if(esAlmuerzo && menuOpcionesNombres().length) preguntas.push({ tipo:'bebida',  opciones: menuOpcionesNombres() });   // v2.17 · prodotti veri (fallback chips testo)
   if(esCarne && TERMINO_OPCIONES.length)     preguntas.push({ tipo:'termino', opciones: TERMINO_OPCIONES });
+  if(esAlcohol)                              preguntas.push({ tipo:'alcohol', opciones:['Con alcohol','Sin alcohol'] });
   return preguntas;
 }
 function v2QtyOf(id){
@@ -8192,6 +8204,7 @@ function v2PreguntasHTML(p){
   const titulos = {
     bebida:  getLang('almuerzo_elige') || 'Elige tu bebida o copa',
     termino: getLang('termino_elige') || 'El término de tu carne',
+    alcohol: getLang('alcohol_elige') || '¿Con o sin alcohol?',
   };
   return qs.map(q => `
     <div class="v2-preg" data-tipo="${q.tipo}">
@@ -8253,16 +8266,17 @@ function v2DetPinta(){
   const precioFinal = (ACTIVE_MEMBER && V2_DET.p.precio_member) ? parsePrice(V2_DET.p.precio_member) : precio;
   cta.disabled = !!falta;
   cta.textContent = falta
-    ? ((getLang('elige')||'Elige') + ' ' + (falta.tipo === 'bebida' ? 'tu bebida' : 'el término'))
+    ? ((getLang('elige')||'Elige') + ' ' + (falta.tipo === 'bebida' ? 'tu bebida' : falta.tipo === 'alcohol' ? 'con o sin alcohol' : 'el término'))
     : ('Agregar ' + V2_DET.qty + ' · ' + formatPriceWithSymbol(precioFinal * V2_DET.qty));
 }
 function v2DetAgregar(){
   if(!V2_DET) return;
   if(V2_DET.live){ closeDetail(); return; }   // già applicato in diretta
   const d = V2_DET;
-  for(let i = 0; i < d.qty; i++) _pushLinea(d.p, d.resp.bebida || '', d.resp.termino || '');
+  // v2.26 · la scelta alcohol va nel campo `op` (que la comanda de barra ya muestra)
+  for(let i = 0; i < d.qty; i++) _pushLinea(d.p, d.resp.bebida || d.resp.alcohol || '', d.resp.termino || '');
   try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
-  const detalle = [d.resp.bebida, d.resp.termino].filter(Boolean).join(' · ');
+  const detalle = [d.resp.bebida, d.resp.alcohol, d.resp.termino].filter(Boolean).join(' · ');
   showToastMsg('✓ ' + d.qty + '× ' + toTitleCase(d.p.nombre) + (detalle ? ' · ' + detalle : '') + ' en tu pedido');
   v2RefreshCtrl(d.p.id);
   closeDetail();
@@ -8762,6 +8776,7 @@ function _renderPregunta(){
   const titulos = {
     bebida:  getLang('almuerzo_elige') || 'Elige tu bebida o copa',
     termino: getLang('termino_elige') || 'El término de tu carne',
+    alcohol: getLang('alcohol_elige') || '¿Con o sin alcohol?',
   };
   const subExtra = q.tipo === 'bebida' && ALMUERZO_INCLUYE_TXT ? ' · ' + ALMUERZO_INCLUYE_TXT : '';
   const paso = OP_FLOW.preguntas.length > 1 ? ` (${OP_FLOW.idx+1}/${OP_FLOW.preguntas.length})` : '';
