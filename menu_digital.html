@@ -3972,7 +3972,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.26.0 · 20jul</span>
+<span id="ver" hidden>menu2 · v2.27.0 · 22jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4448,7 +4448,7 @@ const TRANSLATIONS = {
     cart_close:'Cerrar',
     all_day:'Todo el día',
     breakfast:'Desayuno', lunch:'Almuerzo', snack:'Merienda', dinner:'Cena',
-    agotado:'Agotado', nuevo:'Nuevo', popular:'Popular',
+    agotado:'Agotado', nuevo:'Nuevo', popular:'Popular', agotado_ahora:'Se acabó justo ahora:', agotado_sacado:'lo saqué de tu pedido, el resto sigue listo 🛎', cat_cafes:'Cafés',
     vegano:'Vegano', singluten:'Sin Gluten', chef:"Chef's Choice", temporada:'Temporada',
     member_price:'Precio miembro',
     upsell_title:'También te puede gustar',
@@ -4560,7 +4560,7 @@ const TRANSLATIONS = {
     cart_close:'Close',
     all_day:'All day',
     breakfast:'Breakfast', lunch:'Lunch', snack:'Snack', dinner:'Dinner',
-    agotado:'Sold out', nuevo:'New', popular:'Popular',
+    agotado:'Sold out', nuevo:'New', popular:'Popular', agotado_ahora:'Just sold out:', agotado_sacado:'I removed it from your order, the rest is ready 🛎', cat_cafes:'Coffee',
     vegano:'Vegan', singluten:'Gluten Free', chef:"Chef's Choice", temporada:'Seasonal',
     member_price:'Member price',
     upsell_title:'You might also like',
@@ -4645,7 +4645,7 @@ const TRANSLATIONS = {
     cart_close:'Fechar',
     all_day:'Dia todo',
     breakfast:'Café', lunch:'Almoço', snack:'Lanche', dinner:'Jantar',
-    agotado:'Esgotado', nuevo:'Novo', popular:'Popular',
+    agotado:'Esgotado', nuevo:'Novo', popular:'Popular', agotado_ahora:'Acabou agora mesmo:', agotado_sacado:'tirei do seu pedido, o resto está pronto 🛎', cat_cafes:'Cafés',
     vegano:'Vegano', singluten:'Sem Glúten', chef:'Sugestão do Chef', temporada:'Temporada',
     member_price:'Preço de membro',
     upsell_title:'Você também pode gostar',
@@ -4730,7 +4730,7 @@ const TRANSLATIONS = {
     cart_close:'Chiudi',
     all_day:'Tutto il giorno',
     breakfast:'Colazione', lunch:'Pranzo', snack:'Merenda', dinner:'Cena',
-    agotado:'Esaurito', nuevo:'Nuovo', popular:'Popolare',
+    agotado:'Esaurito', nuevo:'Nuovo', popular:'Popolare', agotado_ahora:'È appena finito:', agotado_sacado:'l\'ho tolto dal tuo ordine, il resto è pronto 🛎', cat_cafes:'Caffè',
     vegano:'Vegano', singluten:'Senza Glutine', chef:'Scelta dello Chef', temporada:'Stagionale',
     member_price:'Prezzo socio',
     upsell_title:'Potrebbe piacerti anche',
@@ -4815,7 +4815,7 @@ const TRANSLATIONS = {
     cart_close:'Schließen',
     all_day:'Den ganzen Tag',
     breakfast:'Frühstück', lunch:'Mittagessen', snack:'Snack', dinner:'Abendessen',
-    agotado:'Ausverkauft', nuevo:'Neu', popular:'Beliebt',
+    agotado:'Ausverkauft', nuevo:'Neu', popular:'Beliebt', agotado_ahora:'Gerade ausverkauft:', agotado_sacado:'ich habe es aus deiner Bestellung entfernt, der Rest ist bereit 🛎', cat_cafes:'Kaffee',
     vegano:'Vegan', singluten:'Glutenfrei', chef:'Empfehlung des Küchenchefs', temporada:'Saisonal',
     member_price:'Mitgliederpreis',
     upsell_title:'Das könnte dir auch gefallen',
@@ -4900,7 +4900,7 @@ const TRANSLATIONS = {
     cart_close:'Fermer',
     all_day:'Toute la journée',
     breakfast:'Petit-déjeuner', lunch:'Déjeuner', snack:'Goûter', dinner:'Dîner',
-    agotado:'Épuisé', nuevo:'Nouveau', popular:'Populaire',
+    agotado:'Épuisé', nuevo:'Nouveau', popular:'Populaire', agotado_ahora:'Vient de se terminer :', agotado_sacado:'je l\'ai retiré de ta commande, le reste est prêt 🛎', cat_cafes:'Cafés',
     vegano:'Végétalien', singluten:'Sans Gluten', chef:'Choix du Chef', temporada:'Saison',
     member_price:'Prix membre',
     upsell_title:'Vous pourriez aussi aimer',
@@ -4985,7 +4985,7 @@ const TRANSLATIONS = {
     cart_close:'关闭',
     all_day:'全天',
     breakfast:'早餐', lunch:'午餐', snack:'下午茶', dinner:'晚餐',
-    agotado:'售罄', nuevo:'新品', popular:'热门',
+    agotado:'售罄', nuevo:'新品', popular:'热门', agotado_ahora:'刚刚售罄：', agotado_sacado:'已从你的订单中移除，其余可以发送 🛎', cat_cafes:'咖啡',
     vegano:'素食', singluten:'无麸质', chef:'主厨推荐', temporada:'季节特供',
     member_price:'会员价',
     upsell_title:'您可能还喜欢',
@@ -5070,7 +5070,7 @@ const TRANSLATIONS = {
     cart_close:'閉じる',
     all_day:'終日',
     breakfast:'朝食', lunch:'ランチ', snack:'スナック', dinner:'夕食',
-    agotado:'売り切れ', nuevo:'新着', popular:'人気',
+    agotado:'売り切れ', nuevo:'新着', popular:'人気', agotado_ahora:'ただいま売り切れです：', agotado_sacado:'ご注文から外しました。残りは送信できます 🛎', cat_cafes:'コーヒー',
     vegano:'ビーガン', singluten:'グルテンフリー', chef:'シェフのおすすめ', temporada:'季節限定',
     member_price:'会員価格',
     upsell_title:'こちらもおすすめ',
@@ -8561,6 +8561,40 @@ async function loadCrossSell(){
    delle regole attive ADESSO (GAS filtra ora+giorno+date).
    getDisplayPrice sovrascrive il prezzo base col prezzo-regola quando attivo.
    Es: Risotto base 15.000 · a pranzo feriale 11.990 (mostra barrato + nuovo). */
+/* v2.27.0 · POLL DISPONIBILITÀ (cura 86 · pezzo 3) — la carta si carica una
+   volta sola all'apertura, ma i piatti finiscono DURANTE il servizio. Ogni 60s
+   si chiede al cervello la lista di ciò che è in 86 e si spengono le card: il
+   cliente non fa in tempo ad affezionarsi a un piatto che non c'è più. Se ce
+   l'ha già nel carrito glielo si dice SUBITO — meglio adesso che al momento di
+   inviare. Payload minimo (soli ID) e cache 30s lato GAS. Un poll non rompe
+   mai il menù: qualunque errore muore in silenzio. */
+let AGOTADOS_POLL_TIMER = null;
+async function loadAgotados(){
+  if(!BRAND.gas_url && !GAS_URL) return;
+  try {
+    const url = `${BRAND.gas_url || GAS_URL}?action=getAgotados&local=${LOCAL_ID}&t=${Date.now()}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if(!data || !data.ok || !Array.isArray(data.ids)) return;
+    const set = {};
+    data.ids.forEach(id => { set[id] = true; });
+    let cambio = false;
+    ALL_PRODUCTS.forEach(p => {
+      const ago = !!set[p.id];
+      if (!!p.agotado !== ago) { p.agotado = ago; cambio = true; }
+    });
+    if (!cambio) return;
+    const enCarrito = CART.items.filter(i => set[i.id]);
+    if (enCarrito.length){
+      const nombres = enCarrito.map(i => i.nombre || i.id);
+      CART.items = CART.items.filter(i => !set[i.id]);
+      try { saveCart(); updateCartBadge(); renderCart(); } catch(e){}
+      showToastMsg('😕 ' + getLang('agotado_ahora') + ' ' + nombres.join(' · ') + ' — ' + getLang('agotado_sacado'));
+    }
+    try { renderMenu(); } catch(e){}
+  } catch(e){ /* un poll non rompe mai il menù */ }
+}
+
 async function loadPreciosRegla(){
   if(!BRAND.gas_url && !GAS_URL) return;
   try {
@@ -9365,7 +9399,7 @@ async function _enviarPedidoDigitalInner(opts){
       resp = await _postGAS(payloadPedido);
       esRed = false;   // v2.10 · il GAS ha risposto: qualunque cosa dica, la rete c'è
       if (resp && resp.ok) break;
-      if (resp && resp.need === 'mesa_confirmar') break;   // v2.9.1 · non è un errore di rete
+      if (resp && resp.need) break;   // v2.9.1 · non è un errore di rete · v2.27 · qualunque `need` è una risposta, non un guasto
       lastErr = (resp && resp.error) || 'enviar_failed';
       resp = null;
       if (lastErr === 'carrito_vacio' || lastErr === 'items_json_invalid') break;   // duri: inutile insistere
@@ -9384,6 +9418,27 @@ async function _enviarPedidoDigitalInner(opts){
       </div>`;
     if (vias) vias.innerHTML = q;
     else { showToastMsg('🪑 ¿Sigues en la mesa ' + (MESA_ID||'') + '? Ábrelo de nuevo y confirma'); if(btn){ btn.disabled=false; btn.textContent='Reintentar envío 🛎'; } }
+    return;
+  }
+
+  // v2.27.0 · «SE ACABÓ JUSTO AHORA» (cura 86 · 22-lug) — il cervello ha
+  // l'ultima parola sulla disponibilità. Il caso vero: Filete Alfredo in 86
+  // alle 13:55, tre tavoli lo ordinano nei 9 minuti dopo perché avevano il
+  // menù aperto da prima. Qui il piatto finito esce dal carrito, la sua card
+  // si spegne subito, e IL RESTO DELL'ORDINE RESTA PRONTO da inviare: nessuno
+  // perde il carrello per colpa di un piatto.
+  if (resp && !resp.ok && resp.need === 'items_agotados') {
+    _colaRemove(uuid); _cartPendClear();   // il GAS non ha scritto: fuori dalla cola
+    const fuera = Array.isArray(resp.agotados) ? resp.agotados : [];
+    const ids = fuera.map(x => x && x.id).filter(Boolean);
+    const nombres = fuera.map(x => (x && x.nombre) || '').filter(Boolean);
+    CART.items = CART.items.filter(i => ids.indexOf(i.id) < 0);
+    try { saveCart(); updateCartBadge(); } catch(e){}
+    ids.forEach(id => { const p = ALL_PRODUCTS.find(x => x.id === id); if (p) p.agotado = true; });
+    try { renderMenu(); } catch(e){}
+    try { renderCart(); } catch(e){}
+    showToastMsg('😕 ' + getLang('agotado_ahora') + ' ' + nombres.join(' · ') + ' — ' + getLang('agotado_sacado'));
+    if (btn) { btn.disabled = false; btn.textContent = getLang('cart_listo') || 'Enviar pedido 🛎'; }
     return;
   }
 
@@ -9873,6 +9928,9 @@ function startFasciaMenuPolling(){
   applyFasciaMenu();
   // Polling 60s · stesso ritmo di RITMO_POLL_TIMER · hard switch al cambio fascia
   FASCIA_MENU_POLL_TIMER = setInterval(applyFasciaMenu, 60000);
+  // v2.27.0 · cura 86 · la disponibilità si rinfresca come tutto il resto
+  loadAgotados();
+  if(!AGOTADOS_POLL_TIMER) AGOTADOS_POLL_TIMER = setInterval(loadAgotados, 60000);
   console.log('[v1.17] Fascia menu polling attivo (60s) per', LOCAL_ID);
 }
 
