@@ -3981,7 +3981,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.30.1 · coach campanilla · 24jul</span>
+<span id="ver" hidden>menu2 · v2.30.2 · traductor modificadores · 24jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -5283,6 +5283,50 @@ const TRANSLATIONS = {
 
 const LANG_LABELS = { es:'Español', en:'English', pt:'Português', it:'Italiano', de:'Deutsch', fr:'Français', zh:'中文', ja:'日本語' };
 if(!TRANSLATIONS[LANG_CODE]) LANG_CODE = 'es';
+/* ═════ v2.30.2 · TRADUCTOR DE MODIFICADORES (display-only) ═════
+   I modificadores vivono nel foglio in SPAGNOLO CANONICO e così viaggiano
+   (op → chit → cucina: MAI tradotto). Si traduce solo la PELLE: l'etichetta
+   del chip e le righe che il cliente vede. Glossario: frase intera → parola
+   per parola (lingue latine) → spagnolo com'è (onesto). Zero deploy quando
+   Alberto aggiunge un modificador: le parole comuni si traducono da sole. */
+const OP_FRASES = {
+  en:{'como viene':'as it comes','con alcohol':'with alcohol','sin alcohol':'no alcohol','inglesa':'rare','a punto':'medium','tres cuartos':'medium-well','bien cocida':'well done'},
+  it:{'como viene':'come viene','con alcohol':'con alcol','sin alcohol':'senza alcol','inglesa':'al sangue','a punto':'media','tres cuartos':'quasi ben cotta','bien cocida':'ben cotta'},
+  pt:{'como viene':'como vem','con alcohol':'com álcool','sin alcohol':'sem álcool','inglesa':'mal passada','a punto':'ao ponto','tres cuartos':'ponto a mais','bien cocida':'bem passada'},
+  fr:{'como viene':'comme il vient','con alcohol':'avec alcool','sin alcohol':'sans alcool','inglesa':'saignant','a punto':'à point','tres cuartos':'demi-anglaise','bien cocida':'bien cuit'},
+  de:{'como viene':'wie es kommt','con alcohol':'mit Alkohol','sin alcohol':'ohne Alkohol','inglesa':'blutig','a punto':'medium','tres cuartos':'medium-well','bien cocida':'durch'},
+  zh:{'como viene':'标准做法','con alcohol':'含酒精','sin alcohol':'无酒精','sin queso':'不加芝士','con queso':'加芝士','sin hielo':'去冰','con hielo':'加冰','sin azucar':'无糖','inglesa':'一分熟','a punto':'五分熟','tres cuartos':'七分熟','bien cocida':'全熟'},
+  ja:{'como viene':'そのまま','con alcohol':'アルコール入り','sin alcohol':'ノンアルコール','sin queso':'チーズ抜き','con queso':'チーズ入り','sin hielo':'氷なし','con hielo':'氷あり','sin azucar':'砂糖なし','inglesa':'レア','a punto':'ミディアム','tres cuartos':'ミディアムウェル','bien cocida':'ウェルダン'},
+};
+const OP_WORDS = {
+  en:{sin:'no',con:'with',extra:'extra',doble:'double',queso:'cheese',hielo:'ice',azucar:'sugar',leche:'milk',crema:'cream',tocino:'bacon',cebolla:'onion',tomate:'tomato',palta:'avocado',mayo:'mayo',aji:'chili',salsa:'sauce',picante:'spicy',aparte:'on the side',caliente:'hot',frio:'cold',grande:'large',chico:'small',descafeinado:'decaf',huevo:'egg',sal:'salt',limon:'lemon',menta:'mint',miel:'honey',canela:'cinnamon'},
+  it:{sin:'senza',con:'con',extra:'extra',doble:'doppio',queso:'formaggio',hielo:'ghiaccio',azucar:'zucchero',leche:'latte',crema:'panna',tocino:'bacon',cebolla:'cipolla',tomate:'pomodoro',palta:'avocado',mayo:'maionese',aji:'peperoncino',salsa:'salsa',picante:'piccante',aparte:'a parte',caliente:'caldo',frio:'freddo',grande:'grande',chico:'piccolo',descafeinado:'decaffeinato',huevo:'uovo',sal:'sale',limon:'limone',menta:'menta',miel:'miele',canela:'cannella'},
+  pt:{sin:'sem',con:'com',extra:'extra',doble:'duplo',queso:'queijo',hielo:'gelo',azucar:'açúcar',leche:'leite',crema:'creme',tocino:'bacon',cebolla:'cebola',tomate:'tomate',palta:'abacate',mayo:'maionese',aji:'pimenta',salsa:'molho',picante:'picante',aparte:'à parte',caliente:'quente',frio:'frio',grande:'grande',chico:'pequeno',descafeinado:'descafeinado',huevo:'ovo',sal:'sal',limon:'limão',menta:'hortelã',miel:'mel',canela:'canela'},
+  fr:{sin:'sans',con:'avec',extra:'extra',doble:'double',queso:'fromage',hielo:'glaçons',azucar:'sucre',leche:'lait',crema:'crème',tocino:'bacon',cebolla:'oignon',tomate:'tomate',palta:'avocat',mayo:'mayo',aji:'piment',salsa:'sauce',picante:'épicé',aparte:'à part',caliente:'chaud',frio:'froid',grande:'grand',chico:'petit',descafeinado:'déca',huevo:'œuf',sal:'sel',limon:'citron',menta:'menthe',miel:'miel',canela:'cannelle'},
+  de:{sin:'ohne',con:'mit',extra:'extra',doble:'doppelt',queso:'Käse',hielo:'Eis',azucar:'Zucker',leche:'Milch',crema:'Sahne',tocino:'Speck',cebolla:'Zwiebel',tomate:'Tomate',palta:'Avocado',mayo:'Mayo',aji:'Chili',salsa:'Sauce',picante:'scharf',aparte:'extra dazu',caliente:'heiß',frio:'kalt',grande:'groß',chico:'klein',descafeinado:'entkoffeiniert',huevo:'Ei',sal:'Salz',limon:'Zitrone',menta:'Minze',miel:'Honig',canela:'Zimt'},
+};
+function _opNorm(s){ return s.toString().trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function trOp(s){
+  if(!s || LANG_CODE === 'es') return s;
+  const k = _opNorm(s);
+  const _cap = function(x){ return x.charAt(0).toUpperCase() + x.slice(1); };
+  const F = OP_FRASES[LANG_CODE];
+  if(F && F[k]) return _cap(F[k]);
+  const W = OP_WORDS[LANG_CODE];
+  if(W){
+    let any = false;
+    // si spezza l'ORIGINALE (le parole ignote conservano i loro accenti: merquén, ají…)
+    const out = s.toString().trim().split(/\s+/).map(function(w){
+      const wk = _opNorm(w);
+      if(W[wk] !== undefined){ any = true; return W[wk]; }
+      return w;
+    }).filter(Boolean).join(' ');
+    if(any) return _cap(out);
+  }
+  return s;   // ciò che il glossario non sa resta in spagnolo — mai inventare
+}
+// per gli op composti «Con alcohol · Sin queso»: si traduce pezzo a pezzo
+function trOpFull(s){ return s ? s.toString().split(' · ').map(trOp).join(' · ') : s; }
 /* v2.30.0 · chiave assente nella lingua attiva → si ripiega sullo SPAGNOLO,
    mai più chiavi crude a schermo (caso IT 23-lug: «pedido_st_pendiente_sub») */
 function getLang(k){
@@ -8364,7 +8408,7 @@ function v2PreguntasHTML(p){
     <div class="v2-preg" data-tipo="${q.tipo}">
       <div class="pt">${titulos[q.tipo] || 'Elige'}${q.tipo==='bebida' && ALMUERZO_INCLUYE_TXT ? ' · ' + ALMUERZO_INCLUYE_TXT : ''}</div>
       <div class="v2-pchips">${q.opciones.map(o =>
-        `<span class="v2-pchip" onclick="v2DetElige('${q.tipo}','${o.replace(/'/g,"\\'")}',this)">${o}</span>`).join('')}</div>
+        `<span class="v2-pchip" onclick="v2DetElige('${q.tipo}','${o.replace(/'/g,"\\'")}',this)">${q.tipo==='bebida' ? o : trOp(o)}</span>`).join('')}</div>
     </div>`).join('');
 }
 function v2DetElige(tipo, opcion, el){
@@ -8434,7 +8478,7 @@ function v2DetAgregar(){
   const _op2 = [d.resp.bebida || d.resp.alcohol || '', _mv2].filter(Boolean).join(' · ');
   for(let i = 0; i < d.qty; i++) _pushLinea(d.p, _op2, d.resp.termino || '');
   try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
-  const detalle = [d.resp.bebida, d.resp.alcohol, _mv2, d.resp.termino].filter(Boolean).join(' · ');
+  const detalle = [d.resp.bebida, trOp(d.resp.alcohol || ''), trOp(_mv2 || ''), trOp(d.resp.termino || '')].filter(Boolean).join(' · ');
   showToastMsg('✓ ' + d.qty + '× ' + toTitleCase(d.p.nombre) + (detalle ? ' · ' + detalle : '') + ' en tu pedido');
   v2RefreshCtrl(d.p.id);
   closeDetail();
@@ -8990,7 +9034,7 @@ function _renderPregunta(){
   document.getElementById('opTitle').textContent = (titulos[q.tipo] || 'Elige') + paso;
   document.getElementById('opSub').textContent = toTitleCase(p.nombre) + subExtra;
   document.getElementById('opChips').innerHTML = q.opciones.map((o,i) =>
-    `<button class="op-chip" onclick="elegirOpcion(${i})">${o}</button>`).join('');
+    `<button class="op-chip" onclick="elegirOpcion(${i})">${q.tipo==='bebida' ? o : trOp(o)}</button>`).join('');
   document.getElementById('opOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('opSheet').classList.add('open'), 10);
 }
@@ -9077,8 +9121,8 @@ function renderCart(){
       const detalles = [
         i.es_menu ? '🍱 ' + (ALMUERZO_INCLUYE_TXT || 'Incluye entrada y postre') : '',
         i.p2x1 ? `🎁 2x1 · ${getLang('promo_pagas')||'pagas'} ${i.qty||1}, ${getLang('promo_llevas')||'llevas'} ${(i.qty||1)*2}` : '',
-        i.op ? '🥤 ' + i.op : '',
-        i.termino ? '🥩 ' + i.termino : '',
+        i.op ? '🥤 ' + (i.es_menu ? i.op : trOpFull(i.op)) : '',
+        i.termino ? '🥩 ' + trOp(i.termino) : '',
       ].filter(Boolean).join(' · ');
       return `
       <div class="v2c-it">
@@ -9183,7 +9227,7 @@ function v2Confirmar(){
     filas += '<div style="display:flex;align-items:center;gap:10px;padding:7px 2px;border-top:1px solid var(--brand-border)">' +
       '<span style="font-size:21px;font-weight:800;min-width:40px;text-align:left' + (alerta ? ';color:#f5a623' : '') + '">' + q + '×</span>' +
       '<span style="flex:1;font-size:13px;text-align:left">' + escapeHtml(toTitleCase(i.nombre)) +
-        (i.op ? '<br><small style="opacity:.65">' + escapeHtml(i.op) + '</small>' : '') + '</span>' +
+        (i.op ? '<br><small style="opacity:.65">' + escapeHtml(i.es_menu ? i.op : trOpFull(i.op)) + '</small>' : '') + '</span>' +
       (alerta
         ? '<span style="display:flex;gap:6px"><button onclick="v2RecapQty(' + ix + ',-1)" style="border:1px solid var(--brand-border);background:none;color:inherit;border-radius:8px;padding:2px 12px;font-size:16px;line-height:1.4">−</button>' +
           '<button onclick="v2RecapQty(' + ix + ',1)" style="border:1px solid var(--brand-border);background:none;color:inherit;border-radius:8px;padding:2px 12px;font-size:16px;line-height:1.4">+</button></span>'
@@ -9288,7 +9332,7 @@ function renderCartRecap(snap){
       <div class="cart-recap-title">${getLang('cart_recap_title') || '¡Pedido listo!'}</div>
       <div class="cart-recap-sub">${getLang('cart_recap_sub') || 'Muestra esta lista al mesero para ordenar.'}</div>
       <div class="cart-recap-list">
-        ${snap.items.map(i => `<div class="cart-recap-item"><span>${(i.qty||1)}× ${toTitleCase(i.nombre)}${i.op ? ' · ' + i.op : ''}${i.termino ? ' · ' + i.termino : ''}${i.p2x1 ? ' · 🎁2x1 (llevas ' + ((i.qty||1)*2) + ')' : ''}</span><span>${formatPrice(i.precio*(i.qty||1))}</span></div>`).join('')}
+        ${snap.items.map(i => `<div class="cart-recap-item"><span>${(i.qty||1)}× ${toTitleCase(i.nombre)}${i.op ? ' · ' + (i.es_menu ? i.op : trOpFull(i.op)) : ''}${i.termino ? ' · ' + trOp(i.termino) : ''}${i.p2x1 ? ' · 🎁2x1 (llevas ' + ((i.qty||1)*2) + ')' : ''}</span><span>${formatPrice(i.precio*(i.qty||1))}</span></div>`).join('')}
         <div class="cart-recap-item" style="border-top:1px solid var(--brand-border);margin-top:6px;padding-top:8px;font-weight:700"><span>${getLang('cart_total')||'Total'}</span><span>${formatPriceWithSymbol(snap.total)}</span></div>
       </div>
       <button class="cart-listo-btn" onclick="closeCart()">${getLang('cart_close')||'Cerrar'}</button>
