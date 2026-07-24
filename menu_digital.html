@@ -3869,7 +3869,14 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2dj-mi b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .v2dj-mi small{color:#a89fc7;flex:0 0 auto}
 #v2DjMis .lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#948ab5;margin:16px 0 4px}
-.v2dj-res.arm{border-color:#00ffc8 !important;box-shadow:0 0 14px rgba(0,255,200,.25)}
+/* v2.31.1 · oss. Alberto: «non si capisce se si è schiacciato» — l'armato ora
+   URLA (glow pulsante + scala), l'enviando si vede, la ✓ resta sulla riga */
+.v2dj-res.arm{border-color:#00ffc8 !important;box-shadow:0 0 22px rgba(0,255,200,.5);
+  transform:scale(1.03);background:#16223a;animation:djArmPulsa 1s ease-in-out infinite}
+@keyframes djArmPulsa{0%,100%{box-shadow:0 0 14px rgba(0,255,200,.35)}50%{box-shadow:0 0 30px rgba(0,255,200,.7)}}
+.v2dj-res.sending{opacity:.55;pointer-events:none}
+.v2dj-res.sent{border-color:#00ffc8 !important;background:rgba(0,255,200,.12);pointer-events:none}
+.v2dj-res.sent .tit::before{content:'✓ '; color:#00ffc8}
 /* v2.21 · LA CARTA DI STATO (ridisegno VB: mai un'avvertenza, sempre una promessa) —
    vinile che gira + titolo + sussurro, palette cabina. .pronto = variante oro. */
 .v2dj-scard{display:flex;gap:13px;align-items:center;border-radius:16px;padding:13px 15px;margin-bottom:12px;
@@ -3981,7 +3988,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.31.0 · la lista respira · 24jul</span>
+<span id="ver" hidden>menu2 · v2.31.1 · tap cancion que se siente · 24jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -11096,15 +11103,20 @@ function v2DjBuscar(term){
   document.body.appendChild(s);
 }
 let V2DJ_ARM = null;   // {idx, timer} — doppio-tap di conferma
+let V2DJ_SENDING = -1; // v2.31.1 · riga in volo verso la cabina
+let V2DJ_SENT = -1;    // v2.31.1 · riga appena pedida (la ✓ resta qualche secondo)
 function v2DjPinta(){
   const vivo = DJBOX_CLI && DJBOX_CLI.on;
   document.getElementById('v2DjRes').innerHTML = V2DJ_ULTIMI.map((r, i) => {
     const ok = v2DjGeneroPermitido(r.gen);
     const armado = V2DJ_ARM && V2DJ_ARM.idx === i;
-    return `<div class="v2dj-res${armado?' arm':''}" onclick="v2DjPedir(${i})">
+    const estado = i === V2DJ_SENDING ? ' sending' : i === V2DJ_SENT ? ' sent' : armado ? ' arm' : '';
+    const genTxt = i === V2DJ_SENDING ? '📡 …' : i === V2DJ_SENT ? escapeHtml(getLang('djx_t_ok'))
+      : armado ? escapeHtml(getLang('djx_confirm')) : escapeHtml(r.gen) + (ok?'':' · ' + escapeHtml(getLang('djx_fuera')));
+    return `<div class="v2dj-res${estado}" onclick="v2DjPedir(${i})">
       <img src="${r.img}" alt="" loading="lazy">
       <div class="b"><div class="tit">${escapeHtml(r.tit)}</div><div class="art">${escapeHtml(r.art)}</div>
-        <span class="v2dj-gen${ok?'':' fuera'}">${armado ? escapeHtml(getLang('djx_confirm')) : escapeHtml(r.gen) + (ok?'':' · ' + escapeHtml(getLang('djx_fuera')))}</span></div>
+        <span class="v2dj-gen${ok?'':' fuera'}">${genTxt}</span></div>
       <div class="plata${v2DjPrecio()===0?' free':''}">${v2DjPrecioLabel()}</div></div>`;
   }).join('');
 }
@@ -11123,11 +11135,15 @@ async function v2DjPedir(i){
   if(!V2DJ_ARM || V2DJ_ARM.idx !== i){
     if(V2DJ_ARM) clearTimeout(V2DJ_ARM.timer);
     V2DJ_ARM = { idx: i, timer: setTimeout(()=>{ V2DJ_ARM = null; v2DjPinta(); }, 3500) };
+    try { navigator.vibrate && navigator.vibrate(12); } catch(e){}   // v2.31.1 · il tap si SENTE
     v2DjPinta(); return;
   }
-  clearTimeout(V2DJ_ARM.timer); V2DJ_ARM = null; v2DjPinta();
+  clearTimeout(V2DJ_ARM.timer); V2DJ_ARM = null;
   // v2.20 · vetrina: la conferma non manda — invita («entra, siéntate…»)
-  if(!MESA_ID){ showToastMsg('🪑 ' + getLang('djx_invite'), 4500); return; }
+  if(!MESA_ID){ v2DjPinta(); showToastMsg('🪑 ' + getLang('djx_invite'), 4500); return; }
+  // v2.31.1 · la riga stessa racconta il viaggio: enviando → ✓ pedida (4s)
+  V2DJ_SENDING = i; v2DjPinta();
+  try { navigator.vibrate && navigator.vibrate([15, 40, 15]); } catch(e){}
   const uuid = 'djc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   try {
     const resp = await fetch(BRAND.gas_url || GAS_URL, { method:'POST',
@@ -11136,10 +11152,15 @@ async function v2DjPedir(i){
         cancion: r.tit, artista: r.art, estilo: r.gen,
         cliente: (ACTIVE_MEMBER && ACTIVE_MEMBER.nombre) || '' }) });
     const j = await resp.json();
-    if(j.ok){ showToastMsg('🎧 «' + r.tit + '» ' + getLang('djx_t_ok')); loadDjBoxCliente(); }
-    else if(j.error === 'dj_en_pausa') showToastMsg('⏸ ' + getLang('djx_t_pausa'));
-    else showToastMsg(getLang('djx_t_fail'));
-  } catch(e){ showToastMsg(getLang('djx_t_conn')); }
+    V2DJ_SENDING = -1;
+    if(j.ok){
+      V2DJ_SENT = i; v2DjPinta();
+      setTimeout(()=>{ if(V2DJ_SENT === i){ V2DJ_SENT = -1; v2DjPinta(); } }, 4000);
+      showToastMsg('🎧 «' + r.tit + '» ' + getLang('djx_t_ok')); loadDjBoxCliente();
+    }
+    else if(j.error === 'dj_en_pausa'){ v2DjPinta(); showToastMsg('⏸ ' + getLang('djx_t_pausa')); }
+    else { v2DjPinta(); showToastMsg(getLang('djx_t_fail')); }
+  } catch(e){ V2DJ_SENDING = -1; v2DjPinta(); showToastMsg(getLang('djx_t_conn')); }
 }
 /* v2.18 · 🔥 el aplauso (throttle 1.5s, ottimista) · v2.20 WOW: le fiamme
    si espandono e salgono — l'applauso si VEDE, il DJ deve avere voglia di
