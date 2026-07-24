@@ -3981,7 +3981,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.30.2 · traductor modificadores · 24jul</span>
+<span id="ver" hidden>menu2 · v2.31.0 · la lista respira · 24jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4336,7 +4336,7 @@ const URL_PARAMS = new URLSearchParams(location.search);
 const LOCAL_RAW  = URL_PARAMS.get('local') || '';
 const LOCAL_ID   = LOCAL_RAW.toUpperCase();   // sempre UPPERCASE per match GAS
 let   MESA_ID    = URL_PARAMS.get('mesa')  || null;   // v2.9 · mutable: «¿Te cambiaste de mesa?»
-const MEMBER_ID  = URL_PARAMS.get('member')|| null;
+let   MEMBER_ID  = URL_PARAMS.get('member')|| null;   // v2.31.0 · il telefono ricorda (v. blocco member sotto)
 // v1.19 · S10 · vetrina = QR fuori locale (?local=X senza ?mesa=N)
 const IS_VETRINA = !MESA_ID && !!LOCAL_RAW.trim();
 // v1.10 · Lingua all'avvio: spagnolo SEMPRE come default, ignorando localStorage.
@@ -4443,6 +4443,17 @@ function sesGuardiaResolver(quedarse){
   if (typeof updateCartBadge === 'function') updateCartBadge();
 }
 document.addEventListener('DOMContentLoaded', function(){ if (SES_MESA_CONFLICTO) sesGuardiaMostrar(); });
+
+/* ═════ v2.31.0 · LA LISTA · l'identità la ricorda il TELEFONO ═════
+   La chiave cliente (C1): un link personale UNA volta (?member=ID) → da lì
+   in poi il cliente scanna il QR del tavolo come tutti e il menù lo saluta.
+   Chiave separata dalla sessione (nessuna scadenza: l'identità non è la
+   serata). Il param URL vince sempre e si ri-salva. */
+try {
+  const MEMBER_KEY = 'menu_member_' + (LOCAL_ID || 'X');
+  if (MEMBER_ID) localStorage.setItem(MEMBER_KEY, MEMBER_ID);
+  else MEMBER_ID = localStorage.getItem(MEMBER_KEY) || null;
+} catch(e){}
 
 // GAS endpoint — URL invariata da v1.7 (deployment esistente)
 const GAS_URL = URL_PARAMS.get('gas') ||
@@ -5522,6 +5533,7 @@ let FILTERED         = [];
 let CURRENT_FAJA     = 'all';
 let SEARCH_QUERY     = '';
 let ACTIVE_MEMBER    = null;
+let MEMBER_OCULTOS   = [];   // v2.31.0 · i piatti di famiglia aspettano il loro member
 let loadProgress     = 0;
 let CATEGORY_GROUPS  = null;
 let CURRENT_GROUP    = null;
@@ -6129,6 +6141,9 @@ function construirProductos(text){
       en: r[33]||'', pt: r[34]||'', it: r[35]||'',
       de: r[36]||'', fr: r[37]||'', zh: r[38]||'', ja: r[39]||'',
     },
+    // v2.31.0 · col 42 (r[41]) · Solo_Member: tag/ID separati da virgola —
+    // il piatto non esiste per nessuno, tranne chi porta quel tag (La Lista)
+    solo_member: (r[41]||'').toString().trim(),
   })).filter(p=>p.id && p.activo && p.menu_visible!==false);
 
   if(parsed.length === 0){
@@ -6138,6 +6153,12 @@ function construirProductos(text){
   }
 
   ALL_PRODUCTS = parsed;
+
+  // v2.31.0 · i piatti Solo_Member escono dal mondo PRIMA di ogni render:
+  // vivono in MEMBER_OCULTOS e rientrano solo se il member li porta con sé
+  MEMBER_OCULTOS = ALL_PRODUCTS.filter(p => p.solo_member);
+  if (MEMBER_OCULTOS.length) ALL_PRODUCTS = ALL_PRODUCTS.filter(p => !p.solo_member);
+  memberRevelar();   // se il member è arrivato PRIMA del catalogo
 
   // STEP 5 · Categories
   const catIds = [...new Set(ALL_PRODUCTS.map(p=>p.categoria))];
@@ -10363,16 +10384,32 @@ function renderRhythmBar(){
 // dal pannello di amministrazione (futuro · S5+).
 // La variabile globale RITMO_FILTER_ON resta = true definitivamente.
 
-/* MEMBER */
+/* MEMBER · v2.31.0 · getMember ora legge MIEMBROS vero (GAS @89) — La Lista
+   respira. Il saluto compone solo ciò che esiste (niente « · · 0 tokens»). */
+function memberRevelar(){
+  if(!ACTIVE_MEMBER || !MEMBER_OCULTOS.length) return;
+  const yo = [String(ACTIVE_MEMBER.id||''), String(ACTIVE_MEMBER.familia||'')]
+    .map(s => s.trim().toLowerCase()).filter(Boolean);
+  if(!yo.length) return;
+  const mios = MEMBER_OCULTOS.filter(p =>
+    p.solo_member.toLowerCase().split(',').map(s => s.trim()).some(tag => yo.indexOf(tag) >= 0));
+  if(!mios.length) return;
+  mios.forEach(p => { if(!ALL_PRODUCTS.some(x => x.id === p.id)) ALL_PRODUCTS.push(p); });
+  MEMBER_OCULTOS = MEMBER_OCULTOS.filter(p => mios.indexOf(p) < 0);
+}
 async function loadMember(memberId){
   if(!BRAND.gas_url) return;
   try {
-    const resp = await fetch(`${BRAND.gas_url}?action=getMember&id=${memberId}`);
+    const resp = await fetch(`${BRAND.gas_url}?action=getMember&id=${encodeURIComponent(memberId)}&local=${encodeURIComponent(LOCAL_ID)}`);
     const data = await resp.json();
     if(data.ok){
       ACTIVE_MEMBER = data;
+      memberRevelar();   // i piatti di famiglia entrano nel mondo
       const banner = document.getElementById('memberBanner');
-      banner.textContent = `${getLang('hi_member')} ${data.nombre} · ${data.nivel} · ${data.tokens} ${getLang('tokens')}`;
+      const partes = [`${getLang('hi_member')} ${data.nombre}`];
+      if(data.nivel) partes.push(data.nivel);
+      if(data.tokens) partes.push(`${data.tokens} ${getLang('tokens')}`);
+      banner.textContent = partes.join(' · ');
       banner.classList.add('show');
       renderMenu();
       v2PintaChip();   // v2.0 · il chip identità saluta il Member
