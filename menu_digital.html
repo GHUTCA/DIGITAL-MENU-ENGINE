@@ -3384,6 +3384,13 @@ body:not(.theme-dark) .cart-ig-follow{
   padding:0 11px;font-size:12.5px;font-weight:700;color:var(--brand-text);
   white-space:nowrap;overflow:hidden}
 #v2MeseroPill.show{display:flex}
+/* v2.30.1 · coach campanilla: la campanella pulsa, la bolla dice il nome */
+@keyframes coachBellPulsa{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(23,195,178,.55)}50%{transform:scale(1.12);box-shadow:0 0 0 9px rgba(23,195,178,0)}}
+.coach-bell-pulsa{animation:coachBellPulsa 1.5s ease-in-out infinite}
+.coach-bell-bubble{position:fixed;top:64px;right:10px;z-index:9998;max-width:265px;
+  background:var(--v2-panna,#F6EFE4);color:#2A1F1A;border-radius:14px 4px 14px 14px;
+  padding:12px 14px;font-size:13.5px;line-height:1.45;font-weight:600;
+  box-shadow:0 6px 24px rgba(0,0,0,.35);cursor:pointer;animation:v2chipIn .4s backwards}
 #v2MeseroPill .mfoto{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;
   justify-content:center;font-size:12px;background:linear-gradient(135deg,#e0a94b,#b46ae0);flex:0 0 auto}
 #v2MeseroPill small{font-weight:600;color:var(--brand-text-muted);margin-right:2px}
@@ -3974,7 +3981,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.30.0 · sesion del telefono · 24jul</span>
+<span id="ver" hidden>menu2 · v2.30.1 · coach campanilla · 24jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4542,6 +4549,7 @@ const TRANSLATIONS = {
     ses_cm_si:'Sí — ahora estoy en la mesa {n}',
     ses_cm_no:'No — sigo en la mesa {m}',
     llamada_cooldown:'🔔 El mesero ya fue avisado · va en camino',
+    coach_campanilla:'¿Sabías que puedes llamar a {m} sin levantar la mano? Oprime la campanilla 🔔',
     almuerzo_elige:'Elige tu bebida o copa',
     termino_elige:'El término de tu carne',
     saludo_mesero_dia:'Hola — hoy te atiende', saludo_mesero_noche:'Hola — esta noche te atiende',
@@ -4659,6 +4667,7 @@ const TRANSLATIONS = {
     ses_cm_si:'Yes — I\'m at table {n} now',
     ses_cm_no:'No — I\'m still at table {m}',
     llamada_cooldown:'🔔 Your waiter is already on the way',
+    coach_campanilla:'Did you know you can call {m} without raising your hand? Just tap the bell 🔔',
     almuerzo_elige:'Choose your drink',
     termino_elige:'How would you like your meat?',
     saludo_mesero_dia:'Hi — today you’re served by', saludo_mesero_noche:'Hi — tonight you’re served by',
@@ -4848,6 +4857,7 @@ const TRANSLATIONS = {
     ses_cm_sub:'Questo QR è del tavolo {n} — gli ordini di stasera ti seguono.',
     ses_cm_si:'Sì — ora sono al tavolo {n}',
     ses_cm_no:'No — resto al tavolo {m}',
+    coach_campanilla:'Lo sapevi che puoi chiamare {m} senza alzare la mano? Tocca la campanella 🔔',
     cart_add:'Aggiungi al mio ordine', cart_added:'Aggiunto', cart_title:'Il mio ordine',
     cart_subtitle:'Controlla la tua selezione e mostrala al cameriere.',
     cart_empty:'Non hai ancora aggiunto nulla. Esplora il menu e componi il tuo ordine.',
@@ -10377,6 +10387,9 @@ async function cargarMeseroDeMesa(){
       ml.classList.add('show');
       if(typeof updateStickyTops === 'function') updateStickyTops();
     }
+    // v2.30.1 · coach campanilla (dottrina FORMACION: una frase, al momento
+    // giusto, una volta sola, col nome vero) — parte quando il nome c'è
+    setTimeout(coachCampanilla, 6000);
     // v2.0 · le stelline aspettavano il nome (v2Boot corre prima di questa
     // risposta): se la serata ha già un pedido, ora possono accendersi
     if(PEDIDO_ACTUAL || (typeof _nocheValidos === 'function' && _nocheValidos().length > 0)){
@@ -10459,7 +10472,36 @@ function onPedirDirecto(prodId){
   showToastMsg(getLang('coming_soon'));
 }
 
+/* v2.30.1 · COACH CAMPANILLA — la prima novedad lato cliente, per dottrina:
+   MAI un tutorial. Una bolla sola, col nome del mesero, la campanella pulsa,
+   si mostra UNA volta per telefono (flag al mostrarsi: mai nagging). */
+const COACH_BELL_KEY = 'v2_coach_campanilla_v1';
+function coachCampanilla(){
+  try {
+    if (!MESA_ID || IS_VETRINA) return;
+    if (localStorage.getItem(COACH_BELL_KEY)) return;
+    const bell = document.getElementById('v2Bell');
+    if (!bell || bell.style.display === 'none') return;
+    if (document.getElementById('coachBell')) return;
+    localStorage.setItem(COACH_BELL_KEY, '1');   // mostrata = contata
+    bell.classList.add('coach-bell-pulsa');
+    const quien = MESERO_MESA ? escapeHtml(MESERO_MESA) : getLang('pedido_el_mesero') || 'tu mesero';
+    const txt = (getLang('coach_campanilla') || '¿Sabías que puedes llamar a {m} sin levantar la mano? Oprime la campanilla 🔔').replace('{m}', quien);
+    const b = document.createElement('div');
+    b.id = 'coachBell';
+    b.className = 'coach-bell-bubble';
+    b.innerHTML = '💡 ' + txt;
+    b.onclick = function(){ coachCampanillaFin(); };
+    document.body.appendChild(b);
+    setTimeout(coachCampanillaFin, 22000);   // si spegne da sola, senza flag extra
+  } catch(e){}
+}
+function coachCampanillaFin(){
+  const b = document.getElementById('coachBell'); if (b) b.remove();
+  const bell = document.getElementById('v2Bell'); if (bell) bell.classList.remove('coach-bell-pulsa');
+}
 function onCallWaiterGeneric(){
+  coachCampanillaFin();   // v2.30.1 · il gesto insegnato spegne il maestro
   if(!LLAMAR_MESERO_ENABLED) return;
   if(!MESA_ID){
     showToastMsg(getLang('call_no_mesa') || 'Acércate a un mesero para ordenar');
