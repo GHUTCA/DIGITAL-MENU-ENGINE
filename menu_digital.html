@@ -3362,9 +3362,11 @@ body:not(.theme-dark) .cart-ig-follow{
   opacity:.75;margin-top:1px;white-space:nowrap}
 #mesaBadge{display:none!important}   /* il chip identità lo sostituisce */
 .v2-chip-id{background:var(--v2-panna);color:#2A1F1A;border:0;border-radius:20px;
-  padding:6px 12px;font-size:12px;font-weight:800;display:flex;align-items:center;gap:5px;
+  padding:5px 12px;font-size:12px;font-weight:800;display:flex;align-items:center;gap:5px;
   box-shadow:0 2px 10px rgba(0,0,0,.25);max-width:46vw;overflow:hidden;white-space:nowrap;
   text-overflow:ellipsis;cursor:pointer}
+/* v2.30.0 · il numero della mesa PROTAGONISTA (oss. Alberto: non si vedeva) */
+.v2-chip-id .v2-mesa-num{font-size:20px;font-weight:900;line-height:1;letter-spacing:.3px}
 /* v2.11 · #16 · la campanella DICE chi chiama: etichetta «Mesero» SOTTO la
    campana (prima: icona nuda = decorazione). Stessa impronta ~44px: la riga
    a 3 zone non sborda mai, nemmeno a 360px. */
@@ -3972,7 +3974,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.29.1 · 23jul</span>
+<span id="ver" hidden>menu2 · v2.30.0 · sesion del telefono · 24jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4337,6 +4339,104 @@ const IS_VETRINA = !MESA_ID && !!LOCAL_RAW.trim();
 // scritta solo da setLang() = click esplicito utente sul selettore lingua.
 let   LANG_CODE  = URL_PARAMS.get('lang') || 'es';
 
+/* ════════════════════════════════════════════════════
+   v2.30.0 · SESIÓN DEL TELÉFONO (caso mesa 86→82, 23-lug)
+   ════════════════════════════════════════════════════
+   La memoria viveva in sessionStorage = per SCHEDA: ogni scan del QR apriva
+   un mondo nuovo (carrito vergine, storia vuota), e il trasloco di mesa era
+   invisibile. Ora la sessione è UNA per telefono+local (localStorage):
+   {mesa, ts, kv} · TTL 4h = la serata. Le schede sono finestre sullo stesso
+   mondo (listener 'storage' le riallinea). mstGet/Set/Del hanno la stessa
+   interfaccia di sessionStorage per le chiavi vive: la logica a valle non
+   cambia. Il QR è l'evidenza fisica del DOVE: se contraddice la sessione,
+   la guardia chiede — UNA volta, grande, al momento giusto. */
+const SES_KEY = 'menu_ses_' + (LOCAL_ID || 'X');
+const SES_TTL_MS = 4 * 60 * 60 * 1000;
+let SES = null;
+let SES_MESA_CONFLICTO = null;   // {vieja, nueva} → sesGuardiaMostrar() al boot
+function sesSave(){ try { SES.ts = Date.now(); localStorage.setItem(SES_KEY, JSON.stringify(SES)); } catch(e){} }
+function mstGet(k){ return (SES && SES.kv && SES.kv[k] !== undefined) ? SES.kv[k] : null; }
+function mstSet(k, v){ if (!SES) return; SES.kv[k] = String(v); sesSave(); }
+function mstDel(k){ if (!SES || !(k in SES.kv)) return; delete SES.kv[k]; sesSave(); }
+function sesLoad(){
+  try {
+    const raw = localStorage.getItem(SES_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s && s.ts && (Date.now() - s.ts) < SES_TTL_MS && s.kv) SES = s;
+    }
+  } catch(e){}
+  if (!SES) {
+    SES = { mesa: MESA_ID || '', ts: 0, kv: {} };
+    // migrazione dolce dal mondo per-scheda (la sera del deploy nessuno perde niente)
+    try {
+      ['bks_carrito','pedido_actual_v1','pedidos_noche_v1','ultima_ronda_v1'].forEach(function(k){
+        const v = sessionStorage.getItem(k);
+        if (v != null) SES.kv[k] = v;
+      });
+    } catch(e){}
+    sesSave();
+    return;
+  }
+  if (MESA_ID && SES.mesa && String(SES.mesa) !== String(MESA_ID)) {
+    // QR di una mesa diversa dalla sessione viva → la guardia chiede.
+    // Default alla NUEVA (il QR in mano è l'evidenza fisica); «sigo en la M» torna indietro.
+    SES_MESA_CONFLICTO = { vieja: String(SES.mesa), nueva: String(MESA_ID) };
+    SES.mesa = String(MESA_ID);
+  } else if (MESA_ID) {
+    SES.mesa = String(MESA_ID);
+  } else if (SES.mesa && !IS_VETRINA) {
+    MESA_ID = String(SES.mesa);   // scheda riaperta senza ?mesa: la sessione ricorda
+  }
+  sesSave();
+}
+sesLoad();
+// le altre schede parlano: un cambio altrove riallinea questa finestra
+window.addEventListener('storage', function(ev){
+  if (ev.key !== SES_KEY || !ev.newValue) return;
+  try {
+    const s = JSON.parse(ev.newValue);
+    if (!s || !s.kv) return;
+    SES = s;
+    if (typeof loadCart === 'function') { loadCart(); if (typeof updateCartBadge === 'function') updateCartBadge(); }
+    if (typeof _nocheLoad === 'function') _nocheLoad();
+    if (SES.mesa && String(SES.mesa) !== String(MESA_ID)) {
+      MESA_ID = String(SES.mesa);
+      if (typeof v2PintaChip === 'function') v2PintaChip();
+      if (typeof updateCartBadge === 'function') updateCartBadge();
+    }
+  } catch(e){}
+});
+// la guardia del trasloco — una domanda sola, grande, coi pedidos che seguono
+function sesGuardiaMostrar(){
+  const c = SES_MESA_CONFLICTO; if (!c || document.getElementById('sesGuardiaMesa')) return;
+  const L = function(k, fb){ try { const v = getLang(k); return v === k ? fb : v; } catch(e){ return fb; } };
+  const ov = document.createElement('div');
+  ov.id = 'sesGuardiaMesa';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(8,10,20,.82);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px';
+  ov.innerHTML =
+    '<div style="background:var(--v2-panna,#F6EFE4);color:#2A1F1A;border-radius:22px;padding:28px 22px;max-width:340px;width:100%;text-align:center">' +
+    '<div style="font-size:40px">🪑</div>' +
+    '<div style="font-size:20px;font-weight:800;margin:10px 0 4px">' + L('ses_cm_titulo','¿Te cambiaste de mesa?') + '</div>' +
+    '<div style="font-size:14px;opacity:.75;margin-bottom:18px">' + L('ses_cm_sub','Este QR es de la mesa {n} — tus pedidos de esta noche te siguen.').replace('{n}', escapeHtml(c.nueva)) + '</div>' +
+    '<button onclick="sesGuardiaResolver(true)" style="width:100%;padding:15px;border:0;border-radius:14px;background:#17C3B2;color:#fff;font-size:17px;font-weight:800;margin-bottom:10px;cursor:pointer">✓ ' + L('ses_cm_si','Sí — ahora estoy en la mesa {n}').replace('{n}', escapeHtml(c.nueva)) + '</button>' +
+    '<button onclick="sesGuardiaResolver(false)" style="width:100%;padding:13px;border:1.5px solid rgba(42,31,26,.25);border-radius:14px;background:transparent;color:#2A1F1A;font-size:15px;font-weight:700;cursor:pointer">↩ ' + L('ses_cm_no','No — sigo en la mesa {m}').replace('{m}', escapeHtml(c.vieja)) + '</button>' +
+    '</div>';
+  document.body.appendChild(ov);
+}
+function sesGuardiaResolver(quedarse){
+  const c = SES_MESA_CONFLICTO; SES_MESA_CONFLICTO = null;
+  const ov = document.getElementById('sesGuardiaMesa'); if (ov) ov.remove();
+  if (!c || quedarse) return;   // quedarse: SES.mesa è già la nueva (sesLoad)
+  MESA_ID = c.vieja; SES.mesa = c.vieja; sesSave();
+  try { const u = new URL(location.href); u.searchParams.set('mesa', c.vieja); history.replaceState(null, '', u.toString()); } catch(e){}
+  if (typeof MESERO_MESA !== 'undefined') MESERO_MESA = '';
+  if (typeof cargarMeseroDeMesa === 'function') cargarMeseroDeMesa();
+  if (typeof v2PintaChip === 'function') v2PintaChip();
+  if (typeof updateCartBadge === 'function') updateCartBadge();
+}
+document.addEventListener('DOMContentLoaded', function(){ if (SES_MESA_CONFLICTO) sesGuardiaMostrar(); });
+
 // GAS endpoint — URL invariata da v1.7 (deployment esistente)
 const GAS_URL = URL_PARAMS.get('gas') ||
   'https://script.google.com/macros/s/AKfycbzZkS3bBaYc34uJ6wXP9FG13i58-NT0FJp964vqkUYbRObUxryeRb9l_Fz24kb42f5t/exec';
@@ -4436,6 +4536,11 @@ const TRANSLATIONS = {
     pedido_pedir_mas:'Pedir algo más',
     pedido_noche_titulo:'Lo pedido esta noche', pedido_total_noche:'Total de la noche',
     pedido_ya_noche:'Ya pedido esta noche',
+    /* v2.30.0 · guardia del cambio de mesa (sesión del teléfono) */
+    ses_cm_titulo:'¿Te cambiaste de mesa?',
+    ses_cm_sub:'Este QR es de la mesa {n} — tus pedidos de esta noche te siguen.',
+    ses_cm_si:'Sí — ahora estoy en la mesa {n}',
+    ses_cm_no:'No — sigo en la mesa {m}',
     llamada_cooldown:'🔔 El mesero ya fue avisado · va en camino',
     almuerzo_elige:'Elige tu bebida o copa',
     termino_elige:'El término de tu carne',
@@ -4548,6 +4653,11 @@ const TRANSLATIONS = {
     pedido_pedir_mas:'Order something else',
     pedido_noche_titulo:'Ordered tonight', pedido_total_noche:'Tonight’s total',
     pedido_ya_noche:'Already ordered tonight',
+    /* v2.30.0 · table-change guard */
+    ses_cm_titulo:'Did you change tables?',
+    ses_cm_sub:'This QR is for table {n} — tonight\'s orders follow you.',
+    ses_cm_si:'Yes — I\'m at table {n} now',
+    ses_cm_no:'No — I\'m still at table {m}',
     llamada_cooldown:'🔔 Your waiter is already on the way',
     almuerzo_elige:'Choose your drink',
     termino_elige:'How would you like your meat?',
@@ -4722,6 +4832,22 @@ const TRANSLATIONS = {
     loading:'Caricamento menu...',
     nav_menu:'Menu', nav_search:'Cerca', nav_club:'Club', nav_call:'Chiama',
     nav_cart:'Il mio ordine', group_almuerzo:'Menù del Giorno',
+    /* v2.30.0 · blocco pedido completo (era assente: chiavi crude a schermo il 23-lug)
+       + guardia cambio tavolo */
+    pedido_enviando:'Invio in corso…', pedido_fallback:'Non sono riuscito a inviarlo — mostra questa lista al cameriere 🙌',
+    pedido_st_pendiente:'Sto chiamando il cameriere…', pedido_st_pendiente_sub:'Il tuo ordine è già nel sistema',
+    pedido_st_atendido:'{nombre} sta arrivando', pedido_st_atendido_sub:'Conferma l\'ordine quando arriva al tavolo',
+    pedido_st_digitado:'Nel sistema', pedido_st_digitado_sub:'Cucina e bar lo stanno già preparando',
+    pedido_st_entregado:'Consegnato — buon appetito!', pedido_st_entregado_sub:'Grazie per aver ordinato dal tavolo',
+    pedido_st_problema:'Meglio dirlo al cameriere', pedido_st_problema_sub:'Non siamo riusciti a confermarlo — chiama il cameriere o vieni al bancone',
+    pedido_el_mesero:'Il cameriere', pedido_camino_toast:'sta arrivando', pedido_items:'prodotti',
+    pedido_pedir_mas:'Ordina qualcos\'altro',
+    pedido_noche_titulo:'Ordinato stasera', pedido_total_noche:'Totale della serata',
+    pedido_ya_noche:'Già ordinato stasera',
+    ses_cm_titulo:'Hai cambiato tavolo?',
+    ses_cm_sub:'Questo QR è del tavolo {n} — gli ordini di stasera ti seguono.',
+    ses_cm_si:'Sì — ora sono al tavolo {n}',
+    ses_cm_no:'No — resto al tavolo {m}',
     cart_add:'Aggiungi al mio ordine', cart_added:'Aggiunto', cart_title:'Il mio ordine',
     cart_subtitle:'Controlla la tua selezione e mostrala al cameriere.',
     cart_empty:'Non hai ancora aggiunto nulla. Esplora il menu e componi il tuo ordine.',
@@ -5147,7 +5273,13 @@ const TRANSLATIONS = {
 
 const LANG_LABELS = { es:'Español', en:'English', pt:'Português', it:'Italiano', de:'Deutsch', fr:'Français', zh:'中文', ja:'日本語' };
 if(!TRANSLATIONS[LANG_CODE]) LANG_CODE = 'es';
-function getLang(k){ return (TRANSLATIONS[LANG_CODE]||TRANSLATIONS.es)[k] || k; }
+/* v2.30.0 · chiave assente nella lingua attiva → si ripiega sullo SPAGNOLO,
+   mai più chiavi crude a schermo (caso IT 23-lug: «pedido_st_pendiente_sub») */
+function getLang(k){
+  const t = TRANSLATIONS[LANG_CODE] || TRANSLATIONS.es;
+  const v = (t[k] !== undefined) ? t[k] : TRANSLATIONS.es[k];
+  return (v !== undefined) ? v : k;
+}
 
 function getCatName(catId){
   const key = 'cat_' + catId.toLowerCase().replace(/[^a-z]/g,'');
@@ -5328,7 +5460,7 @@ let V2_DET        = null;         // {p, qty, preguntas[], resp{}} della scheda 
 let V2_CALIF      = 0;            // stelline date al mesero (1×/sessione)
 let V2_Q          = '';           // buscador in place (fix ③ v3.3)
 let V2_WORLD      = null;         // mondo del lema evidenziato (i chip SALTANO, non filtrano)
-try { ULTIMA_RONDA = JSON.parse(sessionStorage.getItem(RONDA_KEY) || 'null'); } catch(e){}
+try { ULTIMA_RONDA = JSON.parse(mstGet(RONDA_KEY) || 'null'); } catch(e){}
 
 let ALL_PRODUCTS     = [];
 let ALL_CATEGORIES   = [];
@@ -8690,12 +8822,12 @@ let CART = { items: [], updated_ts: 0, gancho_origen: '' };
 
 function loadCart(){
   try {
-    const raw = sessionStorage.getItem(CART_KEY);
+    const raw = mstGet(CART_KEY);
     if(!raw){ CART = { items: [], updated_ts: 0, gancho_origen: '' }; return; }
     const parsed = JSON.parse(raw);
     // Cintura 45min: se fermo da troppo → svuota
     if(parsed.updated_ts && (Date.now() - parsed.updated_ts > CART_TTL_MS)){
-      sessionStorage.removeItem(CART_KEY);
+      mstDel(CART_KEY);
       CART = { items: [], updated_ts: 0, gancho_origen: '' };
       return;
     }
@@ -8705,7 +8837,7 @@ function loadCart(){
 
 function saveCart(){
   CART.updated_ts = Date.now();
-  try { sessionStorage.setItem(CART_KEY, JSON.stringify(CART)); } catch(e){ /* sessionStorage pieno/bloccato */ }
+  try { mstSet(CART_KEY, JSON.stringify(CART)); } catch(e){ /* sessionStorage pieno/bloccato */ }
   updateCartBadge();
 }
 
@@ -9133,7 +9265,7 @@ function cartListo(){
   // Mostra recap + svuota
   renderCartRecap(snapshot);
   CART = { items: [], updated_ts: 0, gancho_origen: '' };
-  sessionStorage.removeItem(CART_KEY);
+  mstDel(CART_KEY);
   updateCartBadge();
 }
 
@@ -9206,7 +9338,7 @@ function _nuevoUuid(){
    → mai doppioni. TTL 45 min (tope KDS): oltre, niente auto-invio — un tap
    esplicito del cliente resta sempre valido (uuid nuovo). */
 const COLA_PED_KEY  = 'cola_pedidos_v1';
-const CART_PEND_KEY = 'cart_pend_uuid_v1';   // sessionStorage: uuid in canna del carrito di QUESTA tab
+const CART_PEND_KEY = 'cart_pend_uuid_v1';   // v2.30.0: nella SESSIONE (il carrito ora è condiviso tra schede — l'uuid anti-doppione deve viaggiare con lui, mai per-tab)
 const COLA_TTL_MS   = 45 * 60 * 1000;
 const COLA_TICK_MS  = 15000;
 let COLA_TIMER = null, COLA_FLUSHING = false;
@@ -9223,9 +9355,9 @@ function _colaPendientes(){
   if (vivos.length !== a.length) _colaSave(vivos);   // poda TTL silenziosa
   return vivos;
 }
-function _cartPendUuid(){ try { return sessionStorage.getItem(CART_PEND_KEY) || ''; } catch(e){ return ''; } }
-function _cartPendSet(u){ try { sessionStorage.setItem(CART_PEND_KEY, u); } catch(e){} }
-function _cartPendClear(){ try { sessionStorage.removeItem(CART_PEND_KEY); } catch(e){} }
+function _cartPendUuid(){ try { return mstGet(CART_PEND_KEY) || ''; } catch(e){ return ''; } }
+function _cartPendSet(u){ try { mstSet(CART_PEND_KEY, u); } catch(e){} }
+function _cartPendClear(){ try { mstDel(CART_PEND_KEY); } catch(e){} }
 
 function _colaArm(){
   if (COLA_TIMER || !_colaPendientes().length) return;
@@ -9572,15 +9704,15 @@ function _pedidoRegistrarExito(entry, resp){
   _nocheSave();
   if (esDelCarrito || !PEDIDO_ACTUAL) {
     PEDIDO_ACTUAL = ped;   // v1.36 · STESSO oggetto dentro PEDIDOS_NOCHE
-    try { sessionStorage.setItem(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
+    try { mstSet(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
     iniciarPollPedido();
   }
   if (esDelCarrito) {
     // v2.0 · 🔁 la ronda si ricorda: l'ultimo pedido inviato è ripetibile in UN tap
     ULTIMA_RONDA = (entry.snapshot_items || []).map(i => JSON.parse(JSON.stringify(i)));
-    if (ULTIMA_RONDA.length) { try { sessionStorage.setItem(RONDA_KEY, JSON.stringify(ULTIMA_RONDA)); } catch(e){} }
+    if (ULTIMA_RONDA.length) { try { mstSet(RONDA_KEY, JSON.stringify(ULTIMA_RONDA)); } catch(e){} }
     CART = { items: [], updated_ts: 0, gancho_origen: '' };
-    sessionStorage.removeItem(CART_KEY);
+    mstDel(CART_KEY);
     _cartPendClear();
     updateCartBadge();
     renderPedidoEstado();
@@ -9637,11 +9769,11 @@ function renderPedidoEstado(){
 
 /* ── v1.36 · "Lo pedido esta noche" · storico + totale serata ──────────── */
 function _nocheSave(){
-  try { sessionStorage.setItem(PEDIDOS_NOCHE_KEY, JSON.stringify(PEDIDOS_NOCHE)); } catch(e){}
+  try { mstSet(PEDIDOS_NOCHE_KEY, JSON.stringify(PEDIDOS_NOCHE)); } catch(e){}
 }
 function _nocheLoad(){
   try {
-    const raw = sessionStorage.getItem(PEDIDOS_NOCHE_KEY);
+    const raw = mstGet(PEDIDOS_NOCHE_KEY);
     if(raw){ const a = JSON.parse(raw); if(Array.isArray(a)) PEDIDOS_NOCHE = a; }
   } catch(e){}
 }
@@ -9694,7 +9826,7 @@ async function _nocheRefrescarEstados(){
 function cerrarPedidoActual(){
   detenerPollPedido();
   PEDIDO_ACTUAL = null;
-  try { sessionStorage.removeItem(PEDIDO_KEY); } catch(e){}
+  try { mstDel(PEDIDO_KEY); } catch(e){}
   renderCart();
 }
 
@@ -9711,7 +9843,7 @@ function iniciarPollPedido(){
       const cambio = (r.estado !== PEDIDO_ACTUAL.estado) || ((r.mesero||'') !== PEDIDO_ACTUAL.mesero);
       PEDIDO_ACTUAL.estado = r.estado || PEDIDO_ACTUAL.estado;
       PEDIDO_ACTUAL.mesero = r.mesero || '';
-      try { sessionStorage.setItem(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
+      try { mstSet(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
       _nocheSave();   // v1.36 · PEDIDO_ACTUAL vive anche dentro PEDIDOS_NOCHE (stesso oggetto)
       if(cambio){
         if(PEDIDO_ACTUAL.estado === 'atendido'){
@@ -9733,12 +9865,12 @@ function detenerPollPedido(){
 function restaurarPedidoActual(){
   _nocheLoad();   // v1.36 · lo storico serata torna sempre
   try {
-    const raw = sessionStorage.getItem(PEDIDO_KEY);
+    const raw = mstGet(PEDIDO_KEY);
     if(!raw) return;
     const p = JSON.parse(raw);
     if(!p || !p.uuid) return;
     if(['entregado','cerrado','expirado','cancelado'].includes(p.estado)){
-      sessionStorage.removeItem(PEDIDO_KEY);   // terminale: resta solo nello storico
+      mstDel(PEDIDO_KEY);   // terminale: resta solo nello storico
       return;
     }
     // v1.36 · l'attivo deve essere LO STESSO oggetto dentro PEDIDOS_NOCHE
@@ -10402,9 +10534,11 @@ function v2PintaChip(){
   // Member riconosciuto → si espande col nome; ospite → la ⭐ è la porta
   // (FINAL: su fondo nero degradé che brilla — sul panna si perdeva).
   // v2.11 · #16 · il chip si presenta: 🪑 = «questo è il TUO tavolo», ▾ = «si apre»
-  chip.innerHTML = '🪑 ' + (ACTIVE_MEMBER && ACTIVE_MEMBER.nombre
-    ? 'Mesa ' + escapeHtml(MESA_ID) + ' · 🎩 ' + escapeHtml(ACTIVE_MEMBER.nombre)
-    : 'Mesa ' + escapeHtml(MESA_ID) + ' <span class="v2-star">⭐</span>')
+  // v2.30.0 · il numero grande: «Mesa» resta etichetta, il NUMERO si vede da lontano
+  chip.innerHTML = '🪑 ' + (getLang('mesa') || 'Mesa') + ' <b class="v2-mesa-num">' + escapeHtml(MESA_ID) + '</b>' +
+    (ACTIVE_MEMBER && ACTIVE_MEMBER.nombre
+    ? ' · 🎩 ' + escapeHtml(ACTIVE_MEMBER.nombre)
+    : ' <span class="v2-star">⭐</span>')
     + ' <span class="v2-chev-id">▾</span>';
   chip.style.display = 'flex';
 }
@@ -10491,6 +10625,7 @@ function v2GuardarMesa(){
   if(!nueva){ inp.focus(); return; }
   if(nueva === (MESA_ID||'')){ v2CerrarSheets(); return; }   // sin cambio
   MESA_ID = nueva;
+  try { SES.mesa = nueva; sesSave(); } catch(e){}   // v2.30.0 · la sessione segue
   try {                                    // replaceState: el reload no vuelve al QR viejo
     const u = new URL(location.href);
     u.searchParams.set('mesa', nueva);
