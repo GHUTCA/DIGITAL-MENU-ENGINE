@@ -4018,7 +4018,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.32.0 · poderes del comandante · 25jul</span>
+<span id="ver" hidden>menu2 · v2.32.1 · poderes + via pegada al carrito · 25jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -9320,6 +9320,11 @@ function v2Confirmar(){
   const d = v2DestinoDe();
   const el = document.getElementById('v2Vias');
   if(!el) return;
+  // v2.32.1 · LA VIA VIAGGIA COL CARRITO (caso Piscola mesa 88, 24-lug):
+  // il verde toccato qui si SCRIVE nel carrito e ogni strada d'invio —
+  // specchio, revisione, retry, cola offline — la porta con sé. Prima, un
+  // ripiego qualsiasi ripartiva da via B e il chit non usciva mai.
+  CART.via = 'directa'; saveCart();
   // v2.21.3 · la conferma DICE la verità intera (VB Alberto, accensione dom 19):
   // va in cucina E sul conto, e da lì non si modifica più — detto prima, non dopo,
   // e nella lingua del cliente (v2.22)
@@ -9418,6 +9423,7 @@ function cartListo(){
   // v1.32 · TAP UNICO: col kill-switch acceso e una mesa vera, il carrito
   // diventa la llamada (spec 03-jul). Switch spento = comportamento storico.
   if(PEDIDO_DIGITAL && MESA_ID){
+    CART.via = ''; saveCart();   // v2.32.1 · scelta esplicita: via B (mesero)
     renderRevisionPedido();   // v2.12 · il vistazo prima dell'invio
     return;
   }
@@ -9750,9 +9756,11 @@ async function _enviarPedidoDigitalInner(opts){
     items_json: itemsJson,
     // v2.0 · via A (gated envio_directo_activo): il GAS di oggi ignora i campi
     // extra senza danno; quando il KDS sarà al 100% li leggerà per instradare
-    envio_directo: !!(opts && opts.directo),
+    // v2.32.1 · la via scelta vive nel CARRITO: qualsiasi strada d'invio
+    // (specchio, revisione, retry, cola) la mantiene finché il carrito vive
+    envio_directo: !!(opts && opts.directo) || CART.via === 'directa',
     // v2.22 · .es canonico: sul foglio/KDS mai «a cozinha» — la lingua è del cliente, non del dato
-    destino: (opts && opts.directo) ? v2DestinoDe().es : '',
+    destino: (!!(opts && opts.directo) || CART.via === 'directa') ? v2DestinoDe().es : '',
     // v2.9.1 · mesa fantasma strato ②: dopo una mesa_limpia recente il GAS
     // chiede conferma (need:mesa_confirmar) — questo flag è la risposta "sí"
     confirmado: !!(opts && opts.confirmado),
