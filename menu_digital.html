@@ -3946,6 +3946,12 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2dj-prox{border:1.5px dashed rgba(139,92,246,.55);border-radius:14px;padding:12px;margin-top:6px;
   font-size:12.5px;font-weight:800;color:#a89fc7;text-align:center;background:rgba(139,92,246,.07)}
 .v2dj-regla{font-size:10.5px;color:#6f668f;text-align:center;margin-top:8px;line-height:1.5}
+/* ═ v2.33.0 · chips-contatore bebida del menú (la mesa dei tre menù) ═ */
+.v2-pchip .v2-bn{font-weight:900;margin-left:5px;color:var(--brand-accent,#e0245e)}
+.v2-pchip .v2-bmenos{display:inline-block;margin-left:7px;padding:0 8px;border:1px solid currentColor;
+  border-radius:8px;font-weight:900;cursor:pointer}
+.v2-beb-prog{width:100%;text-align:right;font-size:12px;font-weight:800;opacity:.65;margin-top:4px}
+.v2-beb-prog.ok{opacity:1;color:#22c55e}
 /* ═ v2.32.0 · PODERE A · strip «Las del Comandante» (sopra il buscador) ═ */
 .v2dj-propias{margin:12px 0 4px;display:none}
 .v2dj-propias .lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#ffcf6b;font-weight:900;margin-bottom:8px}
@@ -4018,7 +4024,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.32.2 · la ronda es de bebida (retro Isa) · 25jul</span>
+<span id="ver" hidden>menu2 · v2.33.0 · la mesa de los tres menus (bebidas con contador) · 25jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8513,9 +8519,49 @@ function v2PreguntasHTML(p){
   return qs.map(q => `
     <div class="v2-preg" data-tipo="${q.tipo}">
       <div class="pt">${titulos[q.tipo] || 'Elige'}${q.tipo==='bebida' && ALMUERZO_INCLUYE_TXT ? ' · ' + ALMUERZO_INCLUYE_TXT : ''}</div>
-      <div class="v2-pchips">${q.opciones.map(o =>
-        `<span class="v2-pchip" onclick="v2DetElige('${q.tipo}','${o.replace(/'/g,"\\'")}',this)">${q.tipo==='bebida' ? o : trOp(o)}</span>`).join('')}</div>
+      ${q.tipo==='bebida'
+        ? `<div class="v2-pchips" id="v2BebChips">${v2BebChipsInner()}</div>`
+        : `<div class="v2-pchips">${q.opciones.map(o =>
+        `<span class="v2-pchip" onclick="v2DetElige('${q.tipo}','${o.replace(/'/g,"\\'")}',this)">${trOp(o)}</span>`).join('')}</div>`}
     </div>`).join('');
+}
+/* ═══ v2.33.0 · LA MESA DEI TRE MENÙ (retro Alberto, caso 3× Filete Alfredo:
+   una coca e due birre — il flusso vecchio dava UNA bebida per tutti o il
+   piatto-per-piatto). Con qty>1 le chips diventano CONTATORI: tocca = +1,
+   il − sulla chip toglie, si invia quando le bebidas = i piatti. Con qty=1
+   tutto com'era. Le righe si spezzano per bebida (merge id+op già esistente). ═ */
+function v2BebN(){ return (V2_DET && V2_DET.bebN) || {}; }
+function v2BebTotal(){ const b = v2BebN(); return Object.keys(b).reduce((s,k)=>s+b[k],0); }
+function v2BebChipsInner(){
+  const ops = menuOpcionesNombres();
+  const multi = V2_DET && V2_DET.qty > 1;
+  let h = ops.map(o => {
+    const eo = o.replace(/'/g,"\\'");
+    if(!multi){
+      const on = V2_DET && V2_DET.resp.bebida === o;
+      return `<span class="v2-pchip${on?' on':''}" onclick="v2DetElige('bebida','${eo}',this)">${o}</span>`;
+    }
+    const n = v2BebN()[o] || 0;
+    return `<span class="v2-pchip${n?' on':''}" onclick="v2BebMas('${eo}',1)">${o}${n?` <b class="v2-bn">${n}×</b><b class="v2-bmenos" onclick="event.stopPropagation();v2BebMas('${eo}',-1)">−</b>`:''}</span>`;
+  }).join('');
+  if(multi) h += `<div class="v2-beb-prog${v2BebTotal()===V2_DET.qty?' ok':''}">${v2BebTotal()} / ${V2_DET.qty}</div>`;
+  return h;
+}
+function v2BebRepinta(){
+  const c = document.getElementById('v2BebChips');
+  if(c && V2_DET) c.innerHTML = v2BebChipsInner();
+}
+function v2BebMas(op, d){
+  if(!V2_DET) return;
+  V2_DET.bebN = V2_DET.bebN || {};
+  if(d > 0 && v2BebTotal() >= V2_DET.qty){
+    showToastMsg('🥤 ' + (getLang('beb_ya')||'Ya elegiste las') + ' ' + V2_DET.qty + ' — quita una con el −');
+    return;
+  }
+  V2_DET.bebN[op] = Math.max(0, (V2_DET.bebN[op]||0) + d);
+  if(!V2_DET.bebN[op]) delete V2_DET.bebN[op];
+  try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
+  v2BebRepinta(); v2DetPinta();
 }
 function v2DetElige(tipo, opcion, el){
   if(!V2_DET) return;
@@ -8536,6 +8582,12 @@ function v2DetQty(d){
   }
   V2_DET.qty = Math.max(1, V2_DET.qty + d);
   document.getElementById('v2DetQ').textContent = V2_DET.qty;
+  // v2.33.0 · il contatore bebidas segue i piatti: se scendono sotto le scelte
+  // si riparte pulito; a qty 1 si torna alla chip singola
+  if(V2_DET.preguntas.some(q => q.tipo === 'bebida')){
+    if(V2_DET.qty === 1 || v2BebTotal() > V2_DET.qty){ V2_DET.bebN = {}; V2_DET.resp.bebida = ''; }
+    v2BebRepinta();
+  }
   v2DetPinta();
 }
 /* delta su una riga ESISTENTE del prodotto (l'ultima): preserva op/termino
@@ -8564,13 +8616,15 @@ function v2DetPinta(){
     cta.textContent = V2_DET.qty > 0 ? 'Listo ✓ · ' + V2_DET.qty + ' en tu pedido' : 'Quitado del pedido ✓';
     return;
   }
-  const falta = V2_DET.preguntas.find(q => !V2_DET.resp[q.tipo]);
+  // v2.33.0 · con qty>1 la bebida è «risposta» quando i contatori = i piatti
+  const falta = V2_DET.preguntas.find(q =>
+    q.tipo === 'bebida' && V2_DET.qty > 1 ? v2BebTotal() !== V2_DET.qty : !V2_DET.resp[q.tipo]);
   const regla = PRECIOS_REGLA_MAP[V2_DET.p.id];
   const precio = (regla && parsePrice(regla.precio) > 0) ? parsePrice(regla.precio) : parsePrice(V2_DET.p.precio);
   const precioFinal = (ACTIVE_MEMBER && V2_DET.p.precio_member) ? parsePrice(V2_DET.p.precio_member) : precio;
   cta.disabled = !!falta;
   cta.textContent = falta
-    ? ((getLang('elige')||'Elige') + ' ' + (falta.tipo === 'bebida' ? 'tu bebida' : falta.tipo === 'alcohol' ? 'con o sin alcohol' : falta.tipo === 'mod' ? 'cómo lo quieres' : 'el término'))
+    ? ((getLang('elige')||'Elige') + ' ' + (falta.tipo === 'bebida' ? (V2_DET.qty > 1 ? ('tus ' + V2_DET.qty + ' bebidas (' + v2BebTotal() + '/' + V2_DET.qty + ')') : 'tu bebida') : falta.tipo === 'alcohol' ? 'con o sin alcohol' : falta.tipo === 'mod' ? 'cómo lo quieres' : 'el término'))
     : ('Agregar ' + V2_DET.qty + ' · ' + formatPriceWithSymbol(precioFinal * V2_DET.qty));
 }
 function v2DetAgregar(){
@@ -8581,10 +8635,22 @@ function v2DetAgregar(){
   // v2.29.0 · mod → op accanto a bebida/alcohol; «Como viene» non si scrive
   let _mv2 = d.resp.mod || '';
   if (_mv2 === (getLang('mod_comoviene') || 'Como viene')) _mv2 = '';
-  const _op2 = [d.resp.bebida || d.resp.alcohol || '', _mv2].filter(Boolean).join(' · ');
-  for(let i = 0; i < d.qty; i++) _pushLinea(d.p, _op2, d.resp.termino || '');
+  // v2.33.0 · LA MESA DEI TRE MENÙ: con qty>1 e contatori bebida, una riga
+  // per bebida (1× Coca + 2× Cerveza in un solo gesto — merge id+op esistente)
+  const _esMultiBeb = d.qty > 1 && d.preguntas.some(q => q.tipo === 'bebida') && v2BebTotal() === d.qty;
+  if(_esMultiBeb){
+    Object.keys(d.bebN).forEach(beb => {
+      const _opB = [beb, _mv2].filter(Boolean).join(' · ');
+      for(let i = 0; i < d.bebN[beb]; i++) _pushLinea(d.p, _opB, d.resp.termino || '');
+    });
+  } else {
+    const _op2 = [d.resp.bebida || d.resp.alcohol || '', _mv2].filter(Boolean).join(' · ');
+    for(let i = 0; i < d.qty; i++) _pushLinea(d.p, _op2, d.resp.termino || '');
+  }
   try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
-  const detalle = [d.resp.bebida, trOp(d.resp.alcohol || ''), trOp(_mv2 || ''), trOp(d.resp.termino || '')].filter(Boolean).join(' · ');
+  const detalle = _esMultiBeb
+    ? Object.keys(d.bebN).map(b => d.bebN[b] + '× ' + b).join(' · ')
+    : [d.resp.bebida, trOp(d.resp.alcohol || ''), trOp(_mv2 || ''), trOp(d.resp.termino || '')].filter(Boolean).join(' · ');
   showToastMsg('✓ ' + d.qty + '× ' + toTitleCase(d.p.nombre) + (detalle ? ' · ' + detalle : '') + ' en tu pedido');
   v2RefreshCtrl(d.p.id);
   closeDetail();
