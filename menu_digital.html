@@ -3946,6 +3946,36 @@ body.theme-dark[data-fascia-menu="dia"] .v2-ronda{color:#b8860b;border-color:#b8
 .v2dj-prox{border:1.5px dashed rgba(139,92,246,.55);border-radius:14px;padding:12px;margin-top:6px;
   font-size:12.5px;font-weight:800;color:#a89fc7;text-align:center;background:rgba(139,92,246,.07)}
 .v2dj-regla{font-size:10.5px;color:#6f668f;text-align:center;margin-top:8px;line-height:1.5}
+/* ═ v2.32.0 · PODERE A · strip «Las del Comandante» (sopra il buscador) ═ */
+.v2dj-propias{margin:12px 0 4px;display:none}
+.v2dj-propias .lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#ffcf6b;font-weight:900;margin-bottom:8px}
+.v2dj-props{display:flex;gap:9px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.v2dj-props::-webkit-scrollbar{display:none}
+.v2dj-prop{flex:0 0 auto;width:150px;background:#130e20;border:1.5px solid rgba(255,207,107,.45);border-radius:14px;padding:10px;cursor:pointer}
+.v2dj-prop .ray{font-size:10px;font-weight:900;letter-spacing:1.5px;color:#ffcf6b}
+.v2dj-prop .tit{font-size:13.5px;font-weight:800;color:#f4f0ff;line-height:1.25;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.v2dj-prop .art{font-size:11px;color:#a89fc7;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v2dj-prop .pie{display:flex;align-items:center;justify-content:space-between;margin-top:7px;gap:6px}
+.v2dj-prop .gen{font-size:9.5px;font-weight:800;border-radius:6px;padding:2px 6px;background:rgba(255,207,107,.1);border:1px solid rgba(255,207,107,.4);color:#ffcf6b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v2dj-prop .plata{font-size:12.5px;font-weight:900;color:#00ffc8;flex:0 0 auto}
+.v2dj-prop.arm{border-color:#00ffc8;box-shadow:0 0 14px rgba(0,255,200,.3)}
+.v2dj-prop.sending{border-color:#8b5cf6;opacity:.75}
+.v2dj-prop.sent{border-color:#00ffc8;background:rgba(0,255,200,.07)}
+/* ═ v2.32.0 · PODERE B · 💬 «el Comandante te dice» + risposta SOLO emoji ═ */
+#v2DjMsgOv{position:fixed;inset:0;z-index:660;background:rgba(8,5,16,.78);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:22px}
+#v2DjMsgOv.up{display:flex}
+.v2djm{width:min(420px,100%);background:radial-gradient(300px 200px at 85% -10%, rgba(139,92,246,.25), transparent 60%),#140e24;border:1.5px solid #8b5cf6;border-radius:22px;padding:22px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.v2djm .vin{width:54px;height:54px;border-radius:50%;margin:0 auto 12px;background:radial-gradient(circle,#241a3d 0 30%,#0d0918 32% 100%);border:2px solid #ff2e88;animation:v2djmSpin 3.5s linear infinite}
+@keyframes v2djmSpin{to{transform:rotate(360deg)}}
+.v2djm .de{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#00ffc8;font-weight:900}
+.v2djm .tx{font-size:18px;font-weight:800;color:#f4f0ff;line-height:1.45;margin:10px 0 16px}
+.v2djm .resp{font-size:11.5px;color:#a89fc7;margin-bottom:10px}
+.v2djm-em{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.v2djm-em button{background:#1a1330;border:1.5px solid rgba(255,255,255,.12);border-radius:12px;font-size:24px;padding:9px 0;cursor:pointer}
+.v2djm-em button:active{transform:scale(1.15)}
+.v2djm-em button.sel{border-color:#00ffc8;background:rgba(0,255,200,.1);box-shadow:0 0 12px rgba(0,255,200,.35)}
+.v2djm .grx{font-size:14px;font-weight:800;color:#00ffc8;margin-top:12px;min-height:18px}
+.v2djm .cx{margin-top:12px;background:transparent;border:none;color:#6f668f;font-size:12px;text-decoration:underline;cursor:pointer}
 /* ── v3.3 fix ④ · destacado a PAGINA INTERA ── */
 #v2ShDest{max-height:94dvh;min-height:88dvh}
 #v2ShDest{pointer-events:none}
@@ -3988,7 +4018,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.31.1 · tap cancion que se siente · 24jul</span>
+<span id="ver" hidden>menu2 · v2.32.0 · poderes del comandante · 25jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4315,6 +4345,12 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
       <div class="lbl">🏛 <span data-i18n="djx_casa">La casa permite esta noche</span></div>
       <div class="v2dj-gchips" id="v2DjGchips"></div>
     </div>
+    <!-- v2.32.0 · PODERE A · le sue, richiedibili al tap (si vede solo se il
+         DJ della noche ha il potere `propias` e ha righe in CANCIONES_DJ) -->
+    <div class="v2dj-propias" id="v2DjPropias">
+      <div class="lbl">🎛 <span data-i18n="djp_lbl">Las del Comandante</span></div>
+      <div class="v2dj-props" id="v2DjPropsList"></div>
+    </div>
     <div class="v2dj-pausa" id="v2DjPausaBanner" style="display:none"></div>
     <div class="v2dj-buscar"><span class="lupa">🔎</span>
       <input id="v2DjQ" type="search" data-i18n-ph="djx_ph" placeholder="Busca tu canción… (mín. 3 letras)" autocomplete="off"></div>
@@ -4323,6 +4359,20 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
     <div id="v2DjMis"></div>
     <div class="v2dj-regla" data-i18n="djx_regla">El DJ tiene la última palabra: si no la pone, te devolvemos la plata solos.</div>
   </div></div>
+</div>
+
+<!-- v2.32.0 · PODERE B · 💬 il mensaje della cabina atterra qui (una volta
+     sola per mensaje, pattern coach campanilla) · risposta SOLO emoji -->
+<div id="v2DjMsgOv">
+  <div class="v2djm">
+    <div class="vin"></div>
+    <div class="de" id="v2DjmDe">🎧</div>
+    <div class="tx" id="v2DjmTx"></div>
+    <div class="resp" id="v2DjmResp" data-i18n="djm_resp">Respóndele con un toque</div>
+    <div class="v2djm-em" id="v2DjmEm"></div>
+    <div class="grx" id="v2DjmGrx"></div>
+    <button class="cx" onclick="v2DjMsgCerrar()" data-i18n="djm_cx">cerrar</button>
+  </div>
 </div>
 
 <!-- FINAL round oss.4b · lightbox poster (sopra tutto, ✕ per chiudere) -->
@@ -4649,6 +4699,10 @@ const TRANSLATIONS = {
     djx_t_fail:'No se pudo — reintenta', djx_t_conn:'Sin conexión — reintenta',
     djx_luz_on:'abierta', djx_luz_pronto:'pronto', djx_luz_off:'no disponible',
     djx_porta_t:'Tu canción, a la cabina', djx_porta_s:'búscala, págala y suena — el DJ tiene la última palabra',
+    /* v2.32.0 · PODERES: strip propias + mensaje della cabina */
+    djp_lbl:'Las del Comandante', djp_suya:'⚡ SUYA',
+    djm_dice:'te dice', djm_resp:'Respóndele con un toque',
+    djm_grx:'¡Le llegó a la cabina! 🎧', djm_cx:'cerrar',
     /* v2.22 · giro carrello due-vie i18n (VB dom 19: i furbetti non hanno scuse) */
     via_mesa:'Enviar a la MESA {mesa} — {mesero} pasa a confirmar',
     via_prox:'Envío directo a {dest} · ⏳ próximamente',
@@ -4761,6 +4815,9 @@ const TRANSLATIONS = {
     djx_t_fail:'Couldn\'t send it — try again', djx_t_conn:'No connection — try again',
     djx_luz_on:'open', djx_luz_pronto:'soon', djx_luz_off:'unavailable',
     djx_porta_t:'Your song, to the booth', djx_porta_s:'find it, pay it, hear it — the DJ has the final word',
+    djp_lbl:'The Comandante’s own', djp_suya:'⚡ HIS OWN',
+    djm_dice:'says', djm_resp:'Answer with one tap',
+    djm_grx:'Sent to the booth! 🎧', djm_cx:'close',
     via_mesa:'Send to TABLE {mesa} — {mesero} will come to confirm',
     via_prox:'Direct send to {dest} · ⏳ coming soon',
     via_directa_q:'Send straight to {dest}?', via_directa_sub:'they start making it right away',
@@ -4948,6 +5005,9 @@ const TRANSLATIONS = {
     djx_t_fail:'Non è andata — riprova', djx_t_conn:'Senza connessione — riprova',
     djx_luz_on:'aperta', djx_luz_pronto:'a breve', djx_luz_off:'non disponibile',
     djx_porta_t:'La tua canzone, in cabina', djx_porta_s:'cercala, pagala e suona — il DJ ha l\'ultima parola',
+    djp_lbl:'Le sue del Comandante', djp_suya:'⚡ SUA',
+    djm_dice:'ti dice', djm_resp:'Rispondi con un tocco',
+    djm_grx:'Arrivato in cabina! 🎧', djm_cx:'chiudi',
     via_mesa:'Invia al TAVOLO {mesa} — {mesero} passa a confermare',
     via_prox:'Invio diretto a {dest} · ⏳ in arrivo',
     via_directa_q:'Inviare diretto a {dest}?', via_directa_sub:'iniziano subito a prepararlo',
@@ -8805,6 +8865,9 @@ async function loadAgotados(){
     const url = `${BRAND.gas_url || GAS_URL}?action=getAgotados&local=${LOCAL_ID}&t=${Date.now()}`;
     const r = await fetch(url);
     const data = await r.json();
+    // v2.32.0 · PODERE B: i mensajes della cabina viaggiano in QUESTO poll
+    // (regola della casa: mai un poll nuovo) — prima dei return sugli ids
+    try { v2DjMsgCheck(data && data.msgs); } catch(e){}
     if(!data || !data.ok || !Array.isArray(data.ids)) return;
     const set = {};
     data.ids.forEach(id => { set[id] = true; });
@@ -11067,8 +11130,121 @@ function v2DjRefrescaSheet(){
     }).join('') : '';
   }
   if(V2DJ_ULTIMI.length) v2DjPinta();   // riprezza/riabilita i risultati
+  v2DjPintaPropias();   // v2.32.0 · la strip vive coi dati del poll
 }
 function v2CerrarDjBox(){ document.getElementById('v2ShDj').classList.remove('up'); }
+
+/* ═ v2.32.0 · PODERE A · «Las del Comandante» — la strip sopra il buscador.
+   Le sue tracce come card richiedibili al tap: stesso doppio-tap e stessi 3
+   stati della fila iTunes (armado → enviando → ✓), flag propia:true nel
+   payload → in cabina la card arriva «⚡ UNA TUYA». Il genere lo dice il
+   foglio, non iTunes: NIENTE controllo estilos_activos (sono sue: sempre in
+   carta). I titoli non si traducono (i18n solo la cornice). ═ */
+let V2DJP_ARM = null, V2DJP_SENDING = -1, V2DJP_SENT = -1;
+function v2DjPropias(){ return (DJBOX_CLI && DJBOX_CLI.propias) || []; }
+function v2DjPintaPropias(){
+  const box = document.getElementById('v2DjPropias');
+  if(!box) return;
+  const props = v2DjPropias();
+  box.style.display = props.length ? 'block' : 'none';
+  if(!props.length) return;
+  document.getElementById('v2DjPropsList').innerHTML = props.map((p, i) => {
+    const armado = V2DJP_ARM && V2DJP_ARM.idx === i;
+    const estado = i === V2DJP_SENDING ? ' sending' : i === V2DJP_SENT ? ' sent' : armado ? ' arm' : '';
+    const pie = i === V2DJP_SENDING ? '📡 …' : i === V2DJP_SENT ? escapeHtml(getLang('djx_t_ok')).split(' — ')[0]
+      : armado ? escapeHtml(getLang('djx_confirm')) : escapeHtml(p.estilo || '');
+    return `<div class="v2dj-prop${estado}" onclick="v2DjPropiaPedir(${i})">
+      <div class="ray">${escapeHtml(getLang('djp_suya'))}</div>
+      <div class="tit">${escapeHtml(p.tit)}</div>
+      <div class="art">${escapeHtml(p.art || '')}</div>
+      <div class="pie"><span class="gen">${pie}</span><span class="plata">${v2DjPrecioLabel()}</span></div></div>`;
+  }).join('');
+}
+async function v2DjPropiaPedir(i){
+  const p = v2DjPropias()[i]; if(!p) return;
+  if(MESA_ID){
+    if(!(DJBOX_CLI && DJBOX_CLI.on)){ showToastMsg('⏳ ' + getLang('djx_t_pronto')); return; }
+    const semP = v2DjSemaforo();
+    if(semP === 'off'){ showToastMsg('🎧 ' + getLang('djx_nodisp')); return; }
+    if(semP === 'pronto'){ showToastMsg('🟡 ' + getLang('djx_pronto')); return; }
+  }
+  if(!V2DJP_ARM || V2DJP_ARM.idx !== i){
+    if(V2DJP_ARM) clearTimeout(V2DJP_ARM.timer);
+    V2DJP_ARM = { idx: i, timer: setTimeout(()=>{ V2DJP_ARM = null; v2DjPintaPropias(); }, 3500) };
+    try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
+    v2DjPintaPropias(); return;
+  }
+  clearTimeout(V2DJP_ARM.timer); V2DJP_ARM = null;
+  if(!MESA_ID){ v2DjPintaPropias(); showToastMsg('🪑 ' + getLang('djx_invite'), 4500); return; }
+  V2DJP_SENDING = i; v2DjPintaPropias();
+  try { navigator.vibrate && navigator.vibrate([15, 40, 15]); } catch(e){}
+  const uuid = 'djp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  try {
+    const resp = await fetch(BRAND.gas_url || GAS_URL, { method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'pedirCancion', local: LOCAL_ID, mesa: MESA_ID, uuid: uuid,
+        cancion: p.tit, artista: p.art, estilo: p.estilo || '', propia: true,
+        cliente: (ACTIVE_MEMBER && ACTIVE_MEMBER.nombre) || '' }) });
+    const j = await resp.json();
+    V2DJP_SENDING = -1;
+    if(j.ok){
+      V2DJP_SENT = i; v2DjPintaPropias();
+      setTimeout(()=>{ if(V2DJP_SENT === i){ V2DJP_SENT = -1; v2DjPintaPropias(); } }, 4000);
+      showToastMsg('🎧 «' + p.tit + '» ' + getLang('djx_t_ok')); loadDjBoxCliente();
+    }
+    else { v2DjPintaPropias(); showToastMsg(getLang('djx_t_fail')); }
+  } catch(e){ V2DJP_SENDING = -1; v2DjPintaPropias(); showToastMsg(getLang('djx_t_conn')); }
+}
+
+/* ═ v2.32.0 · PODERE B · 💬 el mensaje della cabina — viaggia nel poll
+   getAgotados (universale, zero letture extra), si mostra UNA volta per
+   mensaje (flag al mostrarsi, pattern coach campanilla), e la risposta è
+   SOLO emoji: la tastiera è chiusa, niente moderazione, solo calore. ═ */
+const V2DJM_EMOJIS = ['🔥','❤️','🙌','🥂','😂','🕺'];   // deve combaciare col GAS
+let V2DJM_ACTUAL = null, V2DJM_VUELO = false;
+function v2DjMsgSeenKey(){ return 'v2_djmsg_' + (LOCAL_ID || 'X'); }
+function v2DjMsgSeen(){
+  try { return JSON.parse(localStorage.getItem(v2DjMsgSeenKey()) || '{}'); } catch(e){ return {}; }
+}
+function v2DjMsgCheck(msgs){
+  if(!MESA_ID || !Array.isArray(msgs) || !msgs.length) return;
+  if(document.getElementById('v2DjMsgOv').classList.contains('up')) return;   // uno alla volta
+  const seen = v2DjMsgSeen();
+  const m = msgs.find(x => x && x.mesa === MESA_ID && x.id && !seen[x.id]);
+  if(!m) return;
+  // flag AL MOSTRARSI = zero nagging (coach campanilla) · pulizia >24h
+  const now = Date.now();
+  Object.keys(seen).forEach(k => { if(now - (seen[k]||0) > 86400000) delete seen[k]; });
+  seen[m.id] = now;
+  try { localStorage.setItem(v2DjMsgSeenKey(), JSON.stringify(seen)); } catch(e){}
+  V2DJM_ACTUAL = m;
+  document.getElementById('v2DjmDe').textContent = '🎧 ' + (m.de || 'DJ') + ' ' + getLang('djm_dice') + ':';
+  document.getElementById('v2DjmTx').textContent = m.texto || '';
+  document.getElementById('v2DjmGrx').textContent = '';
+  document.getElementById('v2DjmResp').style.display = '';
+  document.getElementById('v2DjmEm').innerHTML = V2DJM_EMOJIS.map(e =>
+    `<button onclick="v2DjMsgReact('${e}')">${e}</button>`).join('');
+  document.getElementById('v2DjMsgOv').classList.add('up');
+  try { navigator.vibrate && navigator.vibrate([20, 60, 20]); } catch(e){}
+}
+async function v2DjMsgReact(emoji){
+  if(V2DJM_VUELO || !V2DJM_ACTUAL) return;
+  V2DJM_VUELO = true;
+  document.querySelectorAll('#v2DjmEm button').forEach(b => b.classList.toggle('sel', b.textContent === emoji));
+  try { navigator.vibrate && navigator.vibrate(15); } catch(e){}
+  try {
+    fetch(BRAND.gas_url || GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'djMensajeReaccion', local: LOCAL_ID,
+        mesa: MESA_ID, id: V2DJM_ACTUAL.id, emoji: emoji }) });
+  } catch(e){}
+  document.getElementById('v2DjmGrx').textContent = getLang('djm_grx');
+  document.getElementById('v2DjmResp').style.display = 'none';
+  setTimeout(v2DjMsgCerrar, 1800);
+}
+function v2DjMsgCerrar(){
+  document.getElementById('v2DjMsgOv').classList.remove('up');
+  V2DJM_ACTUAL = null; V2DJM_VUELO = false;
+}
 let V2DJ_ULTIMI = [], v2DjT = null, v2DjN = 0;
 function v2DjWireBuscador(){
   const q = document.getElementById('v2DjQ');
