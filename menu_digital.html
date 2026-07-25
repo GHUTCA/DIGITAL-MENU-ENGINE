@@ -4018,7 +4018,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.32.1 · poderes + via pegada al carrito · 25jul</span>
+<span id="ver" hidden>menu2 · v2.32.2 · la ronda es de bebida (retro Isa) · 25jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -9244,7 +9244,7 @@ function renderCart(){
       <span>${getLang('cart_total') || 'Total'}</span>
       <span>${formatPriceWithSymbol(total)}</span>
     </div>
-    ${(ULTIMA_RONDA && ULTIMA_RONDA.length)
+    ${(v2RondaBebidas().length)
       ? `<button class="v2-ronda" onclick="v2OtraRonda()">🔁 ¿Otra ronda? — ${v2RondaResumen()}</button>`
       : ''}
     ${(PEDIDO_DIGITAL && _nocheValidos().length > 0)
@@ -9363,15 +9363,28 @@ function v2EnviarDirecto(){
   enviarPedidoDigital({ directo: true });
 }
 /* oss.7 · la ronda DICE cosa ripete ("lo anterior" non si capiva) */
+/* v2.32.2 · LA RONDA È DA BEBIDA (retro Isa, caso mesa 88: «otra ronda» ha
+   ripetuto anche i maki e il chit è uscito in cucina): si ripetono SOLO le
+   categorie della Barra — nessuno ordina «un'altra ronda» di ceviche. Senza
+   bebidas nell'ultima ronda, il bottone non si disegna. */
+function v2RondaBebidas(){
+  if(!ULTIMA_RONDA || !ULTIMA_RONDA.length) return [];
+  const barraCats = new Set((CATEGORY_GROUPS && (CATEGORY_GROUPS['Barra']||{}).cats) || []);
+  return ULTIMA_RONDA.filter(r => {
+    const p = ALL_PRODUCTS.find(x => x.id === r.id);
+    return p && barraCats.has(p.categoria);
+  });
+}
 function v2RondaResumen(){
-  if(!ULTIMA_RONDA || !ULTIMA_RONDA.length) return '';
-  let s = ULTIMA_RONDA.map(i => (i.qty||1) + '× ' + toTitleCase(i.nombre)).join(' · ');
+  const beb = v2RondaBebidas();
+  if(!beb.length) return '';
+  let s = beb.map(i => (i.qty||1) + '× ' + toTitleCase(i.nombre)).join(' · ');
   if(s.length > 52) s = s.slice(0, 50) + '…';
   return s;
 }
 function v2OtraRonda(){
   if(!ULTIMA_RONDA || !ULTIMA_RONDA.length) return;
-  ULTIMA_RONDA.forEach(r => {
+  v2RondaBebidas().forEach(r => {
     const existing = CART.items.find(i => i.id === r.id && (i.op||'') === (r.op||'') && (i.termino||'') === (r.termino||''));
     if(existing) existing.qty = (existing.qty||1) + (r.qty||1);
     else CART.items.push(JSON.parse(JSON.stringify(r)));
