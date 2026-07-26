@@ -4024,7 +4024,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.33.0 · la mesa de los tres menus (bebidas con contador) · 25jul</span>
+<span id="ver" hidden>menu2 · v2.33.1 · el Jagger no se pregunta sin alcohol · 26jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8359,7 +8359,13 @@ function v2Preguntas(p){
   const esCarne = (p.badges||'').toLowerCase().includes('carne');
   // v2.26 · CON/SIN ALCOHOL (VB Alberto): mojitos + coladas → la barra deve saperlo.
   // Rilevato per pattern (categoría/nombre), niente token nel foglio.
-  const esAlcohol = (p.categoria === 'mojitos') || /colada/i.test(p.nombre || '');
+  // v2.33.1 · ma hay tragos de la familia que SIN alcohol no existen: el Mojito
+  // Jagger es Jägermeister + Red Bull — quitado el licor no queda un mojito,
+  // queda otra bebida que la barra no tiene. Preguntar por algo que no se puede
+  // servir es prometer lo que no hay. Excepción por ID (VB Alberto 26-jul).
+  const SIN_ALCOHOL_IMPOSIBLE = ['BKS-MOJ-002'];
+  const esAlcohol = ((p.categoria === 'mojitos') || /colada/i.test(p.nombre || ''))
+                    && SIN_ALCOHOL_IMPOSIBLE.indexOf(p.id) < 0;
   if(esAlmuerzo && menuOpcionesNombres().length) preguntas.push({ tipo:'bebida',  opciones: menuOpcionesNombres() });   // v2.17 · prodotti veri (fallback chips testo)
   if(esCarne && TERMINO_OPCIONES.length)     preguntas.push({ tipo:'termino', opciones: TERMINO_OPCIONES });
   // v2.29.0 · le «forzadas»: il prodotto con modificadores CHIEDE (certezza in
