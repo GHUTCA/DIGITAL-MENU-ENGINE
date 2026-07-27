@@ -4024,7 +4024,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.33.1 · el Jagger no se pregunta sin alcohol · 26jul</span>
+<span id="ver" hidden>menu2 · v2.34.0 · la sesion muere con la jornada · 26jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -4422,9 +4422,23 @@ let   LANG_CODE  = URL_PARAMS.get('lang') || 'es';
    la guardia chiede — UNA volta, grande, al momento giusto. */
 const SES_KEY = 'menu_ses_' + (LOCAL_ID || 'X');
 const SES_TTL_MS = 4 * 60 * 60 * 1000;
+/* v2.34.0 · LA SESIÓN MUERE CON LA JORNADA (razonado con Alberto 26-jul).
+   El TTL de 4h es DESLIZANTE: cada sesSave lo recarga, así que un teléfono
+   con el menú siempre abierto tenía sesión eterna — y al día siguiente el
+   QR le preguntaba «¿te cambiaste de mesa?» comparándolo con una sesión de
+   ayer que no debería existir. La jornada operativa corta a las 06:00
+   (mismo corte que el libro): nacida en otra jornada = sesión muerta. */
+function _fechaOpCliente(){
+  try {
+    const ahora = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Santiago' }));
+    ahora.setHours(ahora.getHours() - 6);           // corte 06:00
+    const m = ahora.getMonth() + 1, d = ahora.getDate();
+    return ahora.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+  } catch(e){ return ''; }
+}
 let SES = null;
 let SES_MESA_CONFLICTO = null;   // {vieja, nueva} → sesGuardiaMostrar() al boot
-function sesSave(){ try { SES.ts = Date.now(); localStorage.setItem(SES_KEY, JSON.stringify(SES)); } catch(e){} }
+function sesSave(){ try { SES.ts = Date.now(); SES.fop = SES.fop || _fechaOpCliente(); localStorage.setItem(SES_KEY, JSON.stringify(SES)); } catch(e){} }
 function mstGet(k){ return (SES && SES.kv && SES.kv[k] !== undefined) ? SES.kv[k] : null; }
 function mstSet(k, v){ if (!SES) return; SES.kv[k] = String(v); sesSave(); }
 function mstDel(k){ if (!SES || !(k in SES.kv)) return; delete SES.kv[k]; sesSave(); }
@@ -4433,11 +4447,16 @@ function sesLoad(){
     const raw = localStorage.getItem(SES_KEY);
     if (raw) {
       const s = JSON.parse(raw);
-      if (s && s.ts && (Date.now() - s.ts) < SES_TTL_MS && s.kv) SES = s;
+      // v2.34.0 · dos condiciones, no una: dentro del TTL Y de la misma
+      // jornada. Sesión de otra jornada = no existe (carrito, mesa y todo).
+      const fopHoy = _fechaOpCliente();
+      const mismaJornada = !s || !s.fop || !fopHoy || s.fop === fopHoy;
+      if (s && s.ts && (Date.now() - s.ts) < SES_TTL_MS && s.kv && mismaJornada) SES = s;
+      else if (s && !mismaJornada) { try { localStorage.removeItem(SES_KEY); } catch(e){} }
     }
   } catch(e){}
   if (!SES) {
-    SES = { mesa: MESA_ID || '', ts: 0, kv: {} };
+    SES = { mesa: MESA_ID || '', ts: 0, fop: _fechaOpCliente(), kv: {} };
     // migrazione dolce dal mondo per-scheda (la sera del deploy nessuno perde niente)
     try {
       ['bks_carrito','pedido_actual_v1','pedidos_noche_v1','ultima_ronda_v1'].forEach(function(k){
