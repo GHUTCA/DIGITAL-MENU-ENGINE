@@ -4024,7 +4024,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.36.0 · cierre por estacion · 27jul</span>
+<span id="ver" hidden>menu2 · v2.37.0 · ventana de la mesa · 27jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10037,6 +10037,12 @@ function _pedidoRegistrarExito(entry, resp){
     destino: (pl.destino || ''),   // v2.28.0 · per il post-invio dinamico
     // v2.12 · il N° d'ordine è l'ancora del «sí, lo recibieron»
     id: (resp && resp.id_pedido) || '',
+    // v2.37.0 · LA VENTANA DE LA MESA (GAS v3.34.0): secondi che il pedido
+    // aspetta prima di andare in produzione, per far salire sul treno gli
+    // altri telefoni del tavolo. Un'attesa taciuta si legge come lentezza;
+    // la stessa attesa detta si legge come cura. 0 = ventana apagada.
+    ven: (resp && parseInt(resp.ventana_s, 10)) || 0,
+    ven_ts: Date.now(),
   };
   PEDIDOS_NOCHE.push(ped);   // v1.36 · entra nello storico della serata
   _nocheSave();
@@ -10066,10 +10072,18 @@ function renderPedidoEstado(){
   const el = document.getElementById('cartSheetContent');
   if(!el || !PEDIDO_ACTUAL) return;
   const PA = PEDIDO_ACTUAL;
+  // v2.37.0 · LA VENTANA DE LA MESA · mientras el pedido espera a los demás
+  // teléfonos de la mesa, se DICE. No es una regla que le pedimos al cliente
+  // («pidan todo junto» es tarea nuestra, no suya): es una cortesía de la casa.
+  // Vencida la ventana la línea desaparece sola en el siguiente render.
+  const _enVen = PA.ven > 0 && (Date.now() - (PA.ven_ts || 0)) < PA.ven * 1000;
   const VISTAS = {
     // round5 oss.7.3 · sappiamo CHI è il mesero: si chiama per nome
     pendiente:  { icon:'🛎', anim:true,  t: MESERO_MESA ? ('Avisando a ' + MESERO_MESA + '…') : (getLang('pedido_st_pendiente') || 'Llamando al mesero…'),
-                  s: getLang('pedido_st_pendiente_sub') || 'Tu pedido ya está en el sistema' },
+                  s: _enVen
+                       ? (getLang('pedido_st_ventana_sub') ||
+                          'Esperamos un momento por si alguien más de tu mesa pide — así les sale todo junto')
+                       : (getLang('pedido_st_pendiente_sub') || 'Tu pedido ya está en el sistema') },
     atendido:   { icon:'✓',  anim:false, t: (getLang('pedido_st_atendido') || '{nombre} va en camino').replace('{nombre}', PA.mesero || (getLang('pedido_el_mesero')||'El mesero')),
                   s: getLang('pedido_st_atendido_sub') || 'Confirma tu pedido cuando llegue a la mesa' },
     digitado:   { icon:'⌨',  anim:false, t: getLang('pedido_st_digitado') || 'En el sistema',
@@ -10183,10 +10197,17 @@ function iniciarPollPedido(){
       PEDIDO_ACTUAL.mesero = r.mesero || '';
       try { mstSet(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
       _nocheSave();   // v1.36 · PEDIDO_ACTUAL vive anche dentro PEDIDOS_NOCHE (stesso oggetto)
-      if(cambio){
-        if(PEDIDO_ACTUAL.estado === 'atendido'){
-          showToastMsg('✓ ' + (PEDIDO_ACTUAL.mesero || (getLang('pedido_el_mesero')||'El mesero')) + ' ' + (getLang('pedido_camino_toast')||'va en camino'));
-        }
+      if(cambio && PEDIDO_ACTUAL.estado === 'atendido'){
+        showToastMsg('✓ ' + (PEDIDO_ACTUAL.mesero || (getLang('pedido_el_mesero')||'El mesero')) + ' ' + (getLang('pedido_camino_toast')||'va en camino'));
+      }
+      // v2.37.0 · mientras la ventana de la mesa está viva (+15s de gracia) se
+      // repinta igual aunque no cambie el estado: si no, la línea «esperamos un
+      // momento» se quedaría en pantalla después de que la ventana ya cerró —
+      // una frase que dejó de ser verdad. Pasada la gracia, vuelve a repintar
+      // sólo cuando hay cambio (cero trabajo extra el resto de la noche).
+      const venViva = PEDIDO_ACTUAL.ven > 0 &&
+        (Date.now() - (PEDIDO_ACTUAL.ven_ts || 0)) < (PEDIDO_ACTUAL.ven + 15) * 1000;
+      if(cambio || venViva){
         const sheetOpen = document.getElementById('cartSheet')?.classList.contains('open');
         if(sheetOpen && CART.items.length === 0) renderPedidoEstado();
       }
