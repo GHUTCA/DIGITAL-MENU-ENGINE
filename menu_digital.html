@@ -4024,7 +4024,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.35.0 · las dos fuentes con interruptor · 26jul</span>
+<span id="ver" hidden>menu2 · v2.36.0 · cierre por estacion · 27jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8967,6 +8967,45 @@ async function loadCrossSell(){
    l'ha già nel carrito glielo si dice SUBITO — meglio adesso che al momento di
    inviare. Payload minimo (soli ID) e cache 30s lato GAS. Un poll non rompe
    mai il menù: qualunque errore muore in silenzio. */
+/* ═ v2.36.0 · CIERRE POR ESTACIÓN (Alberto 26/27-jul) ═
+   No cierra el local: cierra cada estación. La cocina apaga los fuegos y sus
+   platos dejan de pedirse; los cocktails siguen porque la barra sigue. Los
+   2-3 platos que sobreviven llegan en `salvo_ids` (su Hora_Fin propia).
+   Antes de cerrar, el aviso: «¿último pedido antes de que cierre la cocina?» */
+let ESTACION_CERRADA_IDS = [];
+let ESTACION_CERRADA_PROD = "";
+let ESTACIONES_EST = null;
+let ESTACION_AVISADA = {};
+function estacionDeProducto(cat, barraCats){
+  const c = String(cat || '').trim().toLowerCase();
+  return (barraCats || []).indexOf(c) >= 0 ? 'barra' : 'cocina';
+}
+function estacionesAplicar(data){
+  if(!data || !data.estaciones) return;
+  ESTACIONES_EST = data.estaciones;
+  const bCats = (data.barra_cats || []).map(c => String(c).trim().toLowerCase());
+  const salvo = {}; (data.salvo_ids || []).forEach(id => { salvo[id] = true; });
+  const cerrados = [];
+  (ALL_PRODUCTS || []).forEach(p => {
+    if(salvo[p.id]) return;
+    const e = estacionDeProducto(p.cat || p.categoria, bCats);
+    if(data.estaciones[e] && data.estaciones[e].abierta === false) cerrados.push(p.id);
+  });
+  ESTACION_CERRADA_IDS = cerrados;
+  // el aviso: una sola vez por estación y por noche
+  ['cocina','barra'].forEach(e => {
+    const st = data.estaciones[e];
+    if(!st || !st.avisar || ESTACION_AVISADA[e]) return;
+    ESTACION_AVISADA[e] = true;
+    const min = st.faltan_min || 0;
+    const quien = e === 'cocina' ? (getLang('est_cocina') || 'la cocina') : (getLang('est_barra') || 'la barra');
+    try {
+      showToastMsg('🕐 ' + (getLang('est_ultimo') || '¿Último pedido antes de que cierre') + ' ' + quien + '? ' +
+                   (min ? '(' + min + ' min)' : ''), 7000);
+    } catch(err){}
+  });
+}
+
 let AGOTADOS_POLL_TIMER = null;
 async function loadAgotados(){
   if(!BRAND.gas_url && !GAS_URL) return;
@@ -8977,9 +9016,15 @@ async function loadAgotados(){
     // v2.32.0 · PODERE B: i mensajes della cabina viaggiano in QUESTO poll
     // (regola della casa: mai un poll nuovo) — prima dei return sugli ids
     try { v2DjMsgCheck(data && data.msgs); } catch(e){}
+    // v2.36.0 · CIERRE POR ESTACIÓN: la cocina apaga antes que la barra. Lo
+    // que ya no se produce deja de pedirse — el resto sigue vivo. Viaja en
+    // este mismo poll (regla de la casa: nunca un poll nuevo).
+    try { estacionesAplicar(data); } catch(e){}
     if(!data || !data.ok || !Array.isArray(data.ids)) return;
     const set = {};
     data.ids.forEach(id => { set[id] = true; });
+    // los cerrados por horario se tratan como no pedibles, con su propio motivo
+    ESTACION_CERRADA_IDS.forEach(id => { set[id] = true; });
     let cambio = false;
     ALL_PRODUCTS.forEach(p => {
       const ago = !!set[p.id];
@@ -9883,8 +9928,12 @@ async function _enviarPedidoDigitalInner(opts){
       if (resp && resp.ok) break;
       if (resp && resp.need) break;   // v2.9.1 · non è un errore di rete · v2.27 · qualunque `need` è una risposta, non un guasto
       lastErr = (resp && resp.error) || 'enviar_failed';
+      // v2.36.0 · la cocina cerró mientras el carrito esperaba: es un NO
+      // definitivo, insistir sólo haría perder tiempo al cliente
+      if (lastErr === 'estacion_cerrada') ESTACION_CERRADA_PROD = (resp && resp.producto) || '';
       resp = null;
-      if (lastErr === 'carrito_vacio' || lastErr === 'items_json_invalid') break;   // duri: inutile insistere
+      if (lastErr === 'carrito_vacio' || lastErr === 'items_json_invalid' ||
+          lastErr === 'estacion_cerrada') break;   // duri: inutile insistere
     } catch (e) { lastErr = e.message || 'network'; resp = null; esRed = true; }
   }
 
@@ -9920,6 +9969,20 @@ async function _enviarPedidoDigitalInner(opts){
     try { renderMenu(); } catch(e){}
     try { renderCart(); } catch(e){}
     showToastMsg('😕 ' + getLang('agotado_ahora') + ' ' + nombres.join(' · ') + ' — ' + getLang('agotado_sacado'));
+    if (btn) { btn.disabled = false; btn.textContent = getLang('cart_listo') || 'Enviar pedido 🛎'; }
+    return;
+  }
+
+  // v2.36.0 · CIERRE POR ESTACIÓN: no es un fallo, es que ya nadie lo puede
+  // hacer. Carrito intacto (el cliente saca lo cerrado y manda el resto), y
+  // se refresca el menú para que lo cerrado se vea cerrado al instante.
+  if (!resp && lastErr === 'estacion_cerrada') {
+    _colaRemove(uuid); _cartPendClear();
+    try { loadAgotados(); } catch(e){}
+    const qué = ESTACION_CERRADA_PROD ? ' (' + ESTACION_CERRADA_PROD + ')' : '';
+    showToastMsg('🕐 ' + (getLang('est_cerrada_msg') ||
+      'La cocina ya cerró' ) + qué + ' — ' + (getLang('est_cerrada_resto') ||
+      'saca eso del carrito y el resto te lo mandamos igual'), 7000);
     if (btn) { btn.disabled = false; btn.textContent = getLang('cart_listo') || 'Enviar pedido 🛎'; }
     return;
   }
