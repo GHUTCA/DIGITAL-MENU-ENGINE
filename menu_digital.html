@@ -4024,7 +4024,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.34.0 · la sesion muere con la jornada · 26jul</span>
+<span id="ver" hidden>menu2 · v2.35.0 · las dos fuentes con interruptor · 26jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -11261,6 +11261,7 @@ function v2DjRefrescaSheet(){
   }
   if(V2DJ_ULTIMI.length) v2DjPinta();   // riprezza/riabilita i risultati
   v2DjPintaPropias();   // v2.32.0 · la strip vive coi dati del poll
+  v2DjPintaFuentes();   // v2.35.0 · el buscador existe sólo si la cabina lo deja
 }
 function v2CerrarDjBox(){ document.getElementById('v2ShDj').classList.remove('up'); }
 
@@ -11271,6 +11272,32 @@ function v2CerrarDjBox(){ document.getElementById('v2ShDj').classList.remove('up
    foglio, non iTunes: NIENTE controllo estilos_activos (sono sue: sempre in
    carta). I titoli non si traducono (i18n solo la cornice). ═ */
 let V2DJP_ARM = null, V2DJP_SENDING = -1, V2DJP_SENT = -1;
+/* v2.35.0 · LAS DOS FUENTES (Alberto 26-jul): la cabina decide si la mesa
+   puede buscar en iTunes, pedir del repertorio del DJ, o ninguna de las dos.
+   Las propias ya se esconden solas (llegan vacías); acá se esconde el
+   buscador. Apagadas ambas: se dice por qué, no se deja una caja muerta. */
+function v2DjPintaFuentes(){
+  const f = (DJBOX_CLI && DJBOX_CLI.fuentes) || { itunes:true, propias:true };
+  const busca = document.querySelector('.v2dj-buscar');
+  const est = document.getElementById('v2DjEstado');
+  const res = document.getElementById('v2DjRes');
+  const hayPropias = v2DjPropias().length > 0;
+  if(busca) busca.style.display = f.itunes ? '' : 'none';
+  if(est){
+    if(f.itunes) est.style.display = '';
+    else {
+      est.style.display = hayPropias ? '' : 'none';
+      if(hayPropias) est.textContent = getLang('djx_solo_propias') || 'Esta noche el DJ toma pedidos sólo de su repertorio 🎛';
+    }
+  }
+  if(res && !f.itunes) res.innerHTML = '';
+  if(!f.itunes && !hayPropias){
+    const inv = document.getElementById('v2DjInvite');
+    if(inv){ inv.style.display = 'block';
+      inv.innerHTML = '<span class="sil">🎧</span><span>' +
+        escapeHtml(getLang('djx_sin_fuentes') || 'La cabina no está tomando pedidos ahora — pero la música sigue 🔊') + '</span>'; }
+  }
+}
 function v2DjPropias(){ return (DJBOX_CLI && DJBOX_CLI.propias) || []; }
 function v2DjPintaPropias(){
   const box = document.getElementById('v2DjPropias');
