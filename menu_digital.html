@@ -4024,7 +4024,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.37.0 · ventana de la mesa · 27jul</span>
+<span id="ver" hidden>menu2 · v2.38.0 · el tick del menú: un viaje cada 60s (P1.2/P1.4) · 28jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -5660,6 +5660,9 @@ let CROSSSELL_POLL_TIMER = null;
 // v1.23 · S13fix · prezzo per fascia · mappa prod_id → {precio, tipo} attiva ADESSO (GAS filtra)
 let PRECIOS_REGLA_MAP = {};
 let PRECIOS_REGLA_POLL_TIMER = null;
+// P1.2 · el tick del menú: UN viaje cada 60s reemplaza los polls individuales
+let MENU_TICK_TIMER = null;
+let MENU_TICK_FIRST = null;
 
 /* v1.12 · S5 · Cross-sell strip + DJ agenda
    ────────────────────────────────────────── */
@@ -5809,22 +5812,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   // CSS variables corrette (es slogan color in DIA).
   startFasciaMenuPolling();
   startRhythmPolling();
-  // v1.23 · S13fix · cross-sell scheda · load al boot + poll 60s (vale per TUTTI i local,
-  // non solo BKS · startRhythmPolling è theme-dark-only, questo no).
-  loadCrossSell();
-  if(!CROSSSELL_POLL_TIMER){
-    CROSSSELL_POLL_TIMER = setInterval(loadCrossSell, 60000);
-  }
+  // P1.2 · EL TICK: crosssell + precios + ritmos/promos/djs + agotados + djbox
+  // llegan JUNTOS en un viaje (la splash espera el primero, abajo) y luego
+  // cada 60s con gate de visibilidad. Los polls individuales murieron aquí.
+  MENU_TICK_FIRST = loadMenuTick();
+  startMenuTick();
   // v1.23 · S13fix · carrello-intenzione · carica da sessionStorage + cintura 45min
   loadCart();
   updateCartBadge();
-  // v2.18 · DJ-BOX cliente: primo stato al boot (chips vive nel mondo BPM)
-  loadDjBoxCliente();
-  // v1.23 · S13fix · prezzo per fascia · load al boot + poll 60s (tutti i local)
-  const preciosFirst = loadPreciosRegla();   // v2.16 · la splash aspetta anche questo (token menú)
-  if(!PRECIOS_REGLA_POLL_TIMER){
-    PRECIOS_REGLA_POLL_TIMER = setInterval(loadPreciosRegla, 60000);
-  }
   hideLoading();
 
   // v1.13 · S6 · attendo bienvenida (era parallela al menu) e mostro splash se applicabile
@@ -5832,7 +5827,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setTimeout(async () => {
     await bvPromise;       // riprendo il fetch già partito
     // v2.16 · MENU_INFO per i token {MENU_*}: max 2.5s di attesa, poi si va
-    await Promise.race([preciosFirst, new Promise(r => setTimeout(r, 2500))]);
+    await Promise.race([MENU_TICK_FIRST, new Promise(r => setTimeout(r, 2500))]);   // P1.2 · el tick trae también precios
     showBienvenidaSplash(); // no-op se MESA_ID, no-op se no franja_actual
   }, 600);
 
@@ -8895,39 +8890,46 @@ function applyLang(){
 }
 
 /* RITMOS + PROMOS (v1.6 invariati) */
+/* P1.2 · cada loader se parte en fetch (loadX) + apply (applyX): el tick
+   trae los 7 bloques en un viaje y reparte a los apply; los loadX quedan
+   vivos como one-shot (boot DJ sheet, refresh post-canción, pre-envío). */
+function applyRitmos(data){
+  if(!data || !data.ok) return;
+  const prevRitmoId = RITMO_ACTUAL ? RITMO_ACTUAL.id : null;
+  RITMO_ACTUAL = data.ritmo_actual || null;
+  RITMOS_DISP  = data.ritmos_disponibles || [];
+  const newRitmoId = RITMO_ACTUAL ? RITMO_ACTUAL.id : null;
+  if(prevRitmoId !== newRitmoId){
+    console.log('[v1.10] Ritmo cambiato:', prevRitmoId, '→', newRitmoId);
+  }
+  renderRhythmBar();
+  renderMenu();
+}
 async function loadRitmos(){
   if(!BRAND.gas_url) return;
   try {
     const url = `${BRAND.gas_url}?action=getRitmos&local=${LOCAL_ID}&t=${Date.now()}`;
     const r = await fetch(url);
-    const data = await r.json();
-    if(!data.ok) return;
-    const prevRitmoId = RITMO_ACTUAL ? RITMO_ACTUAL.id : null;
-    RITMO_ACTUAL = data.ritmo_actual || null;
-    RITMOS_DISP  = data.ritmos_disponibles || [];
-    const newRitmoId = RITMO_ACTUAL ? RITMO_ACTUAL.id : null;
-    if(prevRitmoId !== newRitmoId){
-      console.log('[v1.10] Ritmo cambiato:', prevRitmoId, '→', newRitmoId);
-    }
-    renderRhythmBar();
-    renderMenu();
+    applyRitmos(await r.json());
   } catch(e){ console.warn('[v1.10] loadRitmos failed:', e.message); }
 }
 
+function applyPromos(data){
+  if(!data || !data.ok) return;
+  PROMOS_ACTIVAS = data.promos_activas || [];
+  PROD_TO_PROMO = {};
+  PROMOS_ACTIVAS.forEach(p => {
+    (p.prod_ids || []).forEach(pid => { PROD_TO_PROMO[pid] = p; });
+  });
+  renderGroups();
+  renderMenu();
+}
 async function loadPromos(){
   if(!BRAND.gas_url) return;
   try {
     const url = `${BRAND.gas_url}?action=getPromos&local=${LOCAL_ID}&t=${Date.now()}`;
     const r = await fetch(url);
-    const data = await r.json();
-    if(!data.ok) return;
-    PROMOS_ACTIVAS = data.promos_activas || [];
-    PROD_TO_PROMO = {};
-    PROMOS_ACTIVAS.forEach(p => {
-      (p.prod_ids || []).forEach(pid => { PROD_TO_PROMO[pid] = p; });
-    });
-    renderGroups();
-    renderMenu();
+    applyPromos(await r.json());
   } catch(e){ console.warn('[v1.10] loadPromos failed:', e.message); }
 }
 
@@ -8939,18 +8941,20 @@ async function loadPromos(){
    Usato da openDetail per la sezione "También te puede gustar".
    Multi-local: se il local non ha tab CROSS_SELL, reglas arriva vuoto → mappa vuota.
    Poll 60s come ritmos/promos: una regola può entrare/uscire di fascia. */
+function applyCrossSell(data){
+  if(!data || !data.ok) return;
+  const map = {};
+  (data.reglas || []).forEach(rg => {
+    if(rg.prod_origen && Array.isArray(rg.prod_ids)) map[rg.prod_origen] = rg.prod_ids;
+  });
+  CROSSSELL_MAP = map;
+}
 async function loadCrossSell(){
   if(!BRAND.gas_url && !GAS_URL) return;
   try {
     const url = `${BRAND.gas_url || GAS_URL}?action=getCrossSell&local=${LOCAL_ID}&t=${Date.now()}`;
     const r = await fetch(url);
-    const data = await r.json();
-    if(!data || !data.ok) return;
-    const map = {};
-    (data.reglas || []).forEach(rg => {
-      if(rg.prod_origen && Array.isArray(rg.prod_ids)) map[rg.prod_origen] = rg.prod_ids;
-    });
-    CROSSSELL_MAP = map;
+    applyCrossSell(await r.json());
   } catch(e){ console.warn('[v1.23] loadCrossSell failed:', e.message); }
 }
 
@@ -9007,12 +9011,8 @@ function estacionesAplicar(data){
 }
 
 let AGOTADOS_POLL_TIMER = null;
-async function loadAgotados(){
-  if(!BRAND.gas_url && !GAS_URL) return;
+function applyAgotados(data){
   try {
-    const url = `${BRAND.gas_url || GAS_URL}?action=getAgotados&local=${LOCAL_ID}&t=${Date.now()}`;
-    const r = await fetch(url);
-    const data = await r.json();
     // v2.32.0 · PODERE B: i mensajes della cabina viaggiano in QUESTO poll
     // (regola della casa: mai un poll nuovo) — prima dei return sugli ids
     try { v2DjMsgCheck(data && data.msgs); } catch(e){}
@@ -9041,15 +9041,18 @@ async function loadAgotados(){
     try { renderMenu(); } catch(e){}
   } catch(e){ /* un poll non rompe mai il menù */ }
 }
-
-async function loadPreciosRegla(){
+async function loadAgotados(){
   if(!BRAND.gas_url && !GAS_URL) return;
   try {
-    const url = `${BRAND.gas_url || GAS_URL}?action=getPreciosRegla&local=${LOCAL_ID}&t=${Date.now()}`;
+    const url = `${BRAND.gas_url || GAS_URL}?action=getAgotados&local=${LOCAL_ID}&t=${Date.now()}`;
     const r = await fetch(url);
-    const data = await r.json();
-    if(!data || !data.ok) return;
-    PRECIOS_REGLA_MAP = data.reglas || {};
+    applyAgotados(await r.json());
+  } catch(e){ /* un poll non rompe mai il menù */ }
+}
+
+function applyPreciosRegla(data){
+  if(!data || !data.ok) return;
+  PRECIOS_REGLA_MAP = data.reglas || {};
     // v2.16 · menu_info: carta d'identità del menú (estado/precio/giorni) —
     // alimenta i token bienvenida, indipendente dalla fascia
     MENU_INFO = data.menu_info || null;
@@ -9065,7 +9068,58 @@ async function loadPreciosRegla(){
     }
     renderMenu();  // re-render per applicare prezzi aggiornati
     v2AplicarLanding();
+}
+async function loadPreciosRegla(){
+  if(!BRAND.gas_url && !GAS_URL) return;
+  try {
+    const url = `${BRAND.gas_url || GAS_URL}?action=getPreciosRegla&local=${LOCAL_ID}&t=${Date.now()}`;
+    const r = await fetch(url);
+    applyPreciosRegla(await r.json());
   } catch(e){ console.warn('[v1.23] loadPreciosRegla failed:', e.message); }
+}
+
+/* ═ P1.2 · EL TICK DEL MENÚ (28-jul · cantiere 13) ═
+   Antes: 6-12 viajes/min por teléfono (crosssell + precios + ritmos/promos/
+   djs + agotados + djbox a 10s). Ahora: UN viaje cada 60s — el GAS empaqueta
+   los 7 bloques (getMenuTick) y aquí cada bloque va a su applier de siempre.
+   Reglas de la casa: el teléfono en bolsillo NO toca la puerta
+   (visibilityState) y al volver a la luz pide la foto fresca al vuelo.
+   Los bloques BPM (ritmos/promos/djs/agotados) se aplican solo en theme-dark
+   — espejo exacto de startRhythmPolling/startFasciaMenuPolling de siempre. */
+function aplicarMenuTick(t){
+  if(!t || !t.ok) return;
+  const dark = document.body.classList.contains('theme-dark');
+  if(dark){
+    try { applyRitmos(t.ritmos); } catch(e){}
+    try { applyPromos(t.promos); } catch(e){}
+    try { applyDJs(t.djs); } catch(e){}
+    try { applyAgotados(t.agotados); } catch(e){}
+  }
+  try { applyCrossSell(t.crosssell); } catch(e){}
+  try { applyPreciosRegla(t.precios); } catch(e){}
+  try { applyDjBox(t.djbox); } catch(e){}
+}
+async function loadMenuTick(){
+  if(!BRAND.gas_url && !GAS_URL) return null;
+  try {
+    const url = (BRAND.gas_url || GAS_URL) + '?action=getMenuTick&local=' + LOCAL_ID +
+      (MESA_ID ? '&mesa=' + encodeURIComponent(MESA_ID) : '') + '&t=' + Date.now();
+    const r = await fetchWithTimeout(url, 15000);
+    const data = await r.json();
+    if(!data || !data.ok) return null;
+    aplicarMenuTick(data);
+    return data;
+  } catch(e){ return null; }
+}
+function startMenuTick(){
+  if(MENU_TICK_TIMER) return;
+  MENU_TICK_TIMER = setInterval(function(){
+    if(document.visibilityState !== 'visible') return;   // en bolsillo no bussa (R3)
+    loadMenuTick();
+  }, 60000);
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible') loadMenuTick();   // el regreso = foto fresca
+  });
 }
 
 /* v2.14 · LANDING_LISTA (VB 17-lug) · RIDISEGNO v2.16 (VB sab 18): niente
@@ -10249,21 +10303,23 @@ function restaurarPedidoActual(){
    ──────────────────────────────────────────────────────────────────── */
 const DAY_CODES_BKS = ['D','L','M','X','J','V','S']; // 0=Dom,1=Lun,...,6=Sab (convención ES)
 
+function applyDJs(data){
+  if(!data || !data.ok) return;
+  DJS_AGENDA = data.djs || [];
+  const prevDjId = CURRENT_DJ_BKS ? CURRENT_DJ_BKS.dj_id : null;
+  CURRENT_DJ_BKS = resolveDjActual();
+  const newDjId = CURRENT_DJ_BKS ? CURRENT_DJ_BKS.dj_id : null;
+  if(prevDjId !== newDjId){
+    console.log('[v1.12] DJ cambiato:', prevDjId, '→', newDjId);
+  }
+  renderRhythmBar();
+}
 async function loadDJs(){
   if(!BRAND.gas_url) return;
   try {
     const url = `${BRAND.gas_url}?action=getDJsAgenda&local=${LOCAL_ID}&t=${Date.now()}`;
     const r = await fetch(url);
-    const data = await r.json();
-    if(!data.ok) return;
-    DJS_AGENDA = data.djs || [];
-    const prevDjId = CURRENT_DJ_BKS ? CURRENT_DJ_BKS.dj_id : null;
-    CURRENT_DJ_BKS = resolveDjActual();
-    const newDjId = CURRENT_DJ_BKS ? CURRENT_DJ_BKS.dj_id : null;
-    if(prevDjId !== newDjId){
-      console.log('[v1.12] DJ cambiato:', prevDjId, '→', newDjId);
-    }
-    renderRhythmBar();
+    applyDJs(await r.json());
   } catch(e){ console.warn('[v1.12] loadDJs failed:', e.message); }
 }
 
@@ -10430,12 +10486,10 @@ function closeDjSheet(){
 
 function startRhythmPolling(){
   if(!document.body.classList.contains('theme-dark')) return;
-  if(RITMO_POLL_TIMER) return;
-  loadRitmos();
-  loadPromos();
-  loadDJs();   // v1.12 · S5 · poll iniziale DJ
-  RITMO_POLL_TIMER = setInterval(() => { loadRitmos(); loadPromos(); loadDJs(); }, 60000);
-  console.log('[v1.10] Rhythm polling attivo (60s) per', LOCAL_ID);
+  // P1.2 · ritmos/promos/djs viajan en el tick del menú (un solo viaje cada
+  // 60s) — aquí ya no se arma ningún timer ni fetch. El gate de tema queda:
+  // es el espejo que aplicarMenuTick replica del lado del tick.
+  console.log('[P1.2] Rhythm data viaja en el tick del menú per', LOCAL_ID);
 }
 
 function stopRhythmPolling(){
@@ -10494,11 +10548,9 @@ function startFasciaMenuPolling(){
   if(!document.body.classList.contains('theme-dark')) return;
   if(FASCIA_MENU_POLL_TIMER) return;
   applyFasciaMenu();
-  // Polling 60s · stesso ritmo di RITMO_POLL_TIMER · hard switch al cambio fascia
+  // Polling 60s · hard switch al cambio fascia (solo client, cero red)
   FASCIA_MENU_POLL_TIMER = setInterval(applyFasciaMenu, 60000);
-  // v2.27.0 · cura 86 · la disponibilità si rinfresca come tutto il resto
-  loadAgotados();
-  if(!AGOTADOS_POLL_TIMER) AGOTADOS_POLL_TIMER = setInterval(loadAgotados, 60000);
+  // P1.2 · agotados (cura 86) viaja en el tick del menú — mismo 60s, un viaje
   console.log('[v1.17] Fascia menu polling attivo (60s) per', LOCAL_ID);
 }
 
@@ -11235,13 +11287,16 @@ const V2DJ_PRECIO = 2000;
    richieste della MIA mesa con stato. Fallback: famiglie hardcoded. */
 let DJBOX_CLI = null;
 let DJBOX_POLL = null;
+function applyDjBox(data){
+  if(data && data.ok){ DJBOX_CLI = data; v2DjRefrescaSheet(); }
+}
 async function loadDjBoxCliente(){
   if(!BRAND.gas_url && !GAS_URL) return;
   try {
     const url = (BRAND.gas_url || GAS_URL) + '?action=getDjBoxCliente&local=' + LOCAL_ID +
       (MESA_ID ? '&mesa=' + encodeURIComponent(MESA_ID) : '') + '&t=' + Date.now();
     const r = await fetch(url); const data = await r.json();
-    if(data && data.ok){ DJBOX_CLI = data; v2DjRefrescaSheet(); }
+    applyDjBox(data);
   } catch(e){ /* poll silenzioso */ }
 }
 function v2DjFamilias(){
@@ -11265,7 +11320,14 @@ function v2DjGeneroPermitido(gen){
 function v2AbrirDjBox(){
   v2DjRefrescaSheet();
   loadDjBoxCliente();
-  if(!DJBOX_POLL) DJBOX_POLL = setInterval(loadDjBoxCliente, 10000);   // vivo finché la pagina vive
+  // P1.4 · el poll rápido vive SOLO mientras la sheet está abierta (15s +
+  // gate visibilidad) y muere en v2CerrarDjBox — antes: 10s para siempre,
+  // el zombie que bussaba toda la noche desde cada teléfono
+  if(DJBOX_POLL) clearInterval(DJBOX_POLL);
+  DJBOX_POLL = setInterval(function(){
+    if(document.visibilityState !== 'visible') return;
+    loadDjBoxCliente();
+  }, 15000);
   const sh = document.getElementById('v2ShDj');
   sh.style.maxHeight = sh.style.height = 'calc(100dvh - ' + (document.getElementById('header').offsetHeight + 2) + 'px)';
   sh.classList.add('up');
@@ -11347,7 +11409,12 @@ function v2DjRefrescaSheet(){
   v2DjPintaPropias();   // v2.32.0 · la strip vive coi dati del poll
   v2DjPintaFuentes();   // v2.35.0 · el buscador existe sólo si la cabina lo deja
 }
-function v2CerrarDjBox(){ document.getElementById('v2ShDj').classList.remove('up'); }
+function v2CerrarDjBox(){
+  document.getElementById('v2ShDj').classList.remove('up');
+  // P1.4 · el zombie muere aquí: sheet cerrada = cero poll (el tick del menú
+  // sigue trayendo djbox cada 60s para el semáforo de la puerta)
+  if(DJBOX_POLL){ clearInterval(DJBOX_POLL); DJBOX_POLL = null; }
+}
 
 /* ═ v2.32.0 · PODERE A · «Las del Comandante» — la strip sopra il buscador.
    Le sue tracce come card richiedibili al tap: stesso doppio-tap e stessi 3
