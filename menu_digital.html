@@ -4024,7 +4024,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.38.0 · el tick del menú: un viaje cada 60s (P1.2/P1.4) · 28jul</span>
+<span id="ver" hidden>menu2 · v2.39.0 · la carta abre desde el borde (Cantiere 13 · Fase 1) · 29jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -6101,8 +6101,35 @@ async function loadFromSheet(timeoutMs){
   setProgress(10);
 
   // STEP 1 · getConfig
-  const cfgUrl = GAS_URL + '?action=getConfig&local=' + encodeURIComponent(LOCAL_ID) + '&t=' + Date.now();
-  const cfgResp = await fetchWithTimeout(cfgUrl, timeoutMs).then(r=>r.json());
+  // ═══ v2.39.0 · EL BORDE (29-jul) ═══
+  // Esta era la única llamada a Apps Script en el camino de apertura, y era
+  // la que el cliente esperaba mirando los esqueletos: medido el 29-jul, con
+  // el local cerrado y nadie conectado, el GAS tardó entre 548 y 9.372 ms
+  // sobre el mismo código y los mismos datos. El CSV de la carta nunca fue el
+  // problema (viene de la CDN de Google).
+  // La config cambia de tarde en tarde: el GAS la publica en el borde y aquí
+  // se lee en ~150 ms. Si el borde no la tiene, o está rancia, o falla — se
+  // va al GAS como siempre y el cliente no se entera de nada.
+  // Se apaga con ?borde=0.
+  let cfgResp = null;
+  if (new URLSearchParams(location.search).get('borde') !== '0') {
+    try {
+      const bu = 'https://pinsita-borde.alberto-agostini.workers.dev/estado/'
+        + encodeURIComponent(LOCAL_ID) + '?t=7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ&seccion=menu_config';
+      const br = await fetchWithTimeout(bu, 4000);
+      const bj = await br.json();
+      // 6 horas: la config casi no cambia, y cada escritura la refresca sola.
+      if (bj && bj.ok && bj.datos && bj.datos.datos && bj.datos.datos.ok
+          && bj.datos.edad_ms < 6 * 3600 * 1000) {
+        cfgResp = bj.datos.datos;
+        console.log('[borde] config desde el borde · ' + bj.t_ms + 'ms');
+      }
+    } catch (e) { /* al GAS, en silencio */ }
+  }
+  if (!cfgResp) {
+    const cfgUrl = GAS_URL + '?action=getConfig&local=' + encodeURIComponent(LOCAL_ID) + '&t=' + Date.now();
+    cfgResp = await fetchWithTimeout(cfgUrl, timeoutMs).then(r=>r.json());
+  }
 
   if(!cfgResp || !cfgResp.ok){
     // Errore applicativo (es. local non in Registry) → non retriable
