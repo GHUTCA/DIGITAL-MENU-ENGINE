@@ -4024,7 +4024,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.39.0 · la carta abre desde el borde (Cantiere 13 · Fase 1) · 29jul</span>
+<span id="ver" hidden>menu2 · v2.40.0 · el pedido entra por el borde (Cantiere 14 · Fase 2 · flag pedido_borde_on) · 30jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -5629,6 +5629,14 @@ let TERMINO_OPCIONES = [];
 /* ═══ v2.0 · stato del menù che VENDE ═══ */
 let ENVIO_DIRECTO = false;        // PARAMETROS.envio_directo_activo (via A carrello)
 let DJBOX_ON      = false;        // PARAMETROS.djbox_on (porta DJ-BOX nel mondo BPM)
+/* ═══ v2.40.0 · FASE 2 · EL PEDIDO ENTRA POR EL BORDE ═══
+   PARAMETROS.pedido_borde_on = TRUE → enviarPedido prova PRIMA il Durable
+   Object (~150-300ms); il DO risponde con le STESSE forme del GAS (ok/need/
+   error) e fossilizza dietro. Riga assente = SPENTO. ?borde=0 lo spegne.
+   La cintura non si tocca: qualsiasi risposta non riconosciuta, timeout o
+   rete → si va al GAS come sempre; la cola offline (_colaFlush) resta
+   puntata SOLO al GAS. L'interruttore è di Alberto. */
+let PEDIDO_BORDE  = false;
 let ULTIMA_RONDA  = null;         // items dell'ultimo pedido inviato (🔁 otra ronda)
 const RONDA_KEY   = 'ultima_ronda_v1';
 let V2_DET        = null;         // {p, qty, preguntas[], resp{}} della scheda aperta
@@ -6235,6 +6243,12 @@ function aplicarConfigCliente(cfg){
   // djbox_on → porta DJ-BOX nel mondo BPM (modulo in build lun 20).
   ENVIO_DIRECTO = String(cfg.envio_directo_activo || 'FALSE').trim().toUpperCase() === 'TRUE';
   DJBOX_ON      = String(cfg.djbox_on || 'FALSE').trim().toUpperCase() === 'TRUE';
+
+  // v2.40.0 · FASE 2 · el pedido por el borde: riga assente = SPENTO.
+  // ?borde=0 spegne TUTTO il bordo (config + pedido) — kill switch invariato.
+  PEDIDO_BORDE = String(cfg.pedido_borde_on || 'FALSE').trim().toUpperCase() === 'TRUE';
+  if (new URLSearchParams(location.search).get('borde') === '0') PEDIDO_BORDE = false;
+  if (MODO_RESPALDO) PEDIDO_BORDE = false;
 }
 
 /* v1.32 · CSV → ALL_PRODUCTS + ALL_CATEGORIES · corpo unico vivo/respaldo */
@@ -9730,6 +9744,48 @@ function _nuevoUuid(){
   return 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
 }
 
+/* ═══ v2.40.0 · FASE 2 · EL PEDIDO ENTRA POR EL BORDE (Cantiere 14) ═══
+   Il Durable Object valida, deduplica per uuid, fa le guardie (86, cierre,
+   mesa) con lo stato sincronizzato dal GAS, risponde in ~150-300ms e
+   fossilizza dietro (forward VERBATIM + confirmado:true). L'id_pedido
+   ufficiale arriva col poll getEstadoPedido pochi secondi dopo.
+   LA CINTURA: il bordo è un tentativo, MAI l'unica strada — qualsiasi
+   risposta che non riconosciamo come definitiva (token_invalid, rate_limit,
+   sin_guardias, 5xx, timeout, rete) → si passa al GAS come sempre.
+   La cola offline (_colaFlush) NON passa di qui: spara al GAS, che
+   deduplica per uuid anche contro il forward del DO — mai una riga doppia. */
+function _postBorde(body, timeoutMs){
+  const ctrl = new AbortController();
+  const tid = setTimeout(()=>ctrl.abort(), timeoutMs || 6000);
+  const u = 'https://pinsita-borde.alberto-agostini.workers.dev/pedido/'
+    + encodeURIComponent(LOCAL_ID) + '?t=7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ';
+  return fetch(u, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // no preflight (stesso pattern del GAS)
+    body: JSON.stringify(body),
+    signal: ctrl.signal,
+  }).then(r => { clearTimeout(tid); return r.json(); })
+    .catch(e => { clearTimeout(tid); throw e; });
+}
+
+// il bordo risponde con le STESSE forme di _enviarPedidoLocked: solo queste
+// si trattano come definitive — tutto il resto è «bordo non disponibile»
+const _BORDE_DEFINITIVAS = ['estacion_cerrada','regalo_misma_mesa','carrito_vacio',
+  'items_json_invalid','uuid_missing','mesa_missing'];
+async function _postPedido(payload){
+  if (PEDIDO_BORDE) {
+    try {
+      const r = await _postBorde(payload, 6000);
+      if (r && (r.ok === true || r.need || _BORDE_DEFINITIVAS.indexOf(r.error) >= 0)) {
+        if (r.borde) console.log('[borde] pedido aceptado en el borde · ' + (r.t_ms||'?') + 'ms');
+        return r;
+      }
+      console.warn('[borde] pedido no acordado (' + ((r && r.error) || 'sin respuesta') + ') — voy al GAS');
+    } catch(e){ console.warn('[borde] pedido sin borde (' + (e.message||'red') + ') — voy al GAS'); }
+  }
+  return _postGAS(payload);
+}
+
 /* ── v2.10 · LA COLA OFFLINE (#20 · buco AURORA 20:22-21:21 del 14-lug) ──
    L'intento di pedido si persiste in localStorage PRIMA del primo colpo:
    sopravvive a buchi di rete, reload e chiusura tab. Si rinvia da solo
@@ -10004,7 +10060,9 @@ async function _enviarPedidoDigitalInner(opts){
   for (let intento = 0; intento < 3; intento++) {
     if (intento) await new Promise(r => setTimeout(r, intento === 1 ? 2000 : 5000));
     try {
-      resp = await _postGAS(payloadPedido);
+      // v2.40.0 · FASE 2: prova il bordo (se acceso), poi GAS — dentro lo
+      // STESSO ciclo di retry della corazza v1.46 (stesso uuid, mai doppioni)
+      resp = await _postPedido(payloadPedido);
       esRed = false;   // v2.10 · il GAS ha risposto: qualunque cosa dica, la rete c'è
       if (resp && resp.ok) break;
       if (resp && resp.need) break;   // v2.9.1 · non è un errore di rete · v2.27 · qualunque `need` è una risposta, non un guasto
@@ -10273,7 +10331,12 @@ function iniciarPollPedido(){
         '&uuid=' + encodeURIComponent(PEDIDO_ACTUAL.uuid) + '&t=' + Date.now();
       const r = await fetchWithTimeout(url, 9000).then(x=>x.json());
       if(!r || !r.ok) return;   // silenzioso: il prossimo giro riprova
-      const cambio = (r.estado !== PEDIDO_ACTUAL.estado) || ((r.mesero||'') !== PEDIDO_ACTUAL.mesero);
+      // v2.40.0 · FASE 2: se il pedido è entrato dal bordo, l'ID ufficiale
+      // nasce col fossile — lo si raccoglie qui, al primo poll che lo vede
+      // («Pedido N° 076 · recibido ✓» arriva secondi dopo, non mai)
+      const cambio = (r.estado !== PEDIDO_ACTUAL.estado) || ((r.mesero||'') !== PEDIDO_ACTUAL.mesero)
+        || (!PEDIDO_ACTUAL.id && !!r.id_pedido);
+      if (!PEDIDO_ACTUAL.id && r.id_pedido) PEDIDO_ACTUAL.id = r.id_pedido;
       PEDIDO_ACTUAL.estado = r.estado || PEDIDO_ACTUAL.estado;
       PEDIDO_ACTUAL.mesero = r.mesero || '';
       try { mstSet(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
