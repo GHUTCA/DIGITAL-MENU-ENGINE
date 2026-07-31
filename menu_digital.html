@@ -4024,7 +4024,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.40.0 · el pedido entra por el borde (Cantiere 14 · Fase 2 · flag pedido_borde_on) · 30jul</span>
+<span id="ver" hidden>menu2 · v2.41.0 · NOCHES AURORA: la carta de la noche se recarga sola (carta_epoca) · 31jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -9051,9 +9051,40 @@ function estacionesAplicar(data){
   });
 }
 
+/* ═ v2.41.0 · NOCHES AURORA · LA CARTA SE RECARGA SOLA (Alberto, 31-jul) ═
+   A las 22 abre el Menú BPM; a las 23 la coctelería se ACORTA y entran las
+   botellas. Pero la carta se descarga UNA vez al abrirla: quien tenga el
+   teléfono abierto desde las 22 seguiría viendo tragos que ya no existen.
+   «Che il cliente veda un prezzo più basso genera un problema enorme.»
+
+   El GAS manda la FIRMA de la carta (`carta_epoca`) dentro del poll que YA
+   gira cada 60s (regla de la casa: nunca un poll nuevo). Si cambia, el menú
+   se recarga solo. El carrito NO se pierde: vive en localStorage.
+   🔒 Jamás en medio de un envío (ENVIO_EN_CURSO): si hay un pedido en vuelo
+   la recarga espera al siguiente latido. Un pedido a medias vale más que
+   una carta fresca un minuto antes. */
+let CARTA_EPOCA = null;
+let CARTA_RECARGA_PENDIENTE = false;
+function auroraChequearCarta(epoca){
+  if(!epoca) return;
+  if(CARTA_EPOCA === null){ CARTA_EPOCA = epoca; return; }   // la primera foto no recarga
+  if(CARTA_EPOCA !== epoca){ CARTA_EPOCA = epoca; CARTA_RECARGA_PENDIENTE = true; }
+  auroraRecargarSiSePuede();
+}
+function auroraRecargarSiSePuede(){
+  if(!CARTA_RECARGA_PENDIENTE) return;
+  if(typeof ENVIO_EN_CURSO !== 'undefined' && ENVIO_EN_CURSO) return;   // hay un pedido en vuelo
+  CARTA_RECARGA_PENDIENTE = false;
+  try { saveCart(); } catch(e){}
+  try { showToastMsg('🌙 ' + (getLang('carta_noche_lista') || 'La carta de la noche está lista'), 2600); } catch(e){}
+  setTimeout(function(){ try { location.reload(); } catch(e){} }, 2700);
+}
+
 let AGOTADOS_POLL_TIMER = null;
 function applyAgotados(data){
   try {
+    // v2.41.0 · la firma de la carta viaja en este mismo latido
+    try { auroraChequearCarta(data && data.carta_epoca); } catch(e){}
     // v2.32.0 · PODERE B: i mensajes della cabina viaggiano in QUESTO poll
     // (regola della casa: mai un poll nuovo) — prima dei return sugli ids
     try { v2DjMsgCheck(data && data.msgs); } catch(e){}
