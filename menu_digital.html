@@ -647,7 +647,51 @@ html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-aur-tit{
    Ora la larghezza la decide lo SCHERMO, non un numero fisso: quattro
    card esatte dentro la larghezza utile, gap compreso. Con l'aggancio
    dello snap, quello che entra è sempre intero. */
-html.vestido2 .v2-carrusel{ gap:8px }
+/* ── IL BORDO CHE C'ERA SOLO SU ALCUNE CARD ──
+   Alberto: «è strano che alcune card ce l'abbiano e altre no». Non era la
+   foto a coprirlo: il bordo è 1.5px di un colore CHIARO, quindi sparisce
+   sopra una foto chiara (Pisco Sour) e si vede sopra una scura (Mojito).
+   Un bordo che dipende dalla foto non è un bordo: è rumore. Via il filo,
+   resta l'ombra — che non cambia col contenuto. */
+html.vestido2 .v2-dst{ border:0; box-shadow:0 2px 10px -5px rgba(0,0,0,.45) }
+html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-menu="tarde"]) .v2-dst{
+  box-shadow:0 0 0 1px rgba(255,140,80,.16), 0 2px 14px -6px rgba(0,0,0,.8);
+}
+
+/* ── IL CAROSELLO SI MUOVE A CLICK, NON A DITO ──
+   Alberto: «4 fisse che si muovono una alla volta completa, con un click».
+   Lo scorrimento libero lasciava sempre una card a metà: il dito si ferma
+   dove capita. Ora l'unico modo di muoverlo sono le due frecce, e ogni
+   click sposta di UNA card esatta — larghezza + gap. Niente mezze card
+   per costruzione, non per fortuna. */
+html.vestido2 .v2-car-wrap{ position:relative }
+/* ⚠️ NON mettere `overflow-x:hidden` qui: la prova a secco lo ha mostrato
+   prima del deploy — un contenitore con overflow nascosto smette di essere
+   scorrevole ANCHE via codice, e le frecce non muovevano niente.
+   Resta scorrevole, ma con l'aggancio (scroll-snap, sopra): il click sposta
+   di una card esatta, e se il dito scorre lo stesso, si aggancia comunque
+   alla card intera. Mai mezze card, da tutte e due le strade. */
+/* ⚠️ e NEMMENO `scroll-behavior:smooth` qui: preso in prova il 01-ago.
+   Sul contenitore vale per TUTTI gli scorrimenti, anche un
+   `car.scrollLeft = N` assegnato da codice, che diventa un'animazione e
+   in una pagina in secondo piano non avanza mai — il nastro sembrava
+   bloccato pur essendo scorrevole. La morbidezza serve solo al click, e
+   lì vive: `scrollBy({behavior:'smooth'})` dentro v2CarMueve. */
+html.vestido2 .v2-carrusel{ gap:8px; overflow-x:auto }
+html.vestido2 .v2-car-nav{
+  position:absolute; top:calc(50% - 16px); width:30px; height:30px; border-radius:50%;
+  display:grid; place-items:center; border:0; cursor:pointer; z-index:3;
+  font-size:19px; line-height:1; padding:0 0 2px 0;
+  background:rgba(255,251,245,.94); color:#8C3B10;
+  box-shadow:0 2px 10px rgba(80,40,15,.28);
+}
+html.vestido2 .v2-car-prev{ left:6px }
+html.vestido2 .v2-car-next{ right:6px }
+html.vestido2 .v2-car-nav:active{ transform:scale(.9) }
+html.vestido2 .v2-car-nav[disabled]{ opacity:0; pointer-events:none }
+html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-menu="tarde"]) .v2-car-nav{
+  background:rgba(26,21,16,.94); color:#FFD9C2; box-shadow:0 0 0 1px rgba(255,106,31,.4), 0 2px 12px rgba(0,0,0,.6);
+}
 html.vestido2 .v2-dst{ flex:0 0 calc((100% - 32px - 24px) / 4); border-radius:14px }
 html.vestido2 .v2-dst .ph{ height:70px }
 html.vestido2 .v2-dst .inf{ padding:6px 7px 8px }
@@ -724,6 +768,29 @@ html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .faja-cartA2-slogan,
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .faja-cartA2-bpm,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .faja-cartA2-bpm{
   color: rgba(36,26,20,0.58) !important;
+}
+
+/* ── v2.52.0 · i due residui che il vestito chiaro aveva anche di giorno ──
+   Trovati misurando il contrasto di OGNI testo della carta, non guardando
+   lo schermo: erano lì dal primo giorno del vestito e nessuno li vedeva
+   proprio perché sbiaditi. Una regola per pezzo, colori già in casa.
+
+   ① il conteggio accanto al nome della categoria. La patch S8 curò
+      `.cat-header-name` e si dimenticò il fratello che gli sta a fianco:
+      il nome era nero e il numero bianco al 40% sulla sabbia (19 volte
+      nella carta, contrasto 1.05 — di fatto non esisteva).
+   ② il tag 2x1. Vive di solo bordo e colore, senza fondo: l'arancio
+      neon della notte (#FF8B3D) sulla sabbia scendeva a 2.26. Prende
+      l'accento del giorno — già il rosso-arancio di questo vestito, non
+      un colore nuovo — e sale a 3.0. Un tag che grida deve gridare anche
+      alla luce, se no è una promozione che si nasconde. */
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .cat-header-count,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .cat-header-count{
+  color: var(--brand-text-muted);
+}
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-tag2x1,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-tag2x1{
+  color: var(--brand-accent); border-color: var(--brand-accent);
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -4371,7 +4438,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.50.0 · el vestido · 4 cards por pantalla + el colibrí en la card del menú (nace APAGADO · ?vestido=1) · 01ago</span>
+<span id="ver" hidden>menu2 · v2.52.0 · el vestido · el carrusel a click + la tarde se lee (viste el día, como los tokens ya decían) · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8573,7 +8640,44 @@ function v2DestacadosHTML(){
       <div class="inf"><div class="eyebrow">${eyebrow}</div>
       <div class="nom">${toTitleCase(p.nombre)}</div><div class="precio">${prices.main}</div></div></button>`;
   }).join('');
-  return `<div class="v2-sec-t">✨ Destacados</div><div class="v2-carrusel">${cards}</div>`;
+  // v2.51.0 · col vestito il carosello si muove SOLO a click (v. CSS).
+  // Le frecce vivono fuori dal nastro che scorre, se no scorrerebbero via
+  // con le card. Restano appese al contenitore, ferme.
+  if(!document.documentElement.classList.contains('vestido2'))
+    return `<div class="v2-sec-t">✨ Destacados</div><div class="v2-carrusel">${cards}</div>`;
+  /* v2.52.0 · i capi si aggiornano sull'evento `scroll`, non su un timer.
+     Il timer a 420ms indovinava quando l'animazione fosse finita: se
+     tardava, le frecce raccontavano una posizione che non c'era più. E
+     col dito non si aggiornavano affatto. Lo scroll invece è la verità,
+     da qualunque strada arrivi — click, dito o rotella. */
+  return `<div class="v2-sec-t">✨ Destacados</div>` +
+    `<div class="v2-car-wrap"><div class="v2-carrusel" onscroll="v2CarCapi(this)">${cards}</div>` +
+    `<button class="v2-car-nav v2-car-prev" onclick="v2CarMueve(this,-1)" aria-label="Anterior" disabled>‹</button>` +
+    `<button class="v2-car-nav v2-car-next" onclick="v2CarMueve(this,1)" aria-label="Siguiente">›</button>` +
+    `</div>`;
+}
+
+/* v2.51.0 · un click = UNA card esatta (larghezza + gap). Mai mezze card.
+   Le frecce si spengono ai due capi: una freccia che non porta da nessuna
+   parte è una bugia piccola, ma è una bugia. */
+function v2CarMueve(btn, dir){
+  const wrap = btn.closest('.v2-car-wrap'); if(!wrap) return;
+  const car  = wrap.querySelector('.v2-carrusel'); if(!car) return;
+  const card = car.querySelector('.v2-dst');       if(!card) return;
+  const paso = card.getBoundingClientRect().width + 8;
+  car.scrollBy({ left: dir * paso, behavior: 'smooth' });
+  /* i capi li aggiorna l'evento `scroll` (onscroll sul nastro), non un
+     timer che indovina la fine dell'animazione. Vedi v2DestacadosHTML. */
+}
+function v2CarCapi(car){
+  const wrap = car.closest('.v2-car-wrap'); if(!wrap) return;
+  const prev = wrap.querySelector('.v2-car-prev'), next = wrap.querySelector('.v2-car-next');
+  const max  = car.scrollWidth - car.clientWidth;
+  if(prev) prev.disabled = car.scrollLeft <= 2;
+  /* `max <= 2` è il caso «non c'è niente da scorrere» (4 destacados o
+     meno): la freccia destra nasce spenta invece di promettere un seguito
+     che non esiste. */
+  if(next) next.disabled = max <= 2 || car.scrollLeft >= max - 2;
 }
 
 /* v3.3 fix ④ + oss.6 (12-lug) · il destacado si apre A METÀ SCHERMO: sale fino
@@ -8754,6 +8858,11 @@ function renderMenu(){
       </div>`;
   });
   wrap.innerHTML = html;
+  // v2.52.0 · appena il carosello è nel DOM, le frecce dicono la verità.
+  // Prima nascevano «prev spento / next acceso» a prescindere: con 4
+  // destacados o meno non c'è niente da scorrere, e la freccia destra era
+  // una porta dipinta sul muro. Ora lo stato lo decide la misura.
+  wrap.querySelectorAll('.v2-carrusel').forEach(c => v2CarCapi(c));
 }
 
 // v1.23 · S13 · descrizione prodotto nella lingua attiva · fallback a ES se vuota.
@@ -11100,10 +11209,36 @@ function applyFasciaMenu(){
   if(!document.body.classList.contains('theme-dark')) return;
   const fascia = getFasciaMenu();
   if(fascia === CURRENT_FASCIA_MENU) return; // no-op se invariata
-  document.body.dataset.fasciaMenu = fascia;
+  /* ── v2.52.0 · IL PONTE DELLE DUE FASCE ──────────────────────────────
+     Il vestito ha DUE vestiti e TRE momenti: «tarde porta il vestito del
+     giorno» (decisione 01-ago). I token lo dicevano già — il blocco
+     [dia] e il blocco [tarde] sono identici — ma le ~99 patch di
+     leggibilità nate prima del vestito (S8/S9/S13/v1.16/v1.23) portano
+     tutte il solo selettore [dia]. Risultato col vestito acceso: alle
+     17:30 il fondo diventava sabbia e i testi restavano quelli della
+     notte. Non era un colore sbagliato: era una fascia senza cure.
+
+     Misurato sul vivo prima di toccare, 119 prodotti: titolo,
+     descrizione e prezzo della scheda a contrasto 1.07-1.12 (illeggibili),
+     il PREZZO DI OGNI RIGA della lista a 1.31, le 19 intestazioni di
+     categoria a 1.12. In `dia` gli stessi pezzi erano già a posto.
+
+     Quindi la cura non è ridipingere: è dire una volta sola, dove la
+     pelle si sceglie, che col vestito addosso la sera INDOSSA il giorno.
+     Una riga cura le 99 regole e anche quelle che nessuno ha ancora
+     trovato. `data-fascia-menu` è pelle e basta — verificato: nessuna
+     logica lo legge (il cancello degli orari lavora su altre variabili).
+     `CURRENT_FASCIA_MENU` continua a tenere la fascia VERA, così il
+     passaggio delle 21:00 (tarde→noche) scatta comunque.
+     ⚠️ I gemelli [tarde] nel CSS del vestito restano: se un giorno la
+     sera vorrà un vestito suo, si toglie questo ponte e ci sono già. */
+  const pelle = (fascia === 'tarde' && document.documentElement.classList.contains('vestido2'))
+    ? 'dia' : fascia;
+  document.body.dataset.fasciaMenu = pelle;
   const wasNull = CURRENT_FASCIA_MENU === null;
   CURRENT_FASCIA_MENU = fascia;
-  console.log('[v1.17] Fascia menu' + (wasNull ? ' INIT' : ' switch') + ' → ' + fascia);
+  console.log('[v1.17] Fascia menu' + (wasNull ? ' INIT' : ' switch') + ' → ' + fascia
+    + (pelle !== fascia ? ' · pelle ' + pelle + ' (vestito: due fasce)' : ''));
 }
 
 function startFasciaMenuPolling(){
