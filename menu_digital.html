@@ -507,6 +507,79 @@ html.vestido2 body.theme-dark[data-fascia-menu="tarde"]{
   --cross-sell-bg: #FBF5EC;
   --cross-sell-border: rgba(224,86,26,0.28);
   --faja-cartelera-bg: #F8F1E6;
+  /* ── v2.44.0 · L'HEADER DEL GIORNO SI SCHIARISCE ──
+     Ordine di Alberto (01-ago): «abbiamo mantenuto la decisione vecchia,
+     da rimuovere e seguire il tuo disegno». Nel blocco 1 avevo lasciato
+     header+faja scuri anche di giorno, per prudenza. Ora no: di giorno il
+     BKS è «quiete con energia controllata», e una barra nera in cima a una
+     carta di sabbia è la toppa che si vedeva. */
+  --header-fixed: #F8F1E6;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   v2.44.0 · IL GIORNO · le conseguenze dell'header chiaro
+   ══════════════════════════════════════════════════════════════════════
+   Schiarire --header-fixed non basta: header e faja avevano tutto il
+   contenuto scritto in BIANCO perché il fondo era blu-notte fisso, e tre
+   di quelle regole sono !important (patch S9/S16). Su fondo chiaro
+   sarebbero diventate invisibili. Qui si ribaltano, una per una.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* il testo dell'header era color:#fff cablato su #header */
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] #header,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] #header{
+  color: #241A14;
+  border-bottom: 1px solid rgba(36,26,20,0.10);
+}
+
+/* 🔒 il LOGO non cambia forma né misura né spaziatura: cambia solo il
+   colore, perché #CFF6FF su sabbia non si leggerebbe. Il neon è della
+   notte — di giorno l'insegna è spenta anche nella via. */
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .brand-logo-text,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .brand-logo-text{
+  color: #2A1C13;
+  text-shadow: none;
+}
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-tagline,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-tagline{
+  color: #B04A18;
+  opacity: 0.95;
+}
+
+/* il chip della mesa era panna su blu-notte: su sabbia sparisce.
+   Si inverte — scuro su chiaro — e il numero resta il protagonista. */
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-chip-id,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-chip-id{
+  background: #2A1C13;
+  color: #FCEFE2;
+  box-shadow: 0 2px 8px rgba(80,40,15,0.22);
+}
+
+/* la campana e il selettore lingua vivevano su fondo scuro */
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-bell,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-bell{
+  background: rgba(224,86,26,0.09);
+  border-color: rgba(224,86,26,0.42);
+  color: #8C3B10;
+}
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .lang-btn,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .lang-btn{
+  background: rgba(36,26,20,0.07);
+  color: rgba(36,26,20,0.82);
+}
+
+/* ⚠️ le tre regole !important delle patch S9/S16: erano BIANCHE perché la
+   faja era blu-notte fissa. Con la faja chiara diventerebbero invisibili.
+   Stessa forza, colore ribaltato. */
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .faja-cart-text,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .faja-cart-text{
+  color: rgba(36,26,20,0.78) !important;
+}
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .faja-cartA2-slogan,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .faja-cartA2-slogan,
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .faja-cartA2-bpm,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .faja-cartA2-bpm{
+  color: rgba(36,26,20,0.58) !important;
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -4154,7 +4227,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.43.0 · el vestido · bloque 1 · el sustrato (nace APAGADO · ?vestido=1) · 01ago</span>
+<span id="ver" hidden>menu2 · v2.44.0 · el vestido · el header del día se aclara (nace APAGADO · ?vestido=1) · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
