@@ -272,6 +272,32 @@
 <link rel="icon" id="faviconTag" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A1F2E'/><text x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Georgia,serif' font-weight='400' font-size='11' letter-spacing='0.5' fill='%23CFF6FF'>BKS</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&display=swap" rel="stylesheet">
+<!-- ═══════════════════════════════════════════════════════════════════
+     v2.43.0 · IL VESTITO · L'INTERRUTTORE · NASCE SPENTO
+     ?vestido=1 accende · ?vestido=0 spegne e dimentica.
+     Il modo si ricorda nell'APPARECCHIO, non nel link: dal portale il
+     parametro muore nel giro del PIN (lezione ?solo=mapa, 23-lug).
+     Gira nel <head> PRIMA del CSS → zero lampeggio.
+     try/catch obbligatorio: localStorage lancia in navigazione privata,
+     e un errore qui ucciderebbe la carta prima di disegnarla.
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  var on = false, q = null;
+  try{ q = new URLSearchParams(location.search).get('vestido'); }catch(e){}
+  /* Il PARAMETRO decide sempre, anche se la memoria non è disponibile.
+     Prima erano nello stesso try: in navigazione privata setItem lancia,
+     si saltava al catch e ?vestido=1 NON accendeva → chi provava avrebbe
+     detto «non funziona» e avremmo inseguito un fantasma. */
+  if(q === '1') on = true;
+  else if(q === '0') on = false;
+  try{
+    if(q === '1' || q === '0') localStorage.setItem('pinsita_vestido', q);
+    else if(localStorage.getItem('pinsita_vestido') === '1') on = true;
+  }catch(e){}
+  if(on) document.documentElement.classList.add('vestido2');
+})();
+</script>
 <style>
 /* ══════════════════════════════════════════
    WHITE-LABEL DESIGN TOKENS
@@ -377,6 +403,110 @@ body.theme-dark[data-fascia-menu="dia"] {
   --cross-sell-bg: #FBF7F0;
   --cross-sell-border: rgba(233,69,96,0.22);
   --faja-cartelera-bg: #E8DFCE;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   v2.43.0 · IL VESTITO · BLOCCO 1 · IL SUBSTRATO        (NASCE SPENTO)
+   ══════════════════════════════════════════════════════════════════════
+   Dottrina: ATALAYA/4_CANTIERE_MENU/CARTA_DEL_VESTITO_01AGO2026.md
+
+   LA DIAGNOSI (Alberto: «lo trovo morto»): la patch S13 aveva ridipinto
+   NOCHE col cyan di TARDE (--brand-bg #033E4C). Il vestito notturno non
+   era scuro: era TINTO. Il nero non è uno sfondo, è il CARBURANTE del
+   neon — nella facciata vera il colore è ~15% dei pixel e prende il 100%
+   dell'attenzione PERCHÉ il resto è nero. E il cyan, che è il colore del
+   colibrì, era speso come sfondo: il colibrì ci spariva dentro.
+
+   🔓 S16 RISCRITTA, autorizzata da Alberto il 01-ago («quelle sono
+   istruzioni vecchie, ora deve combaciare tutto col nuovo look»).
+   S16 teneva header+faja+splash blu-notte FISSI per continuità fra loro.
+   La continuità RESTA — cambia il colore: dal blu del software al nero
+   caldo del locale. Tre pezzi, due variabili:
+     · splash  #loadingScreen → var(--brand-primary)
+     · header  #header        → var(--header-fixed)
+     · faja    #fajaBar       → var(--header-fixed)
+
+   🔒 NON SI TOCCA: --header-neon (#CFF6FF, il logo BKS) non è dichiarato
+   qui apposta → eredita da :root. Su nero respira meglio che sul turchese.
+
+   Specificità: html.vestido2 body.theme-dark = (0,2,2) batte l'originale
+   body.theme-dark (0,1,1); il blocco giorno (0,3,2) batte questo. Quindi
+   l'ordine nel file non conta: vince sempre il più specifico.
+   ══════════════════════════════════════════════════════════════════════ */
+html.vestido2 body.theme-dark{
+  /* ── il substrato: nero CALDO, mai blu-navy ── */
+  --brand-bg: #0A0806;
+  --brand-surface: #14100C;
+  --brand-surface-card: #1A1510;
+  --brand-text: #F3EDE4;                        /* bianco caldo: il bianco puro su nero caldo è clinico */
+  --brand-text-muted: rgba(243,237,228,0.62);
+  --brand-border: rgba(255,140,80,0.18);
+  --brand-border-strong: rgba(255,140,80,0.36);
+  /* ── i tre pezzi che S16 teneva insieme: restano insieme, nel caldo ── */
+  --brand-primary: #0A0806;                     /* splash */
+  --header-fixed: #100C09;                      /* header + faja */
+  --header-orange-line: rgba(255,106,31,0.75);
+  /* ── l'accento si scalda: da rosato-web a rosso-arancio incandescente ── */
+  --brand-accent: #FF3B2F;
+  --brand-accent-line: rgba(255,59,47,0.34);
+  --brand-accent-line-strong: rgba(255,59,47,0.52);
+  --bks-gold: #FFC53D;
+  --bks-gold-dim: rgba(255,197,61,0.12);
+  --bks-gold-border: rgba(255,197,61,0.45);
+  /* ── il resto del chrome segue il substrato ── */
+  --rhythm-bg: #14100C;
+  --rhythm-label: rgba(243,237,228,0.55);
+  --rhythm-chip-bg: rgba(255,106,31,0.14);
+  --rhythm-chip-text: rgba(243,237,228,0.85);
+  --group-bg: #14100C;
+  --group-inactive-bg: #1A1510;
+  --group-inactive-text: rgba(243,237,228,0.85);
+  --card-shadow: 0 2px 18px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,140,80,0.10);
+  --cross-sell-bg: #1A1510;
+  --cross-sell-border: rgba(255,106,31,0.42);
+  --faja-cartelera-bg: #14100C;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   IL VESTITO DEL GIORNO · «quiete con energia controllata» (Alberto)
+   ══════════════════════════════════════════════════════════════════════
+   DUE VESTITI, TRE MOMENTI — decisione del 01-ago. TARDE non ha più una
+   palette propria: porta il vestito del giorno. Motivo: un terzo
+   guardaroba è già morto una volta in silenzio (S13 allineò NOCHE a
+   TARDE e perdemmo un vestito senza accorgercene). Due vestiti con
+   caratteri opposti non possono collassare l'uno nell'altro.
+
+   Sabbia calda che si legge AL SOLE in terrazza. header/faja/splash NON
+   sono ridichiarati → restano il nero caldo di sopra: la continuità che
+   S16 proteggeva resta protetta, e i testi bianchi del blocco DJ
+   (le patch !important S9/S16) continuano a stare su fondo scuro.
+   ══════════════════════════════════════════════════════════════════════ */
+html.vestido2 body.theme-dark[data-fascia-menu="dia"],
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"]{
+  --brand-bg: #EFE2CF;
+  --brand-surface: #F8F1E6;
+  --brand-surface-card: #FFFBF5;
+  --brand-text: #241A14;
+  --brand-text-muted: #6B5A4F;
+  --brand-border: rgba(36,26,20,0.09);
+  --brand-border-strong: rgba(36,26,20,0.16);
+  --brand-accent: #E0561A;
+  --brand-accent-line: rgba(224,86,26,0.30);
+  --brand-accent-line-strong: rgba(224,86,26,0.46);
+  --bks-gold: #C98A2E;
+  --bks-gold-dim: rgba(201,138,46,0.12);
+  --bks-gold-border: rgba(201,138,46,0.45);
+  --rhythm-bg: #F8F1E6;
+  --rhythm-label: rgba(36,26,20,0.45);
+  --rhythm-chip-bg: rgba(224,86,26,0.10);
+  --rhythm-chip-text: rgba(36,26,20,0.72);
+  --group-bg: #F8F1E6;
+  --group-inactive-bg: #FFFBF5;
+  --group-inactive-text: rgba(36,26,20,0.65);
+  --card-shadow: 0 1px 8px rgba(120,70,30,0.10), 0 0 0 1px rgba(36,26,20,0.03);
+  --cross-sell-bg: #FBF5EC;
+  --cross-sell-border: rgba(224,86,26,0.28);
+  --faja-cartelera-bg: #F8F1E6;
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -4024,7 +4154,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.42.0 · la card del menú se viste de noche + carta que se recarga sola (AURORA) · 31jul</span>
+<span id="ver" hidden>menu2 · v2.43.0 · el vestido · bloque 1 · el sustrato (nace APAGADO · ?vestido=1) · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
