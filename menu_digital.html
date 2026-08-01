@@ -628,6 +628,34 @@ html.vestido2 .v2-aur-bird{
 html.vestido2 body.theme-dark .v2-aur-bird{ background-color:#7BF0E6 }
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-aur-bird,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-aur-bird{ background-color:#FFFFFF }
+
+/* ── v2.54.0 · LA CARD-PORTA DEL 2x1 ──────────────────────────────────
+   Stessa famiglia della card AURORA — disegno, non foto — ma con la sua
+   luce: ambra calda invece del cyan, perché non è la notte, è un'offerta.
+   Il colibrì è BIANCO in tutte le ore: la carta dei colori dice che cyan,
+   oro, viola e rosso sono già dei quattro menù AURORA e «il bianco resta
+   di sistema». Il 2x1 prende l'unico che non appartiene a nessuno.
+   Sotto il disegno c'è un fondo scuro anche di giorno: il colibrì bianco
+   ha bisogno del suo cielo, e questa card è una porta, non un piatto. */
+html.vestido2 .v2-dst-2x1 .ph{
+  position:relative; overflow:hidden;
+  background:linear-gradient(150deg,#2A1408 0%,#1A0E06 60%,#0A0806 100%);
+}
+html.vestido2 .v2-2x1-glow{
+  position:absolute; left:-25%; top:-46%; width:150%; height:150%; pointer-events:none;
+  background:radial-gradient(circle at 50% 50%,
+    rgba(255,176,74,.40) 0%, rgba(255,140,60,.10) 38%, transparent 68%);
+}
+html.vestido2 .v2-2x1-bird{
+  position:absolute; right:-14%; top:-16%; width:78%; height:128%;
+  pointer-events:none; opacity:.92; background-color:#FFFFFF;
+  -webkit-mask:url("brand/colibri_mask.png") no-repeat center / contain;
+          mask:url("brand/colibri_mask.png") no-repeat center / contain;
+}
+/* il titolo «2x1» è il pezzo grosso della card: qui il numero È il messaggio */
+html.vestido2 .v2-dst-2x1 .nom{ font-size:19px; font-weight:900; letter-spacing:.02em }
+html.vestido2 .v2-dst-2x1 .eyebrow{ color:#FFB04A }
+html.vestido2 .v2-dst-2x1 .precio{ color:#FFB04A; font-weight:800 }
 /* di giorno la card non è AURORA: fondo caldo, non nero-cyan */
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-aur-draw,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-aur-draw{
@@ -797,6 +825,33 @@ html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .faja-cartA2-slogan,
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .faja-cartA2-bpm,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .faja-cartA2-bpm{
   color: rgba(36,26,20,0.58) !important;
+}
+
+/* ── v2.54.0 · LA BARRA DEL CONTO NON ANNEGA PIÙ ─────────────────────
+   Alberto: «un bordo nella card del conto, perché annega in quella che
+   c'è sotto». È vero e ha una causa precisa: la barra è appoggiata sopra
+   una lista che scorre, ed è fatta di card della STESSA forma — bordi
+   tondi, stessa larghezza, stessa ombra. Due oggetti uguali sovrapposti
+   non si leggono come «sopra» e «sotto»: si leggono come uno solo mal
+   stampato.
+
+   Due cose, non una. ① il filo che chiedeva lui: un anello sottile che
+   dice dove finisce la barra. ② e soprattutto il VELO: sotto la barra il
+   contenuto sfuma nel fondo invece di essere tagliato di netto. È la cura
+   vera — il bordo separa due oggetti, il velo dice quale dei due sta
+   davanti. Il velo prende `--brand-bg`, quindi è nero caldo di notte e
+   sabbia di giorno senza doverlo dire due volte. */
+html.vestido2 #v2Barra::before{
+  content:''; position:fixed; left:0; right:0; bottom:0; height:124px;
+  pointer-events:none; z-index:-1;
+  background:linear-gradient(to top, var(--brand-bg) 46%, transparent 100%);
+}
+html.vestido2 #v2Barra > button{
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.16), 0 8px 28px rgba(0,0,0,.62);
+}
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] #v2Barra > button,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] #v2Barra > button{
+  box-shadow:0 0 0 1.5px rgba(36,26,20,.20), 0 8px 24px rgba(120,70,30,.28);
 }
 
 /* ── v2.52.0 · i due residui che il vestito chiaro aveva anche di giorno ──
@@ -4467,7 +4522,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.53.0 · el vestido · 4 cards secas (eran 4,3) + los precios en una sola línea · la tarde se lee · 01ago</span>
+<span id="ver" hidden>menu2 · v2.54.0 · el vestido · el 2x1 es UNA puerta (colibrí) y no cuatro carteles + la barra del pedido ya no se ahoga · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -5110,7 +5165,7 @@ const TRANSLATIONS = {
     cat_alimentos:'Alimentos',cat_cafe:'Café',cat_jugos:'Jugos',cat_helados:'Helados',cat_especiales:'Especiales',cat_bebidas:'Bebidas',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Postres',cat_ensaladas:'Ensaladas',cat_desayunos:'Desayunos',
     // v1.18 · S9 · PATCH E · categorie BKS + macro-groups (8 lingue)
     cat_entradas:'Entradas',cat_pastas:'Pastas',cat_fondos:'Fondos',cat_pizzasburger:'Pizzas/Burgers',cat_sushi:'Sushi',cat_acompanamientos:'Acompañamientos',cat_nino:'Niño',cat_almuerzo:'Almuerzo',cat_bar:'Bar',cat_sour:'Sour',cat_mojitos:'Mojitos',cat_spritz:'Spritz',cat_cervezas:'Cervezas',cat_vinos:'Vinos',cat_jarras:'Jarras',cat_destilados:'Destilados',
-    group_comida:'Comida',group_barra:'Barra',group_dolci:'Postres',group_promos:'Promos',
+    group_comida:'Comida',group_barra:'Barra',group_dolci:'Postres',group_promos:'Promos',promo_2x1_titulo:'2x1',promo_2x1_sub:'Ver los',
     confirm_call:'Sí, llamar', confirm_cancel:'Cancelar',
     call_generic_title:'¿Llamar mesero?',
     call_generic_subtitle:'El mesero llegará a tu mesa en breve',
@@ -5235,7 +5290,7 @@ const TRANSLATIONS = {
     hi_member:'Hi',tokens:'tokens', flag:'🇬🇧',
     cat_alimentos:'Food',cat_cafe:'Coffee',cat_jugos:'Juices',cat_helados:'Ice Cream',cat_especiales:'Specials',cat_bebidas:'Drinks',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Desserts',cat_ensaladas:'Salads',cat_desayunos:'Breakfast',
     cat_entradas:'To start',cat_pastas:'Pasta',cat_fondos:'Plates',cat_pizzasburger:'Pizzas/Burgers',cat_sushi:'Sushi',cat_acompanamientos:'Sides',cat_nino:'For kids',cat_almuerzo:'Lunch',cat_bar:'Cocktails',cat_sour:'Sours',cat_mojitos:'Mojitos',cat_spritz:'Spritz',cat_cervezas:'Beers',cat_vinos:'Wines',cat_jarras:'Pitchers',cat_destilados:'Bold pours',
-    group_comida:'Food',group_barra:'Bar',group_dolci:'Desserts',group_promos:'Deals',
+    group_comida:'Food',group_barra:'Bar',group_dolci:'Desserts',group_promos:'Deals',promo_2x1_titulo:'2 for 1',promo_2x1_sub:'See the',
     confirm_call:'Yes, call', confirm_cancel:'Cancel',
     call_generic_title:'Call the waiter?',
     call_generic_subtitle:'The waiter will be at your table shortly',
@@ -5325,7 +5380,7 @@ const TRANSLATIONS = {
     hi_member:'Olá',tokens:'tokens', flag:'🇧🇷',
     cat_alimentos:'Alimentos',cat_cafe:'Café',cat_jugos:'Sucos',cat_helados:'Sorvetes',cat_especiales:'Especiais',cat_bebidas:'Bebidas',cat_bowls:'Bowls',cat_snacks:'Lanches',cat_postres:'Sobremesas',cat_ensaladas:'Saladas',cat_desayunos:'Café da manhã',
     cat_entradas:'Para começar',cat_pastas:'Massas',cat_fondos:'Pratos',cat_pizzasburger:'Pizzas/Burgers',cat_sushi:'Sushi',cat_acompanamientos:'Acompanhamentos',cat_nino:'Para crianças',cat_almuerzo:'Almoço',cat_bar:'Coquetéis',cat_sour:'Sours',cat_mojitos:'Mojitos',cat_spritz:'Spritz',cat_cervezas:'Cervejas',cat_vinos:'Vinhos',cat_jarras:'Jarras',cat_destilados:'Destilados',
-    group_comida:'Comida',group_barra:'Bar',group_dolci:'Sobremesas',group_promos:'Promos',
+    group_comida:'Comida',group_barra:'Bar',group_dolci:'Sobremesas',group_promos:'Promos',promo_2x1_titulo:'2x1',promo_2x1_sub:'Ver os',
     confirm_call:'Sim, chamar', confirm_cancel:'Cancelar',
     call_generic_title:'Chamar garçom?',
     call_generic_subtitle:'O garçom chegará à sua mesa em breve',
@@ -5429,7 +5484,7 @@ const TRANSLATIONS = {
     hi_member:'Ciao',tokens:'token', flag:'🇮🇹',
     cat_alimentos:'Cucina',cat_cafe:'Caffetteria',cat_jugos:'Succhi',cat_helados:'Gelati',cat_especiales:'Speciali',cat_bebidas:'Bevande',cat_bowls:'Bowls',cat_snacks:'Snack',cat_postres:'Dolci',cat_ensaladas:'Insalate',cat_desayunos:'Colazione',
     cat_entradas:'Per iniziare',cat_pastas:'Pasta',cat_fondos:'Piatti',cat_pizzasburger:'Pizze/Burger',cat_sushi:'Sushi',cat_acompanamientos:'Contorni',cat_nino:'Per bambini',cat_almuerzo:'Pranzo',cat_bar:'Cocktail',cat_sour:'Sour',cat_mojitos:'Mojito',cat_spritz:'Spritz',cat_cervezas:'Birre',cat_vinos:'Vini',cat_jarras:'Caraffe',cat_destilados:'Distillati',
-    group_comida:'Cibo',group_barra:'Bar',group_dolci:'Dolci',group_promos:'Offerte',
+    group_comida:'Cibo',group_barra:'Bar',group_dolci:'Dolci',group_promos:'Offerte',promo_2x1_titulo:'2x1',promo_2x1_sub:'Vedi i',
     confirm_call:'Sì, chiama', confirm_cancel:'Annulla',
     call_generic_title:'Chiamare il cameriere?',
     call_generic_subtitle:'Il cameriere arriverà al tavolo a breve',
@@ -5519,7 +5574,7 @@ const TRANSLATIONS = {
     hi_member:'Hallo',tokens:'Token', flag:'🇩🇪',
     cat_alimentos:'Speisen',cat_cafe:'Kaffee',cat_jugos:'Säfte',cat_helados:'Eis',cat_especiales:'Specials',cat_bebidas:'Getränke',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Desserts',cat_ensaladas:'Salate',cat_desayunos:'Frühstück',
     cat_entradas:'Zum Start',cat_pastas:'Pasta',cat_fondos:'Hauptspeisen',cat_pizzasburger:'Pizza/Burger',cat_sushi:'Sushi',cat_acompanamientos:'Beilagen',cat_nino:'Für Kinder',cat_almuerzo:'Mittag',cat_bar:'Cocktails',cat_sour:'Sours',cat_mojitos:'Mojitos',cat_spritz:'Spritz',cat_cervezas:'Biere',cat_vinos:'Weine',cat_jarras:'Krüge',cat_destilados:'Spirituosen',
-    group_comida:'Speisen',group_barra:'Bar',group_dolci:'Desserts',group_promos:'Aktionen',
+    group_comida:'Speisen',group_barra:'Bar',group_dolci:'Desserts',group_promos:'Aktionen',promo_2x1_titulo:'2 für 1',promo_2x1_sub:'Alle',
     confirm_call:'Ja, rufen', confirm_cancel:'Abbrechen',
     call_generic_title:'Kellner rufen?',
     call_generic_subtitle:'Der Kellner kommt gleich an deinen Tisch',
@@ -5606,7 +5661,7 @@ const TRANSLATIONS = {
     hi_member:'Bonjour',tokens:'tokens', flag:'🇫🇷',
     cat_alimentos:'Cuisine',cat_cafe:'Café',cat_jugos:'Jus',cat_helados:'Glaces',cat_especiales:'Spéciaux',cat_bebidas:'Boissons',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Desserts',cat_ensaladas:'Salades',cat_desayunos:'Petit-déj',
     cat_entradas:'Pour commencer',cat_pastas:'Pâtes',cat_fondos:'Plats',cat_pizzasburger:'Pizzas/Burgers',cat_sushi:'Sushi',cat_acompanamientos:'Accompagnements',cat_nino:'Pour enfants',cat_almuerzo:'Déjeuner',cat_bar:'Cocktails',cat_sour:'Sours',cat_mojitos:'Mojitos',cat_spritz:'Spritz',cat_cervezas:'Bières',cat_vinos:'Vins',cat_jarras:'Pichets',cat_destilados:'Spiritueux',
-    group_comida:'Cuisine',group_barra:'Bar',group_dolci:'Desserts',group_promos:'Offres',
+    group_comida:'Cuisine',group_barra:'Bar',group_dolci:'Desserts',group_promos:'Offres',promo_2x1_titulo:'2 pour 1',promo_2x1_sub:'Voir les',
     confirm_call:'Oui, appeler', confirm_cancel:'Annuler',
     call_generic_title:'Appeler un serveur ?',
     call_generic_subtitle:'Le serveur arrive à votre table',
@@ -5693,7 +5748,7 @@ const TRANSLATIONS = {
     hi_member:'你好',tokens:'积分', flag:'🇨🇳',
     cat_alimentos:'餐食',cat_cafe:'咖啡',cat_jugos:'果汁',cat_helados:'冰淇淋',cat_especiales:'特色',cat_bebidas:'饮品',cat_bowls:'碗食',cat_snacks:'小食',cat_postres:'甜点',cat_ensaladas:'沙拉',cat_desayunos:'早餐',
     cat_entradas:'前菜',cat_pastas:'意面',cat_fondos:'主菜',cat_pizzasburger:'披萨/汉堡',cat_sushi:'寿司',cat_acompanamientos:'配菜',cat_nino:'儿童菜单',cat_almuerzo:'午餐',cat_bar:'鸡尾酒',cat_sour:'酸味鸡尾酒',cat_mojitos:'莫吉托',cat_spritz:'气泡酒',cat_cervezas:'啤酒',cat_vinos:'葡萄酒',cat_jarras:'壶装',cat_destilados:'烈酒',
-    group_comida:'食物',group_barra:'酒吧',group_dolci:'甜点',group_promos:'优惠',
+    group_comida:'食物',group_barra:'酒吧',group_dolci:'甜点',group_promos:'优惠',promo_2x1_titulo:'买一送一',promo_2x1_sub:'查看',
     confirm_call:'是，呼叫', confirm_cancel:'取消',
     call_generic_title:'呼叫服务员？',
     call_generic_subtitle:'服务员马上到您的桌子',
@@ -5780,7 +5835,7 @@ const TRANSLATIONS = {
     hi_member:'こんにちは',tokens:'ポイント', flag:'🇯🇵',
     cat_alimentos:'フード',cat_cafe:'カフェ',cat_jugos:'ジュース',cat_helados:'アイス',cat_especiales:'スペシャル',cat_bebidas:'ドリンク',cat_bowls:'ボウル',cat_snacks:'スナック',cat_postres:'デザート',cat_ensaladas:'サラダ',cat_desayunos:'朝食',
     cat_entradas:'前菜',cat_pastas:'パスタ',cat_fondos:'メイン',cat_pizzasburger:'ピザ/バーガー',cat_sushi:'寿司',cat_acompanamientos:'サイド',cat_nino:'キッズ',cat_almuerzo:'ランチ',cat_bar:'カクテル',cat_sour:'サワー',cat_mojitos:'モヒート',cat_spritz:'スプリッツ',cat_cervezas:'ビール',cat_vinos:'ワイン',cat_jarras:'ピッチャー',cat_destilados:'蒸留酒',
-    group_comida:'フード',group_barra:'バー',group_dolci:'スイーツ',group_promos:'特典',
+    group_comida:'フード',group_barra:'バー',group_dolci:'スイーツ',group_promos:'特典',promo_2x1_titulo:'2つで1つ分',promo_2x1_sub:'全',
     confirm_call:'はい、呼ぶ', confirm_cancel:'キャンセル',
     call_generic_title:'店員を呼ぶ?',
     call_generic_subtitle:'店員がすぐに到着します',
@@ -8555,12 +8610,47 @@ function v2DestacadosHTML(){
   const alm = v2AlmuerzoProds();
   if(alm.length) dst.push({ tipo:'almuerzo', alm });
   const promoSeen = new Set();
+  /* ── v2.54.0 · IL 2x1 DIVENTA UNA PORTA, NON QUATTRO CARTELLI ──
+     Idea di Alberto (01-ago), guardando i quattro `🎁 2x1` identici in fila:
+     «farei una sola card tipo colibrì, cliccando cadiamo nella categoria
+     2x1, così puliamo i destacados».
+     È la regola 1 della carta che sussurra: se il contrassegno ce l'hanno
+     tutti, ha smesso di contrassegnare. Quattro card che dicono la stessa
+     cosa occupavano tutto lo spazio dei destacados — che è il posto dove
+     il locale dovrebbe mostrare il MEGLIO, non ripetere lo sconto.
+     Il gruppo `__PROMOS__` esiste già ed è già tradotto in sette lingue:
+     la card non inventa una destinazione, apre una porta che c'era. */
+  const dosPorUno = ALL_PRODUCTS.filter(p=>{
+    if(p.agotado || !productInFaja(p) || esPush(p)) return false;
+    const pr = PROD_TO_PROMO[p.id];
+    return pr && (pr.tipo === '2x1' || pr.tipo === 'multiplo');
+  });
+  const _vestido = document.documentElement.classList.contains('vestido2');
+  if(_vestido && dosPorUno.length >= 2){
+    dosPorUno.forEach(p=>promoSeen.add(p.id));      // fuori dal carosello: vivono nella loro porta
+    dst.push({ tipo:'dos_por_uno', n: dosPorUno.length });
+  }
   ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && PROD_TO_PROMO[p.id] && !esPush(p))
     .forEach(p=>{ if(!promoSeen.has(p.id)){ promoSeen.add(p.id); dst.push({ tipo:'promo', p }); } });
   ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && p.es_sugerencia_destacada && !esPush(p) && !promoSeen.has(p.id))
     .forEach(p=>dst.push({ tipo:'casa', p }));
   if(!dst.length) return '';
   const cards = dst.slice(0,8).map(d=>{
+    if(d.tipo === 'dos_por_uno'){
+      /* v2.54.0 · la card-porta del 2x1. Disegnata, non fotografata: il
+         testo resta VIVO e si traduce (la lezione delle card AURORA, dove
+         «VIERNES Y SÁBADOS» restava spagnolo per ogni cliente del mondo).
+         Il colibrì è BIANCO: la carta dei colori l'ha già assegnato — cyan
+         MENÚ, oro BOTELLAS, viola COCKTAILS, rosso BITES, e «il bianco
+         resta di sistema». Quindi il 2x1 non ruba il segno ad AURORA:
+         prende l'unico colibrì che non è di nessuno. */
+      const _t = getLang('promo_2x1_titulo') || '2x1';
+      const _s = (getLang('promo_2x1_sub') || 'Ver los') + ' ' + d.n;
+      return `<button class="v2-dst v2-dst-2x1" onclick="setGroup('__PROMOS__')" aria-label="${_t}">
+        <div class="ph"><span class="v2-2x1-glow"></span><span class="v2-2x1-bird"></span></div>
+        <div class="inf"><div class="eyebrow">${getLang('group_promos') || 'Promos'}</div>
+        <div class="nom">${_t}</div><div class="precio">${_s} →</div></div></button>`;
+    }
     if(d.tipo === 'evento'){
       const e = d.e;
       const tit = e.titulo_es || e.titulo || e.Titulo || '';
