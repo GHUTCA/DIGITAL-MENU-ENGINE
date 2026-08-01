@@ -609,11 +609,53 @@ html.vestido2 .v2-aur-glow{
     rgba(79,227,216,.42) 0%, rgba(79,227,216,.10) 38%, transparent 68%);
 }
 html.vestido2 .v2-aur-tit{
-  position:relative; padding:0 10px; text-align:center;
-  font-size:17px; font-weight:300; letter-spacing:.26em; text-transform:uppercase;
-  line-height:1.15; color:#EAFEFF;
-  text-shadow:0 0 10px rgba(79,227,216,.75), 0 0 26px rgba(79,227,216,.40);
+  position:relative; padding:0 6px; text-align:center;
+  font-size:10.5px; font-weight:400; letter-spacing:.2em; text-transform:uppercase;
+  line-height:1.2; color:#EAFEFF;
+  text-shadow:0 0 8px rgba(79,227,216,.75), 0 0 20px rgba(79,227,216,.40);
 }
+/* IL COLIBRÌ · una sagoma sola, il colore lo mette il CSS.
+   `mask-image` + `background-color`: lo stesso file da 24,5 KB diventa
+   bianco di giorno e cyan di notte — e un colore nuovo domani non costa
+   un file nuovo. È la maschera che ha sostituito i 5 JPEG da 568 KB. */
+html.vestido2 .v2-aur-bird{
+  position:absolute; right:-14%; top:-16%; width:78%; height:128%;
+  pointer-events:none; opacity:.92; background-color:#FFFFFF;
+  -webkit-mask:url("brand/colibri_mask.png") no-repeat center / contain;
+          mask:url("brand/colibri_mask.png") no-repeat center / contain;
+}
+/* di notte prende il cyan di AURORA; di giorno resta bianco */
+html.vestido2 body.theme-dark .v2-aur-bird{ background-color:#7BF0E6 }
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-aur-bird,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-aur-bird{ background-color:#FFFFFF }
+/* di giorno la card non è AURORA: fondo caldo, non nero-cyan */
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-aur-draw,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-aur-draw{
+  background:linear-gradient(150deg,#8C3B10 0%,#B04A18 55%,#E0561A 100%);
+}
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-aur-glow,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-aur-glow{
+  background:radial-gradient(circle at 50% 50%, rgba(255,214,160,.42) 0%, rgba(255,180,110,.12) 40%, transparent 70%);
+}
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-aur-tit,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-aur-tit{
+  color:#FFF6EC; text-shadow:0 1px 6px rgba(80,30,5,.5);
+}
+
+/* ── QUATTRO CARD PER SCHERMATA, e nessuna a metà ──
+   Erano `flex:0 0 200px`: due e mezza per schermo, e la terza tagliata.
+   Ora la larghezza la decide lo SCHERMO, non un numero fisso: quattro
+   card esatte dentro la larghezza utile, gap compreso. Con l'aggancio
+   dello snap, quello che entra è sempre intero. */
+html.vestido2 .v2-carrusel{ gap:8px }
+html.vestido2 .v2-dst{ flex:0 0 calc((100% - 32px - 24px) / 4); border-radius:14px }
+html.vestido2 .v2-dst .ph{ height:70px }
+html.vestido2 .v2-dst .inf{ padding:6px 7px 8px }
+html.vestido2 .v2-dst .eyebrow{ font-size:7.5px; letter-spacing:.08em }
+html.vestido2 .v2-dst .nom{ font-size:11px; line-height:1.15; margin-top:2px }
+html.vestido2 .v2-dst .sub{ font-size:9px; margin-top:1px }
+html.vestido2 .v2-dst .precio{ font-size:11.5px; margin-top:3px }
+html.vestido2 .v2-dst .flag{ font-size:8px; padding:2px 5px; top:5px; left:5px; border-radius:6px }
 
 /* Il carosello non lascia più card a metà: ogni scorrimento AGGANCIA.
    Prima ci si fermava dove capitava e la prima card entrava tagliata —
@@ -4329,7 +4371,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.49.0 · el vestido · destacados: la card AURORA se dibuja + el carrusel engancha (nace APAGADO · ?vestido=1) · 01ago</span>
+<span id="ver" hidden>menu2 · v2.50.0 · el vestido · 4 cards por pantalla + el colibrí en la card del menú (nace APAGADO · ?vestido=1) · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8491,10 +8533,14 @@ function v2DestacadosHTML(){
       // Il colibrì qui NON c'è ancora di proposito: non ho una sagoma
       // vera in SVG e non voglio metterne una finta. Entra quando
       // l'asset inciso va nel repo. Per ora parlano la luce e il nome.
+      // v2.50.0 · si disegna SEMPRE, non solo di notte (richiesta di Alberto):
+      // anche il Menú del Día di giorno diventa una card disegnata, col
+      // colibrì bianco. Stessa sagoma, colore dal CSS secondo la fascia.
       const _vest = document.documentElement.classList.contains('vestido2');
-      const _ph = (_vest && _aur)
-        ? `<div class="v2-aur-draw"><span class="v2-aur-glow"></span>
-             <span class="v2-aur-tit">${escapeHtml(_aNom)}</span></div>`
+      const _ph = _vest
+        ? `<div class="v2-aur-draw"><span class="v2-aur-glow"></span>` +
+          `<span class="v2-aur-bird"></span>` +
+          `<span class="v2-aur-tit">${escapeHtml(_aNom)}</span></div>`
         : (_aFoto
             ? `<img src="${_aFoto}" alt="" loading="lazy" onerror="this.parentElement.textContent='🌙'">`
             : dibujo);
