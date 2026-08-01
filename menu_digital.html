@@ -678,8 +678,12 @@ html.vestido2 .v2-car-wrap{ position:relative }
    bloccato pur essendo scorrevole. La morbidezza serve solo al click, e
    lì vive: `scrollBy({behavior:'smooth'})` dentro v2CarMueve. */
 html.vestido2 .v2-carrusel{ gap:8px; overflow-x:auto }
+/* 🩹 v2.53.0 · le frecce stanno sulla FOTO, non a metà card. Centrate
+   sulla card (top:50%) cadevano sul nome e sul prezzo — si vede nella
+   foto di Alberto — e coprivano proprio la parte che si deve leggere.
+   La foto è alta 70px: il suo centro è a 35, la freccia è 30 → 20px. */
 html.vestido2 .v2-car-nav{
-  position:absolute; top:calc(50% - 16px); width:30px; height:30px; border-radius:50%;
+  position:absolute; top:20px; width:30px; height:30px; border-radius:50%;
   display:grid; place-items:center; border:0; cursor:pointer; z-index:3;
   font-size:19px; line-height:1; padding:0 0 2px 0;
   background:rgba(255,251,245,.94); color:#8C3B10;
@@ -692,9 +696,34 @@ html.vestido2 .v2-car-nav[disabled]{ opacity:0; pointer-events:none }
 html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-menu="tarde"]) .v2-car-nav{
   background:rgba(26,21,16,.94); color:#FFD9C2; box-shadow:0 0 0 1px rgba(255,106,31,.4), 0 2px 12px rgba(0,0,0,.6);
 }
-html.vestido2 .v2-dst{ flex:0 0 calc((100% - 32px - 24px) / 4); border-radius:14px }
+/* 🩹 v2.53.0 · «ce ne stanno 4 e qualcosa invece che 4 secchi» (Alberto,
+   con la foto). Misurato: larghezza utile 448, quattro card 416 →
+   AVANZAVANO 32 px, cioè 4,3 card, e un terzo di card sbucava sempre.
+   Il colpevole è il `- 32px`: in un flex-basis la percentuale si risolve
+   sul CONTENT BOX del contenitore, che è GIÀ al netto del padding. Il
+   padding era sottratto due volte. Restano solo i gap: 3 × 8 = 24.
+   Ora (100% − 24px)/4 = 106 px → 4 × 106 + 24 = 448 esatti, zero avanzo. */
+html.vestido2 .v2-dst{ flex:0 0 calc((100% - 24px) / 4); border-radius:14px }
 html.vestido2 .v2-dst .ph{ height:70px }
 html.vestido2 .v2-dst .inf{ padding:6px 7px 8px }
+/* ── E I PREZZI SU UNA RIGA SOLA · «sono disallineati» ──
+   L'altra metà della segnalazione, e si misura: il prezzo cadeva a 115 px
+   dall'alto in una card e a 121 o 128 in quella accanto, perché il nome
+   occupa una, due o tre righe («Pisco Sour» contro «Mojito Monster Mango
+   (500ml)»). Le card erano alte uguali, ma dentro ognuna andava per conto
+   suo: l'occhio legge quel disordine prima di leggere i prezzi.
+   Cura: il nome tiene DUE righe sempre — anche quando ne usa una — e il
+   prezzo si appoggia al fondo. Così i quattro prezzi stanno sulla stessa
+   linea per costruzione, non per fortuna del testo. I nomi lunghi si
+   chiudono coi puntini: il prezzo allineato vale più di «(500ml)», e il
+   nome intero è a un tocco di distanza. */
+html.vestido2 .v2-dst{ display:flex; flex-direction:column }
+html.vestido2 .v2-dst .inf{ flex:1; display:flex; flex-direction:column; min-height:0 }
+html.vestido2 .v2-dst .nom{
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; min-height:calc(2 * 1.15em);
+}
+html.vestido2 .v2-dst .precio{ margin-top:auto; padding-top:3px }
 html.vestido2 .v2-dst .eyebrow{ font-size:7.5px; letter-spacing:.08em }
 html.vestido2 .v2-dst .nom{ font-size:11px; line-height:1.15; margin-top:2px }
 html.vestido2 .v2-dst .sub{ font-size:9px; margin-top:1px }
@@ -4438,7 +4467,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.52.0 · el vestido · el carrusel a click + la tarde se lee (viste el día, como los tokens ya decían) · 01ago</span>
+<span id="ver" hidden>menu2 · v2.53.0 · el vestido · 4 cards secas (eran 4,3) + los precios en una sola línea · la tarde se lee · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
