@@ -4227,7 +4227,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.44.0 · el vestido · el header del día se aclara (nace APAGADO · ?vestido=1) · 01ago</span>
+<span id="ver" hidden>menu2 · v2.45.0 · el vestido · el chip dice una sola cosa: la mesa (nace APAGADO · ?vestido=1) · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -11334,6 +11334,35 @@ function v2PintaChip(){
   // (FINAL: su fondo nero degradé che brilla — sul panna si perdeva).
   // v2.11 · #16 · il chip si presenta: 🪑 = «questo è il TUO tavolo», ▾ = «si apre»
   // v2.30.0 · il numero grande: «Mesa» resta etichetta, il NUMERO si vede da lontano
+  // ══════════════════════════════════════════════════════════════════
+  // v2.45.0 · IL VESTITO · IL CHIP DICE UNA COSA SOLA: LA MESA
+  // ══════════════════════════════════════════════════════════════════
+  // Ordine di Alberto (01-ago): «LA LISTA deve contenere solo informazione
+  // utile al cliente frequente — cosa ha mangiato la sera prima, se vuole
+  // ripetersi, offerte solo per lui. Un cervello che manda informazione
+  // senza farlo sentire invaso. Nulla di questo è pronto: tutto il resto
+  // deve sparire.»
+  //
+  // Il chip faceva TRE mestieri in 90 px — che mesa sei, chi sei, e che hai
+  // cambiato tavolo — e per questo si allargava fino a coprire il logo.
+  // Il nome senza il cervello dietro è una promessa non mantenuta: dice
+  // «ti riconosco» e poi non offre niente. Meglio niente che una promessa.
+  // Via anche la porta al «¿Te cambiaste de mesa?»: lo dice già il popup
+  // allo scan del QR, e dirlo due volte non informa — sporca.
+  //
+  // ⚠️ SPARISCE IL BADGE, NON L'APPARTENENZA: ACTIVE_MEMBER resta intatto.
+  // Prezzi member, piatti Solo_Member e la firma Member nel pedido
+  // continuano a funzionare, in silenzio. Quando il cervello di LA LISTA
+  // avrà qualcosa da dire, tornerà — a dire quella cosa, non un nome.
+  if(document.documentElement.classList.contains('vestido2')){
+    chip.innerHTML = '🪑 ' + (getLang('mesa') || 'Mesa') +
+      ' <b class="v2-mesa-num">' + escapeHtml(MESA_ID) + '</b>';
+    chip.onclick = null;              // toglie l'handler inline v2AbrirId()
+    chip.removeAttribute('onclick');
+    chip.style.cursor = 'default';
+    chip.style.display = 'flex';
+    return;
+  }
   chip.innerHTML = '🪑 ' + (getLang('mesa') || 'Mesa') + ' <b class="v2-mesa-num">' + escapeHtml(MESA_ID) + '</b>' +
     (ACTIVE_MEMBER && ACTIVE_MEMBER.nombre
     ? ' · 🎩 ' + escapeHtml(ACTIVE_MEMBER.nombre)
