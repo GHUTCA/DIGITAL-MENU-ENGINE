@@ -4024,7 +4024,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.41.0 · NOCHES AURORA: la carta de la noche se recarga sola (carta_epoca) · 31jul</span>
+<span id="ver" hidden>menu2 · v2.42.0 · la card del menú se viste de noche + carta que se recarga sola (AURORA) · 31jul</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8106,10 +8106,26 @@ function v2DestacadosHTML(){
         '<line x1="37" y1="54" x2="37" y2="90"/><line x1="31" y1="54" x2="31" y2="64"/><line x1="43" y1="54" x2="43" y2="64"/><path d="M31 64h12" fill="none"/></g>' +
         '<g stroke="#8A5A2B" stroke-width="3" stroke-linecap="round"><line x1="165" y1="54" x2="165" y2="90"/><path d="M165 54c7 6 7 14 0 19" fill="none"/></g>' +
         '<circle cx="52" cy="28" r="2" fill="#E8A54C"/><circle cx="150" cy="24" r="2.5" fill="#E8A54C"/><circle cx="166" cy="40" r="1.6" fill="#E8A54C"/></svg>';
+      // v2.42.0 · NOCHES AURORA · de noche la card se viste de noche: la cloche
+      // del almuerzo es un dibujo cálido hecho para el mediodía, y a las 22 con
+      // el DJ entrando dice la fascia equivocada. Si el menú vivo es el de
+      // AURORA, manda SU foto y SU nombre (vienen en menu_info, del foglio).
+      // El gesto no cambia: sigue cayendo en los platos.
+      const _aur   = MENU_INFO && MENU_INFO.aurora;
+      const _aFoto = _aur && MENU_INFO.foto ? MENU_INFO.foto : '';
+      const _aNom  = _aur && MENU_INFO.nombre ? MENU_INFO.nombre : (getLang('group_almuerzo')||'Menú del Día');
+      // Si la foto muere (URL caída), el mismo fallback que usan las demás
+      // cards: un emoji, jamás un recuadro vacío con bordes.
+      const _ph    = _aFoto
+        ? `<img src="${_aFoto}" alt="" loading="lazy" onerror="this.parentElement.textContent='🌙'">`
+        : dibujo;
+      const _flag  = _aur
+        ? `<span class="flag" style="background:#21e6ff;color:#04202a">🌙 AURORA</span>`
+        : `<span class="flag" style="background:#3DAA68;color:#fff">🍽️ MENÚ</span>`;
       return `<button class="v2-dst" onclick="v2AbrirDest('almuerzo')">
-        <span class="flag" style="background:#3DAA68;color:#fff">🍽️ MENÚ</span>
-        <div class="ph">${dibujo}</div>
-        <div class="inf"><div class="eyebrow">${getLang('group_almuerzo')||'Menú del Día'}</div>
+        ${_flag}
+        <div class="ph">${_ph}</div>
+        <div class="inf"><div class="eyebrow">${_aNom}</div>
         <div class="nom">${d.alm.length} platos a elección</div>
         <div class="precio">${precio}</div></div></button>`;
     }
