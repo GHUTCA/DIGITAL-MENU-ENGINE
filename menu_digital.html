@@ -517,6 +517,69 @@ html.vestido2 body.theme-dark[data-fascia-menu="tarde"]{
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   v2.47.0 · IL FONDO CHE RACCONTA          (richiesta di Alberto, 01-ago)
+   ══════════════════════════════════════════════════════════════════════
+   «Il fondo di un solo colore non mi piace... non che rubi presenza alle
+   card sopra, ma che abbia qualcosa da raccontare.»
+
+   Il rischio l'ha nominato lui ed è quello vero. Quindi due regole dure:
+
+   ① NON SCORRE. È `position:fixed`: le card scivolano SOPRA un fondo
+      fermo, come il murale delle tende sta dietro ai tavoli. Se il
+      disegno scorresse con la lista, l'occhio lo inseguirebbe e la
+      lettura si sporcherebbe.
+   ② NON PASSA SOTTO IL TESTO. Le luci sono ampie e bassissime di
+      contrasto; il segno botanico vive nell'ANGOLO, dove le card non
+      arrivano. Il fondo è luce e margine, mai motivo ripetuto.
+
+   `z-index:-1` su ::before: per l'ordine di pittura CSS i figli con
+   z-index negativo stanno SOPRA lo sfondo del padre e SOTTO tutto il
+   contenuto in flusso. È il modo affidabile — `background-attachment:
+   fixed` su iOS scatta e a volte non si disegna affatto.
+
+   Costo: zero richieste di rete. Gradienti CSS + un SVG inline di poche
+   centinaia di byte. L'invariante 9 vale anche per il fondo.
+   ══════════════════════════════════════════════════════════════════════ */
+html.vestido2 body.theme-dark::before{
+  content:'';
+  position:fixed; inset:0; z-index:-1; pointer-events:none;
+  /* LA NOTTE · la luce entra dai bordi e lascia respirare il centro:
+     insegna rossa in alto a sinistra, laser cyan a destra, le lucine
+     calde in basso. Il centro resta nero: è il nero che fa brillare. */
+  background:
+    radial-gradient(58% 22% at 6% 2%,   rgba(255,46,60,.26)  0%, transparent 70%),
+    radial-gradient(46% 30% at 104% 38%, rgba(79,227,216,.15) 0%, transparent 72%),
+    radial-gradient(70% 26% at 12% 100%, rgba(255,106,31,.13) 0%, transparent 72%);
+}
+
+/* IL GIORNO · una sola sorgente calda dall'alto (il sole della terrazza)
+   e la STRELITZIA nell'angolo in basso a destra, che esce dal bordo
+   come sulle tende. È il totem del giorno: già dipinto sulla facciata,
+   non l'abbiamo inventato — l'abbiamo riconosciuto. */
+html.vestido2 body.theme-dark[data-fascia-menu="dia"]::before,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"]::before{
+  background:
+    radial-gradient(64% 24% at 10% 0%, rgba(224,86,26,.14) 0%, transparent 70%),
+    radial-gradient(52% 20% at 96% 8%, rgba(201,138,46,.11) 0%, transparent 72%);
+}
+
+/* ── IL SEGNO BOTANICO · strato SUO, opacità SUA ──
+   Tenerlo su ::before insieme alle luci sarebbe stato comodo e sbagliato:
+   una sola `opacity` avrebbe smorzato anche la luce, e le due cose si
+   regolano a occhio in momenti diversi. Un mestiere, uno strato.
+   Vive nell'angolo in basso a destra e ESCE dal bordo, come sulle tende.
+   La sua forza è la posizione, non il contrasto: se si vede "bene",
+   è già troppo. */
+html.vestido2 body.theme-dark[data-fascia-menu="dia"]::after,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"]::after{
+  content:'';
+  position:fixed; right:-6vw; bottom:-4vh; width:76vw; height:50vw;
+  z-index:-1; pointer-events:none; opacity:.42;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 130'%3E%3Cpath d='M128,92 C152,92 180,98 197,109 C176,113 146,107 126,99 Z' fill='%233E5AA8'/%3E%3Cpath d='M114,86 L136,14 L149,23 L129,90 Z' fill='%23E0561A'/%3E%3Cpath d='M119,86 L163,33 L172,47 L133,92 Z' fill='%23F2761F'/%3E%3Cpath d='M123,88 L181,61 L185,76 L136,95 Z' fill='%23E0561A'/%3E%3Cpath d='M8,99 C46,80 92,71 130,80 C104,97 54,108 8,99 Z' fill='%236E5029'/%3E%3Cpath d='M8,99 C46,83 90,75 124,82 C100,93 54,103 8,99 Z' fill='%238A6A3A'/%3E%3C/svg%3E") no-repeat right bottom / contain;
+}
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"]::after{ opacity:.34 }
+
+/* ══════════════════════════════════════════════════════════════════════
    v2.44.0 · IL GIORNO · le conseguenze dell'header chiaro
    ══════════════════════════════════════════════════════════════════════
    Schiarire --header-fixed non basta: header e faja avevano tutto il
@@ -4227,7 +4290,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.46.2 · la reja de la hora vale para TODOS (fuera del vestido) · 01ago</span>
+<span id="ver" hidden>menu2 · v2.47.0 · el vestido · el fondo que cuenta algo (nace APAGADO · ?vestido=1) · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
