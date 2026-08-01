@@ -4227,7 +4227,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.46.1 · el vestido · la reja de la hora, con los minutos (nace APAGADO · ?vestido=1) · 01ago</span>
+<span id="ver" hidden>menu2 · v2.46.2 · la reja de la hora vale para TODOS (fuera del vestido) · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -6755,19 +6755,20 @@ function productInFaja(p){
   // Senza orari dichiarati (default ini=0 · fin=24) il ramo normale dà
   // sempre true: chi non ha cancello non lo prende. Il codice fa
   // rispettare ciò che dice il foglio — il foglio decide, il codice esegue.
-  if(document.documentElement.classList.contains('vestido2')){
-    const ini = (p.hora_ini_dec != null) ? p.hora_ini_dec : 0;
-    const fin = (p.hora_fin_dec != null) ? p.hora_fin_dec : 24;
-    if(fin === ini) return true;                   // finestra nulla = nessun cancello
-    const d = new Date();
-    const h = d.getHours() + d.getMinutes() / 60;
-    return (fin > ini) ? (h >= ini && h < fin)     // finestra normale
-                       : (h >= ini || h < fin);    // scavalca la mezzanotte
-  }
-  if(CURRENT_FAJA==='all') return true;
-  const faja = FAJAS.find(f=>f.id===CURRENT_FAJA);
-  if(!faja) return true;
-  return p.hora_inicio <= faja.end && p.hora_fin >= faja.start;
+  // v2.46.2 · LA REJA VALE PER TUTTI (01-ago, mezzogiorno — Alberto): la
+  // card Botellas usciva ancora nei Destacados perché il cancello viveva
+  // solo dentro `html.vestido2` (il vestito sperimentale, spento sui
+  // telefoni veri) — e il ramo vecchio (`CURRENT_FAJA==='all'`) lasciava
+  // passare tutto. Il foglio dice 23:00→4:00 per TUTTI i clienti, non solo
+  // per chi prova il vestito: il cancello esce dal vestito.
+  // (Senza orari dichiarati: ini=0 · fin=24 → sempre visibile, come prima.)
+  const ini = (p.hora_ini_dec != null) ? p.hora_ini_dec : 0;
+  const fin = (p.hora_fin_dec != null) ? p.hora_fin_dec : 24;
+  if(fin === ini) return true;                   // finestra nulla = nessun cancello
+  const d = new Date();
+  const h = d.getHours() + d.getMinutes() / 60;
+  return (fin > ini) ? (h >= ini && h < fin)     // finestra normale
+                     : (h >= ini || h < fin);    // scavalca la mezzanotte
 }
 
 function renderCatTabs(){
