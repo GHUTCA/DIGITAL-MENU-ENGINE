@@ -593,6 +593,40 @@ html.vestido2 body.theme-dark[data-fascia-menu="tarde"]::after{
    sarebbero diventate invisibili. Qui si ribaltano, una per una.
    ══════════════════════════════════════════════════════════════════════ */
 
+/* ══════════════════════════════════════════════════════════════════════
+   v2.49.0 · I DESTACADOS · la card AURORA disegnata + niente più tagli
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* la card AURORA disegnata: luce e nome, zero immagine, zero ritaglio */
+html.vestido2 .v2-dst .ph .v2-aur-draw{
+  position:relative; width:100%; height:100%; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(150deg,#0D1A1E 0%,#07100F 62%,#0A0806 100%);
+}
+html.vestido2 .v2-aur-glow{
+  position:absolute; left:-25%; top:-46%; width:150%; height:150%; pointer-events:none;
+  background:radial-gradient(circle at 50% 50%,
+    rgba(79,227,216,.42) 0%, rgba(79,227,216,.10) 38%, transparent 68%);
+}
+html.vestido2 .v2-aur-tit{
+  position:relative; padding:0 10px; text-align:center;
+  font-size:17px; font-weight:300; letter-spacing:.26em; text-transform:uppercase;
+  line-height:1.15; color:#EAFEFF;
+  text-shadow:0 0 10px rgba(79,227,216,.75), 0 0 26px rgba(79,227,216,.40);
+}
+
+/* Il carosello non lascia più card a metà: ogni scorrimento AGGANCIA.
+   Prima ci si fermava dove capitava e la prima card entrava tagliata —
+   il difetto che Alberto ha visto sul ferro. `scroll-padding-left` allinea
+   l'aggancio al padding del carosello, se no la card si incolla al bordo
+   dello schermo invece che dove comincia la lista. */
+html.vestido2 .v2-carrusel{
+  scroll-snap-type:x mandatory;
+  scroll-padding-left:16px;
+  -webkit-overflow-scrolling:touch;
+}
+html.vestido2 .v2-dst{ scroll-snap-align:start }
+
 /* il testo dell'header era color:#fff cablato su #header */
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] #header,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] #header{
@@ -4295,7 +4329,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.48.0 · el vestido · el fondo: collage mancha de agua (nace APAGADO · ?vestido=1) · 01ago</span>
+<span id="ver" hidden>menu2 · v2.49.0 · el vestido · destacados: la card AURORA se dibuja + el carrusel engancha (nace APAGADO · ?vestido=1) · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8437,9 +8471,33 @@ function v2DestacadosHTML(){
       const _aNom  = _aur && MENU_INFO.nombre ? MENU_INFO.nombre : (getLang('group_almuerzo')||'Menú del Día');
       // Si la foto muere (URL caída), el mismo fallback que usan las demás
       // cards: un emoji, jamás un recuadro vacío con bordes.
-      const _ph    = _aFoto
-        ? `<img src="${_aFoto}" alt="" loading="lazy" onerror="this.parentElement.textContent='🌙'">`
-        : dibujo;
+      // ══════════════════════════════════════════════════════════════
+      // v2.49.0 · IL VESTITO · LA CARD AURORA SI DISEGNA, NON SI FOTOGRAFA
+      // ══════════════════════════════════════════════════════════════
+      // Alberto: «i due colibrì sono tagliati, non si vedono». La causa
+      // NON era il carosello: è che `aurora_card_v1.png` è 1200x800 e
+      // entra in un riquadro 200x110 con `object-fit:cover` — quindi
+      // viene RITAGLIATA, e il testo cotto dentro (Menú BPM $22.000,
+      // VIERNES Y SÁBADOS) finisce a ~4 px di altezza: illeggibile.
+      //
+      // Tre difetti in un colpo solo, e tutti spariscono disegnandola:
+      //  ① il ritaglio — niente immagine, niente cover
+      //  ② la leggibilità — il testo è testo, scala con la card
+      //  ③ 🌍 LA TRADUZIONE — il menù ha il selettore di lingua, ma un
+      //     testo dipinto dentro un PNG resta in spagnolo per sempre.
+      //     Per un turista in inglese quella card era muta.
+      // Bonus: 319 KB in meno sul telefono di ogni cliente.
+      //
+      // Il colibrì qui NON c'è ancora di proposito: non ho una sagoma
+      // vera in SVG e non voglio metterne una finta. Entra quando
+      // l'asset inciso va nel repo. Per ora parlano la luce e il nome.
+      const _vest = document.documentElement.classList.contains('vestido2');
+      const _ph = (_vest && _aur)
+        ? `<div class="v2-aur-draw"><span class="v2-aur-glow"></span>
+             <span class="v2-aur-tit">${escapeHtml(_aNom)}</span></div>`
+        : (_aFoto
+            ? `<img src="${_aFoto}" alt="" loading="lazy" onerror="this.parentElement.textContent='🌙'">`
+            : dibujo);
       const _flag  = _aur
         ? `<span class="flag" style="background:#21e6ff;color:#04202a">🌙 AURORA</span>`
         : `<span class="flag" style="background:#3DAA68;color:#fff">🍽️ MENÚ</span>`;
