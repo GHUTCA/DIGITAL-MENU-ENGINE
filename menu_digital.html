@@ -4227,7 +4227,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.45.0 · el vestido · el chip dice una sola cosa: la mesa (nace APAGADO · ?vestido=1) · 01ago</span>
+<span id="ver" hidden>menu2 · v2.46.0 · el vestido · la reja de la hora vuelve a cerrar (nace APAGADO · ?vestido=1) · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -6715,6 +6715,34 @@ function setFaja(id){
 }
 
 function productInFaja(p){
+  // ══════════════════════════════════════════════════════════════════
+  // v2.46.0 · IL VESTITO · IL CANCELLO DELL'ORA TORNA A CHIUDERSI
+  // ══════════════════════════════════════════════════════════════════
+  // Trovato da Alberto sul ferro il 01-ago alle 9:45: la carta mostrava
+  // Botella Jack Daniel's $100.000 e Menú BPM a metà mattina.
+  //
+  // Il dato era GIUSTO (Hora_Inicio 23:00 · Hora_Fin 4:00 nel foglio):
+  // non lo applicava nessuno. CURRENT_FAJA nasce 'all' e setFaja() non
+  // viene più chiamata da nessuno — il selettore delle fasce orarie è
+  // stato sostituito dai chip del LEMA e il cancello degli orari non è
+  // mai stato ricablato. Risultato: la prima riga usciva sempre da
+  // `if(CURRENT_FAJA==='all') return true` e gli orari del foglio erano
+  // decorazione.
+  //
+  // Qui il cancello guarda l'OROLOGIO VERO, e sa leggere le finestre che
+  // SCAVALCANO LA MEZZANOTTE: 23:00→4:00 non è un intervallo crescente,
+  // e un confronto semplice lo dichiara sempre chiuso (o sempre aperto).
+  //
+  // Senza orari dichiarati (default ini=0 · fin=24) il ramo normale dà
+  // sempre true: chi non ha cancello non lo prende. Il codice fa
+  // rispettare ciò che dice il foglio — il foglio decide, il codice esegue.
+  if(document.documentElement.classList.contains('vestido2')){
+    const ini = p.hora_inicio, fin = p.hora_fin;
+    const d = new Date();
+    const h = d.getHours() + d.getMinutes() / 60;
+    return (fin > ini) ? (h >= ini && h < fin)     // finestra normale
+                       : (h >= ini || h < fin);    // scavalca la mezzanotte
+  }
   if(CURRENT_FAJA==='all') return true;
   const faja = FAJAS.find(f=>f.id===CURRENT_FAJA);
   if(!faja) return true;
