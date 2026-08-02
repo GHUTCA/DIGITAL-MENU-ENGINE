@@ -465,6 +465,17 @@ html.vestido2 body.theme-dark{
   --cross-sell-bg: #1A1510;
   --cross-sell-border: rgba(255,106,31,0.42);
   --faja-cartelera-bg: #14100C;
+  /* ── v2.55.0 · IL VERDE RESTA, MA SMETTE DI GRIDARE ──
+     Alberto: «lascia il verde e vediamo… magari non tanto acceso».
+     Il verde resta perché è la convenzione più forte che esiste per
+     «procedi», e quella non si butta per gusto. Ma `#3dbf7e` è uno
+     smeraldo molto saturo e virato al BLU: sul nero caldo era l'unica
+     cosa fredda della schermata, e saltava fuori dal vestito.
+     Ora un giada più basso e appena virato al caldo: stacca ancora sul
+     nero (è un bottone, deve trovarsi), ma non compete più con l'arancio.
+     Il token è uno solo, quindi si smorzano insieme tutti i «verdi ok»
+     della carta — la barra del conto e la via di conferma. */
+  --v2-ok: #4E9C73;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -514,6 +525,10 @@ html.vestido2 body.theme-dark[data-fascia-menu="tarde"]{
      BKS è «quiete con energia controllata», e una barra nera in cima a una
      carta di sabbia è la toppa che si vedeva. */
   --header-fixed: #F8F1E6;
+  /* v2.55.0 · di giorno il verde va un gradino più giù ancora: su sabbia
+     chiara un verde chiaro sbiadisce, e un bottone che sbiadisce non si
+     trova più. Stesso carattere, più fondo. */
+  --v2-ok: #3F8C64;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -4522,7 +4537,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.54.0 · el vestido · el 2x1 es UNA puerta (colibrí) y no cuatro carteles + la barra del pedido ya no se ahoga · 01ago</span>
+<span id="ver" hidden>menu2 · v2.55.0 · el vestido · el verde se queda, pero deja de gritar (jade en vez de esmeralda) · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
