@@ -725,6 +725,21 @@ html.vestido2 #v2Orden .cta{ background:var(--v2-ok); color:#06170e }
    che hai già scelto — non merita un colore d'allarme suo. */
 html.vestido2 .v2-step{ border-color:var(--v2-ok) }
 html.vestido2 .v2-step b{ color:var(--v2-ok) }
+
+/* v2.61.0 · IL PALLINO · lo stepper richiuso lascia il numero addosso al
+   `＋`. È l'unica cosa che serviva davvero di quei 90 px: la memoria di
+   ciò che hai già preso, leggibile mentre scorri, senza aprire il conto.
+   Pieno verde, perché non è un'azione da fare: è un fatto già accaduto —
+   e i fatti compiuti in questa carta sono verdi. */
+html.vestido2 .v2-add-n{ position:relative; overflow:visible }
+html.vestido2 .v2-add-n i{
+  position:absolute; top:-5px; right:-5px; min-width:19px; height:19px; padding:0 4px;
+  display:grid; place-items:center; border-radius:10px;
+  background:var(--v2-ok); color:#06170e;
+  font-size:11.5px; font-weight:900; font-style:normal; line-height:1;
+  box-shadow:0 0 0 2px var(--brand-surface-card, var(--brand-surface));
+  animation:v2pop .18s;
+}
 html.vestido2 #v2Orden .cta:disabled{ background:var(--brand-surface-card); color:var(--brand-text-muted); opacity:1;
   box-shadow:inset 0 0 0 1.5px var(--brand-border) }
 
@@ -4741,7 +4756,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.60.0 · el vestido · la fila de destacados se adapta a cuántas cards tiene · los títulos se leen · sin el contador · 01ago</span>
+<span id="ver" hidden>menu2 · v2.61.0 · el vestido · el stepper se recoge en un punto con el número (memoria sí, control no) · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -9338,11 +9353,50 @@ function v2Preguntas(p){
 function v2QtyOf(id){
   return CART.items.filter(i=>i.id===id).reduce((s,i)=>s+(i.qty||1),0);
 }
+/* ═══ v2.61.0 · LO STEPPER SI RICHIUDE · risposta a una domanda di Alberto
+   ═══ «a cosa serve mantenere lo stepper aperto dopo che ho scelto il
+   prodotto?»
+   Serve a una cosa sola, e non è cambiare la quantità: serve a RICORDARE.
+   Scorrendo una carta di quasi 300 piatti, quel `− 1 ＋` è l'unico posto
+   che dice «questo l'hai già preso, e ne hai uno» senza aprire il conto.
+   Ma la domanda coglie il difetto: lo teneva aperto come CONTROLLO quando
+   bastava come MEMORIA. Uno stepper è un attrezzo per correggere, e
+   restava lì per sempre anche quando non c'era più niente da correggere —
+   90 px di riga, e un `−` sotto il pollice su una cosa che il cliente ha
+   appena deciso di volere.
+   Ora: resta aperto finché la mano è lì (5 s dall'ultimo tocco), poi si
+   richiude in un `＋` con un pallino che porta il numero. L'informazione
+   resta, il controllo sparisce, la riga torna calma.
+   E ogni tocco riapre la finestra di correzione: chi aggiunge per sbaglio
+   ha sempre il `−` davanti nell'istante dopo. Il gesto principale resta a
+   un tocco solo, e non si perde niente.
+   🔒 Solo col vestito: a flag spento lo stepper resta aperto per sempre,
+   come in produzione. */
+const V2_STEP_MS = 5000;
+let V2_STEP_ABIERTO = null, V2_STEP_T = null;
+function v2StepTocca(id){
+  if(!document.documentElement.classList.contains('vestido2')) return;
+  const antes = V2_STEP_ABIERTO;
+  V2_STEP_ABIERTO = id;
+  if(V2_STEP_T) clearTimeout(V2_STEP_T);
+  // uno alla volta: se un'altra riga era aperta, si chiude subito
+  if(antes && antes !== id) v2RefreshCtrl(antes);
+  V2_STEP_T = setTimeout(()=>{
+    const q = V2_STEP_ABIERTO; V2_STEP_ABIERTO = null; V2_STEP_T = null;
+    if(q) v2RefreshCtrl(q);
+  }, V2_STEP_MS);
+}
 function v2CtrlHTML(p){
   if(IS_VETRINA || !PEDIDO_DIGITAL) return '';   // vetrina/kill-switch: si guarda, non si ordina
   const n = v2QtyOf(p.id);
+  const vestido = document.documentElement.classList.contains('vestido2');
   if(n > 0 && !v2Preguntas(p).length){
-    return `<span class="v2-step"><button onclick="v2Mas('${p.id}',-1)">−</button><b>${n}</b><button onclick="v2Mas('${p.id}',1)">＋</button></span>`;
+    // col vestito lo stepper si mostra solo se questa riga è quella «viva»
+    if(!vestido || V2_STEP_ABIERTO === p.id)
+      return `<span class="v2-step"><button onclick="v2Mas('${p.id}',-1)">−</button><b>${n}</b><button onclick="v2Mas('${p.id}',1)">＋</button></span>`;
+    // richiuso: il `＋` continua ad aggiungere (gesto invariato) e il
+    // pallino dice quanti ne hai. Niente `−` a portata di pollice.
+    return `<button class="v2-add v2-add-n" onclick="v2Mas('${p.id}',1)" aria-label="${n}">＋<i>${n}</i></button>`;
   }
   const acc = v2Preguntas(p).length ? `openDetail('${p.id}')` : `v2Mas('${p.id}',1)`;
   return `<button class="v2-add" onclick="${acc}">＋</button>`;
@@ -9364,6 +9418,7 @@ function v2Mas(id, delta){
     saveCart();
   }
   try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
+  v2StepTocca(id);      // v2.61.0 · la mano è qui: lo stepper resta aperto 5s
   v2RefreshCtrl(id);
 }
 function v2RefreshCtrl(id){
