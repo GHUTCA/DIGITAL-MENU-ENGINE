@@ -859,6 +859,73 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 html.vestido2 .v2-dst{ flex:0 0 calc((100% - 24px) / 4); border-radius:14px }
 html.vestido2 .v2-dst .ph{ height:70px }
 html.vestido2 .v2-dst .inf{ padding:6px 7px 8px }
+
+/* ── ⑤ v2.60.0 · LA FILA SI ADATTA A QUANTE CARD HA ──────────────────
+   Alberto: «i destacados così piccoli sembrano monchi, li ingrandirei al
+   doppio, cioè adattabile — 1 card = 2 spazi, 2 card = 4 spazi…».
+   La misura fissa a un quarto era giusta solo nel caso in cui le card
+   sono quattro. Con una sola, quel quarto diventava un francobollo con
+   tre quarti di vuoto a fianco — e la sezione dove il locale mostra il
+   meglio sembrava un errore di caricamento.
+   Ora la larghezza la decide il NUMERO:
+     1 card  → metà fila (il doppio) · l'altra metà lascia vedere il
+               fondo: vuoto voluto, non buco
+     2 card  → metà ciascuna, la fila è piena
+     3 card  → un terzo ciascuna, la fila è piena
+     4 o più → un quarto: quattro intere, le altre si scorrono
+   Le foto crescono con le card: una card larga il doppio con la foto
+   alta uguale sarebbe una fessura. */
+html.vestido2 .v2-carrusel[data-n="1"] .v2-dst,
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst{ flex:0 0 calc((100% - 8px) / 2) }
+html.vestido2 .v2-carrusel[data-n="3"] .v2-dst{ flex:0 0 calc((100% - 16px) / 3) }
+html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .ph,
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .ph{ height:124px }
+html.vestido2 .v2-carrusel[data-n="3"] .v2-dst .ph{ height:92px }
+/* con card più larghe il testo respira invece di stare in punta di piedi */
+html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .nom,
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .nom{ font-size:14px; line-height:1.2 }
+html.vestido2 .v2-carrusel[data-n="3"] .v2-dst .nom{ font-size:12.5px }
+html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .precio,
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .precio{ font-size:14px }
+html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .eyebrow,
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .eyebrow{ font-size:8.5px }
+html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .inf,
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .inf{ padding:8px 10px 10px }
+/* con una o due card non c'è niente da scorrere: le frecce non si disegnano */
+html.vestido2 .v2-car-wrap:has(.v2-carrusel[data-n="1"]) .v2-car-nav,
+html.vestido2 .v2-car-wrap:has(.v2-carrusel[data-n="2"]) .v2-car-nav{ display:none }
+/* ══════════════════════════════════════════════════════════════════════
+   v2.60.0 · LE QUATTRO DI ALBERTO (01-ago, guardando la carta finita)
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ① «lo spazio lì è troppo quando non c'è la card DJ»
+   Il blocco del DJ apre la lista quando c'è musica; quando non c'è, la
+   sua funzione sparisce ma il suo POSTO no — restavano 32 px di niente
+   fra i chip e i Destacados. Un vuoto che nasce dall'assenza di una cosa
+   non è respiro: è un buco. Quando il titolo è il primo della lista, si
+   alza; se c'è il DJ, tutto resta com'era. */
+html.vestido2 #menuContent > .v2-sec-t:first-child{ padding-top:2px }
+
+/* ② «il colore di Destacados e Sour è troppo basso»
+   Erano al 62% (`--brand-text-muted`) — il grigio che si usa per le cose
+   secondarie. Ma questi non sono dettagli: sono i CARTELLI della carta,
+   le uniche parole che dicono dove sei mentre scorri. Ora hanno il testo
+   pieno, e le categorie guadagnano mezzo punto di corpo: erano 9 px, che
+   su un telefono al buio è quasi un'insegna spenta. */
+html.vestido2 .v2-sec-t{ color:var(--brand-text); opacity:.92 }
+/* ⚠️ `body.theme-dark` va nominato: senza, questa regola pareggia in
+   specificità con la `body.theme-dark .cat-header-name` che sta più in
+   basso nel file — e a parità vince l'ultima. Misurato: il nome restava
+   al 45% di bianco, cioè più spento di prima. */
+html.vestido2 body.theme-dark .cat-header-name{ color:var(--brand-text); font-size:10.5px; opacity:.92 }
+
+/* ③ «il 4 puoi pure toglierlo»
+   Il contatore dei prodotti per sezione occupava il posto d'onore a
+   destra — quello che l'occhio trova per ultimo e ricorda — per un dato
+   che non ha mai cambiato l'ordine di nessuno. Il metro è quello: se non
+   sposta una scelta, è rumore. */
+html.vestido2 .cat-header-count{ display:none }
+
 /* ── E I PREZZI SU UNA RIGA SOLA · «sono disallineati» ──
    L'altra metà della segnalazione, e si misura: il prezzo cadeva a 115 px
    dall'alto in una card e a 121 o 128 in quella accanto, perché il nome
@@ -4674,7 +4741,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.59.1 · el vestido · el stepper también es verde (se me había quedado rojo justo en la fila que YA es tuya) · 01ago</span>
+<span id="ver" hidden>menu2 · v2.60.0 · el vestido · la fila de destacados se adapta a cuántas cards tiene · los títulos se leen · sin el contador · 01ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8931,8 +8998,11 @@ function v2DestacadosHTML(){
      tardava, le frecce raccontavano una posizione che non c'era più. E
      col dito non si aggiornavano affatto. Lo scroll invece è la verità,
      da qualunque strada arrivi — click, dito o rotella. */
+  // v2.60.0 · quante card ci sono lo sa solo qui: lo scriviamo addosso al
+  // nastro e il CSS decide quanto sono larghe (vedi «LA FILA SI ADATTA»).
+  const _n = Math.min(dst.slice(0,8).length, 4);
   return `<div class="v2-sec-t">✨ Destacados</div>` +
-    `<div class="v2-car-wrap"><div class="v2-carrusel" onscroll="v2CarCapi(this)">${cards}</div>` +
+    `<div class="v2-car-wrap"><div class="v2-carrusel" data-n="${_n}" onscroll="v2CarCapi(this)">${cards}</div>` +
     `<button class="v2-car-nav v2-car-prev" onclick="v2CarMueve(this,-1)" aria-label="Anterior" disabled>‹</button>` +
     `<button class="v2-car-nav v2-car-next" onclick="v2CarMueve(this,1)" aria-label="Siguiente">›</button>` +
     `</div>`;
