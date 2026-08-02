@@ -5262,7 +5262,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.72.2 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
+<span id="ver" hidden>menu2 · v2.73.0 · la noche empieza a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -12244,8 +12244,8 @@ function stopRhythmPolling(){
    Calcola la fascia oraria attuale e applica body.dataset.fasciaMenu.
    3 fasce (semplificate vs 4 fasce splash BIENVENIDA · il menu non ha CERRADO):
      ─ dia   06:00 → 17:30 · cremoso pasta-madre
-     ─ tarde 17:30 → 21:00 · terracotta scuro caldo
-     ─ noche 21:00 → 06:00 · nero attuale invariato
+     ─ tarde 17:30 → 20:00 · terracotta scuro caldo
+     ─ noche 20:00 → 06:00 · nero attuale invariato   (v2.73.0 · era 21:00)
    
    Override debug · ?_fascia=dia|tarde|noche forza la fascia per QA controllata
    senza dover aspettare l'orario reale (lezione S4 · test mobile multi-fascia
@@ -12269,9 +12269,20 @@ function getFasciaMenu(){
   const mins = now.getHours() * 60 + now.getMinutes();
   // dia · 06:00 (360) → 17:30 (1050)
   if(mins >= 360 && mins < 1050) return 'dia';
-  // tarde · 17:30 (1050) → 21:00 (1260)
-  if(mins >= 1050 && mins < 1260) return 'tarde';
-  // noche · 21:00 → 06:00 (incluso wrap notte)
+  /* 🩹 v2.73.0 · LA NOTTE COMINCIA ALLE 20:00, non alle 21:00.
+     Alberto, guardando la carta alle 20 con la sala piena: «mi sembra
+     tardi, io lo accenderei alle 20». Ha ragione e non è una preferenza
+     di colore: alle 20 il locale È già di notte — luci basse, la gente
+     che ordina da bere, il DJ che si prepara. La carta arrivava un'ora
+     dopo la sala, e una carta che descrive un momento che non è più
+     quello smette di essere la voce del posto.
+     ⚠️ Questa soglia è SOLO PELLE: verificato che `getFasciaMenu()` lo
+     legge solo `applyFasciaMenu()` e che `CURRENT_FASCIA_MENU` non entra
+     in nessun prezzo, promo o cancello orario (quelli lavorano su
+     `Hora_Inicio/Hora_Fin` dei fogli). Cambia il vestito, niente altro. */
+  // tarde · 17:30 (1050) → 20:00 (1200)
+  if(mins >= 1050 && mins < 1200) return 'tarde';
+  // noche · 20:00 → 06:00 (incluso wrap notte)
   return 'noche';
 }
 
