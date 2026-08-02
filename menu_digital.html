@@ -273,8 +273,28 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&display=swap" rel="stylesheet">
 <!-- ═══════════════════════════════════════════════════════════════════
-     v2.43.0 · IL VESTITO · L'INTERRUTTORE · NASCE SPENTO
-     ?vestido=1 accende · ?vestido=0 spegne e dimentica.
+     v2.63.0 · IL VESTITO · L'INTERRUTTORE · ⚡ ORA NASCE ACCESO ⚡
+     ───────────────────────────────────────────────────────────────────
+     Acceso per TUTTI il 02-ago-2026 alle 8:20 del mattino, con il locale
+     chiuso e la carta senza prodotti in finestra — cioè col numero di
+     clienti che stanno guardando pari a zero. Ordine di Alberto: «sono
+     le 8:17 del mattino, orario ideale per cambio vestito».
+     Prima di girare l'interruttore, verificato SUL VIVO che a flag spento
+     la carta fosse identica a quella di ieri: ＋ rosso pieno, stepper
+     rosso, regalo tratteggiato, contatore visibile, niente strelitzia.
+
+     La simmetria si ribalta ma la meccanica resta la stessa:
+       ?vestido=0 spegne in QUELL'apparecchio e se lo ricorda
+       ?vestido=1 riaccende
+       niente in memoria → acceso (il vestito è la carta, ora)
+     Chi aveva già scelto '0' resta spento: una scelta esplicita del
+     cliente non si sovrascrive da un deploy.
+
+     ↩️ ROLLBACK TOTALE in ~60s: `git revert` di questo commit soltanto e
+     push. Il codice del vestito NON viene toccato — resta live, torna
+     solo dietro il flag. È il motivo per cui accensione e codice sono
+     due commit separati.
+
      Il modo si ricorda nell'APPARECCHIO, non nel link: dal portale il
      parametro muore nel giro del PIN (lezione ?solo=mapa, 23-lug).
      Gira nel <head> PRIMA del CSS → zero lampeggio.
@@ -283,7 +303,7 @@
      ═══════════════════════════════════════════════════════════════════ -->
 <script>
 (function(){
-  var on = false, q = null;
+  var on = true, q = null;          // ⚡ v2.63.0 · era false: ora il vestito È la carta
   try{ q = new URLSearchParams(location.search).get('vestido'); }catch(e){}
   /* Il PARAMETRO decide sempre, anche se la memoria non è disponibile.
      Prima erano nello stesso try: in navigazione privata setItem lancia,
@@ -293,7 +313,7 @@
   else if(q === '0') on = false;
   try{
     if(q === '1' || q === '0') localStorage.setItem('pinsita_vestido', q);
-    else if(localStorage.getItem('pinsita_vestido') === '1') on = true;
+    else if(localStorage.getItem('pinsita_vestido') === '0') on = false;   // ⚡ ora la memoria SPEGNE
   }catch(e){}
   if(on) document.documentElement.classList.add('vestido2');
 })();
@@ -4768,7 +4788,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.62.0 · el vestido · LA LISTA vuelve al chip (con techo, para no tapar el logo) · la strelitzia dibujada de verdad · 01ago</span>
+<span id="ver" hidden>menu2 · v2.63.0 · ⚡ EL VESTIDO ESTÁ ENCENDIDO PARA TODOS ⚡ (?vestido=0 lo apaga en ese aparato) · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
