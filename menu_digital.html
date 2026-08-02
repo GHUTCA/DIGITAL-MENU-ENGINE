@@ -1003,7 +1003,10 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
    fonde con la card che ora è scesa. */
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-dst-menu,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-dst-menu{
-  background:#EFE0C8;
+  /* 📏 misurato sul vivo: il fondo della carta è #EFE2CF. Il primo tentativo
+     (#EFE0C8) era lo STESSO tono a due punti di distanza — invisibile.
+     #E4D3B8 sta 7 punti sotto: si vede da mezzo metro e resta caldo. */
+  background:#E4D3B8;
   box-shadow:0 0 0 1.5px rgba(150,88,32,.38), 0 4px 14px -6px rgba(120,70,30,.55);
 }
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-menu-draw svg rect:first-child,
@@ -5185,10 +5188,23 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
    sfondava il suo contenitore invece di troncarsi. Ora si tronca (i punti
    di sospensione mangiano il nome, mai la mesa: il numero sta a
    sinistra), e il logo ha 12px di aria garantiti per lato. */
-html.vestido2 .header-inner{ gap:12px }
+/* 📏 misurato sul vivo (v2.72.0, iPhone 375): `max-width:100%` NON basta.
+   Con «Tavolo 106 Alberto Agostini» il chip restava 191px dentro una
+   colonna da 131 — il 100% si misura su un contenitore che a sua volta
+   traboccava, quindi la percentuale non aveva niente di solido a cui
+   agganciarsi, e il logo finiva a −9px dal chip (sotto, cioè).
+   Il tetto va dato in unità dello SCHERMO, che è l'unica cosa che non si
+   piega: 34vw. E la colonna centrale passa a `max-content`, così il logo
+   si prende quello che gli serve PRIMA che i lati si spartiscano il
+   resto (misurato: prima riceveva 56px per un'insegna da 62). */
+html.vestido2 .header-inner{
+  gap:12px;
+  grid-template-columns:minmax(0,1fr) max-content minmax(0,1fr);
+}
 html.vestido2 .v2-hz-left{ overflow:hidden; min-width:0 }
 html.vestido2 .v2-chip-id{
-  max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  max-width:34vw; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 html.vestido2 .brand-logo-wrap{ flex:0 0 auto }
 
@@ -5228,7 +5244,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.72.0 · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
+<span id="ver" hidden>menu2 · v2.72.1 · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
