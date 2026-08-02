@@ -990,14 +990,25 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
    pagina e le due si fondevano — la card non si staccava, sembrava una
    macchia sulla sabbia. Ora la card è più chiara del fondo, come tutte le
    altre: è la differenza fra un oggetto appoggiato e uno stampato. */
+/* 🩹 v2.72.0 · e invece va NELL'ALTRO VERSO: «il fondo della scheda MENU
+   un po' più scuro del fondo, perché risalti» (Alberto).
+   Il v2.71.0 l'aveva schiarita a #FFFDF9 per staccarla — ma il fondo
+   della carta è già chiarissimo, quindi schiarire ancora l'ha resa
+   invisibile: bianco su crema è un salto di 4 punti di luminosità, che a
+   mezzo metro non esiste. Scurirla di un tono la stacca davvero, e per un
+   motivo che vale la pena scrivere: **una card che risalta non è una card
+   più chiara, è una card più CONTRASTATA** — in un vestito chiaro il
+   contrasto disponibile sta tutto verso il basso.
+   Il rettangolo del disegno va all'incontrario (schiarisce), se no si
+   fonde con la card che ora è scesa. */
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-dst-menu,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-dst-menu{
-  background:#FFFDF9;
-  box-shadow:0 0 0 1.5px rgba(160,95,35,.30), 0 4px 14px -6px rgba(120,70,30,.55);
+  background:#EFE0C8;
+  box-shadow:0 0 0 1.5px rgba(150,88,32,.38), 0 4px 14px -6px rgba(120,70,30,.55);
 }
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-menu-draw svg rect:first-child,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-menu-draw svg rect:first-child{
-  fill:#F3E4CE;
+  fill:#FBF4E8;
 }
 
 /* 🩹 v2.71.0 · LA FOTO DELLA RIGA RESTA QUADRATA
@@ -1345,19 +1356,39 @@ html.vestido2 body.theme-dark[data-fascia-menu="tarde"] #header{
    stessa interlettera stretta, stesso pallino. Il cliente vede la stessa
    firma quando apre la carta e mentre la sfoglia.
    🔒 Non è un logo nuovo: è quello che già usiamo, portato dove mancava. */
+/* 🩹 v2.72.0 · L'INSEGNA VERA · «il logo BKS originale, quello che appare
+   quando apri il menu» (Alberto).
+   Il v2.69.0 aveva copiato il logo sbagliato, ed è un errore che si vede
+   solo leggendo il JS: nello splash convivono DUE loghi. `.ld-logo`
+   (Fraunces 300, pallino) è il **fallback**, quello che nessun cliente
+   BKS vede mai; quello che si accende davvero è `.ld-neon-main` —
+   **Outfit 600, interlettera larga 8px, nessun pallino** — perché BKS ha
+   `splash_neon` popolato e nella priorità del codice il neon vince su
+   tutto. Avevamo portato nell'header l'insegna di riserva.
+   Ora l'header porta QUELLA: stesso carattere, stesso peso, stessa
+   interlettera aperta. Di giorno senza glow (sulla sabbia il neon non
+   esiste), di notte il glow resta com'è — l'insegna che si accende.
+   Il pallino sparisce: l'originale non ce l'ha, e nell'header era anche
+   la macchia che sporcava il confine col chip della mesa.
+   📏 8px di interlettera su 74px diventano 5px su 25px (stessa
+   proporzione). `margin-right` negativo compensa lo spazio dopo l'ultima
+   lettera, che altrimenti spinge il logo fuori centro di 5px. */
+html.vestido2 .brand-logo-text{
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 25px !important;   /* la gemella .brand-logo-text a ~4520 ha !important */
+  letter-spacing: 5px;
+  margin-right: -5px;
+  white-space: nowrap;
+}
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .brand-logo-text,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .brand-logo-text{
   color: #17100A;
-  font-size: 27px;
-  font-weight: 300;
-  letter-spacing: -0.6px;
+  font-weight: 600;
+  letter-spacing: 5px;
   text-shadow: none;
 }
-html.vestido2 .brand-logo-text::before{
-  content:'●'; color:var(--brand-accent); font-size:.42em;
-  vertical-align:middle; margin-right:.34em; letter-spacing:0;
-  position:relative; top:-.12em;
-}
+html.vestido2 .brand-logo-text::before{ content:none }
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-tagline,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-tagline{
   color: #B04A18;
@@ -5140,10 +5171,64 @@ body.theme-dark[data-fascia-menu="dia"] #v2ShDest .meta{color:#b8860b}
 .v2c-tot{display:flex;padding:12px 0;font-size:17px;font-weight:900;color:var(--brand-text)}
 .v2c-tot span:last-child{margin-left:auto;color:var(--v2-oro)}
 body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   v2.72.0 · TRE FIX DEL VESTITO — in coda al foglio DI PROPOSITO: ognuno
+   di questi ha una gemella più in basso nel file che lo batteva a parità
+   di specificità (la trappola che ci ha già fregati tre volte).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ② IL CHIP DELLA MESA NON SI MANGIA PIÙ IL LOGO
+   «Tavolo 106 Alberto» cresce col nome del cliente e arrivava a toccare
+   l'insegna: la colonna sinistra della griglia è `minmax(0,1fr)`, che
+   permette di stringersi — ma il chip dentro non aveva `overflow`, quindi
+   sfondava il suo contenitore invece di troncarsi. Ora si tronca (i punti
+   di sospensione mangiano il nome, mai la mesa: il numero sta a
+   sinistra), e il logo ha 12px di aria garantiti per lato. */
+html.vestido2 .header-inner{ gap:12px }
+html.vestido2 .v2-hz-left{ overflow:hidden; min-width:0 }
+html.vestido2 .v2-chip-id{
+  max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+html.vestido2 .brand-logo-wrap{ flex:0 0 auto }
+
+/* ④ LA FICHA DEL PRODOTTO NON FINISCE PIÙ SOTTO L'HEADER
+   Il v2.71.0 l'ha fatta salire a `100dvh − 44px` (giusto: il piatto vuole
+   lo schermo). Ma il blocco fisso vive a z-index 478-480 per una scelta
+   vecchia — «con un modal aperto i chip restano vivi» — e la ficha è
+   rimasta a 301: saliva DIETRO header, buscador e chip, e la foto del
+   piatto arrivava tagliata da ~150px di striscia che non c'entrava nulla.
+   Due decisioni giuste prese in momenti diversi che si annullavano.
+   Ora comanda quella nuova: la ficha aperta passa sopra il blocco fisso.
+   Resta sotto gli sheet di sistema (identità 500, notte 501), che si
+   aprono solo a ficha chiusa. */
+#detailOverlay.open{ z-index:494 }
+#detailSheet.open{ z-index:495 }
+
+/* ⑤ NEL MENÚ DEL DÍA LA FOTO ARRIVA IN FONDO ALLA RIGA
+   Le righe della carta sono diventate card con la foto a filo (v2.70/71),
+   ma dentro la scheda del Menú del Día la miniatura era ancora quella di
+   prima: 62×62 fissi, angoli suoi, staccata dal bordo. Dentro una riga
+   alta 84 lasciava una fascia vuota sotto — lo spazio bianco che si vede
+   nella foto di Alberto.
+   Stessa cura della riga di casa: larghezza fissa, altezza `stretch`, il
+   raggio glielo dà la card con `overflow:hidden` (⚠️ `aspect-ratio` qui
+   non serve e non funzionerebbe: con `align-self:stretch` l'altezza la
+   impone il flex). */
+html.vestido2 #v2ShDest .v2-fila{
+  border-radius:16px; overflow:hidden; padding:0 14px 0 0; gap:13px;
+}
+html.vestido2 #v2ShDest .v2-fila .ph{
+  width:76px; flex:0 0 76px; height:auto; min-height:0;
+  align-self:stretch; border-radius:0;
+}
+html.vestido2 #v2ShDest .v2-fila .ph img{
+  width:100%; height:100%; object-fit:cover; border-radius:0;
+}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.71.0 · el violeta del DJ fuera del menu · la ficha sube · la card MENU se despega · foto cuadrada · 02ago</span>
+<span id="ver" hidden>menu2 · v2.72.0 · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
