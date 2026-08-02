@@ -927,6 +927,47 @@ html.vestido2 #v2Orden .cta:disabled{ background:var(--brand-surface-card); colo
    `＋` che ne fa un terzo. Tre inviti nella stessa riga per due gesti. */
 html.vestido2 .v2-fila .b .nom::after{ content:none }
 
+/* ══════════════════════════════════════════════════════════════════════
+   v2.70.0 · LA RIGA DIVENTA UNA CARD · la foto tocca il bordo
+   ══════════════════════════════════════════════════════════════════════
+   Alberto: «la bruttezza di questa card sta anche nel disegno — facciamo
+   i bordi tondi e mettiamo la foto che copra tutto il bordo, come nella
+   card dei destacados, fino al bordo a sinistra».
+   Aveva ragione e si misura: la riga aveva **raggio 0** e la foto stava a
+   16 px dal bordo, sospesa dentro un rettangolo squadrato con i suoi
+   angoli tondi per conto suo. Due geometrie diverse nello stesso oggetto:
+   una card con gli spigoli che contiene una figura arrotondata. L'occhio
+   legge quel disaccordo prima di leggere il piatto.
+   Ora la riga È una card come quelle dei destacados — stesso raggio,
+   stessa ombra, stessa famiglia — e la foto ci sta DENTRO, a filo del
+   bordo sinistro: il raggio glielo dà la card con `overflow:hidden`,
+   quindi combacia sempre e non va tenuto allineato a mano.
+   La foto si allunga con la riga (`align-self:stretch`): se il nome va a
+   due righe, la foto cresce con lei invece di lasciare due mezzelune di
+   fondo sopra e sotto.
+   ══════════════════════════════════════════════════════════════════════ */
+html.vestido2 .v2-fila{
+  border-radius:16px;
+  overflow:hidden;
+  border-bottom:0;
+  padding:0 14px 0 0;          /* a sinistra niente: lì c'è la foto */
+  gap:13px;
+  margin-bottom:8px;
+  min-height:84px;
+  box-shadow:0 0 0 1px rgba(160,95,35,.13), 0 2px 8px -4px rgba(120,70,30,.35);
+}
+html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-menu="tarde"]) .v2-fila{
+  box-shadow:0 0 0 1px rgba(255,150,70,.16), 0 2px 10px -5px rgba(0,0,0,.7);
+}
+html.vestido2 .v2-fila .ph{
+  width:84px; height:auto; align-self:stretch;
+  border-radius:0;             /* lo dà la card: così combacia sempre */
+  flex:0 0 84px;
+}
+html.vestido2 .v2-fila .b{ padding:11px 0 }
+/* l'ultima riga di una sezione non deve incollarsi alla successiva */
+html.vestido2 .v2-fila:last-child{ margin-bottom:2px }
+
 /* ③ il chip attivo non è più una lastra di cyan.
    Il cyan è l'identità (è il colore del logo BKS, che non si tocca), ma
    riempito diventa il pieno più grande della schermata per dire soltanto
@@ -5029,7 +5070,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.69.0 · el logo de la entrada tambien en la cabecera · los dos botones del carrito · el + centrado · 02ago</span>
+<span id="ver" hidden>menu2 · v2.70.0 · la fila es una card: bordes redondos y la foto al filo del borde · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
