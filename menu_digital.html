@@ -691,6 +691,79 @@ html.vestido2 .v2-2x1-bird{
 html.vestido2 .v2-dst-2x1 .nom{ font-size:19px; font-weight:900; letter-spacing:.02em }
 
 /* ══════════════════════════════════════════════════════════════════════
+   v2.65.0 · IL COLIBRÌ COME FIRMA · la norma delle card (validata 02-ago)
+   ══════════════════════════════════════════════════════════════════════
+   Alberto: «il colibrì non deve essere il protagonista, deve essere il
+   SIMBOLO — un colibrì piccolo che svolazza». Prima occupava il 59% della
+   card: non firmava il contenuto, ERA il contenuto, e il piatto — che è
+   la cosa che si vende — non c'era affatto.
+
+   🔑 LA REGOLA CHE RISOLVE LA DOMANDA DI ALBERTO («avremo due colibrì?»):
+   **un colibrì per card. O è il SOGGETTO (grande, disegnato: AURORA e la
+   porta 2x1) o è la FIRMA (piccolo, nell'angolo). Mai tutti e due.**
+   Le card che hanno già il colibrì grande non ricevono la firma — se no
+   il simbolo si annullerebbe da solo.
+
+   ① GUARDA DENTRO. Misurato sulla maschera: il becco sta a destra e il
+      corpo a sinistra. Negli angoli di DESTRA va specchiata, se no il
+      colibrì guarda fuori dalla card e porta via l'occhio — come faceva
+      nella card di oggi. È la regola dei ritratti: lo spazio si lascia
+      davanti allo sguardo, non dietro.
+   ② NON STA MAI NELLO STESSO POSTO. La posizione ruota con l'indice: una
+      firma sempre nello stesso angolo diventa un timbro, e il timbro si
+      smette di vedere dopo tre card.
+   ③ L'OMBRA, NON IL VELO. Sul bianco delle foto chiare il colibrì
+      spariva (segnalato da Alberto sulla Niña Bonita). Due ombre
+      sottilissime gli danno il contorno che manca: dove la foto è scura
+      non si notano, dove è chiara disegnano il bordo. **Zero pixel di
+      foto coperti** — un velo avrebbe sporcato tutta l'immagine per
+      curare un problema che riguarda 44 px.
+   ④ RIMPICCIOLISCE QUANDO LE CARD SONO TANTE. A 4 card occupava il 27%
+      della larghezza (contro il 20% delle grandi): proporzionalmente era
+      lì il più invadente, ed è il caso in cui serve meno — con quattro
+      card in fila la firma la fa la fila.
+   ══════════════════════════════════════════════════════════════════════ */
+html.vestido2 .v2-firma{
+  position:absolute; pointer-events:none; z-index:2;
+  width:44px; height:38px; background-color:#fff;
+  -webkit-mask:url("brand/colibri_mask.png") no-repeat center / contain;
+          mask:url("brand/colibri_mask.png") no-repeat center / contain;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.55)) drop-shadow(0 0 6px rgba(0,0,0,.3));
+  opacity:.93;
+}
+/* i quattro angoli · gli sguardi puntano tutti al centro della card */
+html.vestido2 .v2-firma.f0{ top:6px;  right:6px; transform:scaleX(-1) rotate(12deg) }
+html.vestido2 .v2-firma.f1{ bottom:6px; left:8px; transform:rotate(-12deg) }
+html.vestido2 .v2-firma.f2{ top:6px;  left:6px;  transform:rotate(12deg) }
+html.vestido2 .v2-firma.f3{ bottom:6px; right:8px; transform:scaleX(-1) rotate(-12deg) }
+/* la firma scende con la card (3 card) e si fa da parte quando sono 4 */
+html.vestido2 .v2-carrusel[data-n="3"] .v2-firma{ width:36px; height:31px }
+html.vestido2 .v2-carrusel[data-n="4"] .v2-firma{ width:24px; height:21px; opacity:.88 }
+/* sulla card disegnata chiara (il MENÚ) il colibrì è scuro e non serve ombra:
+   il fondo è nostro, quindi il contrasto è garantito per costruzione */
+html.vestido2 .v2-dst-menu .v2-firma{
+  background-color:#3B1E0C; filter:none; opacity:.8;
+}
+
+/* ── LA CARD DEL MENÚ DEL DÍA · disegno A, la cloche (scelto da Alberto) ──
+   La formula non ha una foto: mostrarne una di un piatto solo mentirebbe
+   («11 platos a elección» non è un piatto). Il disegno dice quello che si
+   compra: che te lo servono adesso, e che è caldo. */
+html.vestido2 .v2-menu-draw{ position:absolute; inset:0 }
+html.vestido2 .v2-menu-draw svg{ width:100%; height:100%; display:block }
+/* col testo più grande sulle card grandi, il vuoto a destra scende dal 34% al 20%
+   senza aggiungere niente: la card era raddoppiata, il testo no. */
+html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .nom,
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .nom{ font-size:17px; line-height:1.18; min-height:calc(2 * 1.18em) }
+html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .precio,
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .precio{ font-size:16.5px }
+html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .eyebrow,
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .eyebrow{ font-size:9.5px }
+/* il titolo del 2x1 resta il numero: non lo tocca la regola di sopra */
+html.vestido2 .v2-carrusel[data-n="1"] .v2-dst-2x1 .nom,
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst-2x1 .nom{ font-size:22px }
+
+/* ══════════════════════════════════════════════════════════════════════
    v2.56.0 · I QUATTRO SEGNALI CHE SI CONTENDEVANO L'ATTENZIONE
    ══════════════════════════════════════════════════════════════════════
    Diagnosi del 01-ago sera: nella stessa schermata gridavano il `＋`
@@ -4820,7 +4893,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.64.0 · el chip de día ya no es una plancha naranja · la card MENÚ no repite su nombre · 02ago</span>
+<span id="ver" hidden>menu2 · v2.65.0 · tu pedido te habla: en preparación · ¡listo, va en camino! (R5) · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8943,7 +9016,14 @@ function v2DestacadosHTML(){
   ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && p.es_sugerencia_destacada && !esPush(p) && !promoSeen.has(p.id))
     .forEach(p=>dst.push({ tipo:'casa', p }));
   if(!dst.length) return '';
-  const cards = dst.slice(0,8).map(d=>{
+  /* v2.65.0 · la FIRMA del colibrì · la posizione ruota con l'indice, così
+     due card vicine non hanno mai lo stesso angolo (una firma sempre nello
+     stesso posto è un timbro, e il timbro si smette di vedere).
+     ⚠️ Non la ricevono le card dove il colibrì è già il SOGGETTO — AURORA
+     e la porta 2x1 — se no la card ne avrebbe due e il simbolo si
+     annullerebbe da solo (domanda di Alberto, 02-ago). */
+  const _firma = (i) => `<span class="v2-firma f${i % 4}"></span>`;
+  const cards = dst.slice(0,8).map((d, _i)=>{
     if(d.tipo === 'dos_por_uno'){
       /* v2.54.0 · la card-porta del 2x1. Disegnata, non fotografata: il
          testo resta VIVO e si traduce (la lezione delle card AURORA, dove
@@ -11346,7 +11426,22 @@ function renderPedidoEstado(){
     cancelado:  { icon:'🙋', anim:false, t: getLang('pedido_st_problema') || 'Mejor díselo al mesero',
                   s: getLang('pedido_st_problema_sub') || 'No pudimos confirmarlo — llama al mesero o acércate a la barra' },
   };
-  const v = VISTAS[PA.estado] || VISTAS.pendiente;
+  let v = VISTAS[PA.estado] || VISTAS.pendiente;
+  /* v2.65.0 · R5 (caso mesa 106: 65 min su «recibido ✓» col vino già al pass).
+     La produzione non aspetta el MÍO — la card tampoco. `prod` viene dai
+     fossili del GAS: si sovrascrive la vista SOLO negli stati non terminali,
+     e solo per dire una verità più avanti, mai più indietro. */
+  if (!['entregado','cerrado','expirado','cancelado'].includes(PA.estado)) {
+    if (PA.prod === 'listo' || PA.prod === 'retirado') {
+      v = { icon: '🛎', anim: true,
+            t: getLang('pedido_st_listo') || '¡Listo! — va en camino a tu mesa',
+            s: PA.mesero ? (PA.mesero + ' te lo lleva')
+                         : (getLang('pedido_st_listo_sub') || 'Ya salió de cocina y barra') };
+    } else if (PA.prod === 'produciendo' && PA.estado !== 'digitado') {
+      v = { icon: '👨‍🍳', anim: false, t: v.t,
+            s: getLang('pedido_st_digitado_sub') || 'Cocina y barra ya lo están preparando' };
+    }
+  }
   const terminal = ['entregado','cerrado','expirado','cancelado'].includes(PA.estado);
   // v2.12 · «Pedido N° 076 · recibido ✓» — il numero uccide l'ansia del re-invio
   const numPed = PA.id ? ('Pedido N° ' + String(PA.id).slice(-3) + ' · recibido ✓') : '';
@@ -11445,11 +11540,15 @@ function iniciarPollPedido(){
       // v2.40.0 · FASE 2: se il pedido è entrato dal bordo, l'ID ufficiale
       // nasce col fossile — lo si raccoglie qui, al primo poll che lo vede
       // («Pedido N° 076 · recibido ✓» arriva secondi dopo, non mai)
+      // v2.65.0 · R5: `prod` = la verità della PRODUZIONE (produciendo/listo/
+      // retirado), dedotta dai fossili dal GAS. La card smette di dipendere
+      // dal pollice del mesero: la cocina non aspetta il MÍO, la card nemmeno.
       const cambio = (r.estado !== PEDIDO_ACTUAL.estado) || ((r.mesero||'') !== PEDIDO_ACTUAL.mesero)
-        || (!PEDIDO_ACTUAL.id && !!r.id_pedido);
+        || (!PEDIDO_ACTUAL.id && !!r.id_pedido) || ((r.prod||'') !== (PEDIDO_ACTUAL.prod||''));
       if (!PEDIDO_ACTUAL.id && r.id_pedido) PEDIDO_ACTUAL.id = r.id_pedido;
       PEDIDO_ACTUAL.estado = r.estado || PEDIDO_ACTUAL.estado;
       PEDIDO_ACTUAL.mesero = r.mesero || '';
+      PEDIDO_ACTUAL.prod = r.prod || '';
       try { mstSet(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
       _nocheSave();   // v1.36 · PEDIDO_ACTUAL vive anche dentro PEDIDOS_NOCHE (stesso oggetto)
       if(cambio && PEDIDO_ACTUAL.estado === 'atendido'){
