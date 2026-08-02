@@ -5221,6 +5221,24 @@ html.vestido2 .brand-logo-wrap{ flex:0 0 auto }
 #detailOverlay.open{ z-index:494 }
 #detailSheet.open{ z-index:495 }
 
+/* ⑥ v2.72.2 · LA PAROLA «BPM» TORNA VISIBILE
+   Alberto: «la parola BPM sembra sparita». Non è sparita: è diventata
+   scura su fondo quasi nero. La regola del v2.68.0 — «solo il chip attivo
+   è colorato, i non selezionati vanno al neutro» — è giusta per i tre
+   chip chiari, ma il quarto ha la pelle del mondo che apre: fondo
+   #0f0a1c. Portargli il testo al neutro scuro equivale a spegnerlo.
+   📏 Le due regole avevano **la stessa specificità** (0,5,3) e vinceva
+   l'ultima scritta: per questo il BPM ha perso. Qui l'esclusione è
+   esplicita e sta un gradino sopra, così non dipende più dall'ordine.
+   🔒 Il chip BPM torna esattamente com'era: bianco col glow viola. È
+   l'unico posto della carta dove il viola non mente — è il suo mondo. */
+html.vestido2 body.theme-dark[data-fascia-menu] .v2-nchip.v2-nchip-bpm:not(.active) b{
+  color:#fff; opacity:1; text-shadow:0 0 8px rgba(180,106,224,.8);
+}
+html.vestido2 body.theme-dark[data-fascia-menu] .v2-nchip.v2-nchip-bpm:not(.active) small{
+  color:rgba(255,255,255,.55); opacity:1;
+}
+
 /* ⑤ NEL MENÚ DEL DÍA LA FOTO ARRIVA IN FONDO ALLA RIGA
    Le righe della carta sono diventate card con la foto a filo (v2.70/71),
    ma dentro la scheda del Menú del Día la miniatura era ancora quella di
@@ -5244,7 +5262,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.72.1 · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
+<span id="ver" hidden>menu2 · v2.72.2 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
