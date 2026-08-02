@@ -495,7 +495,11 @@ html.vestido2 body.theme-dark{
      nero (è un bottone, deve trovarsi), ma non compete più con l'arancio.
      Il token è uno solo, quindi si smorzano insieme tutti i «verdi ok»
      della carta — la barra del conto e la via di conferma. */
-  --v2-ok: #4E9C73;
+  /* 🩹 v2.68.0 · anche di notte il verde si scalda: il nero è caldo, e un
+     giada virato al blu era l'unica cosa fredda dello schermo. Oliva più
+     chiaro del diurno, perché sul nero deve staccare. */
+  --v2-ok: #8B9E4F;
+  --v2-ok-txt: #14180A;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -545,10 +549,23 @@ html.vestido2 body.theme-dark[data-fascia-menu="tarde"]{
      BKS è «quiete con energia controllata», e una barra nera in cima a una
      carta di sabbia è la toppa che si vedeva. */
   --header-fixed: #F8F1E6;
-  /* v2.55.0 · di giorno il verde va un gradino più giù ancora: su sabbia
-     chiara un verde chiaro sbiadisce, e un bottone che sbiadisce non si
-     trova più. Stesso carattere, più fondo. */
-  --v2-ok: #3F8C64;
+  /* 🩹 v2.68.0 · IL VERDE ENTRA NELLA FAMIGLIA CALDA
+     Alberto: «il bordo verde del ＋ mi fa effetto di un colore nulla a che
+     fare con il contesto — idem per la barra verde del conto».
+     Ha ragione, e stavolta non è questione di quanto è acceso ma di DA
+     DOVE VIENE: `#3F8C64` è un verde freddo, virato al blu. Il vestito del
+     giorno è sabbia, terracotta, oro, marrone — tutta la famiglia della
+     terra. Un verde che viene dal mare lì dentro è un ospite, e si vede
+     che è un ospite.
+     Ora è un **oliva**: verde di rosmarino secco e foglia d'ulivo, che
+     appartiene alla stessa tavolozza del resto. Continua a dire «procedi»
+     — la convenzione del verde regge anche in oliva — ma smette di
+     sembrare incollato da un'altra carta.
+     ⚠️ Essendo più profondo, il testo sopra il pieno passa da scuro a
+     crema (v. `--v2-ok-txt`): su un oliva medio un testo quasi nero
+     scenderebbe sotto la soglia di leggibilità. */
+  --v2-ok: #64753C;
+  --v2-ok-txt: #FBF7EC;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -818,12 +835,12 @@ html.vestido2 .v2-add{
   box-shadow:inset 0 0 0 1.5px var(--v2-ok);
 }
 html.vestido2 .v2-add:active{
-  background:var(--v2-ok); color:#06170e;
+  background:var(--v2-ok); color:var(--v2-ok-txt,#06170e);
   box-shadow:inset 0 0 0 1.5px var(--v2-ok);
 }
 /* il CTA della scheda: pieno verde, testo scuro come la barra del conto —
    è lo stesso verde e lo stesso significato, quindi è la stessa cosa. */
-html.vestido2 #v2Orden .cta{ background:var(--v2-ok); color:#06170e }
+html.vestido2 #v2Orden .cta{ background:var(--v2-ok); color:var(--v2-ok-txt,#06170e) }
 
 /* 🩹 e lo STEPPER, che avevo lasciato indietro: quando un prodotto è già
    nel carrello il `＋` diventa `− 1 ＋`, e quel contenitore era rimasto
@@ -858,7 +875,7 @@ html.vestido2 .v2-add-n{ position:relative; overflow:visible }
 html.vestido2 .v2-add-n i{
   position:absolute; top:-5px; right:-5px; min-width:19px; height:19px; padding:0 4px;
   display:grid; place-items:center; border-radius:10px;
-  background:var(--v2-ok); color:#06170e;
+  background:var(--v2-ok); color:var(--v2-ok-txt,#06170e);
   font-size:11.5px; font-weight:900; font-style:normal; line-height:1;
   box-shadow:0 0 0 2px var(--brand-surface-card, var(--brand-surface));
   animation:v2pop .18s;
@@ -1151,10 +1168,24 @@ html.vestido2 body.theme-dark[data-fascia-menu="tarde"] #header{
 /* 🔒 il LOGO non cambia forma né misura né spaziatura: cambia solo il
    colore, perché #CFF6FF su sabbia non si leggerebbe. Il neon è della
    notte — di giorno l'insegna è spenta anche nella via. */
+/* 🩹 v2.68.0 · «il logo BKS è piccolo e non del colore che deve essere,
+   sembra una scritta insignificante» (Alberto).
+   Vero, e il difetto era doppio. ① Il COLORE: `#2A1C13` è il marrone del
+   testo — cioè il logo aveva lo stesso colore di una parola qualsiasi
+   della carta, e un marchio che ha il colore del corpo del testo smette
+   di essere un marchio. Ora prende il **nero-caffè profondo del vestito**
+   con un filo di calore, che sulla sabbia ha peso e non sembra inchiostro
+   da paragrafo. ② Il CORPO: 21px con l'interlettera larga su uno schermo
+   da 480 lo faceva sparire fra il chip della mesa e la campanella. Sale a
+   26px. Resta Fraunces, resta l'interlettera: **la forma del logo non si
+   tocca** (ordine di Alberto), cambiano solo peso e colore — che sono la
+   differenza fra un'insegna e una didascalia. */
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .brand-logo-text,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .brand-logo-text{
-  color: #2A1C13;
-  text-shadow: none;
+  color: #17100A;
+  font-size: 26px;
+  letter-spacing: 3px;
+  text-shadow: 0 1px 0 rgba(255,255,255,.35);
 }
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-tagline,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-tagline{
@@ -1163,12 +1194,32 @@ html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-tagline{
 }
 
 /* il chip della mesa era panna su blu-notte: su sabbia sparisce.
-   Si inverte — scuro su chiaro — e il numero resta il protagonista. */
+   🩹 v2.68.0 · «il chip mesa lo schiarirei» (Alberto). Era scuro pieno e
+   pesava quanto il logo: due macchie forti in cima si contendevano
+   l'attenzione, e quella che doveva vincere è il marchio. Ora è chiaro
+   con un contorno caldo — si legge benissimo, dice ancora «questo è il
+   tuo tavolo», ma sta un passo indietro. */
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-chip-id,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-chip-id{
-  background: #2A1C13;
-  color: #FCEFE2;
-  box-shadow: 0 2px 8px rgba(80,40,15,0.22);
+  background: #FFFBF5;
+  color: #3B2A1E;
+  box-shadow: inset 0 0 0 1.5px rgba(140,80,35,.30), 0 1px 5px rgba(120,70,30,.14);
+}
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-chip-id .v2-mesa-num,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-chip-id .v2-mesa-num{ color:#8C3B10 }
+
+/* 🩹 v2.68.0 · I CHIP DEL LEMA: solo l'ATTIVO è colorato.
+   Trovato misurando: COCKTAILS e ⚡BPM avevano il testo arancione IDENTICO
+   a SAPORE, che era l'unico attivo — tre chip su quattro sembravano
+   accesi. Le parole del lema si portavano dietro l'accento del marchio, e
+   nel vestito nuovo quell'accento è anche il colore dello stato attivo:
+   due significati sullo stesso colore, e il colore ha smesso di dire dove
+   sei. Ora i non selezionati vanno al neutro. Il lema non perde niente —
+   parole, peso e ordine restano — perde la tinta solo quando non è il
+   mondo in cui ti trovi, che è ciò che fa ogni navigazione. */
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-nchip:not(.active) b,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-nchip:not(.active) b{
+  color: var(--brand-text); opacity:.72;
 }
 
 /* la campana e il selettore lingua vivevano su fondo scuro */
@@ -1218,6 +1269,7 @@ html.vestido2 #v2Barra::before{
   background:linear-gradient(to top, var(--brand-bg) 46%, transparent 100%);
 }
 html.vestido2 #v2Barra > button{
+  color:var(--v2-ok-txt);
   box-shadow:0 0 0 1.5px rgba(255,255,255,.16), 0 8px 28px rgba(0,0,0,.62);
 }
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] #v2Barra > button,
@@ -4920,7 +4972,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.67.0 · el colibrí es FIRMA + el nombre crece de verdad en las cards grandes · 02ago</span>
+<span id="ver" hidden>menu2 · v2.68.0 · el verde entra en la familia cálida (oliva) · logo con peso · chip claro · sin simbolo · la q ya no miente · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8943,9 +8995,19 @@ function formatPrice(n){
 }
 
 function formatPriceWithSymbol(n){
-  // Variante con simbolo $ se servisse (es. tooltip "Total: $7.990") · NON usato nelle card.
-  const s = BRAND.currency_symbol || '$';
+  /* 🩹 v2.68.0 · «niente segno $ da nessuna parte» (Alberto).
+     Il `$` compariva in 18 punti — barra del conto, scheda prodotto,
+     carrello, regalo — mentre card e righe scrivevano il numero nudo.
+     Due modi di scrivere lo stesso prezzo nella stessa carta: uno dei due
+     è di troppo, e il più discreto è quello giusto. In un menù il numero
+     È un prezzo: il simbolo non aggiunge informazione, aggiunge solo il
+     ricordo di quanto costa.
+     🔒 La funzione resta (18 chiamate, e il giorno che servisse una valuta
+     con simbolo si riaccende qui) — ma col vestito addosso restituisce il
+     numero pulito, identico a quello delle card. Un prezzo, una forma. */
   const num = parsePrice(n);
+  const vestido = document.documentElement.classList.contains('vestido2');
+  const s = vestido ? '' : (BRAND.currency_symbol || '$');
   if(BRAND.currency === 'CLP' || num >= 1000)
     return s + num.toLocaleString('es-CL');
   return s + num.toFixed(2);
@@ -10637,11 +10699,21 @@ function cerrarOpcion(){
 function cartChangeQty(idx, delta){
   const it = CART.items[idx];
   if(!it) return;
+  /* 🩹 v2.68.0 · «la q sul + rimane attiva anche quando elimino l'ordine
+     del prodotto» (Alberto). Qui si aggiornava il CARRELLO e basta: la
+     riga della lista dietro continuava a mostrare il pallino con la
+     quantità vecchia, e la barra del conto pure. Il cliente toglieva una
+     cosa e il menù continuava a dirgli che ce l'aveva — cioè il numero
+     mentiva, che è il difetto peggiore in una carta che porta a un conto.
+     L'id va salvato PRIMA: la riga può sparire due istruzioni più sotto. */
+  const _id = it.id;
   it.qty = (it.qty||1) + delta;
   if(it.qty <= 0) CART.items.splice(idx, 1);
   if(CART.items.length === 0) CART.gancho_origen = '';
   saveCart();
   renderCart();
+  try { v2RefreshCtrl(_id); } catch(e){}   // la riga dietro
+  try { v2RenderBarra(); }   catch(e){}    // e il totale in basso
 }
 
 function openCart(){
