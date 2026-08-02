@@ -792,12 +792,28 @@ html.vestido2 .v2-nchip.active{
 }
 html.vestido2 .v2-nchip.active b{ color:var(--v2-neon) }
 html.vestido2 .v2-nchip.active small{ color:var(--brand-text-muted) }
+/* 🩹 v2.64.0 · IL CHIP DI GIORNO ERA RIMASTO PIENO — e per giunta arancione
+   Alberto: «il colore del chip è un po' invadente, come lo era il cyan
+   nella notte». Vero, e la causa è **lo stesso errore di specificità di
+   ieri**: la regola che svuota il chip era `html.vestido2 .v2-nchip.active`
+   (0,2,1), ma la vecchia `body.theme-dark[data-fascia-menu="dia"]
+   .v2-nchip.active` è (0,3,2) e vinceva. Risultato: di notte il chip era
+   curato, di giorno restava una lastra arancione **col testo turchese
+   sopra** — la peggiore delle due, perché sommava l'invadenza a un
+   accostamento che non appartiene a nessuno dei due vestiti.
+   📌 Seconda volta in due giorni che una mia regola «non fa niente» per
+   lo stesso motivo. Quando si riscrive un colore già dipinto altrove, si
+   nomina SEMPRE `body.theme-dark[data-fascia-menu=…]`. */
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-nchip.active b,
-html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-nchip.active b{ color:#0E6E7E }
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-nchip.active b{ color:#B8480F }
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-nchip.active,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-nchip.active{
-  border-color:#0E6E7E; box-shadow:inset 0 0 0 1px rgba(14,110,126,.28);
+  background:var(--brand-surface-card);
+  border-color:#E0561A;
+  box-shadow:inset 0 0 0 1px rgba(224,86,26,.30);
 }
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-nchip.active small,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-nchip.active small{ color:var(--brand-text-muted) }
 
 /* ④ le descrizioni non si tagliano più a metà parola.
    «due v…», «fruttat…», «tropic…»: era `nowrap` + ellissi, che taglia al
@@ -814,10 +830,26 @@ html.vestido2 .v2-fila .des{
 html.vestido2 body{ padding-bottom:168px }
 html.vestido2 .v2-dst-2x1 .eyebrow{ color:#FFB04A }
 html.vestido2 .v2-dst-2x1 .precio{ color:#FFB04A; font-weight:800 }
-/* di giorno la card non è AURORA: fondo caldo, non nero-cyan */
+/* di giorno la card non è AURORA: fondo caldo, non nero-cyan.
+   🩹 v2.64.0 · «non so se quel rosso mi piaccia o combaci» (Alberto).
+   Non combaciava: `#E0561A` è l'ACCENTO, cioè il colore che nel vestito
+   nuovo segna i prezzi e i dettagli — usato come superficie piena su una
+   card grande diventava la cosa più accesa dello schermo, e per giunta
+   accanto al chip che gridava lo stesso arancione (v. sopra).
+   Ora una terracotta più profonda e meno satura: resta calda e di casa,
+   ma sta SOTTO il disegno invece di competerci. E il colibrì bianco,
+   che è il soggetto, su un fondo meno acceso si stacca molto di più. */
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-aur-draw,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-aur-draw{
-  background:linear-gradient(150deg,#8C3B10 0%,#B04A18 55%,#E0561A 100%);
+  background:linear-gradient(150deg,#5E2C12 0%,#8A4520 58%,#A8562A 100%);
+}
+/* l'etichetta MENÚ: neutra e calda, mai un colore d'azione (§6.3) */
+html.vestido2 .v2-flag-menu{
+  background:rgba(255,246,236,.92); color:#7A3A18;
+  box-shadow:0 1px 4px rgba(60,25,5,.35);
+}
+html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-menu="tarde"]) .v2-flag-menu{
+  background:rgba(26,21,16,.92); color:#FFD9C2; box-shadow:0 0 0 1px rgba(255,150,70,.35);
 }
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-aur-glow,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-aur-glow{
@@ -4788,7 +4820,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.63.0 · ⚡ EL VESTIDO ESTÁ ENCENDIDO PARA TODOS ⚡ (?vestido=0 lo apaga en ese aparato) · 02ago</span>
+<span id="ver" hidden>menu2 · v2.64.0 · el chip de día ya no es una plancha naranja · la card MENÚ no repite su nombre · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8999,16 +9031,28 @@ function v2DestacadosHTML(){
       // anche il Menú del Día di giorno diventa una card disegnata, col
       // colibrì bianco. Stessa sagoma, colore dal CSS secondo la fascia.
       const _vest = document.documentElement.classList.contains('vestido2');
+      /* v2.64.0 · IL NOME NON SI SCRIVE DUE VOLTE.
+         Alberto: «la card MENÚ DEL DÍA la farei meglio, non si legge MENÚ
+         DEL DÍA». Non si leggeva per due ragioni insieme: stava SOPRA il
+         disegno in 10,5px con l'interlettera larga, e — soprattutto — era
+         già scritto due righe più in basso, nell'eyebrow. Due volte la
+         stessa parola: una illeggibile e una inutile.
+         Ora il disegno fa il disegno (colibrì + luce, finalmente intero,
+         senza una scritta che gli sta addosso) e il nome vive sotto, dove
+         il testo è testo e si legge nero su sabbia. */
       const _ph = _vest
         ? `<div class="v2-aur-draw"><span class="v2-aur-glow"></span>` +
-          `<span class="v2-aur-bird"></span>` +
-          `<span class="v2-aur-tit">${escapeHtml(_aNom)}</span></div>`
+          `<span class="v2-aur-bird"></span></div>`
         : (_aFoto
             ? `<img src="${_aFoto}" alt="" loading="lazy" onerror="this.parentElement.textContent='🌙'">`
             : dibujo);
+      /* v2.64.0 · il flag MENÚ non è più verde: da ieri il verde vuol dire
+         «si aggiunge, si conferma» in tutta la carta, e un'ETICHETTA verde
+         su una card prometteva un'azione che lì non c'è. Le etichette non
+         hanno un colore d'azione: hanno il loro. */
       const _flag  = _aur
         ? `<span class="flag" style="background:#21e6ff;color:#04202a">🌙 AURORA</span>`
-        : `<span class="flag" style="background:#3DAA68;color:#fff">🍽️ MENÚ</span>`;
+        : `<span class="flag v2-flag-menu">🍽️ ${getLang('group_almuerzo')||'MENÚ'}</span>`;
       return `<button class="v2-dst" onclick="v2AbrirDest('almuerzo')">
         ${_flag}
         <div class="ph">${_ph}</div>
