@@ -833,6 +833,15 @@ html.vestido2 .v2-carrusel[data-n="2"] .v2-dst-2x1 .nom{ font-size:22px }
 html.vestido2 .v2-add{
   background:transparent; color:var(--v2-ok);
   box-shadow:inset 0 0 0 1.5px var(--v2-ok);
+  /* 🩹 v2.69.0 · «i + di agregar pedido non allineati in mezzo in alcuni
+     bottoni» (Alberto). Il segno è `＋` a tutta larghezza (U+FF0B): dentro
+     un bottone che lo tratta come testo, la sua posizione dipende dalla
+     riga di base del carattere, e con nomi di prodotto su una o due righe
+     la riga di base cambia — così alcuni `＋` sembravano più in alto.
+     Un bottone non deve appoggiare il suo segno sulla riga del testo: lo
+     deve CENTRARE. Con grid + place-items il segno sta in mezzo sempre,
+     qualunque cosa ci sia intorno. */
+  display:grid; place-items:center; line-height:1; padding:0;
 }
 html.vestido2 .v2-add:active{
   background:var(--v2-ok); color:var(--v2-ok-txt,#06170e);
@@ -853,6 +862,36 @@ html.vestido2 #v2Orden .cta{ background:var(--v2-ok); color:var(--v2-ok-txt,#061
    che hai già scelto — non merita un colore d'allarme suo. */
 html.vestido2 .v2-step{ border-color:var(--v2-ok) }
 html.vestido2 .v2-step b{ color:var(--v2-ok) }
+html.vestido2 .v2-step button{ display:grid; place-items:center; line-height:1; padding:0 }
+
+/* 🩹 v2.69.0 · I DUE BOTTONI DEL CARRELLO ─────────────────────────────
+   ① «il verde oliva ok ma devi cambiare colore testo anche dentro alle
+      card carrello»: la via diretta alla barra è il bottone più grande
+      della carta e aveva ancora il testo quasi nero dell'epoca del giada
+      chiaro. Sull'oliva profondo va crema, come tutti gli altri pieni —
+      e il sottotitolo passa da opacità .75 a .88, perché era la riga che
+      spiega cosa succede («ya lo empiezan a preparar») e si leggeva peggio
+      del titolo che non ne aveva bisogno.
+   ② «il "mmm, déjame ver" è invisibile e quasi inesistente»: era un
+      contorno del colore del testo attenuato, cioè il grigio delle cose
+      spente — e quel bottone non è spento, è **la via d'uscita**. Chi non
+      è sicuro deve poterla vedere subito, se no l'unica strada visibile è
+      confermare, e un sì preso perché il no non si vedeva non è un sì.
+      Ora: superficie propria, contorno pieno, testo del colore del testo.
+      Resta secondario — non è verde, non è pieno — ma esiste.
+   🌙 Vale in tutte e due le fasce (richiesta esplicita di Alberto). */
+html.vestido2 .v2-via-si{ color:var(--v2-ok-txt) }
+html.vestido2 .v2-via-si small{ opacity:.88 }
+html.vestido2 .v2-via-mesero{
+  background:var(--brand-surface-card, var(--brand-surface));
+  border:1.5px solid var(--brand-border-strong);
+  color:var(--brand-text);
+  box-shadow:0 1px 4px rgba(0,0,0,.10);
+}
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-via-mesero,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-via-mesero{
+  border-color:rgba(140,80,35,.42); box-shadow:0 1px 5px rgba(120,70,30,.16);
+}
 
 /* v2.61.0 · IL PALLINO · lo stepper richiuso lascia il numero addosso al
    `＋`. È l'unica cosa che serviva davvero di quei 90 px: la memoria di
@@ -1180,12 +1219,30 @@ html.vestido2 body.theme-dark[data-fascia-menu="tarde"] #header{
    26px. Resta Fraunces, resta l'interlettera: **la forma del logo non si
    tocca** (ordine di Alberto), cambiano solo peso e colore — che sono la
    differenza fra un'insegna e una didascalia. */
+/* 🩹 v2.69.0 · IL LOGO DIVENTA QUELLO DELL'ENTRATA
+   Alberto: «il logo è sempre lo stesso, metti quello di entrata al MENU,
+   quello che vedi quando si apre».
+   Sono due loghi diversi e non ce n'eravamo accorti: lo SPLASH usa
+   Fraunces **300** con interlettera **−1px** e il pallino d'accento
+   davanti (`● BKS`) — leggero, largo, sicuro di sé; l'header usava
+   Fraunces 400 con interlettera **+2,5px**, che è il trattamento di una
+   didascalia, non di un'insegna. Stessa parola, due personalità.
+   Ora l'header porta il logo dell'entrata: stesso carattere, stesso peso,
+   stessa interlettera stretta, stesso pallino. Il cliente vede la stessa
+   firma quando apre la carta e mentre la sfoglia.
+   🔒 Non è un logo nuovo: è quello che già usiamo, portato dove mancava. */
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .brand-logo-text,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .brand-logo-text{
   color: #17100A;
-  font-size: 26px;
-  letter-spacing: 3px;
-  text-shadow: 0 1px 0 rgba(255,255,255,.35);
+  font-size: 27px;
+  font-weight: 300;
+  letter-spacing: -0.6px;
+  text-shadow: none;
+}
+html.vestido2 .brand-logo-text::before{
+  content:'●'; color:var(--brand-accent); font-size:.42em;
+  vertical-align:middle; margin-right:.34em; letter-spacing:0;
+  position:relative; top:-.12em;
 }
 html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-tagline,
 html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-tagline{
@@ -4972,7 +5029,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.68.0 · el verde entra en la familia cálida (oliva) · logo con peso · chip claro · sin simbolo · la q ya no miente · 02ago</span>
+<span id="ver" hidden>menu2 · v2.69.0 · el logo de la entrada tambien en la cabecera · los dos botones del carrito · el + centrado · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
