@@ -723,6 +723,24 @@ html.vestido2 .v2-dst-2x1 .nom{ font-size:19px; font-weight:900; letter-spacing:
       lì il più invadente, ed è il caso in cui serve meno — con quattro
       card in fila la firma la fa la fila.
    ══════════════════════════════════════════════════════════════════════ */
+/* 🩹 v2.67.0 · LA RIGA CHE MANCAVA — e che ha rotto DUE cose insieme.
+   Alberto: «si è perso un pezzo del testo nel menù, ed il colibrì nella
+   Niña Bonita». Una causa sola: `.ph` (il riquadro della foto) era
+   `position:static`, quindi TUTTO ciò che gli sta dentro con
+   `position:absolute` non si ancorava a lui ma alla CARD.
+     · il disegno della cloche (`inset:0`) diventava alto quanto la card
+       intera — 212 px invece di 124 — e **copriva l'eyebrow e il nome**:
+       il testo c'era nel DOM, ma stava sotto il disegno.
+     · la firma perdeva `top/right` e cadeva dove capitava (misurato:
+       168 px invece di 6).
+   Funzionava su AURORA e sulla porta 2x1 perché quelle due hanno già un
+   contenitore posizionato proprio — ed è per questo che nelle prove non
+   si era visto: avevo verificato le card che stavano bene.
+   📌 Un figlio `absolute` va sempre con un genitore `relative`
+   dichiarato: se non c'è, il riferimento scivola al primo antenato
+   posizionato — in silenzio, e il layout sembra funzionare finché il
+   figlio non ha bisogno di coordinate. */
+html.vestido2 .v2-dst .ph{ position:relative }
 html.vestido2 .v2-firma{
   position:absolute; pointer-events:none; z-index:2;
   width:44px; height:38px; background-color:#fff;
@@ -1033,14 +1051,23 @@ html.vestido2 .v2-carrusel[data-n="3"] .v2-dst{ flex:0 0 calc((100% - 16px) / 3)
 html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .ph,
 html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .ph{ height:124px }
 html.vestido2 .v2-carrusel[data-n="3"] .v2-dst .ph{ height:92px }
-/* con card più larghe il testo respira invece di stare in punta di piedi */
+/* con card più larghe il testo respira invece di stare in punta di piedi.
+   🩹 v2.67.0 · questi tre valori li avevo già alzati più su nel file (17 /
+   16.5 / 9.5) e NON succedeva niente: stessa specificità, e a parità vince
+   l'ultima regola del file — cioè questa. **Terza volta in due giorni.**
+   La cura non è aggiungere una quarta regola: è correggere QUESTA, che è
+   la sola che comanda davvero. Le gemelle di sopra restano come commento
+   della decisione, ma il numero vivo è qui. */
 html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .nom,
-html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .nom{ font-size:14px; line-height:1.2 }
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .nom{ font-size:17px; line-height:1.18; min-height:calc(2 * 1.18em) }
 html.vestido2 .v2-carrusel[data-n="3"] .v2-dst .nom{ font-size:12.5px }
 html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .precio,
-html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .precio{ font-size:14px }
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .precio{ font-size:16.5px }
 html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .eyebrow,
-html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .eyebrow{ font-size:8.5px }
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .eyebrow{ font-size:9.5px }
+/* il 2x1 tiene il suo corpo: lì il numero È il messaggio */
+html.vestido2 .v2-carrusel[data-n="1"] .v2-dst-2x1 .nom,
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst-2x1 .nom{ font-size:22px }
 html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .inf,
 html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .inf{ padding:8px 10px 10px }
 /* con una o due card non c'è niente da scorrere: le frecce non si disegnano */
@@ -4893,7 +4920,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.66.0 · el colibrí es FIRMA, no protagonista · un colibrí por card, nunca dos · 02ago</span>
+<span id="ver" hidden>menu2 · v2.67.0 · el colibrí es FIRMA + el nombre crece de verdad en las cards grandes · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
