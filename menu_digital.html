@@ -968,6 +968,79 @@ html.vestido2 .v2-fila .b{ padding:11px 0 }
 /* l'ultima riga di una sezione non deve incollarsi alla successiva */
 html.vestido2 .v2-fila:last-child{ margin-bottom:2px }
 
+/* 🩹 v2.71.0 · IL VIOLA DI «11 PLATOS A ELECCIÓN» ─────────────────────
+   Alberto: «quel viola da dove è uscito?». Da `--v2-dj`: il foglio dei
+   destacados coloriva TUTTI gli eyebrow col viola del mondo BPM, perché
+   nasce lì. Ma su un menù di mezzogiorno il viola del DJ non dice niente
+   — anzi mente, perché quel colore in questa carta significa «la notte».
+   Terracotta, come tutte le altre etichette del giorno. E più grande:
+   11px per la riga che dice COSA STAI GUARDANDO era la misura di una
+   nota a piè di pagina. */
+html.vestido2 #v2ShDest .eyebrow{
+  color:var(--brand-accent); font-size:13px; letter-spacing:.06em;
+}
+html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-menu="tarde"]) #v2ShDest .eyebrow{
+  color:#FFB04A;
+}
+
+/* 🩹 v2.71.0 · LA CARD MENÚ SI ALZA DAL FONDO
+   Alberto: «il colore di fondo della card destacados MENU lo schiarirei
+   un po' per alzarlo dal fondo». Vero: la terracotta scura del disegno
+   stava bene, ma la CARD sotto era della stessa famiglia del fondo della
+   pagina e le due si fondevano — la card non si staccava, sembrava una
+   macchia sulla sabbia. Ora la card è più chiara del fondo, come tutte le
+   altre: è la differenza fra un oggetto appoggiato e uno stampato. */
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-dst-menu,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-dst-menu{
+  background:#FFFDF9;
+  box-shadow:0 0 0 1.5px rgba(160,95,35,.30), 0 4px 14px -6px rgba(120,70,30,.55);
+}
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-menu-draw svg rect:first-child,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-menu-draw svg rect:first-child{
+  fill:#F3E4CE;
+}
+
+/* 🩹 v2.71.0 · LA FOTO DELLA RIGA RESTA QUADRATA
+   Alberto: «belle le card così, solo un fix: devi contare anche
+   l'ampiezza». Giusto — allungavo la foto in ALTEZZA con la riga ma la
+   larghezza restava 84 px fissi: con un nome su due righe la riga sale a
+   98 e la foto diventava un rettangolo verticale, cioè l'immagine veniva
+   ritagliata più stretta proprio dove c'era più spazio. Ora cresce anche
+   in larghezza: `aspect-ratio:1` la tiene quadrata qualunque sia
+   l'altezza della riga, e `flex-basis:auto` le lascia prendere quello che
+   le serve. */
+/* ⚠️ misurato: con `align-self:stretch` l'altezza è IMPOSTA dal flex, e
+   `aspect-ratio` non può più calcolare la larghezza — la foto restava
+   84×98. La cura non è sulla foto: è sulla RIGA. Tutte le righe hanno la
+   stessa altezza (84), quindi la foto è quadrata per costruzione e la
+   lista prende un ritmo regolare invece di ballare riga per riga. Il nome
+   lungo si chiude su due righe coi puntini, come già fa la descrizione. */
+html.vestido2 .v2-fila{ height:84px; min-height:84px }
+html.vestido2 .v2-fila .ph{ width:84px; flex:0 0 84px }
+html.vestido2 .v2-fila .b{ min-width:0; overflow:hidden }
+html.vestido2 .v2-fila .nom{
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; line-height:1.2;
+}
+
+/* 🩹 v2.71.0 · «MMM, DÉJAME VER» · terzo giro
+   Non convince ancora, e ha ragione: era diventato visibile ma restava
+   un rettangolo timido accanto a un bottone grande e pieno — due pesi
+   troppo diversi perché sembrassero due strade. Ora ha la stessa altezza
+   e lo stesso raggio del fratello verde, un contorno che si vede da
+   lontano e il testo pieno. Non è verde e non è pieno: resta la seconda
+   scelta, ma adesso è una SCELTA. */
+html.vestido2 .v2-via-mesero{
+  padding:15px 13px; font-size:14.5px; font-weight:800;
+  border-width:2px; border-color:var(--brand-accent-line-strong);
+  color:var(--brand-text); background:var(--brand-surface-card, var(--brand-surface));
+  min-height:63px;                /* la stessa altezza del fratello verde: misurato 63 vs 53 */
+  display:grid; place-items:center; line-height:1.25;
+}
+html.vestido2 .v2-via-mesero:active{
+  background:var(--brand-accent-line); border-color:var(--brand-accent);
+}
+
 /* ③ il chip attivo non è più una lastra di cyan.
    Il cyan è l'identità (è il colore del logo BKS, che non si tocca), ma
    riempito diventa il pieno più grande della schermata per dire soltanto
@@ -5070,7 +5143,7 @@ body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.70.0 · la fila es una card: bordes redondos y la foto al filo del borde · 02ago</span>
+<span id="ver" hidden>menu2 · v2.71.0 · el violeta del DJ fuera del menu · la ficha sube · la card MENU se despega · foto cuadrada · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -9895,7 +9968,15 @@ function openDetail(id){
   document.body.style.overflow = 'hidden';
   document.body.classList.add('v2-sheet-open');   // oss.7 · le strip non coprono la barra d'ordine
   // round5 oss.6 · la scheda si ferma sotto i chip (il blocco fisso resta vivo)
-  document.getElementById('detailSheet').style.maxHeight = 'calc(100dvh - ' + (v2TopBlockH() + 6) + 'px)';
+  /* 🩹 v2.71.0 · «la card del prodotto non apre tutta fino in alto» (Alberto).
+     Si fermava sotto il blocco dei chip (`v2TopBlockH()`, ~150px): una
+     scelta di quando la scheda era una mezza pagina e sopra dovevi
+     continuare a vedere dove eri. Ma da quando il piatto ha la foto
+     grande, la descrizione e il regalo, quella striscia in alto non serve
+     più a orientare — ruba spazio alla cosa che stai guardando.
+     Ora sale quasi a tutto schermo: restano 44px in cima, quanto basta a
+     far capire che sotto c'è la carta e che si chiude toccando fuori. */
+  document.getElementById('detailSheet').style.maxHeight = 'calc(100dvh - 44px)';
   // v2.0 · barra d'ordine fissa (gesto ②): stepper + CTA, bloccato finché
   // manca una scelta obbligatoria
   // FINAL fix 2 (12-lug) · se il prodotto è GIÀ nel carro, lo stepper del
