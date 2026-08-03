@@ -1232,8 +1232,18 @@ html.vestido2 .v2-dst .inf{ padding:6px 7px 8px }
 html.vestido2 .v2-carrusel[data-n="1"] .v2-dst,
 html.vestido2 .v2-carrusel[data-n="2"] .v2-dst{ flex:0 0 calc((100% - 8px) / 2) }
 html.vestido2 .v2-carrusel[data-n="3"] .v2-dst{ flex:0 0 calc((100% - 16px) / 3) }
+/* 🩹 v2.74.0 · LA CARD LASCIA VEDERE LA CARTA
+   Alberto sul telefono: «la card del destacado è un po' grande, si
+   riesce a vedere solo una riga di prodotto — ideale vederne due».
+   📏 Misurato: card 223px (foto 124 + testo 99) → la SECONDA riga
+   finiva a 673px, appena sotto il bordo. Il destacado deve invitare
+   a scendere, non riempire lo schermo: se è tutto quello che si
+   vede, non promette una carta — la sostituisce.
+   La foto scende a 104: sulla larghezza vera della card (~184px)
+   fa 16:9 esatto, che è la proporzione con cui le foto sono state
+   scattate — si accorcia e insieme si taglia meno. */
 html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .ph,
-html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .ph{ height:124px }
+html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .ph{ height:104px }
 html.vestido2 .v2-carrusel[data-n="3"] .v2-dst .ph{ height:92px }
 /* con card più larghe il testo respira invece di stare in punta di piedi.
    🩹 v2.67.0 · questi tre valori li avevo già alzati più su nel file (17 /
@@ -1254,6 +1264,12 @@ html.vestido2 .v2-carrusel[data-n="1"] .v2-dst-2x1 .nom,
 html.vestido2 .v2-carrusel[data-n="2"] .v2-dst-2x1 .nom{ font-size:22px }
 html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .inf,
 html.vestido2 .v2-carrusel[data-n="2"] .v2-dst .inf{ padding:8px 10px 10px }
+/* 🩹 v2.74.0 · le due righe riservate al nome esistono per ALLINEARE
+   due card affiancate. Con UNA sola card non c'è nessuno da
+   allineare: erano 20px di vuoto sotto «Niña Bonita». Con due card
+   la riserva resta — lì serve davvero. */
+html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .nom{ min-height:0 }
+html.vestido2 .v2-carrusel[data-n="1"] .v2-dst .inf{ padding:7px 10px 9px }
 /* con una o due card non c'è niente da scorrere: le frecce non si disegnano */
 html.vestido2 .v2-car-wrap:has(.v2-carrusel[data-n="1"]) .v2-car-nav,
 html.vestido2 .v2-car-wrap:has(.v2-carrusel[data-n="2"]) .v2-car-nav{ display:none }
@@ -5174,6 +5190,19 @@ body.theme-dark[data-fascia-menu="dia"] #v2ShDest .meta{color:#b8860b}
 .v2c-tot{display:flex;padding:12px 0;font-size:17px;font-weight:900;color:var(--brand-text)}
 .v2c-tot span:last-child{margin-left:auto;color:var(--v2-oro)}
 body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
+
+/* 🩹 v2.74.0 · LO SPAZIO FRA I CHIP E «DESTACADOS»
+   Alberto: «c'è anche spazio fra la parola destacados e le pill delle
+   categorie». C'era, e non era una scelta di respiro: 📏 misurati **32px
+   di aria morta** lasciati da `#skeletonList` — lo scheletro di
+   caricamento. `hideLoading()` gli svuota l'HTML ma non lo nasconde, e
+   il contenitore ha `padding:16px` scritto inline: a carta caricata
+   resta lì, vuoto, alto 32, a spingere giù tutta la carta per sempre.
+   Nessuno lo vedeva perché non disegna niente — si vedeva solo il buco.
+   `:empty` è la cura esatta: mentre carica ha i suoi cinque fantasmi
+   dentro e si mostra; appena `hideLoading()` lo svuota, sparisce da sé.
+   Zero JS toccato, e vale anche per ogni ricarica futura. */
+#skeletonList:empty{ display:none !important }
 
 /* ═══════════════════════════════════════════════════════════════════════
    v2.72.0 · TRE FIX DEL VESTITO — in coda al foglio DI PROPOSITO: ognuno
