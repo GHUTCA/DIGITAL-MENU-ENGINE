@@ -5360,7 +5360,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.74.3 · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
+<span id="ver" hidden>menu2 · v2.75.0 · el reloj de la carta es el del local · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -5764,6 +5764,33 @@ const SES_TTL_MS = 4 * 60 * 60 * 1000;
    QR le preguntaba «¿te cambiaste de mesa?» comparándolo con una sesión de
    ayer que no debería existir. La jornada operativa corta a las 06:00
    (mismo corte que el libro): nacida en otra jornada = sesión muerta. */
+/* 🕑 v2.75.0 · L'OROLOGIO CHE COMANDA LA CARTA È QUELLO DEL LOCALE
+   Confermato da Alberto il 03-ago: *«la fascia la decide l'ora di Santiago»*.
+   Non era solo il colore. Sette punti della carta decidevano su
+   `new Date()`, cioè sull'orologio del **telefono del cliente**:
+     · `productInFaja` → il cancello degli orari dei PRODOTTI 🔴
+     · `getCurrentFajaId` → desayuno / almuerzo / cena
+     · `getFasciaMenu` → la pelle giorno/tarde/notte
+     · `resolveDjActual` → quale DJ sta suonando (giorno + ora)
+     · la bienvenida → l'«AHORA hh:mm» scritto in faccia al cliente
+     · tre `esNoche` → il saluto e il tono
+   Per chi vive a Santiago è identico. Per un turista col telefono
+   ancora su un altro fuso — e questa carta parla otto lingue, i turisti
+   sono il caso normale — no: il più grave è il primo, perché non sposta
+   un colore ma **quali prodotti esistono**. È la stessa ferita che
+   Alberto trovò l'01-ago alle 9:45 (Jack Daniel's da $100.000 a metà
+   mattina): allora il cancello non lo applicava nessuno, oggi c'è ma
+   guardava l'orologio sbagliato per chi arriva da fuori.
+   📌 Il locale ha UN fuso: apre alle 16 ora di Santiago, punto. Il
+   modello era già in casa — `_fechaOpCliente` (qui sotto) lo fa dal
+   23-lug per la data operativa. Qui diventa la regola per tutti.
+   Zero rete, zero dipendenze: `Intl` ce l'ha ogni telefono. */
+function _ahoraLocal(){
+  try { return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Santiago' })); }
+  catch(e){ return new Date(); }   // se il fuso non si risolve, meglio l'ora del telefono che niente
+}
+function _horaLocalDec(){ const d = _ahoraLocal(); return d.getHours() + d.getMinutes()/60; }
+
 function _fechaOpCliente(){
   try {
     const ahora = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Santiago' }));
@@ -7829,7 +7856,7 @@ const FAJAS = [
 ];
 
 function getCurrentFajaId(){
-  const h = new Date().getHours();
+  const h = _ahoraLocal().getHours();   // v2.75.0 · ora del locale
   const f = FAJAS.slice(1).find(f=>h>=f.start && h<f.end);
   return f ? f.id : 'all';
 }
@@ -7898,7 +7925,7 @@ function productInFaja(p){
   const ini = (p.hora_ini_dec != null) ? p.hora_ini_dec : 0;
   const fin = (p.hora_fin_dec != null) ? p.hora_fin_dec : 24;
   if(fin === ini) return true;                   // finestra nulla = nessun cancello
-  const d = new Date();
+  const d = _ahoraLocal();               // v2.75.0 · il cancello è l'ora del LOCALE
   const h = d.getHours() + d.getMinutes() / 60;
   return (fin > ini) ? (h >= ini && h < fin)     // finestra normale
                      : (h >= ini || h < fin);    // scavalca la mezzanotte
@@ -8270,7 +8297,7 @@ function showBienvenidaSplash(){
 
   // Zona 2 · stato + ora corrente
   document.getElementById('bvFasciaName').textContent = franja.nombre_visible || franja.id;
-  const now = new Date();
+  const now = _ahoraLocal();             // v2.75.0 · l'ora che mostriamo è quella del locale
   const hh = now.getHours().toString().padStart(2,'0');
   const mm = now.getMinutes().toString().padStart(2,'0');
   document.getElementById('bvTime').textContent = (lang === 'pt' ? 'Agora' : 'Ahora') + ' · ' + hh + ':' + mm;
@@ -12195,7 +12222,7 @@ async function loadDJs(){
 // Ritorna oggetto DJ o null se nessun match
 function resolveDjActual(){
   if(!DJS_AGENDA || DJS_AGENDA.length === 0) return null;
-  const now = new Date();
+  const now = _ahoraLocal();             // v2.75.0 · il DJ suona all'ora del locale
   const dayCode = DAY_CODES_BKS[now.getDay()];
   const nowMin = now.getHours() * 60 + now.getMinutes();
 
@@ -12390,8 +12417,8 @@ function getFasciaMenu(){
   if(override === 'dia' || override === 'tarde' || override === 'noche'){
     return override;
   }
-  // 2. Calcolo da ora corrente
-  const now = new Date();
+  // 2. Calcolo da ora corrente — v2.75.0 · quella del LOCALE, non del telefono
+  const now = _ahoraLocal();
   const mins = now.getHours() * 60 + now.getMinutes();
   // dia · 06:00 (360) → 17:30 (1050)
   if(mins >= 360 && mins < 1050) return 'dia';
@@ -12720,7 +12747,7 @@ async function cargarMeseroDeMesa(){
     if(!sessionStorage.getItem('saludo_mesero_v1')){
       try { sessionStorage.setItem('saludo_mesero_v1', '1'); } catch(e){}
       // v1.45 · il saluto sa che ore sono (oss. Alberto: "esta noche" a pranzo stona)
-      const esNoche = new Date().getHours() >= 18 || new Date().getHours() < 6;
+      const esNoche = _ahoraLocal().getHours() >= 18 || _ahoraLocal().getHours() < 6;
       const frase = esNoche
         ? (getLang('saludo_mesero_noche') || 'Hola — esta noche te atiende')
         : (getLang('saludo_mesero_dia')   || 'Hola — hoy te atiende');
@@ -12843,7 +12870,7 @@ function onCallWaiterGeneric(){
   // STAFF non porterà il campo vero.
   const nomeM = MESERO_MESA;
   if(nomeM){
-    const esNoche = new Date().getHours() >= 18 || new Date().getHours() < 6;
+    const esNoche = _ahoraLocal().getHours() >= 18 || _ahoraLocal().getHours() < 6;
     const fem = /a$/i.test(nomeM.trim());
     openConfirmSheet({
       title:    (esNoche ? 'Esta noche' : 'Hoy') + ' te atiende ' + nomeM,
@@ -12964,7 +12991,7 @@ function v2PintaChip(){
 function v2AbrirId(){
   const inf = document.getElementById('v2ShIdInf');
   if(!inf) return;
-  const esNoche = new Date().getHours() >= 18 || new Date().getHours() < 6;
+  const esNoche = _ahoraLocal().getHours() >= 18 || _ahoraLocal().getHours() < 6;
   if(ACTIVE_MEMBER && ACTIVE_MEMBER.nombre){
     // il Member riconosciuto: il locale che ti riconosce E si ricorda cosa bevi.
     // "¿Lo de siempre?" appare SOLO quando il GAS manderà `habitual` (getMember
