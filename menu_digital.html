@@ -5386,7 +5386,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.77.0 · las dos cards del 2x1 con su foto · el 2x1 del schop tiene su card · el reloj de la carta es el del local · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
+<span id="ver" hidden>menu2 · v2.78.0 · cada promo: una card, un modal, su foto · las dos cards del 2x1 con su foto · el 2x1 del schop tiene su card · el reloj de la carta es el del local · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7050,6 +7050,17 @@ let PROMOS_ACTIVAS   = [];
 let RITMO_FILTER_ON  = true;
 let RITMO_POLL_TIMER = null;
 let PROD_TO_PROMO    = {};
+/* 📷 v2.78.0 · la foto di una promo, per id. Sta qui e non dentro il
+   builder perché la usano in due: la card del carosello e il modal che
+   si apre toccandola — e devono mostrare la STESSA immagine, se no il
+   foglietto non mantiene la promessa della card.
+   ⚠️ Resta una mappa nel codice finché le promo con faccia propria sono
+   poche. La via giusta, quando cresceranno, è una colonna `Foto_URL`
+   nel foglio PROMOS: il locale la cambia da sé, senza un deploy. */
+const PROMO_FOTO_SHEET = {
+  'PROMO-SCHOP 2x1'   : 'brand/promo/schop_2x1.webp',
+  'PROMO-COCKTAIL-2X' : 'brand/promo/cocktails_2x1.webp',
+};
 // v1.23 · S13fix · cross-sell scheda per fascia (sostituisce vecchio Upsell_IDs).
 // Mappa prod_origen → [prod_id,...] delle regole CROSS_SELL attive ADESSO (filtrate server-side per ora/giorno).
 let CROSSSELL_MAP    = {};
@@ -9549,10 +9560,7 @@ function v2DestacadosHTML(){
      qui costa meno di una colonna nuova da spiegare a chi la compila.
      Se un id non è in mappa non succede niente: torna la foto del primo
      prodotto (card propria) o il disegno (porta). */
-  const PROMO_FOTO = {
-    'PROMO-SCHOP 2x1'   : 'brand/promo/schop_2x1.webp',
-    'PROMO-COCKTAIL-2X' : 'brand/promo/cocktails_2x1.webp',
-  };
+  const PROMO_FOTO = PROMO_FOTO_SHEET;
   const _fotoPromo = (pr) => (pr && PROMO_FOTO[pr.id]) || '';
   const _vestido = document.documentElement.classList.contains('vestido2');
   /* 🍺 v2.76.0 · LA PROMO CHE SI PUÒ MOSTRARE HA UNA CARD SUA
@@ -9581,15 +9589,33 @@ function v2DestacadosHTML(){
       if(!porPromo.has(k)) porPromo.set(k, { promo: pr, prods: [] });
       porPromo.get(k).prods.push(pp);
     });
-    const enPuerta = [];
-    porPromo.forEach(g => {
-      if(g.prods.length <= 2){
-        g.prods.forEach(pp=>promoSeen.add(pp.id));   // vivono nella loro card
+    /* 🔄 v2.78.0 · OGNI PROMO: UNA CARD, UN MODAL
+       Alberto: *«la card dello schop è migliore di quella dei cocktail —
+       apre un modal coi prodotti e si chiude con la ✕: possiamo farle
+       uguali?»*. Sì, e la richiesta **semplifica** il disegno invece di
+       complicarlo: se ogni promo ha la sua card e il suo modal, la porta
+       che raccoglieva non serve più.
+       Le due card facevano due gesti diversi: una apriva un foglietto e
+       lo richiudeva (**il posto resta dov'era**), l'altra portava via, in
+       un'altra vista, e per tornare indietro serviva ricordarsi come. Due
+       cose che si somigliano devono comportarsi uguale, se no ogni tap è
+       una scommessa.
+       ⚠️ La lezione del v2.54.0 («quattro cartelli 2x1 identici in fila»)
+       resta viva, ma il rischio ora è misurato sul numero di PROMO, non
+       di prodotti: fino a 2 promo, due card distinte e riconoscibili
+       — hanno nome e foto diversi, non sono quattro timbri uguali. Da 3
+       promo in su torna la porta unica, che è esattamente il caso per cui
+       era nata. */
+    const grupos = [...porPromo.values()];
+    if(grupos.length <= 2){
+      grupos.forEach(g => {
+        g.prods.forEach(pp=>promoSeen.add(pp.id));
         dst.push({ tipo:'promo_propia', promo: g.promo, prods: g.prods });
-      } else enPuerta.push(...g.prods);
-    });
-    if(enPuerta.length >= 2){
-      enPuerta.forEach(pp=>promoSeen.add(pp.id));    // fuori dal carosello: vivono nella loro porta
+      });
+    } else {
+      const enPuerta = [];
+      grupos.forEach(g => enPuerta.push(...g.prods));
+      enPuerta.forEach(pp=>promoSeen.add(pp.id));
       dst.push({ tipo:'dos_por_uno', n: enPuerta.length });
     }
   }
@@ -9634,8 +9660,13 @@ function v2DestacadosHTML(){
          è l'unica dove il colibrì fa da protagonista). */
       const pr0 = d.prods[0];
       const _cat = ALL_CATEGORIES.find(c=>c.id===pr0.categoria)?.emoji || '🍺';
-      // v2.77.0 · prima la foto della PROMO (il brindisi), poi quella del prodotto
-      const _img = _fotoPromo(d.promo) || pr0.imagen;
+      /* v2.77.0 · prima la foto della PROMO (il brindisi), poi quella del
+         prodotto. v2.78.0: con più di due prodotti la foto del primo
+         **mentirebbe** (quindici cocktail non sono il primo della lista),
+         quindi lì o c'è la foto della promo o non c'è foto: meglio il
+         disegno che una mezza verità. */
+      const _fotoP = _fotoPromo(d.promo);
+      const _img = _fotoP || (d.prods.length <= 2 ? pr0.imagen : '');
       const _ph = _img
         ? `<img src="${_img}" alt="" loading="lazy" onerror="this.parentElement.textContent='${_cat}'">`
         : _cat;
@@ -9911,7 +9942,19 @@ function v2AbrirDest(key, tipo){
       .map(id => ALL_PRODUCTS.find(x => x.id === id))
       .filter(x => x && !x.agotado && productInFaja(x));
     if(!_prods.length) return;
-    ph.style.height = '0';
+    /* 📷 v2.78.0 · la foto anche nel modal (Alberto). Giusto: la card
+       promette un brindisi e il foglietto che si apre deve mantenere la
+       promessa — se dentro trovo solo una lista, il tap sembra un errore.
+       Alta 170: si vede il brindisi, ma i prodotti restano sopra la piega
+       (nel Menú del Día la foto è a 0 proprio perché lì non c'è nulla da
+       fotografare: una formula non ha una faccia). */
+    const _fotoSh = PROMO_FOTO_SHEET[_pid] || '';
+    if(_fotoSh){
+      ph.style.height = '170px';
+      ph.innerHTML = `<img src="${_fotoSh}" alt="" loading="lazy">`;
+    } else {
+      ph.style.height = '0';
+    }
     eb.textContent = '🎁 ' + (getLang('promo_2x1_titulo') || '2x1');
     nom.textContent = _promo.nombre || '';
     des.textContent = (getLang('promo_2x1_frase') || 'pagas 1, llevas 2') + ' · ' + (getLang('promo_2x1_mismo') || 'del mismo tipo');
@@ -9924,7 +9967,14 @@ function v2AbrirDest(key, tipo){
           <div class="pr"><span class="v2-precio">${formatPrice(pp.precio)}</span></div>
         </div>
         <span id="v2ctrlx-${pp.id}">${v2CtrlHTML(pp)}</span>
-      </div>`).join('') + `</div>`;
+      </div>`).join('') + `</div>` +
+      /* v2.78.0 · la via alla vista piena resta, ma è una scelta, non il
+         destino del tap: chi vuole scorrere tutte le promo della carta ha
+         il suo passaggio, chi voleva solo aggiungere ha già finito. */
+      (_prods.length > 4
+        ? `<button class="v2-via-prox" style="width:100%;margin-top:10px;cursor:pointer"
+             onclick="v2CerrarSheets();setGroup('__PROMOS__')">${getLang('promo_2x1_sub') || 'Ver los'} ${_prods.length} →</button>`
+        : '');
   } else {
     const p = ALL_PRODUCTS.find(x=>x.id===key.slice(2));
     if(!p) return;
