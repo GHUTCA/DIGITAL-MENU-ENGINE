@@ -5360,7 +5360,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.74.2 · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
+<span id="ver" hidden>menu2 · v2.74.3 · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10185,20 +10185,28 @@ function openDetail(id){
   document.body.style.overflow = 'hidden';
   document.body.classList.add('v2-sheet-open');   // oss.7 · le strip non coprono la barra d'ordine
   document.body.classList.add('v2-ficha-open');
-  /* 🚨 v2.74.2 · la ritirata dell'header la fa il JS, non il CSS.
-     Misurato al banco, e il risultato è di quelli che non si accettano
-     finché non li rifai tre volte: su `#header` **nessuna** regola CSS
-     con `opacity` prende — nemmeno `div#header{opacity:.6!important}`
-     inserita al volo — mentre lo **stile inline funziona subito**, e la
-     stessa identica regola applicata a `#memberBanner` (che gli sta
-     dentro) obbedisce. Selettore giusto (`matches()` → true), elemento
-     giusto (`document.contains` → true), nessuna animazione, nessun
-     `!important` rivale, un solo `#header` nel documento.
-     ⚠️ Non ho la spiegazione ultima e non la invento: quello che so
-     con certezza è quale via funziona **sempre**. Fra una cura che
-     capisco a metà ma regge a ogni prova, e una elegante che il vivo
-     smentisce a giorni alterni, sul telefono del cliente va la prima.
-     La transizione resta nel foglio: qui si tocca solo il valore. */
+  /* ✅ v2.74.3 · RETTIFICA di quello che avevo scritto qui sotto.
+     Il commento del v2.74.2 diceva che su `#header` **nessuna regola CSS
+     con opacity prende**. È FALSO, e va corretto perché una spiegazione
+     sbagliata lasciata nel codice è peggio di nessuna spiegazione: il
+     prossimo che la legge — io fra un mese — la userebbe come premessa.
+     Cosa succedeva davvero: la regola si applicava, partiva la sua
+     `transition` di 0,18s… e io la misuravo dal pannello del browser
+     **che non componeva frame**. Senza frame la transizione resta
+     `running` per sempre e `getComputedStyle` risponde col valore di
+     PARTENZA (1). Provato: `getAnimations()` → `CSSTransition running` ·
+     forzando `.finish()` → **0** · con `transition:none` → **0** subito.
+     Il `#memberBanner` "obbediva" solo perché è `display:none`, e quello
+     che non si disegna non transiziona.
+     📌 È una trappola già nostra, scritta nel kickoff — *le transizioni
+     non avanzano nel pannello nascosto: si verifica il valore CSS, non il
+     pixel* — e l'ho ignorata, inseguendo per due versioni un difetto che
+     non esisteva. Il `:has()` del v2.74.0 funzionava.
+     Perché allora tengo questa via e non torno indietro: fa la stessa
+     cosa, non dipende dall'invalidazione di un `:has()` su uno stato che
+     cambia sotto le dita, e rimetterci mano sarebbe un terzo deploy per
+     un guadagno zero. La transizione vive nel foglio, qui si tocca solo
+     il valore, nello stesso gesto che apre la scheda. */
   (function(){ const h=document.getElementById('header');
     if(h){ h.style.opacity='0'; h.style.pointerEvents='none'; } })();
   // round5 oss.6 · la scheda si ferma sotto i chip (il blocco fisso resta vivo)
