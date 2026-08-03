@@ -5312,6 +5312,7 @@ html.vestido2 .brand-logo-wrap{ flex:0 0 auto }
    per lo stato che cambia sotto le dita.
    Ora la ritirata la comanda una classe che il JS mette sul body
    nello stesso gesto in cui apre la scheda: niente da invalidare. */
+#header{ transition:opacity .18s ease }
 body.v2-ficha-open #header,
 body.v2-ficha-open #memberBanner{
   opacity:0; pointer-events:none; transition:opacity .18s ease;
@@ -5359,7 +5360,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.74.1 · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
+<span id="ver" hidden>menu2 · v2.74.2 · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10183,7 +10184,23 @@ function openDetail(id){
   setTimeout(()=>document.getElementById('detailSheet').classList.add('open'), 10);
   document.body.style.overflow = 'hidden';
   document.body.classList.add('v2-sheet-open');   // oss.7 · le strip non coprono la barra d'ordine
-  document.body.classList.add('v2-ficha-open');   // v2.74.1 · header e fascia socio si ritirano (vedi CSS)
+  document.body.classList.add('v2-ficha-open');
+  /* 🚨 v2.74.2 · la ritirata dell'header la fa il JS, non il CSS.
+     Misurato al banco, e il risultato è di quelli che non si accettano
+     finché non li rifai tre volte: su `#header` **nessuna** regola CSS
+     con `opacity` prende — nemmeno `div#header{opacity:.6!important}`
+     inserita al volo — mentre lo **stile inline funziona subito**, e la
+     stessa identica regola applicata a `#memberBanner` (che gli sta
+     dentro) obbedisce. Selettore giusto (`matches()` → true), elemento
+     giusto (`document.contains` → true), nessuna animazione, nessun
+     `!important` rivale, un solo `#header` nel documento.
+     ⚠️ Non ho la spiegazione ultima e non la invento: quello che so
+     con certezza è quale via funziona **sempre**. Fra una cura che
+     capisco a metà ma regge a ogni prova, e una elegante che il vivo
+     smentisce a giorni alterni, sul telefono del cliente va la prima.
+     La transizione resta nel foglio: qui si tocca solo il valore. */
+  (function(){ const h=document.getElementById('header');
+    if(h){ h.style.opacity='0'; h.style.pointerEvents='none'; } })();
   // round5 oss.6 · la scheda si ferma sotto i chip (il blocco fisso resta vivo)
   /* 🩹 v2.71.0 · «la card del prodotto non apre tutta fino in alto» (Alberto).
      Si fermava sotto il blocco dei chip (`v2TopBlockH()`, ~150px): una
@@ -10378,7 +10395,9 @@ function closeDetail(){
   V2_DET = null;
   document.body.style.overflow = '';
   document.body.classList.remove('v2-sheet-open');
-  document.body.classList.remove('v2-ficha-open');   // v2.74.1
+  document.body.classList.remove('v2-ficha-open');
+  (function(){ const h=document.getElementById('header');
+    if(h){ h.style.opacity=''; h.style.pointerEvents=''; } })();   // v2.74.2
 }
 
 let touchStartY = 0;
