@@ -774,6 +774,35 @@ html.vestido2 .v2-firma.f3{ bottom:6px; right:8px; transform:scaleX(-1) rotate(-
 /* la firma scende con la card (3 card) e si fa da parte quando sono 4 */
 html.vestido2 .v2-carrusel[data-n="3"] .v2-firma{ width:36px; height:31px }
 html.vestido2 .v2-carrusel[data-n="4"] .v2-firma{ width:24px; height:21px; opacity:.88 }
+/* 🩹 v2.74.0 · LA FIRMA SI VEDE ANCHE SULLE LUCI
+   Alberto: «il colibrì nel destacado Niña Bonita sinceramente non lo
+   vedo, anche se so che c'è». 📏 Misurato: **c'è** — 44×38, bianco,
+   opacità .93, maschera caricata, angolo in alto a destra. Non è
+   sparito: è bianco sopra le bottiglie illuminate del bar, che è
+   esattamente quello che c'è in quell'angolo di quella foto.
+   Due cause, entrambe vere:
+   ① **il contrasto** — l'ombra era pensata per foto di piatti su tavolo
+     scuro; su una foto con le luci dentro, bianco su bianco sparisce.
+     Ora la sagoma porta un contorno scuro stretto (1px) PRIMA delle
+     ombre morbide: il contorno la stacca da qualunque fondo, le ombre
+     le danno il volume. Resta un'ombra, non diventa mai un velo — la
+     foto sotto non si tocca (regola del vestito).
+   ② **la scala** — quando la card è UNA sola è larga il doppio, ma la
+     firma era rimasta a 44 come sulle card strette: proporzionalmente
+     si era rimpicciolita della metà. Sale a 54, che sulla card doppia
+     è la stessa presenza di 44 su quella singola. */
+html.vestido2 .v2-firma{
+  filter:
+    drop-shadow(0 0 1px rgba(0,0,0,.95))
+    drop-shadow(0 2px 4px rgba(0,0,0,.7))
+    drop-shadow(0 0 12px rgba(0,0,0,.45));
+  opacity:1;
+}
+html.vestido2 .v2-carrusel[data-n="1"] .v2-firma{ width:54px; height:47px }
+/* sulla card MENÚ il colibrì è scuro su fondo chiaro nostro: lì il
+   contorno nero non serve e sporcherebbe — si tiene com'era. */
+html.vestido2 .v2-dst-menu .v2-firma{ filter:none; opacity:.8 }
+
 /* sulla card disegnata chiara (il MENÚ) il colibrì è scuro e non serve ombra:
    il fondo è nostro, quindi il contrasto è garantito per costruzione */
 html.vestido2 .v2-dst-menu .v2-firma{
