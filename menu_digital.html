@@ -5220,6 +5220,22 @@ body.theme-dark[data-fascia-menu="dia"] #v2ShDest .meta{color:#b8860b}
 .v2c-tot span:last-child{margin-left:auto;color:var(--v2-oro)}
 body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 
+/* 📷 v2.77.0 · LE DUE CARD DEL 2x1 CON LA LORO FOTO
+   La foto è un brindisi: bella, ma piena di luci e di vetro — e sopra ci
+   deve stare del testo bianco. Serve un velo dal basso, non un velo
+   intero: così il brindisi resta leggibile in alto e le parole hanno il
+   loro fondo scuro dove servono. (Il velo qui NON contraddice la regola
+   «ombra mai velo»: quella riguarda il colibrì, che deve staccarsi da
+   solo; questo è il fondo di una scritta.) */
+html.vestido2 .v2-dst-2x1-foto .ph{ position:relative; overflow:hidden }
+html.vestido2 .v2-dst-2x1-foto .ph img{ width:100%; height:100%; object-fit:cover; display:block }
+html.vestido2 .v2-2x1-velo{ position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(180deg, rgba(20,12,6,0) 38%, rgba(20,12,6,.55) 100%) }
+/* la firma sulla foto del brindisi: sta in alto, dove la foto è più scura */
+html.vestido2 .v2-dst-2x1-foto .v2-firma{ z-index:3 }
+/* il titolo del 2x1 resta il numero: il corpo grande vale anche con la foto */
+html.vestido2 .v2-dst-2x1-foto .nom{ font-size:19px; font-weight:900 }
+
 /* 🍺 v2.76.0 · la card della promo con faccia propria. Il 2x1 è ORO
    nella carta dei colori — il colore di quello che si raddoppia e si
    manda — quindi la frase che lo dice porta l'oro, non la terracotta. */
@@ -5370,7 +5386,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.76.0 · el 2x1 del schop tiene su card · el reloj de la carta es el del local · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
+<span id="ver" hidden>menu2 · v2.77.0 · las dos cards del 2x1 con su foto · el 2x1 del schop tiene su card · el reloj de la carta es el del local · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -9520,6 +9536,24 @@ function v2DestacadosHTML(){
     const pr = PROD_TO_PROMO[p.id];
     return pr && (pr.tipo === '2x1' || pr.tipo === 'multiplo');
   });
+  /* 📷 v2.77.0 · LA FOTO DELLA PROMO
+     Alberto ha portato due foto fatte apposta (cantiere menu · «quelle
+     compresse») e la scelta è giusta prima ancora che bella: sono **due
+     brindisi**, cioè esattamente quello che un 2x1 vende. La foto di un
+     bicchiere solo racconta il prodotto; due bicchieri che si toccano
+     raccontano l'offerta — e la raccontano senza leggere.
+     ⚠️ Oggi la mappa è qui perché il foglio PROMOS non ha una colonna
+     per la foto. La strada giusta, quando serviranno più promo con
+     faccia propria, è una colonna `Foto_URL` in PROMOS: il locale la
+     cambia da sé senza aspettare un deploy. Finché sono due, una riga
+     qui costa meno di una colonna nuova da spiegare a chi la compila.
+     Se un id non è in mappa non succede niente: torna la foto del primo
+     prodotto (card propria) o il disegno (porta). */
+  const PROMO_FOTO = {
+    'PROMO-SCHOP 2x1'   : 'brand/promo/schop_2x1.webp',
+    'PROMO-COCKTAIL-2X' : 'brand/promo/cocktails_2x1.webp',
+  };
+  const _fotoPromo = (pr) => (pr && PROMO_FOTO[pr.id]) || '';
   const _vestido = document.documentElement.classList.contains('vestido2');
   /* 🍺 v2.76.0 · LA PROMO CHE SI PUÒ MOSTRARE HA UNA CARD SUA
      Alberto, 03-ago: *«schop una sua card, ovviamente»*. E ha ragione anche
@@ -9582,8 +9616,14 @@ function v2DestacadosHTML(){
          prende l'unico colibrì che non è di nessuno. */
       const _t = getLang('promo_2x1_titulo') || '2x1';
       const _s = (getLang('promo_2x1_sub') || 'Ver los') + ' ' + d.n;
-      return `<button class="v2-dst v2-dst-2x1" onclick="setGroup('__PROMOS__')" aria-label="${_t}">
-        <div class="ph"><span class="v2-2x1-glow"></span><span class="v2-2x1-bird"></span></div>
+      /* v2.77.0 · la porta ha la sua foto: tre cocktail che brindano.
+         🔴 E con una foto vera il colibrì **scende a firma**: la regola del
+         vestito dice uno per card, o soggetto o firma — e quando c'è una
+         fotografia il soggetto è lei. Il colibrì grande al centro era
+         giusto finché la card non aveva niente da mostrare. */
+      const _fotoPorta = PROMO_FOTO['PROMO-COCKTAIL-2X'];
+      return `<button class="v2-dst v2-dst-2x1 v2-dst-2x1-foto" onclick="setGroup('__PROMOS__')" aria-label="${_t}">
+        <div class="ph"><img src="${_fotoPorta}" alt="" loading="lazy"><span class="v2-2x1-velo"></span>${_firma(_i)}</div>
         <div class="inf"><div class="eyebrow">${getLang('group_promos') || 'Promos'}</div>
         <div class="nom">${_t}</div><div class="precio">${_s} →</div></div></button>`;
     }
@@ -9594,8 +9634,10 @@ function v2DestacadosHTML(){
          è l'unica dove il colibrì fa da protagonista). */
       const pr0 = d.prods[0];
       const _cat = ALL_CATEGORIES.find(c=>c.id===pr0.categoria)?.emoji || '🍺';
-      const _ph = pr0.imagen
-        ? `<img src="${pr0.imagen}" alt="" loading="lazy" onerror="this.parentElement.textContent='${_cat}'">`
+      // v2.77.0 · prima la foto della PROMO (il brindisi), poi quella del prodotto
+      const _img = _fotoPromo(d.promo) || pr0.imagen;
+      const _ph = _img
+        ? `<img src="${_img}" alt="" loading="lazy" onerror="this.parentElement.textContent='${_cat}'">`
         : _cat;
       /* l'eyebrow dice l'ORA quando il foglio la dichiara — è la regola del
          vestito, e su un happy hour l'ora è metà dell'offerta. Se il dato
@@ -9909,6 +9951,17 @@ function v2AbrirDest(key, tipo){
   sh.style.minHeight = '0';
   sh.classList.add('up');
   document.body.classList.add('v2-sheet-open');   // oss.7 · le strip si fanno da parte
+  /* 🩹 v2.77.0 · il «rettangolo grigio» c'era anche QUI.
+     La cura del v2.74.x l'avevo messa solo sulla ficha del prodotto,
+     perché quello è il caso che Alberto aveva in mano. Ma lo sheet dei
+     destacados sale allo stesso modo e mostrava la stessa striscia:
+     chip della mesa, logo e lema sopra la foto, spenti dal velo.
+     📌 La lezione è più grande della toppa: quando si cura un difetto
+     su UNA porta, si guarda **chi altro passa da quella soglia** — è lo
+     stesso errore della porta del mesero (03-ago), tolta perché «la
+     causa è curata» e che lasciò BKS fuori a locale aperto. */
+  (function(){ const h=document.getElementById('header');
+    if(h){ h.style.opacity='0'; h.style.pointerEvents='none'; } })();
 }
 
 /* round5 oss.6 · chiudi TUTTO ciò che copre (modal prodotto, carro, sheets v2):
@@ -13132,6 +13185,12 @@ function v2CerrarSheets(){
   const dj = document.getElementById('v2ShDj');
   if(dj) dj.classList.remove('up');
   document.body.classList.remove('v2-sheet-open');
+  (function(){ const h=document.getElementById('header');
+    /* torna solo se non c'è la ficha aperta sotto: chiudere uno sheet
+       non deve riaccendere l'header mentre un altro è ancora su. */
+    const ds=document.getElementById('detailSheet');
+    if(h && !(ds && ds.classList.contains('open'))){
+      h.style.opacity=''; h.style.pointerEvents=''; } })();   // v2.77.0
 }
 
 /* ── v2.9 · «¿Te cambiaste de mesa?» — el cliente que se movió de mesa deja de
