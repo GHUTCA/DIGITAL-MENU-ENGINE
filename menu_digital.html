@@ -5220,6 +5220,16 @@ body.theme-dark[data-fascia-menu="dia"] #v2ShDest .meta{color:#b8860b}
 .v2c-tot span:last-child{margin-left:auto;color:var(--v2-oro)}
 body.theme-dark[data-fascia-menu="dia"] .v2c-tot span:last-child{color:#b8860b}
 
+/* 🍺 v2.76.0 · la card della promo con faccia propria. Il 2x1 è ORO
+   nella carta dei colori — il colore di quello che si raddoppia e si
+   manda — quindi la frase che lo dice porta l'oro, non la terracotta. */
+html.vestido2 .v2-dst-promo1 .precio{ color:var(--v2-oro); font-weight:800; font-size:14px }
+html.vestido2 .v2-dst-promo1 .eyebrow{ color:#FFB04A }
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-dst-promo1 .precio,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-dst-promo1 .precio{ color:#B8860B }
+html.vestido2 body.theme-dark[data-fascia-menu="dia"] .v2-dst-promo1 .eyebrow,
+html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-dst-promo1 .eyebrow{ color:#8C3B10 }
+
 /* 🩹 v2.74.0 · LO SPAZIO FRA I CHIP E «DESTACADOS»
    Alberto: «c'è anche spazio fra la parola destacados e le pill delle
    categorie». C'era, e non era una scelta di respiro: 📏 misurati **32px
@@ -5360,7 +5370,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.75.0 · el reloj de la carta es el del local · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
+<span id="ver" hidden>menu2 · v2.76.0 · el 2x1 del schop tiene su card · el reloj de la carta es el del local · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -6030,7 +6040,7 @@ const TRANSLATIONS = {
     cat_alimentos:'Alimentos',cat_cafe:'Café',cat_jugos:'Jugos',cat_helados:'Helados',cat_especiales:'Especiales',cat_bebidas:'Bebidas',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Postres',cat_ensaladas:'Ensaladas',cat_desayunos:'Desayunos',
     // v1.18 · S9 · PATCH E · categorie BKS + macro-groups (8 lingue)
     cat_entradas:'Entradas',cat_pastas:'Pastas',cat_fondos:'Fondos',cat_pizzasburger:'Pizzas/Burgers',cat_sushi:'Sushi',cat_acompanamientos:'Acompañamientos',cat_nino:'Niño',cat_almuerzo:'Almuerzo',cat_bar:'Bar',cat_sour:'Sour',cat_mojitos:'Mojitos',cat_spritz:'Spritz',cat_cervezas:'Cervezas',cat_vinos:'Vinos',cat_jarras:'Jarras',cat_destilados:'Destilados',
-    group_comida:'Comida',group_barra:'Barra',group_dolci:'Postres',group_promos:'Promos',promo_2x1_titulo:'2x1',promo_2x1_sub:'Ver los',regalo_cta:'Enviar a otra mesa',reg_desc:'Mándalo a otra mesa — el mesero se lo lleva y pregunta si lo aceptan.',reg_cuenta:'Va a tu cuenta',reg_nocobra:'Si no lo aceptan, no se cobra.',reg_amesa:'¿A qué mesa?',reg_ph_mesa:'n° de mesa',reg_msg:'Un mensaje (opcional)',reg_ph_nota:'ej: ¡feliz final! 🏆',reg_anon:'Anónimo',reg_demesa:'De la mesa {n}',reg_volver:'Volver',reg_enviar:'¡Enviar!',reg_enviando:'Enviando…',reg_err_mesa:'Pon el número de la mesa (está en su QR)',reg_err_tumesa:'Esa es tu mesa 😄 — elige otra',reg_err_falla:'No se pudo enviar — intenta de nuevo',reg_ok_tit:'¡Enviado a la mesa {n}!',reg_ok_desc:'El mesero de esa mesa se lo lleva y pregunta.',reg_ok_cuenta:'Va a tu cuenta:',reg_ok_nocobra:'si no lo aceptan, no se cobra.',reg_ok_firma:'Firmado: de la mesa {n}',reg_listo:'Listo',barra_ver:'Ver tu pedido',barra_estado:'🛎 Tu pedido — mira cómo va',barra_noche:'🧾 Lo pedido esta noche',det_listo:'Listo ✓ · {n} en tu pedido',det_quitado:'Quitado del pedido ✓',det_agregar:'Agregar {n}',det_tus_bebidas:'tus {n} bebidas ({m}/{n})',det_tu_bebida:'tu bebida',det_alcohol:'con o sin alcohol',det_como:'cómo lo quieres',det_termino:'el término',menu_hasta:'Hasta las',regalo_sub:'Llega con tu nombre',lema_sub_comida:'comida',lema_sub_cafe:'café',lema_sub_noche:'la noche',
+    group_comida:'Comida',group_barra:'Barra',group_dolci:'Postres',group_promos:'Promos',promo_2x1_titulo:'2x1',promo_2x1_sub:'Ver los',promo_2x1_frase:'pagas 1, llevas 2',promo_2x1_mismo:'del mismo tipo',regalo_cta:'Enviar a otra mesa',reg_desc:'Mándalo a otra mesa — el mesero se lo lleva y pregunta si lo aceptan.',reg_cuenta:'Va a tu cuenta',reg_nocobra:'Si no lo aceptan, no se cobra.',reg_amesa:'¿A qué mesa?',reg_ph_mesa:'n° de mesa',reg_msg:'Un mensaje (opcional)',reg_ph_nota:'ej: ¡feliz final! 🏆',reg_anon:'Anónimo',reg_demesa:'De la mesa {n}',reg_volver:'Volver',reg_enviar:'¡Enviar!',reg_enviando:'Enviando…',reg_err_mesa:'Pon el número de la mesa (está en su QR)',reg_err_tumesa:'Esa es tu mesa 😄 — elige otra',reg_err_falla:'No se pudo enviar — intenta de nuevo',reg_ok_tit:'¡Enviado a la mesa {n}!',reg_ok_desc:'El mesero de esa mesa se lo lleva y pregunta.',reg_ok_cuenta:'Va a tu cuenta:',reg_ok_nocobra:'si no lo aceptan, no se cobra.',reg_ok_firma:'Firmado: de la mesa {n}',reg_listo:'Listo',barra_ver:'Ver tu pedido',barra_estado:'🛎 Tu pedido — mira cómo va',barra_noche:'🧾 Lo pedido esta noche',det_listo:'Listo ✓ · {n} en tu pedido',det_quitado:'Quitado del pedido ✓',det_agregar:'Agregar {n}',det_tus_bebidas:'tus {n} bebidas ({m}/{n})',det_tu_bebida:'tu bebida',det_alcohol:'con o sin alcohol',det_como:'cómo lo quieres',det_termino:'el término',menu_hasta:'Hasta las',regalo_sub:'Llega con tu nombre',lema_sub_comida:'comida',lema_sub_cafe:'café',lema_sub_noche:'la noche',
     confirm_call:'Sí, llamar', confirm_cancel:'Cancelar',
     call_generic_title:'¿Llamar mesero?',
     call_generic_subtitle:'El mesero llegará a tu mesa en breve',
@@ -6155,7 +6165,7 @@ const TRANSLATIONS = {
     hi_member:'Hi',tokens:'tokens', flag:'🇬🇧',
     cat_alimentos:'Food',cat_cafe:'Coffee',cat_jugos:'Juices',cat_helados:'Ice Cream',cat_especiales:'Specials',cat_bebidas:'Drinks',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Desserts',cat_ensaladas:'Salads',cat_desayunos:'Breakfast',
     cat_entradas:'To start',cat_pastas:'Pasta',cat_fondos:'Plates',cat_pizzasburger:'Pizzas/Burgers',cat_sushi:'Sushi',cat_acompanamientos:'Sides',cat_nino:'For kids',cat_almuerzo:'Lunch',cat_bar:'Cocktails',cat_sour:'Sours',cat_mojitos:'Mojitos',cat_spritz:'Spritz',cat_cervezas:'Beers',cat_vinos:'Wines',cat_jarras:'Pitchers',cat_destilados:'Bold pours',
-    group_comida:'Food',group_barra:'Bar',group_dolci:'Desserts',group_promos:'Deals',promo_2x1_titulo:'2 for 1',promo_2x1_sub:'See the',regalo_cta:'Send to another table',reg_desc:'Send it to another table — the waiter takes it over and asks if they accept.',reg_cuenta:'It goes on your tab',reg_nocobra:'If they decline, you are not charged.',reg_amesa:'Which table?',reg_ph_mesa:'table no.',reg_msg:'A message (optional)',reg_ph_nota:'e.g. happy ending! 🏆',reg_anon:'Anonymous',reg_demesa:'From table {n}',reg_volver:'Back',reg_enviar:'Send!',reg_enviando:'Sending…',reg_err_mesa:'Enter the table number (it is on their QR)',reg_err_tumesa:'That is your table 😄 — pick another',reg_err_falla:'Could not send — try again',reg_ok_tit:'Sent to table {n}!',reg_ok_desc:'The waiter of that table takes it over and asks.',reg_ok_cuenta:'It goes on your tab:',reg_ok_nocobra:'if they decline, you are not charged.',reg_ok_firma:'Signed: from table {n}',reg_listo:'Done',barra_ver:'See your order',barra_estado:'🛎 Your order — see how it is going',barra_noche:'🧾 Ordered tonight',det_listo:'Done ✓ · {n} in your order',det_quitado:'Removed from your order ✓',det_agregar:'Add {n}',det_tus_bebidas:'your {n} drinks ({m}/{n})',det_tu_bebida:'your drink',det_alcohol:'with or without alcohol',det_como:'how you want it',det_termino:'the doneness',menu_hasta:'Until',regalo_sub:'It arrives with your name',lema_sub_comida:'food',lema_sub_cafe:'coffee',lema_sub_noche:'the night',
+    group_comida:'Food',group_barra:'Bar',group_dolci:'Desserts',group_promos:'Deals',promo_2x1_titulo:'2 for 1',promo_2x1_sub:'See the',promo_2x1_frase:'pay 1, take 2',promo_2x1_mismo:'same kind',regalo_cta:'Send to another table',reg_desc:'Send it to another table — the waiter takes it over and asks if they accept.',reg_cuenta:'It goes on your tab',reg_nocobra:'If they decline, you are not charged.',reg_amesa:'Which table?',reg_ph_mesa:'table no.',reg_msg:'A message (optional)',reg_ph_nota:'e.g. happy ending! 🏆',reg_anon:'Anonymous',reg_demesa:'From table {n}',reg_volver:'Back',reg_enviar:'Send!',reg_enviando:'Sending…',reg_err_mesa:'Enter the table number (it is on their QR)',reg_err_tumesa:'That is your table 😄 — pick another',reg_err_falla:'Could not send — try again',reg_ok_tit:'Sent to table {n}!',reg_ok_desc:'The waiter of that table takes it over and asks.',reg_ok_cuenta:'It goes on your tab:',reg_ok_nocobra:'if they decline, you are not charged.',reg_ok_firma:'Signed: from table {n}',reg_listo:'Done',barra_ver:'See your order',barra_estado:'🛎 Your order — see how it is going',barra_noche:'🧾 Ordered tonight',det_listo:'Done ✓ · {n} in your order',det_quitado:'Removed from your order ✓',det_agregar:'Add {n}',det_tus_bebidas:'your {n} drinks ({m}/{n})',det_tu_bebida:'your drink',det_alcohol:'with or without alcohol',det_como:'how you want it',det_termino:'the doneness',menu_hasta:'Until',regalo_sub:'It arrives with your name',lema_sub_comida:'food',lema_sub_cafe:'coffee',lema_sub_noche:'the night',
     confirm_call:'Yes, call', confirm_cancel:'Cancel',
     call_generic_title:'Call the waiter?',
     call_generic_subtitle:'The waiter will be at your table shortly',
@@ -6245,7 +6255,7 @@ const TRANSLATIONS = {
     hi_member:'Olá',tokens:'tokens', flag:'🇧🇷',
     cat_alimentos:'Alimentos',cat_cafe:'Café',cat_jugos:'Sucos',cat_helados:'Sorvetes',cat_especiales:'Especiais',cat_bebidas:'Bebidas',cat_bowls:'Bowls',cat_snacks:'Lanches',cat_postres:'Sobremesas',cat_ensaladas:'Saladas',cat_desayunos:'Café da manhã',
     cat_entradas:'Para começar',cat_pastas:'Massas',cat_fondos:'Pratos',cat_pizzasburger:'Pizzas/Burgers',cat_sushi:'Sushi',cat_acompanamientos:'Acompanhamentos',cat_nino:'Para crianças',cat_almuerzo:'Almoço',cat_bar:'Coquetéis',cat_sour:'Sours',cat_mojitos:'Mojitos',cat_spritz:'Spritz',cat_cervezas:'Cervejas',cat_vinos:'Vinhos',cat_jarras:'Jarras',cat_destilados:'Destilados',
-    group_comida:'Comida',group_barra:'Bar',group_dolci:'Sobremesas',group_promos:'Promos',promo_2x1_titulo:'2x1',promo_2x1_sub:'Ver os',regalo_cta:'Enviar para outra mesa',reg_desc:'Mande para outra mesa — o garçom leva e pergunta se aceitam.',reg_cuenta:'Vai na sua conta',reg_nocobra:'Se não aceitarem, não é cobrado.',reg_amesa:'Para qual mesa?',reg_ph_mesa:'n° da mesa',reg_msg:'Uma mensagem (opcional)',reg_ph_nota:'ex: final feliz! 🏆',reg_anon:'Anônimo',reg_demesa:'Da mesa {n}',reg_volver:'Voltar',reg_enviar:'Enviar!',reg_enviando:'Enviando…',reg_err_mesa:'Digite o número da mesa (está no QR dela)',reg_err_tumesa:'Essa é a sua mesa 😄 — escolha outra',reg_err_falla:'Não deu para enviar — tente de novo',reg_ok_tit:'Enviado para a mesa {n}!',reg_ok_desc:'O garçom daquela mesa leva e pergunta.',reg_ok_cuenta:'Vai na sua conta:',reg_ok_nocobra:'se não aceitarem, não é cobrado.',reg_ok_firma:'Assinado: da mesa {n}',reg_listo:'Pronto',barra_ver:'Ver seu pedido',barra_estado:'🛎 Seu pedido — veja como vai',barra_noche:'🧾 Pedido desta noite',det_listo:'Pronto ✓ · {n} no seu pedido',det_quitado:'Removido do pedido ✓',det_agregar:'Adicionar {n}',det_tus_bebidas:'suas {n} bebidas ({m}/{n})',det_tu_bebida:'sua bebida',det_alcohol:'com ou sem álcool',det_como:'como você quer',det_termino:'o ponto',menu_hasta:'Até as',regalo_sub:'Chega com o seu nome',lema_sub_comida:'comida',lema_sub_cafe:'café',lema_sub_noche:'a noite',
+    group_comida:'Comida',group_barra:'Bar',group_dolci:'Sobremesas',group_promos:'Promos',promo_2x1_titulo:'2x1',promo_2x1_sub:'Ver os',promo_2x1_frase:'paga 1, leva 2',promo_2x1_mismo:'do mesmo tipo',regalo_cta:'Enviar para outra mesa',reg_desc:'Mande para outra mesa — o garçom leva e pergunta se aceitam.',reg_cuenta:'Vai na sua conta',reg_nocobra:'Se não aceitarem, não é cobrado.',reg_amesa:'Para qual mesa?',reg_ph_mesa:'n° da mesa',reg_msg:'Uma mensagem (opcional)',reg_ph_nota:'ex: final feliz! 🏆',reg_anon:'Anônimo',reg_demesa:'Da mesa {n}',reg_volver:'Voltar',reg_enviar:'Enviar!',reg_enviando:'Enviando…',reg_err_mesa:'Digite o número da mesa (está no QR dela)',reg_err_tumesa:'Essa é a sua mesa 😄 — escolha outra',reg_err_falla:'Não deu para enviar — tente de novo',reg_ok_tit:'Enviado para a mesa {n}!',reg_ok_desc:'O garçom daquela mesa leva e pergunta.',reg_ok_cuenta:'Vai na sua conta:',reg_ok_nocobra:'se não aceitarem, não é cobrado.',reg_ok_firma:'Assinado: da mesa {n}',reg_listo:'Pronto',barra_ver:'Ver seu pedido',barra_estado:'🛎 Seu pedido — veja como vai',barra_noche:'🧾 Pedido desta noite',det_listo:'Pronto ✓ · {n} no seu pedido',det_quitado:'Removido do pedido ✓',det_agregar:'Adicionar {n}',det_tus_bebidas:'suas {n} bebidas ({m}/{n})',det_tu_bebida:'sua bebida',det_alcohol:'com ou sem álcool',det_como:'como você quer',det_termino:'o ponto',menu_hasta:'Até as',regalo_sub:'Chega com o seu nome',lema_sub_comida:'comida',lema_sub_cafe:'café',lema_sub_noche:'a noite',
     confirm_call:'Sim, chamar', confirm_cancel:'Cancelar',
     call_generic_title:'Chamar garçom?',
     call_generic_subtitle:'O garçom chegará à sua mesa em breve',
@@ -6349,7 +6359,7 @@ const TRANSLATIONS = {
     hi_member:'Ciao',tokens:'token', flag:'🇮🇹',
     cat_alimentos:'Cucina',cat_cafe:'Caffetteria',cat_jugos:'Succhi',cat_helados:'Gelati',cat_especiales:'Speciali',cat_bebidas:'Bevande',cat_bowls:'Bowls',cat_snacks:'Snack',cat_postres:'Dolci',cat_ensaladas:'Insalate',cat_desayunos:'Colazione',
     cat_entradas:'Per iniziare',cat_pastas:'Pasta',cat_fondos:'Piatti',cat_pizzasburger:'Pizze/Burger',cat_sushi:'Sushi',cat_acompanamientos:'Contorni',cat_nino:'Per bambini',cat_almuerzo:'Pranzo',cat_bar:'Cocktail',cat_sour:'Sour',cat_mojitos:'Mojito',cat_spritz:'Spritz',cat_cervezas:'Birre',cat_vinos:'Vini',cat_jarras:'Caraffe',cat_destilados:'Distillati',
-    group_comida:'Cibo',group_barra:'Bar',group_dolci:'Dolci',group_promos:'Offerte',promo_2x1_titulo:'2x1',promo_2x1_sub:'Vedi i',regalo_cta:'Manda a un altro tavolo',reg_desc:'Mandalo a un altro tavolo — il cameriere lo porta e chiede se lo accettano.',reg_cuenta:'Va sul tuo conto',reg_nocobra:'Se non lo accettano, non si paga.',reg_amesa:'A quale tavolo?',reg_ph_mesa:'n° tavolo',reg_msg:'Un messaggio (facoltativo)',reg_ph_nota:'es: lieto fine! 🏆',reg_anon:'Anonimo',reg_demesa:'Dal tavolo {n}',reg_volver:'Indietro',reg_enviar:'Manda!',reg_enviando:'Invio…',reg_err_mesa:'Scrivi il numero del tavolo (è sul loro QR)',reg_err_tumesa:'Questo è il tuo tavolo 😄 — scegline un altro',reg_err_falla:'Non è partito — riprova',reg_ok_tit:'Mandato al tavolo {n}!',reg_ok_desc:'Il cameriere di quel tavolo lo porta e chiede.',reg_ok_cuenta:'Va sul tuo conto:',reg_ok_nocobra:'se non lo accettano, non si paga.',reg_ok_firma:'Firmato: dal tavolo {n}',reg_listo:'Fatto',barra_ver:'Vedi il tuo ordine',barra_estado:'🛎 Il tuo ordine — a che punto è',barra_noche:'🧾 Ordinato stasera',det_listo:'Fatto ✓ · {n} nel tuo ordine',det_quitado:'Tolto dall\'ordine ✓',det_agregar:'Aggiungi {n}',det_tus_bebidas:'le tue {n} bibite ({m}/{n})',det_tu_bebida:'la tua bibita',det_alcohol:'con o senza alcol',det_como:'come lo vuoi',det_termino:'la cottura',menu_hasta:'Fino alle',regalo_sub:'Arriva col tuo nome',lema_sub_comida:'cibo',lema_sub_cafe:'caffè',lema_sub_noche:'la notte',
+    group_comida:'Cibo',group_barra:'Bar',group_dolci:'Dolci',group_promos:'Offerte',promo_2x1_titulo:'2x1',promo_2x1_sub:'Vedi i',promo_2x1_frase:'paghi 1, ne prendi 2',promo_2x1_mismo:'dello stesso tipo',regalo_cta:'Manda a un altro tavolo',reg_desc:'Mandalo a un altro tavolo — il cameriere lo porta e chiede se lo accettano.',reg_cuenta:'Va sul tuo conto',reg_nocobra:'Se non lo accettano, non si paga.',reg_amesa:'A quale tavolo?',reg_ph_mesa:'n° tavolo',reg_msg:'Un messaggio (facoltativo)',reg_ph_nota:'es: lieto fine! 🏆',reg_anon:'Anonimo',reg_demesa:'Dal tavolo {n}',reg_volver:'Indietro',reg_enviar:'Manda!',reg_enviando:'Invio…',reg_err_mesa:'Scrivi il numero del tavolo (è sul loro QR)',reg_err_tumesa:'Questo è il tuo tavolo 😄 — scegline un altro',reg_err_falla:'Non è partito — riprova',reg_ok_tit:'Mandato al tavolo {n}!',reg_ok_desc:'Il cameriere di quel tavolo lo porta e chiede.',reg_ok_cuenta:'Va sul tuo conto:',reg_ok_nocobra:'se non lo accettano, non si paga.',reg_ok_firma:'Firmato: dal tavolo {n}',reg_listo:'Fatto',barra_ver:'Vedi il tuo ordine',barra_estado:'🛎 Il tuo ordine — a che punto è',barra_noche:'🧾 Ordinato stasera',det_listo:'Fatto ✓ · {n} nel tuo ordine',det_quitado:'Tolto dall\'ordine ✓',det_agregar:'Aggiungi {n}',det_tus_bebidas:'le tue {n} bibite ({m}/{n})',det_tu_bebida:'la tua bibita',det_alcohol:'con o senza alcol',det_como:'come lo vuoi',det_termino:'la cottura',menu_hasta:'Fino alle',regalo_sub:'Arriva col tuo nome',lema_sub_comida:'cibo',lema_sub_cafe:'caffè',lema_sub_noche:'la notte',
     confirm_call:'Sì, chiama', confirm_cancel:'Annulla',
     call_generic_title:'Chiamare il cameriere?',
     call_generic_subtitle:'Il cameriere arriverà al tavolo a breve',
@@ -6439,7 +6449,7 @@ const TRANSLATIONS = {
     hi_member:'Hallo',tokens:'Token', flag:'🇩🇪',
     cat_alimentos:'Speisen',cat_cafe:'Kaffee',cat_jugos:'Säfte',cat_helados:'Eis',cat_especiales:'Specials',cat_bebidas:'Getränke',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Desserts',cat_ensaladas:'Salate',cat_desayunos:'Frühstück',
     cat_entradas:'Zum Start',cat_pastas:'Pasta',cat_fondos:'Hauptspeisen',cat_pizzasburger:'Pizza/Burger',cat_sushi:'Sushi',cat_acompanamientos:'Beilagen',cat_nino:'Für Kinder',cat_almuerzo:'Mittag',cat_bar:'Cocktails',cat_sour:'Sours',cat_mojitos:'Mojitos',cat_spritz:'Spritz',cat_cervezas:'Biere',cat_vinos:'Weine',cat_jarras:'Krüge',cat_destilados:'Spirituosen',
-    group_comida:'Speisen',group_barra:'Bar',group_dolci:'Desserts',group_promos:'Aktionen',promo_2x1_titulo:'2 für 1',promo_2x1_sub:'Alle',regalo_cta:'An einen anderen Tisch',reg_desc:'Schick es an einen anderen Tisch — der Kellner bringt es und fragt, ob sie es annehmen.',reg_cuenta:'Geht auf deine Rechnung',reg_nocobra:'Wenn sie ablehnen, wird nichts berechnet.',reg_amesa:'An welchen Tisch?',reg_ph_mesa:'Tisch-Nr.',reg_msg:'Eine Nachricht (optional)',reg_ph_nota:'z.B. Happy End! 🏆',reg_anon:'Anonym',reg_demesa:'Von Tisch {n}',reg_volver:'Zurück',reg_enviar:'Senden!',reg_enviando:'Wird gesendet…',reg_err_mesa:'Gib die Tischnummer ein (steht auf ihrem QR)',reg_err_tumesa:'Das ist dein Tisch 😄 — wähl einen anderen',reg_err_falla:'Konnte nicht gesendet werden — versuch es nochmal',reg_ok_tit:'An Tisch {n} geschickt!',reg_ok_desc:'Der Kellner dieses Tisches bringt es und fragt.',reg_ok_cuenta:'Geht auf deine Rechnung:',reg_ok_nocobra:'wenn sie ablehnen, wird nichts berechnet.',reg_ok_firma:'Signiert: von Tisch {n}',reg_listo:'Fertig',barra_ver:'Deine Bestellung ansehen',barra_estado:'🛎 Deine Bestellung — schau, wie es läuft',barra_noche:'🧾 Heute Abend bestellt',det_listo:'Fertig ✓ · {n} in deiner Bestellung',det_quitado:'Aus der Bestellung entfernt ✓',det_agregar:'{n} hinzufügen',det_tus_bebidas:'deine {n} Getränke ({m}/{n})',det_tu_bebida:'dein Getränk',det_alcohol:'mit oder ohne Alkohol',det_como:'wie du es möchtest',det_termino:'den Gargrad',menu_hasta:'Bis',regalo_sub:'Kommt mit deinem Namen an',lema_sub_comida:'Speisen',lema_sub_cafe:'Kaffee',lema_sub_noche:'die Nacht',
+    group_comida:'Speisen',group_barra:'Bar',group_dolci:'Desserts',group_promos:'Aktionen',promo_2x1_titulo:'2 für 1',promo_2x1_sub:'Alle',promo_2x1_frase:'1 zahlen, 2 bekommen',promo_2x1_mismo:'gleiche Sorte',regalo_cta:'An einen anderen Tisch',reg_desc:'Schick es an einen anderen Tisch — der Kellner bringt es und fragt, ob sie es annehmen.',reg_cuenta:'Geht auf deine Rechnung',reg_nocobra:'Wenn sie ablehnen, wird nichts berechnet.',reg_amesa:'An welchen Tisch?',reg_ph_mesa:'Tisch-Nr.',reg_msg:'Eine Nachricht (optional)',reg_ph_nota:'z.B. Happy End! 🏆',reg_anon:'Anonym',reg_demesa:'Von Tisch {n}',reg_volver:'Zurück',reg_enviar:'Senden!',reg_enviando:'Wird gesendet…',reg_err_mesa:'Gib die Tischnummer ein (steht auf ihrem QR)',reg_err_tumesa:'Das ist dein Tisch 😄 — wähl einen anderen',reg_err_falla:'Konnte nicht gesendet werden — versuch es nochmal',reg_ok_tit:'An Tisch {n} geschickt!',reg_ok_desc:'Der Kellner dieses Tisches bringt es und fragt.',reg_ok_cuenta:'Geht auf deine Rechnung:',reg_ok_nocobra:'wenn sie ablehnen, wird nichts berechnet.',reg_ok_firma:'Signiert: von Tisch {n}',reg_listo:'Fertig',barra_ver:'Deine Bestellung ansehen',barra_estado:'🛎 Deine Bestellung — schau, wie es läuft',barra_noche:'🧾 Heute Abend bestellt',det_listo:'Fertig ✓ · {n} in deiner Bestellung',det_quitado:'Aus der Bestellung entfernt ✓',det_agregar:'{n} hinzufügen',det_tus_bebidas:'deine {n} Getränke ({m}/{n})',det_tu_bebida:'dein Getränk',det_alcohol:'mit oder ohne Alkohol',det_como:'wie du es möchtest',det_termino:'den Gargrad',menu_hasta:'Bis',regalo_sub:'Kommt mit deinem Namen an',lema_sub_comida:'Speisen',lema_sub_cafe:'Kaffee',lema_sub_noche:'die Nacht',
     confirm_call:'Ja, rufen', confirm_cancel:'Abbrechen',
     call_generic_title:'Kellner rufen?',
     call_generic_subtitle:'Der Kellner kommt gleich an deinen Tisch',
@@ -6526,7 +6536,7 @@ const TRANSLATIONS = {
     hi_member:'Bonjour',tokens:'tokens', flag:'🇫🇷',
     cat_alimentos:'Cuisine',cat_cafe:'Café',cat_jugos:'Jus',cat_helados:'Glaces',cat_especiales:'Spéciaux',cat_bebidas:'Boissons',cat_bowls:'Bowls',cat_snacks:'Snacks',cat_postres:'Desserts',cat_ensaladas:'Salades',cat_desayunos:'Petit-déj',
     cat_entradas:'Pour commencer',cat_pastas:'Pâtes',cat_fondos:'Plats',cat_pizzasburger:'Pizzas/Burgers',cat_sushi:'Sushi',cat_acompanamientos:'Accompagnements',cat_nino:'Pour enfants',cat_almuerzo:'Déjeuner',cat_bar:'Cocktails',cat_sour:'Sours',cat_mojitos:'Mojitos',cat_spritz:'Spritz',cat_cervezas:'Bières',cat_vinos:'Vins',cat_jarras:'Pichets',cat_destilados:'Spiritueux',
-    group_comida:'Cuisine',group_barra:'Bar',group_dolci:'Desserts',group_promos:'Offres',promo_2x1_titulo:'2 pour 1',promo_2x1_sub:'Voir les',regalo_cta:'Envoyer à une autre table',reg_desc:'Envoie-le à une autre table — le serveur l\'apporte et demande s\'ils l\'acceptent.',reg_cuenta:'Sur ton addition',reg_nocobra:'S\'ils refusent, ce n\'est pas facturé.',reg_amesa:'À quelle table ?',reg_ph_mesa:'n° de table',reg_msg:'Un message (facultatif)',reg_ph_nota:'ex : happy end ! 🏆',reg_anon:'Anonyme',reg_demesa:'De la table {n}',reg_volver:'Retour',reg_enviar:'Envoyer !',reg_enviando:'Envoi…',reg_err_mesa:'Mets le numéro de la table (il est sur son QR)',reg_err_tumesa:'C\'est ta table 😄 — choisis-en une autre',reg_err_falla:'Impossible d\'envoyer — réessaie',reg_ok_tit:'Envoyé à la table {n} !',reg_ok_desc:'Le serveur de cette table l\'apporte et demande.',reg_ok_cuenta:'Sur ton addition :',reg_ok_nocobra:'s\'ils refusent, ce n\'est pas facturé.',reg_ok_firma:'Signé : de la table {n}',reg_listo:'Terminé',barra_ver:'Voir ta commande',barra_estado:'🛎 Ta commande — vois où elle en est',barra_noche:'🧾 Commandé ce soir',det_listo:'Fait ✓ · {n} dans ta commande',det_quitado:'Retiré de la commande ✓',det_agregar:'Ajouter {n}',det_tus_bebidas:'tes {n} boissons ({m}/{n})',det_tu_bebida:'ta boisson',det_alcohol:'avec ou sans alcool',det_como:'comment tu le veux',det_termino:'la cuisson',menu_hasta:"Jusqu'à",regalo_sub:'Arrive avec ton nom',lema_sub_comida:'cuisine',lema_sub_cafe:'café',lema_sub_noche:'la nuit',
+    group_comida:'Cuisine',group_barra:'Bar',group_dolci:'Desserts',group_promos:'Offres',promo_2x1_titulo:'2 pour 1',promo_2x1_sub:'Voir les',promo_2x1_frase:'tu paies 1, tu en prends 2',promo_2x1_mismo:'même type',regalo_cta:'Envoyer à une autre table',reg_desc:'Envoie-le à une autre table — le serveur l\'apporte et demande s\'ils l\'acceptent.',reg_cuenta:'Sur ton addition',reg_nocobra:'S\'ils refusent, ce n\'est pas facturé.',reg_amesa:'À quelle table ?',reg_ph_mesa:'n° de table',reg_msg:'Un message (facultatif)',reg_ph_nota:'ex : happy end ! 🏆',reg_anon:'Anonyme',reg_demesa:'De la table {n}',reg_volver:'Retour',reg_enviar:'Envoyer !',reg_enviando:'Envoi…',reg_err_mesa:'Mets le numéro de la table (il est sur son QR)',reg_err_tumesa:'C\'est ta table 😄 — choisis-en une autre',reg_err_falla:'Impossible d\'envoyer — réessaie',reg_ok_tit:'Envoyé à la table {n} !',reg_ok_desc:'Le serveur de cette table l\'apporte et demande.',reg_ok_cuenta:'Sur ton addition :',reg_ok_nocobra:'s\'ils refusent, ce n\'est pas facturé.',reg_ok_firma:'Signé : de la table {n}',reg_listo:'Terminé',barra_ver:'Voir ta commande',barra_estado:'🛎 Ta commande — vois où elle en est',barra_noche:'🧾 Commandé ce soir',det_listo:'Fait ✓ · {n} dans ta commande',det_quitado:'Retiré de la commande ✓',det_agregar:'Ajouter {n}',det_tus_bebidas:'tes {n} boissons ({m}/{n})',det_tu_bebida:'ta boisson',det_alcohol:'avec ou sans alcool',det_como:'comment tu le veux',det_termino:'la cuisson',menu_hasta:"Jusqu'à",regalo_sub:'Arrive avec ton nom',lema_sub_comida:'cuisine',lema_sub_cafe:'café',lema_sub_noche:'la nuit',
     confirm_call:'Oui, appeler', confirm_cancel:'Annuler',
     call_generic_title:'Appeler un serveur ?',
     call_generic_subtitle:'Le serveur arrive à votre table',
@@ -6613,7 +6623,7 @@ const TRANSLATIONS = {
     hi_member:'你好',tokens:'积分', flag:'🇨🇳',
     cat_alimentos:'餐食',cat_cafe:'咖啡',cat_jugos:'果汁',cat_helados:'冰淇淋',cat_especiales:'特色',cat_bebidas:'饮品',cat_bowls:'碗食',cat_snacks:'小食',cat_postres:'甜点',cat_ensaladas:'沙拉',cat_desayunos:'早餐',
     cat_entradas:'前菜',cat_pastas:'意面',cat_fondos:'主菜',cat_pizzasburger:'披萨/汉堡',cat_sushi:'寿司',cat_acompanamientos:'配菜',cat_nino:'儿童菜单',cat_almuerzo:'午餐',cat_bar:'鸡尾酒',cat_sour:'酸味鸡尾酒',cat_mojitos:'莫吉托',cat_spritz:'气泡酒',cat_cervezas:'啤酒',cat_vinos:'葡萄酒',cat_jarras:'壶装',cat_destilados:'烈酒',
-    group_comida:'食物',group_barra:'酒吧',group_dolci:'甜点',group_promos:'优惠',promo_2x1_titulo:'买一送一',promo_2x1_sub:'查看',regalo_cta:'送到别桌',reg_desc:'送到别桌 — 服务员会送过去并询问对方是否接受。',reg_cuenta:'记在你的账上',reg_nocobra:'如果对方不接受，不收费。',reg_amesa:'送到哪一桌？',reg_ph_mesa:'桌号',reg_msg:'留言（可选）',reg_ph_nota:'例：祝圆满！🏆',reg_anon:'匿名',reg_demesa:'来自{n}桌',reg_volver:'返回',reg_enviar:'送出！',reg_enviando:'发送中…',reg_err_mesa:'请输入桌号（在他们的二维码上）',reg_err_tumesa:'这是你自己的桌 😄 — 请换一桌',reg_err_falla:'发送失败 — 请重试',reg_ok_tit:'已送到{n}桌！',reg_ok_desc:'那桌的服务员会送过去并询问。',reg_ok_cuenta:'记在你的账上：',reg_ok_nocobra:'如果对方不接受，不收费。',reg_ok_firma:'署名：{n}桌',reg_listo:'好的',barra_ver:'查看你的订单',barra_estado:'🛎 你的订单 — 看看进度',barra_noche:'🧾 今晚点的',det_listo:'完成 ✓ · 订单中{n}份',det_quitado:'已从订单移除 ✓',det_agregar:'加入{n}份',det_tus_bebidas:'{n}杯饮料（{m}/{n}）',det_tu_bebida:'你的饮料',det_alcohol:'含酒精或不含',det_como:'口味偏好',det_termino:'熟度',menu_hasta:'截至',regalo_sub:'会写上你的名字',lema_sub_comida:'美食',lema_sub_cafe:'咖啡',lema_sub_noche:'夜晚',
+    group_comida:'食物',group_barra:'酒吧',group_dolci:'甜点',group_promos:'优惠',promo_2x1_titulo:'买一送一',promo_2x1_sub:'查看',promo_2x1_frase:'付一份，拿两份',promo_2x1_mismo:'同一种',regalo_cta:'送到别桌',reg_desc:'送到别桌 — 服务员会送过去并询问对方是否接受。',reg_cuenta:'记在你的账上',reg_nocobra:'如果对方不接受，不收费。',reg_amesa:'送到哪一桌？',reg_ph_mesa:'桌号',reg_msg:'留言（可选）',reg_ph_nota:'例：祝圆满！🏆',reg_anon:'匿名',reg_demesa:'来自{n}桌',reg_volver:'返回',reg_enviar:'送出！',reg_enviando:'发送中…',reg_err_mesa:'请输入桌号（在他们的二维码上）',reg_err_tumesa:'这是你自己的桌 😄 — 请换一桌',reg_err_falla:'发送失败 — 请重试',reg_ok_tit:'已送到{n}桌！',reg_ok_desc:'那桌的服务员会送过去并询问。',reg_ok_cuenta:'记在你的账上：',reg_ok_nocobra:'如果对方不接受，不收费。',reg_ok_firma:'署名：{n}桌',reg_listo:'好的',barra_ver:'查看你的订单',barra_estado:'🛎 你的订单 — 看看进度',barra_noche:'🧾 今晚点的',det_listo:'完成 ✓ · 订单中{n}份',det_quitado:'已从订单移除 ✓',det_agregar:'加入{n}份',det_tus_bebidas:'{n}杯饮料（{m}/{n}）',det_tu_bebida:'你的饮料',det_alcohol:'含酒精或不含',det_como:'口味偏好',det_termino:'熟度',menu_hasta:'截至',regalo_sub:'会写上你的名字',lema_sub_comida:'美食',lema_sub_cafe:'咖啡',lema_sub_noche:'夜晚',
     confirm_call:'是，呼叫', confirm_cancel:'取消',
     call_generic_title:'呼叫服务员？',
     call_generic_subtitle:'服务员马上到您的桌子',
@@ -6700,7 +6710,7 @@ const TRANSLATIONS = {
     hi_member:'こんにちは',tokens:'ポイント', flag:'🇯🇵',
     cat_alimentos:'フード',cat_cafe:'カフェ',cat_jugos:'ジュース',cat_helados:'アイス',cat_especiales:'スペシャル',cat_bebidas:'ドリンク',cat_bowls:'ボウル',cat_snacks:'スナック',cat_postres:'デザート',cat_ensaladas:'サラダ',cat_desayunos:'朝食',
     cat_entradas:'前菜',cat_pastas:'パスタ',cat_fondos:'メイン',cat_pizzasburger:'ピザ/バーガー',cat_sushi:'寿司',cat_acompanamientos:'サイド',cat_nino:'キッズ',cat_almuerzo:'ランチ',cat_bar:'カクテル',cat_sour:'サワー',cat_mojitos:'モヒート',cat_spritz:'スプリッツ',cat_cervezas:'ビール',cat_vinos:'ワイン',cat_jarras:'ピッチャー',cat_destilados:'蒸留酒',
-    group_comida:'フード',group_barra:'バー',group_dolci:'スイーツ',group_promos:'特典',promo_2x1_titulo:'2つで1つ分',promo_2x1_sub:'全',regalo_cta:'ほかのテーブルへ',reg_desc:'ほかのテーブルへ送る — スタッフが届けて、受け取るか確認します。',reg_cuenta:'あなたのお会計に入ります',reg_nocobra:'受け取らない場合、請求はされません。',reg_amesa:'どのテーブルへ？',reg_ph_mesa:'テーブル番号',reg_msg:'メッセージ（任意）',reg_ph_nota:'例：おめでとう！🏆',reg_anon:'匿名',reg_demesa:'{n}番テーブルから',reg_volver:'戻る',reg_enviar:'送る！',reg_enviando:'送信中…',reg_err_mesa:'テーブル番号を入れてください（QRにあります）',reg_err_tumesa:'それはあなたのテーブルです 😄 — ほかを選んでください',reg_err_falla:'送信できませんでした — もう一度お試しください',reg_ok_tit:'{n}番テーブルへ送りました！',reg_ok_desc:'そのテーブルのスタッフが届けて確認します。',reg_ok_cuenta:'あなたのお会計に入ります：',reg_ok_nocobra:'受け取らない場合、請求はされません。',reg_ok_firma:'署名：{n}番テーブルから',reg_listo:'完了',barra_ver:'注文を見る',barra_estado:'🛎 注文の状況を見る',barra_noche:'🧾 今夜の注文',det_listo:'完了 ✓ · 注文に{n}点',det_quitado:'注文から削除しました ✓',det_agregar:'{n}点を追加',det_tus_bebidas:'{n}杯のドリンク（{m}/{n}）',det_tu_bebida:'ドリンク',det_alcohol:'アルコールの有無',det_como:'お好みの仕上げ',det_termino:'焼き加減',menu_hasta:'',regalo_sub:'あなたの名前で届きます',lema_sub_comida:'フード',lema_sub_cafe:'コーヒー',lema_sub_noche:'夜',
+    group_comida:'フード',group_barra:'バー',group_dolci:'スイーツ',group_promos:'特典',promo_2x1_titulo:'2つで1つ分',promo_2x1_sub:'全',promo_2x1_frase:'1つ分のお会計で2つ',promo_2x1_mismo:'同じ種類',regalo_cta:'ほかのテーブルへ',reg_desc:'ほかのテーブルへ送る — スタッフが届けて、受け取るか確認します。',reg_cuenta:'あなたのお会計に入ります',reg_nocobra:'受け取らない場合、請求はされません。',reg_amesa:'どのテーブルへ？',reg_ph_mesa:'テーブル番号',reg_msg:'メッセージ（任意）',reg_ph_nota:'例：おめでとう！🏆',reg_anon:'匿名',reg_demesa:'{n}番テーブルから',reg_volver:'戻る',reg_enviar:'送る！',reg_enviando:'送信中…',reg_err_mesa:'テーブル番号を入れてください（QRにあります）',reg_err_tumesa:'それはあなたのテーブルです 😄 — ほかを選んでください',reg_err_falla:'送信できませんでした — もう一度お試しください',reg_ok_tit:'{n}番テーブルへ送りました！',reg_ok_desc:'そのテーブルのスタッフが届けて確認します。',reg_ok_cuenta:'あなたのお会計に入ります：',reg_ok_nocobra:'受け取らない場合、請求はされません。',reg_ok_firma:'署名：{n}番テーブルから',reg_listo:'完了',barra_ver:'注文を見る',barra_estado:'🛎 注文の状況を見る',barra_noche:'🧾 今夜の注文',det_listo:'完了 ✓ · 注文に{n}点',det_quitado:'注文から削除しました ✓',det_agregar:'{n}点を追加',det_tus_bebidas:'{n}杯のドリンク（{m}/{n}）',det_tu_bebida:'ドリンク',det_alcohol:'アルコールの有無',det_como:'お好みの仕上げ',det_termino:'焼き加減',menu_hasta:'',regalo_sub:'あなたの名前で届きます',lema_sub_comida:'フード',lema_sub_cafe:'コーヒー',lema_sub_noche:'夜',
     confirm_call:'はい、呼ぶ', confirm_cancel:'キャンセル',
     call_generic_title:'店員を呼ぶ?',
     call_generic_subtitle:'店員がすぐに到着します',
@@ -9511,9 +9521,43 @@ function v2DestacadosHTML(){
     return pr && (pr.tipo === '2x1' || pr.tipo === 'multiplo');
   });
   const _vestido = document.documentElement.classList.contains('vestido2');
-  if(_vestido && dosPorUno.length >= 2){
-    dosPorUno.forEach(p=>promoSeen.add(p.id));      // fuori dal carosello: vivono nella loro porta
-    dst.push({ tipo:'dos_por_uno', n: dosPorUno.length });
+  /* 🍺 v2.76.0 · LA PROMO CHE SI PUÒ MOSTRARE HA UNA CARD SUA
+     Alberto, 03-ago: *«schop una sua card, ovviamente»*. E ha ragione anche
+     sul perché: il 2x1 dello schop era acceso nel foglio ma viveva solo
+     dentro la scheda del prodotto — cioè lo vedeva soltanto chi era già
+     andato a cercarlo. Una promo che si scopre solo se la cerchi non è una
+     promo: è uno sconto per gli insistenti.
+     ⚠️ Ma non inchiodo la parola «schop» nel codice: domani accendono il
+     Tropical Gin e la regola deve valere da sola. La regola è questa:
+       · promo con **1 o 2 prodotti** → card sua, con la sua foto
+       · promo con **3 o più**     → dentro la porta 2x1, come prima
+     Il taglio non è arbitrario, viene da cosa la card può DIRE senza
+     mentire: con due birre la foto è una di quelle due e il nome è vero;
+     con quindici cocktail una foto sola sarebbe un'altra bugia — ed è
+     esattamente per questo che la porta 2x1 esiste (v2.54.0).
+     Il resto della porta non cambia: se dopo aver tolto le promo con card
+     propria restano almeno due prodotti, la porta resta in piedi; se ne
+     resta uno solo, quello scende come card promo normale (sotto), che è
+     già quello che sa fare. */
+  if(_vestido && dosPorUno.length){
+    const porPromo = new Map();
+    dosPorUno.forEach(pp=>{
+      const pr = PROD_TO_PROMO[pp.id];
+      const k = pr.id || pr.nombre || 'promo';
+      if(!porPromo.has(k)) porPromo.set(k, { promo: pr, prods: [] });
+      porPromo.get(k).prods.push(pp);
+    });
+    const enPuerta = [];
+    porPromo.forEach(g => {
+      if(g.prods.length <= 2){
+        g.prods.forEach(pp=>promoSeen.add(pp.id));   // vivono nella loro card
+        dst.push({ tipo:'promo_propia', promo: g.promo, prods: g.prods });
+      } else enPuerta.push(...g.prods);
+    });
+    if(enPuerta.length >= 2){
+      enPuerta.forEach(pp=>promoSeen.add(pp.id));    // fuori dal carosello: vivono nella loro porta
+      dst.push({ tipo:'dos_por_uno', n: enPuerta.length });
+    }
   }
   ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && PROD_TO_PROMO[p.id] && !esPush(p))
     .forEach(p=>{ if(!promoSeen.has(p.id)){ promoSeen.add(p.id); dst.push({ tipo:'promo', p }); } });
@@ -9542,6 +9586,30 @@ function v2DestacadosHTML(){
         <div class="ph"><span class="v2-2x1-glow"></span><span class="v2-2x1-bird"></span></div>
         <div class="inf"><div class="eyebrow">${getLang('group_promos') || 'Promos'}</div>
         <div class="nom">${_t}</div><div class="precio">${_s} →</div></div></button>`;
+    }
+    if(d.tipo === 'promo_propia'){
+      /* 🍺 la card della promo con nome e faccia. Il colibrì qui è la
+         FIRMA e non il soggetto: il soggetto è il prodotto, come su ogni
+         card che ha una foto vera (la porta 2x1, che di foto non ne ha,
+         è l'unica dove il colibrì fa da protagonista). */
+      const pr0 = d.prods[0];
+      const _cat = ALL_CATEGORIES.find(c=>c.id===pr0.categoria)?.emoji || '🍺';
+      const _ph = pr0.imagen
+        ? `<img src="${pr0.imagen}" alt="" loading="lazy" onerror="this.parentElement.textContent='${_cat}'">`
+        : _cat;
+      /* l'eyebrow dice l'ORA quando il foglio la dichiara — è la regola del
+         vestito, e su un happy hour l'ora è metà dell'offerta. Se il dato
+         non c'è, non lo invento: torna il nome della promo. */
+      const _fin = d.promo.hora_fin_txt || d.promo.hora_fin || '';
+      const _eyebrow = _fin ? (getLang('menu_hasta') || 'Hasta las') + ' ' + _fin
+                            : (getLang('group_promos') || 'Promos');
+      const _nom = d.promo.nombre || (getLang('promo_2x1_titulo') || '2x1');
+      return `<button class="v2-dst v2-dst-promo1" onclick="v2AbrirDest('pr:${escapeHtml(String(d.promo.id||'')).replace(/'/g,'&#39;')}')">
+        <span class="flag v2-flag-2x1">🎁 ${getLang('promo_2x1_titulo') || '2x1'}</span>
+        <div class="ph">${_ph}${document.documentElement.classList.contains('vestido2') ? _firma(_i) : ''}</div>
+        <div class="inf"><div class="eyebrow">${_eyebrow}</div>
+        <div class="nom">${escapeHtml(_nom)}</div>
+        <div class="precio">${getLang('promo_2x1_frase') || 'pagas 1, llevas 2'}</div></div></button>`;
     }
     if(d.tipo === 'evento'){
       const e = d.e;
@@ -9789,6 +9857,32 @@ function v2AbrirDest(key, tipo){
         </div>
         <span id="v2ctrlx-${p.id}">${v2CtrlHTML(p)}</span>
       </div>`).join('') + `</div>`;
+  } else if(key.slice(0,3) === 'pr:'){
+    /* 🍺 v2.76.0 · la scheda della promo: la lista dei suoi prodotti,
+       ognuno col suo ＋. Stesso corpo del Menú del Día — non è pigrizia:
+       è lo stesso gesto (scegli fra pochi e aggiungi), e due gesti uguali
+       devono avere la stessa faccia. */
+    const _pid = key.slice(3);
+    const _promo = (PROMOS_ACTIVAS || []).find(x => (x.id || '') === _pid);
+    if(!_promo) return;
+    const _prods = (_promo.prod_ids || [])
+      .map(id => ALL_PRODUCTS.find(x => x.id === id))
+      .filter(x => x && !x.agotado && productInFaja(x));
+    if(!_prods.length) return;
+    ph.style.height = '0';
+    eb.textContent = '🎁 ' + (getLang('promo_2x1_titulo') || '2x1');
+    nom.textContent = _promo.nombre || '';
+    des.textContent = (getLang('promo_2x1_frase') || 'pagas 1, llevas 2') + ' · ' + (getLang('promo_2x1_mismo') || 'del mismo tipo');
+    orden.innerHTML = '';
+    meta.innerHTML = `<div style="margin:6px -18px 0">` + _prods.map(pp => `
+      <div class="v2-fila" data-id="${pp.id}" style="position:relative">
+        <div class="ph" onclick="v2CerrarSheets();openDetail('${pp.id}')">${pp.imagen?`<img src="${pp.imagen}" alt="" loading="lazy">`:(ALL_CATEGORIES.find(c=>c.id===pp.categoria)?.emoji||'🍺')}</div>
+        <div class="b" onclick="v2CerrarSheets();openDetail('${pp.id}')">
+          <div class="nom">${toTitleCase(pp.nombre)}</div>
+          <div class="pr"><span class="v2-precio">${formatPrice(pp.precio)}</span></div>
+        </div>
+        <span id="v2ctrlx-${pp.id}">${v2CtrlHTML(pp)}</span>
+      </div>`).join('') + `</div>`;
   } else {
     const p = ALL_PRODUCTS.find(x=>x.id===key.slice(2));
     if(!p) return;
@@ -9802,7 +9896,7 @@ function v2AbrirDest(key, tipo){
       : tipo === 'promo' ? '🎁 ' + ((promo && promo.nombre) || 'promo de hoy') : '✨ de la casa';
     nom.textContent = toTitleCase(p.nombre);
     des.textContent = (tipo === 'push' && p.push_frase ? p.push_frase + ' — ' : '') +
-      getProductDesc(p) + (is2x1 ? ' · 🎁 2x1: pagas 1, llevas 2' : '');
+      getProductDesc(p) + (is2x1 ? ' · 🎁 ' + (getLang('promo_2x1_titulo') || '2x1') + ': ' + (getLang('promo_2x1_frase') || 'pagas 1, llevas 2') : '');
     meta.textContent = prices.orig ? prices.orig + ' → ' + prices.main : prices.main;
     orden.innerHTML = (!IS_VETRINA && PEDIDO_DIGITAL)
       ? (v2Preguntas(p).length
