@@ -5294,8 +5294,26 @@ html.vestido2 .brand-logo-wrap{ flex:0 0 auto }
    Ora, mentre la ficha è aperta, header e fascia socio si ritirano: in
    cima resta il velo sulla carta vera. Tornano da soli alla chiusura.
    (`:has()` è già usato altrove nel foglio — niente JS nuovo.) */
-body:has(#detailSheet.open) #header,
-body:has(#detailSheet.open) #memberBanner{
+/* 🚨 v2.74.1 · LA REGOLA C'ERA, IL BROWSER NON LA APPLICAVA
+   Il v2.74.0 legava la ritirata dell'header a `body:has(#detailSheet.open)`.
+   Ieri sulla pagina di prova funzionava; stamattina sul vivo **no** — e
+   misurato al banco il caso è assurdo solo in apparenza:
+     · la regola esiste nel foglio servito ✅
+     · `body.matches(':has(#detailSheet.open)')` → **true** ✅
+     · `:has()` supportato ✅ · la sua `transition` è pure applicata ✅
+     · e `opacity` calcolata restava **1** ❌
+   È un'invalidazione mancata: la classe `.open` arriva dentro un
+   `setTimeout(...,10)` — dopo il primo paint — e in quel percorso il
+   motore non ricalcola chi dipende da un `:has()` su un fratello.
+   🔴 La lezione, che vale oltre questo pezzo: **una regola che funziona
+   a volte è peggio di una che non funziona mai** — la seconda la trovi,
+   la prima ti fa dubitare della misura. `:has()` resta buono per lo stato
+   che nasce col DOM (i chip del carosello, dove lo usiamo da giorni), non
+   per lo stato che cambia sotto le dita.
+   Ora la ritirata la comanda una classe che il JS mette sul body
+   nello stesso gesto in cui apre la scheda: niente da invalidare. */
+body.v2-ficha-open #header,
+body.v2-ficha-open #memberBanner{
   opacity:0; pointer-events:none; transition:opacity .18s ease;
 }
 
@@ -5341,7 +5359,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.74.0 · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
+<span id="ver" hidden>menu2 · v2.74.1 · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10165,6 +10183,7 @@ function openDetail(id){
   setTimeout(()=>document.getElementById('detailSheet').classList.add('open'), 10);
   document.body.style.overflow = 'hidden';
   document.body.classList.add('v2-sheet-open');   // oss.7 · le strip non coprono la barra d'ordine
+  document.body.classList.add('v2-ficha-open');   // v2.74.1 · header e fascia socio si ritirano (vedi CSS)
   // round5 oss.6 · la scheda si ferma sotto i chip (il blocco fisso resta vivo)
   /* 🩹 v2.71.0 · «la card del prodotto non apre tutta fino in alto» (Alberto).
      Si fermava sotto il blocco dei chip (`v2TopBlockH()`, ~150px): una
@@ -10359,6 +10378,7 @@ function closeDetail(){
   V2_DET = null;
   document.body.style.overflow = '';
   document.body.classList.remove('v2-sheet-open');
+  document.body.classList.remove('v2-ficha-open');   // v2.74.1
 }
 
 let touchStartY = 0;
