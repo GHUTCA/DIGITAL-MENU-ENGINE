@@ -5386,7 +5386,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.79.0 · las botellas tienen su puerta: una card, el modal con todas · cada promo: una card, un modal, su foto · las dos cards del 2x1 con su foto · el 2x1 del schop tiene su card · el reloj de la carta es el del local · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
+<span id="ver" hidden>menu2 · v2.80.0 · el carrito se reprecia cuando cambian las reglas + cancello carta_vieja (franjas de precio del viernes) · las botellas tienen su puerta: una card, el modal con todas · cada promo: una card, un modal, su foto · las dos cards del 2x1 con su foto · el 2x1 del schop tiene su card · el reloj de la carta es el del local · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7067,6 +7067,32 @@ let CROSSSELL_MAP    = {};
 let CROSSSELL_POLL_TIMER = null;
 // v1.23 · S13fix · prezzo per fascia · mappa prod_id → {precio, tipo} attiva ADESSO (GAS filtra)
 let PRECIOS_REGLA_MAP = {};
+/* v2.80.0 · L'EPOCH DEI PREZZI (05-ago, per el cambio de precios del viernes):
+   el server manda la huella de las reglas vivas en cada tick. Si cambia
+   (las 22:00), el CARRITO se reprecia — no solo la carta: el precio del
+   item estaba congelado al momento de agregarlo, y con las franjas de
+   precio eso era plata perdida en silencio. Los items de promo (p2x1 /
+   es_menu) NO se tocan: su precio es de la promo, no del listino. */
+let PRECIOS_EPOCH = null;
+function repriceCart(){
+  let cambiados = 0;
+  try {
+    (CART.items || []).forEach(function(i){
+      if (i.p2x1 || i.es_menu) return;                 // promo: precio suyo
+      const regla = PRECIOS_REGLA_MAP[i.id];
+      const base = (ALL_PRODUCTS.find(p => p.id === i.id) || {}).precio;
+      const nuevo = (regla && regla.precio != null) ? regla.precio : base;
+      if (typeof nuevo === 'number' && !isNaN(nuevo) && nuevo !== i.precio) { i.precio = nuevo; cambiados++; }
+    });
+    if (cambiados) {
+      try { saveCart(); } catch(e){}
+      try { renderCart(); } catch(e){}
+      try { updateCartBadge(); } catch(e){}
+      showToastMsg('💲 ' + (getLang('precios_cambiaron') || 'Los precios se actualizaron — revisa tu pedido'));
+    }
+  } catch(e){}
+  return cambiados;
+}
 let PRECIOS_REGLA_POLL_TIMER = null;
 // P1.2 · el tick del menú: UN viaje cada 60s reemplaza los polls individuales
 let MENU_TICK_TIMER = null;
@@ -11152,6 +11178,14 @@ function aplicarMenuTick(t){
   try { applyCrossSell(t.crosssell); } catch(e){}
   try { applyPreciosRegla(t.precios); } catch(e){}
   try { applyDjBox(t.djbox); } catch(e){}
+  // v2.80.0 · l'epoch dei prezzi: primo tick = si memorizza; cambio = il
+  // carrello si riprezza (la carta la aggiorna già applyPreciosRegla sopra)
+  try {
+    if (t.precios_epoch) {
+      if (PRECIOS_EPOCH === null) PRECIOS_EPOCH = t.precios_epoch;
+      else if (PRECIOS_EPOCH !== t.precios_epoch) { PRECIOS_EPOCH = t.precios_epoch; repriceCart(); }
+    }
+  } catch(e){}
 }
 async function loadMenuTick(){
   if(!BRAND.gas_url && !GAS_URL) return null;
@@ -11973,6 +12007,7 @@ async function regaloEnviar(prodId){
     const payload = {
       action: 'enviarPedido', local: LOCAL_ID, uuid: _nuevoUuid(),
       mesa: MESA_ID, total: precio,
+      precios_epoch: PRECIOS_EPOCH || '',   // v2.80.0 · il cancello dell'epoch
       ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
       member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
       items_json: JSON.stringify([{ id: p.id, nombre: '🎁 ' + p.nombre, precio: precio, qty: 1, llevar: 1, op: '', termino: '', es_menu: false, promo: '', cat: p.categoria }]),
@@ -12090,6 +12125,7 @@ async function _enviarPedidoDigitalInner(opts){
   const payloadPedido = {
     action: 'enviarPedido', local: LOCAL_ID, uuid: uuid,
     mesa: MESA_ID, total: snapshot.total,
+    precios_epoch: PRECIOS_EPOCH || '',   // v2.80.0 · il cancello dell'epoch
     ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
     member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
     items_json: itemsJson,
@@ -12161,6 +12197,21 @@ async function _enviarPedidoDigitalInner(opts){
     try { renderMenu(); } catch(e){}
     try { renderCart(); } catch(e){}
     showToastMsg('😕 ' + getLang('agotado_ahora') + ' ' + nombres.join(' · ') + ' — ' + getLang('agotado_sacado'));
+    if (btn) { btn.disabled = false; btn.textContent = getLang('cart_listo') || 'Enviar pedido 🛎'; }
+    return;
+  }
+
+  // v2.80.0 · CARTA VIEJA: los precios cambiaron entre que armaste el carrito
+  // y el envío (las franjas del viernes). El GAS no escribió nada: se aplican
+  // las reglas frescas, el carrito se reprecia, y el cliente confirma de
+  // nuevo con el precio verdadero. Nunca un total viejo fosilizado.
+  if (resp && !resp.ok && resp.need === 'carta_vieja') {
+    _colaRemove(uuid); _cartPendClear();
+    try { if (resp.precios) applyPreciosRegla(resp.precios); } catch(e){}
+    if (resp.precios_epoch) PRECIOS_EPOCH = resp.precios_epoch;
+    const nC = repriceCart();
+    if (!nC) { try { renderCart(); } catch(e){} }
+    showToastMsg('💲 ' + (getLang('precios_cambiaron') || 'Los precios se actualizaron — revisa tu pedido') + ' · ' + (getLang('reenviar') || 'vuelve a enviar'));
     if (btn) { btn.disabled = false; btn.textContent = getLang('cart_listo') || 'Enviar pedido 🛎'; }
     return;
   }
