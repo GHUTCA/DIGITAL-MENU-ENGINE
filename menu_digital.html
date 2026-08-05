@@ -5402,7 +5402,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.81.0 · MODS2 tappe ③④ dietro flag ?mods2=1 (spento): motore domande a gruppi dal vocabolario MOD_GRUPOS/MOD_OPCIONES + IL PREZZO CHE SOMMA (delta dentro precio, mods[] nel items_json, reprice anche dei delta) · el carrito se reprecia cuando cambian las reglas + cancello carta_vieja (franjas de precio del viernes) · las botellas tienen su puerta: una card, el modal con todas · cada promo: una card, un modal, su foto · las dos cards del 2x1 con su foto · el 2x1 del schop tiene su card · el reloj de la carta es el del local · la cabecera se retira de verdad · la strelitzia de la noche · la card mas baja · el rectangulo gris · el colibri se ve · la noche a las 20:00 · BPM vuelve a verse · el logo de verdad · el chip no se come la insegna · la card MENU baja de tono · la ficha por encima · foto al filo · 02ago</span>
+<span id="ver" hidden>menu2 · v2.82.0 · la carta desde el borde (sale de Google) · sopra MODS2 v2.81 flag-off · 05ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7678,8 +7678,31 @@ async function loadFromSheet(timeoutMs){
   }
 
   // STEP 3 · Fetch CSV
-  const csvResp = await fetchWithTimeout(csvUrl + (csvUrl.includes('?') ? '&' : '?') + 't=' + Date.now(), timeoutMs);
-  const text = await csvResp.text();
+  // v2.81.0 · LA CARTA DAL BORDO (05-ago · episodio del pranzo: la carta era
+  // l'ultima lettura del cliente che viveva SOLO su Google — raffica nel
+  // minuto sbagliato = «no puedo abrir el menú»). Si prova prima il bordo
+  // (~150ms, mai raffiche): bytes IDENTICI al CSV pubblicato, il parser non
+  // vede differenza. Qualsiasi dubbio (404 sin_carta, timeout, testo corto)
+  // → il CSV di Google come sempre. Si spegne con ?borde=0.
+  let text = null;
+  if (new URLSearchParams(location.search).get('borde') !== '0') {
+    try {
+      const cu = 'https://pinsita-borde.alberto-agostini.workers.dev/carta/'
+        + encodeURIComponent(LOCAL_ID) + '?t=7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ';
+      const cr = await fetchWithTimeout(cu, 4000);
+      if (cr.ok && (cr.headers.get('content-type') || '').indexOf('text/csv') >= 0) {
+        const ct = await cr.text();
+        if (ct && ct.length > 1000 && ct.indexOf('\n') > 0) {
+          text = ct;
+          console.log('[borde] carta desde el borde · ' + ct.length + ' bytes');
+        }
+      }
+    } catch (e) { /* al CSV de Google, en silencio */ }
+  }
+  if (text === null) {
+    const csvResp = await fetchWithTimeout(csvUrl + (csvUrl.includes('?') ? '&' : '?') + 't=' + Date.now(), timeoutMs);
+    text = await csvResp.text();
+  }
   setProgress(70);
 
   // STEP 4+5 · Parse + categorie · corpo estratto in construirProductos (v1.32:
