@@ -5402,7 +5402,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.82.0 · la carta desde el borde (sale de Google) · sopra MODS2 v2.81 flag-off · 05ago</span>
+<span id="ver" hidden>menu2 · v2.83.0 · destacados desde el borde + identidad optimista (LA LISTA) · 05ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -11306,8 +11306,8 @@ function aplicarMenuTick(t){
     }
   } catch(e){}
 }
-async function loadMenuTick(){
-  if(!BRAND.gas_url && !GAS_URL) return null;
+let TICK_GIRO = 0;
+async function _tickDesdeGas(){
   try {
     const url = (BRAND.gas_url || GAS_URL) + '?action=getMenuTick&local=' + LOCAL_ID +
       (MESA_ID ? '&mesa=' + encodeURIComponent(MESA_ID) : '') + '&t=' + Date.now();
@@ -11317,6 +11317,30 @@ async function loadMenuTick(){
     aplicarMenuTick(data);
     return data;
   } catch(e){ return null; }
+}
+/* v2.83.0 · EL TICK DESDE EL BORDE (05-ago · medido en fierro: getMenuTick
+   29,5 s en el primer golpe — es «la parte destacados interminable»).
+   Ritmos, promos, destacados, precios, agotados y crosssell son IGUALES para
+   todos: viajan en el beat y se leen a ~150 ms. `djbox` no viaja ahí (depende
+   de la mesa): se refresca desde el GAS cada 5 vueltas, DETRÁS, sin que nadie
+   espere. Cualquier duda → el GAS de siempre. Se apaga con ?borde=0. */
+async function loadMenuTick(){
+  if(!BRAND.gas_url && !GAS_URL) return null;
+  if (new URLSearchParams(location.search).get('borde') !== '0') {
+    try {
+      const bu = 'https://pinsita-borde.alberto-agostini.workers.dev/estado/'
+        + encodeURIComponent(LOCAL_ID) + '?t=7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ&seccion=menu_tick';
+      const br = await fetchWithTimeout(bu, 4000);
+      const bj = await br.json();
+      if (bj && bj.ok && bj.datos && bj.datos.datos && bj.datos.datos.ok
+          && bj.datos.edad_ms < 10 * 60 * 1000) {
+        aplicarMenuTick(bj.datos.datos);
+        if ((TICK_GIRO++ % 5) === 0) { _tickDesdeGas(); }   // djbox, detrás
+        return bj.datos.datos;
+      }
+    } catch(e){ /* al GAS, en silencio */ }
+  }
+  return await _tickDesdeGas();
 }
 function startMenuTick(){
   if(MENU_TICK_TIMER) return;
@@ -13203,24 +13227,50 @@ function memberRevelar(){
   mios.forEach(p => { if(!ALL_PRODUCTS.some(x => x.id === p.id)) ALL_PRODUCTS.push(p); });
   MEMBER_OCULTOS = MEMBER_OCULTOS.filter(p => mios.indexOf(p) < 0);
 }
+function memberPintar(data){
+  ACTIVE_MEMBER = data;
+  memberRevelar();   // i piatti di famiglia entrano nel mondo
+  const banner = document.getElementById('memberBanner');
+  const partes = [`${getLang('hi_member')} ${data.nombre}`];
+  if(data.nivel) partes.push(data.nivel);
+  if(data.tokens) partes.push(`${data.tokens} ${getLang('tokens')}`);
+  banner.textContent = partes.join(' · ');
+  banner.classList.add('show');
+  renderMenu();
+  v2PintaChip();   // v2.0 · il chip identità saluta il Member
+}
+/* v2.83.0 · LA IDENTIDAD OPTIMISTA (05-ago · «no me reconoce como cliente
+   frecuente»): getMember mide 2,4-2,7 s en un día bueno, y en ráfaga no
+   vuelve. El último reconocimiento vive en el teléfono y se pinta AL TIRO;
+   la verificación corre detrás y sólo corrige si el server desmiente.
+   Nunca más un cliente de LA LISTA tratado como desconocido por un tropiezo
+   de Google. Lo que se guarda es lo que ESTE teléfono ya sabía de sí mismo. */
+const MEMBER_CACHE_KEY = 'pinsita_member_';
 async function loadMember(memberId){
   if(!BRAND.gas_url) return;
+  let optimista = false;
+  try {
+    const raw = localStorage.getItem(MEMBER_CACHE_KEY + memberId);
+    if(raw){
+      const cached = JSON.parse(raw);
+      if(cached && cached.ok && String(cached.id) === String(memberId)){
+        memberPintar(cached); optimista = true;
+      }
+    }
+  } catch(e){}
   try {
     const resp = await fetch(`${BRAND.gas_url}?action=getMember&id=${encodeURIComponent(memberId)}&local=${encodeURIComponent(LOCAL_ID)}`);
     const data = await resp.json();
     if(data.ok){
-      ACTIVE_MEMBER = data;
-      memberRevelar();   // i piatti di famiglia entrano nel mondo
-      const banner = document.getElementById('memberBanner');
-      const partes = [`${getLang('hi_member')} ${data.nombre}`];
-      if(data.nivel) partes.push(data.nivel);
-      if(data.tokens) partes.push(`${data.tokens} ${getLang('tokens')}`);
-      banner.textContent = partes.join(' · ');
-      banner.classList.add('show');
-      renderMenu();
-      v2PintaChip();   // v2.0 · il chip identità saluta il Member
+      try { localStorage.setItem(MEMBER_CACHE_KEY + memberId, JSON.stringify(data)); } catch(e){}
+      memberPintar(data);
+    } else if(optimista){
+      // el server DESMIENTE: se retira lo que habíamos mostrado
+      try { localStorage.removeItem(MEMBER_CACHE_KEY + memberId); } catch(e){}
+      ACTIVE_MEMBER = null;
+      const b = document.getElementById('memberBanner'); if(b) b.classList.remove('show');
     }
-  } catch(e){ console.warn('Member load failed', e); }
+  } catch(e){ /* ráfaga: se queda el optimista, que es mejor que nada */ }
 }
 
 /* TRACKING */
