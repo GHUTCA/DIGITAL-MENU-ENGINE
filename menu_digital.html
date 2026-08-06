@@ -5402,7 +5402,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.84.0 · el tick viejo es reserva (no hielo) + la cola prueba el borde + boot sin tiro doble · 06ago</span>
+<span id="ver" hidden>menu2 · v2.85.0 · MODS2 tappa ⑤ + PAREJA 2x1 dal telefono (flag ?mods2=1, spento): la ficha mostra i gruppi coi prezzi vigenti (cura anche il crash mod2 in v2PreguntasHTML) · CTA col prezzo vivo · ¿igual o distinta? → due righe dupla/regalo2x1 (contratto = mesero v3.11) · el tick viejo es reserva (no hielo) + la cola prueba el borde + boot sin tiro doble · 06ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10663,7 +10663,7 @@ function openDetail(id){
   // modal comanda il carro IN DIRETTA (fino a 0 = fuori): casa e modal
   // sempre allineati, anche chiudendo con la ✕. Se non c'è: "Agregar N".
   const yaEnCarro = v2QtyOf(p.id);
-  V2_DET = { p: p, qty: yaEnCarro > 0 ? yaEnCarro : 1, preguntas: v2Preguntas(p), resp: {}, live: yaEnCarro > 0 };
+  V2_DET = { p: p, qty: yaEnCarro > 0 ? yaEnCarro : 1, preguntas: v2Preguntas(p), resp: {}, live: yaEnCarro > 0, m2: v2M2Seed(p) };
   const orden = document.getElementById('v2Orden');
   if(!p.agotado && !IS_VETRINA && PEDIDO_DIGITAL){
     orden.classList.add('show');
@@ -10682,14 +10682,105 @@ function v2PreguntasHTML(p){
     alcohol: getLang('alcohol_elige') || '¿Con o sin alcohol?',
     mod:     getLang('preg_mod') || '¿Cómo lo quieres?',
   };
-  return qs.map(q => `
+  return qs.map(q => {
+    // ═══ v2.85.0 · MODS2 tappa ⑤ · LA SCHEDA CHE MOSTRA (difetto ① del reperto:
+    // «un'opzione che non si vede non esiste»). I gruppi del vocabolario nuovo
+    // vivono INLINE nella ficha, coi prezzi vigenti sui chip: si vede che ci
+    // sono opzioni, quante, e quanto costano — PRIMA del tap. Il default di un
+    // `unica` è già acceso (zero gesti). ⚠️ questo ramo cura anche il crash
+    // v2.81.0: `q.opciones` non esiste su un mod2 e la ficha moriva sul `.map`.
+    if(q.tipo === 'mod2'){
+      const gr = q.grupo;
+      const multi = gr.tipo !== 'unica';
+      return `
+    <div class="v2-preg" data-tipo="mod2" data-g="${gr.g}">
+      <div class="pt">${escapeHtml(gr.gn || (getLang('preg_mod') || '¿Cómo lo quieres?'))}${multi && gr.max ? ' · máx ' + gr.max : ''}</div>
+      <div class="v2-pchips">${gr.ops.map((op,i) => {
+        const dd = mods2DeltaVigente(op, gr.g);
+        if(dd === null) return '';                    // vuoto ≠ zero: senza prezzo non si vede
+        const on = !multi && op.def;                  // stesso seme di v2M2Seed: deterministico
+        return `<span class="v2-pchip${on ? ' on' : ''}" onclick="v2DetM2('${gr.g}',${i},this)">${escapeHtml(op.o)}${dd ? ' <b>+' + formatPrice(dd) + '</b>' : ''}</span>`;
+      }).join('')}</div>
+    </div>`;
+    }
+    return `
     <div class="v2-preg" data-tipo="${q.tipo}">
       <div class="pt">${titulos[q.tipo] || 'Elige'}${q.tipo==='bebida' && ALMUERZO_INCLUYE_TXT ? ' · ' + ALMUERZO_INCLUYE_TXT : ''}</div>
       ${q.tipo==='bebida'
         ? `<div class="v2-pchips" id="v2BebChips">${v2BebChipsInner()}</div>`
         : `<div class="v2-pchips">${q.opciones.map(o =>
         `<span class="v2-pchip" onclick="v2DetElige('${q.tipo}','${o.replace(/'/g,"\\'")}',this)">${trOp(o)}</span>`).join('')}</div>`}
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+/* v2.85.0 · il seme delle selezioni mod2 della ficha: i default degli `unica`
+   partono accesi — il caso normale si conferma senza toccare niente. */
+function v2M2Seed(p){
+  const m2 = {};
+  v2Preguntas(p).forEach(q => {
+    if(q.tipo !== 'mod2') return;
+    m2[q.grupo.g] = {};
+    if(q.grupo.tipo === 'unica'){
+      const di = q.grupo.ops.findIndex(o => o.def && mods2DeltaVigente(o, q.grupo.g) !== null);
+      if(di >= 0) m2[q.grupo.g][di] = true;
+    }
+  });
+  return m2;
+}
+/* il tocco sul chip mod2: unica = radio · multiple/opcional = toggle col tetto
+   per CLASSE (ajuste ≤1 · side ≤5 — Alberto 05-ago: i side sono pronti, il
+   sin-salsa ferma la linea). Al tetto il chip nuovo non entra, senza alert. */
+function v2DetM2(gid, i, el){
+  if(!V2_DET) return;
+  const q = (V2_DET.preguntas || []).find(x => x.tipo === 'mod2' && x.grupo.g === gid);
+  if(!q) return;
+  const gr = q.grupo;
+  V2_DET.m2 = V2_DET.m2 || {};
+  const sel = V2_DET.m2[gid] = V2_DET.m2[gid] || {};
+  if(gr.tipo === 'unica'){
+    Object.keys(sel).forEach(k => delete sel[k]);
+    sel[i] = true;
+    const cont = el.closest('.v2-pchips');
+    cont.querySelectorAll('.v2-pchip').forEach(c => c.classList.toggle('on', c === el));
+  } else {
+    if(!sel[i]){
+      // il tetto conta solo le AGGIUNTE (gruppi non-unica), su TUTTI i gruppi
+      const cl = gr.ops[i].cl === 'side' ? 'side' : 'ajuste';
+      let n = 0;
+      (V2_DET.preguntas || []).forEach(x => {
+        if(x.tipo !== 'mod2' || x.grupo.tipo === 'unica') return;
+        Object.keys(V2_DET.m2[x.grupo.g] || {}).forEach(k => {
+          const o = x.grupo.ops[k];
+          if(o && (o.cl === 'side' ? 'side' : 'ajuste') === cl) n++;
+        });
+      });
+      if(n >= (cl === 'side' ? 5 : 1)){
+        showToastMsg(cl === 'ajuste' ? 'La cocina toma 1 ajuste por plato 🙌' : 'Máximo alcanzado');
+        return;
+      }
+    }
+    sel[i] = !sel[i];
+    if(!sel[i]) delete sel[i];
+    el.classList.toggle('on', !!sel[i]);
+  }
+  v2DetPinta();
+}
+/* le selezioni della ficha → i record mods (stesso contratto della comandera) */
+function v2M2Mods(){
+  const out = [];
+  if(!V2_DET || !V2_DET.m2) return out;
+  (V2_DET.preguntas || []).forEach(q => {
+    if(q.tipo !== 'mod2') return;
+    const gr = q.grupo;
+    Object.keys(V2_DET.m2[gr.g] || {}).forEach(k => {
+      const op = gr.ops[k]; if(!op) return;
+      const d = mods2DeltaVigente(op, gr.g);
+      if(d === null) return;
+      if(op.def && d === 0) return;                  // il caso normale non si scrive
+      out.push({ g: gr.g, gn: gr.gn, oid: op.oid, o: op.o, d: d, cl: op.cl, d0: (op.ref ? null : op.d), ref: op.ref || undefined, add: gr.tipo !== 'unica' });
+    });
+  });
+  return out;
 }
 /* ═══ v2.33.0 · LA MESA DEI TRE MENÙ (retro Alberto, caso 3× Filete Alfredo:
    una coca e due birre — il flusso vecchio dava UNA bebida per tutti o il
@@ -10792,14 +10883,21 @@ function v2DetPinta(){
     return;
   }
   // v2.33.0 · con qty>1 la bebida è «risposta» quando i contatori = i piatti
+  // v2.85.0 · un mod2 `unica` senza selezione (nessun default) blocca il CTA
   const falta = V2_DET.preguntas.find(q =>
-    q.tipo === 'bebida' && V2_DET.qty > 1 ? v2BebTotal() !== V2_DET.qty : !V2_DET.resp[q.tipo]);
+    q.tipo === 'mod2'
+      ? (q.grupo.tipo === 'unica' && !Object.keys((V2_DET.m2 || {})[q.grupo.g] || {}).length)
+      : (q.tipo === 'bebida' && V2_DET.qty > 1 ? v2BebTotal() !== V2_DET.qty : !V2_DET.resp[q.tipo]));
   const regla = PRECIOS_REGLA_MAP[V2_DET.p.id];
   const precio = (regla && parsePrice(regla.precio) > 0) ? parsePrice(regla.precio) : parsePrice(V2_DET.p.precio);
-  const precioFinal = (ACTIVE_MEMBER && V2_DET.p.precio_member) ? parsePrice(V2_DET.p.precio_member) : precio;
+  // v2.85.0 · IL PREZZO VIVO NEL CTA: il delta delle scelte è già dentro il
+  // bottone («Agregar 1 · $6.500») — il totale non è mai una sorpresa dopo
+  const dSel = v2M2Mods().reduce((s,m)=> s + (m.d||0), 0);
+  const precioFinal = ((ACTIVE_MEMBER && V2_DET.p.precio_member) ? parsePrice(V2_DET.p.precio_member) : precio) + dSel;
   cta.disabled = !!falta;
   cta.textContent = falta
-    ? ((getLang('elige')||'Elige') + ' ' + (falta.tipo === 'bebida'
+    ? ((getLang('elige')||'Elige') + ' ' + (falta.tipo === 'mod2' ? (falta.grupo.gn || _dt('det_como'))
+        : falta.tipo === 'bebida'
         ? (V2_DET.qty > 1 ? _dt('det_tus_bebidas', V2_DET.qty, v2BebTotal()) : _dt('det_tu_bebida'))
         : falta.tipo === 'alcohol' ? _dt('det_alcohol')
         : falta.tipo === 'mod' ? _dt('det_como') : _dt('det_termino')))
@@ -10816,14 +10914,32 @@ function v2DetAgregar(){
   // v2.33.0 · LA MESA DEI TRE MENÙ: con qty>1 e contatori bebida, una riga
   // per bebida (1× Coca + 2× Cerveza in un solo gesto — merge id+op esistente)
   const _esMultiBeb = d.qty > 1 && d.preguntas.some(q => q.tipo === 'bebida') && v2BebTotal() === d.qty;
+  // v2.85.0 · MODS2: le selezioni della ficha diventano record coi delta
+  const _m2 = v2M2Mods();
+  const _m2Noms = _m2.map(m => m.o);
+  // v2.85.0 · LA PAREJA DEL 2x1 anche dal telefono (stessa grammatica del
+  // mesero v3.11): su un 2x1 con qty=1 e vocabolario v2, la ficha chiude la
+  // 1ª unità e la domanda «¿la segunda igual o distinta?» passa al foglio
+  // delle preguntas. Con qty>1 il giro resta quello di oggi (una prep per
+  // tutte) — il caso misto si fa un paio alla volta, come in comandera.
+  const _promoD = PROD_TO_PROMO[d.p.id];
+  const _es2D = !!(_promoD && (_promoD.tipo === '2x1' || _promoD.tipo === 'multiplo'));
+  if(_es2D && window.MODS2_ON && d.qty === 1 && (d.preguntas || []).some(q => q.tipo === 'mod2')){
+    const pid = d.p.id;
+    closeDetail();
+    OP_FLOW = { prodId: pid, preguntas: v2Preguntas(ALL_PRODUCTS.find(x => x.id === pid)).filter(q => q.tipo === 'mod2'),
+      idx: 0, respuestas: {}, u1: _m2, parejaQ: true };
+    _renderParejaQ();
+    return;
+  }
   if(_esMultiBeb){
     Object.keys(d.bebN).forEach(beb => {
       const _opB = [beb, _mv2].filter(Boolean).join(' · ');
       for(let i = 0; i < d.bebN[beb]; i++) _pushLinea(d.p, _opB, d.resp.termino || '');
     });
   } else {
-    const _op2 = [d.resp.bebida || d.resp.alcohol || '', _mv2].filter(Boolean).join(' · ');
-    for(let i = 0; i < d.qty; i++) _pushLinea(d.p, _op2, d.resp.termino || '');
+    const _op2 = [d.resp.bebida || d.resp.alcohol || '', _mv2].concat(_m2Noms).filter(Boolean).join(' · ');
+    for(let i = 0; i < d.qty; i++) _pushLinea(d.p, _op2, d.resp.termino || '', _m2);
   }
   try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
   const detalle = _esMultiBeb
@@ -11667,19 +11783,93 @@ function elegirOpcion(idx){
 // la riga entra nel carro con tutte le scelte — e coi mods come DATO.
 function _opFinaliza(){
   const p = ALL_PRODUCTS.find(x => x.id === OP_FLOW.prodId);
+  if(!p){ cerrarOpcion(); return; }
   const r = OP_FLOW.respuestas;
+  const mods = r.mods || [];
+  // v2.85.0 · LA PAREJA DEL 2x1 (stessa grammatica del mesero v3.11): su un
+  // 2x1 col vocabolario v2, chiuse le domande della 1ª unità si chiede
+  // «¿la segunda igual o distinta?» — la seconda unità è una COSA, non un
+  // numero dentro `llevar`. «Un 2x1 NON è uno sconto del 50%» (Alberto).
+  const _promo = PROD_TO_PROMO[p.id];
+  const _es2 = !!(_promo && (_promo.tipo === '2x1' || _promo.tipo === 'multiplo'));
+  const _tuvoM2 = (OP_FLOW.preguntas || []).some(q => q.tipo === 'mod2');
+  if(_es2 && window.MODS2_ON && _tuvoM2 && !OP_FLOW.u1){
+    OP_FLOW.u1 = mods; OP_FLOW.parejaQ = true;
+    _renderParejaQ(); return;
+  }
+  if(OP_FLOW.u1){
+    const u1 = OP_FLOW.u1;
+    cerrarOpcion();
+    _pushPareja(p, u1, mods);
+    showToastMsg('🎁 2x1 · ' + toTitleCase(p.nombre) + ' × 2 · ' +
+      [(u1.map(m=>m.o).join('+') || 'como viene'), (mods.map(m=>m.o).join('+') || 'como viene')].join(' / '));
+    return;
+  }
   cerrarOpcion();
-  if(!p) return;
   // v2.29.0 · mod → op (binario vivo fino al chit e al KDS); «Como viene» non si scrive
   let _mv = r.mod || '';
   if (_mv === (getLang('mod_comoviene') || 'Como viene')) _mv = '';
-  const mods = r.mods || [];
   // op porta ANCHE i nomi dei mods: chit, KDS, mesero e forense continuano a
   // leggere ciò che leggono oggi senza toccare una riga (contratto §4: op non muore)
   const modsNoms = mods.map(m => m.o);
   _pushLinea(p, [r.bebida, _mv].concat(modsNoms).filter(Boolean).join(' · '), r.termino || '', mods);
   const detalle = [r.bebida, r.termino, _mv].concat(modsNoms).filter(Boolean).join(' · ');
   showToastMsg(toTitleCase(p.nombre) + (detalle ? ' · ' + detalle : '') + ' · ' + (getLang('add') || 'agregado'));
+}
+/* v2.85.0 · la domanda della pareja, nello stesso foglio delle preguntas */
+function _renderParejaQ(){
+  if(!OP_FLOW || !OP_FLOW.parejaQ) return;
+  const p = ALL_PRODUCTS.find(x => x.id === OP_FLOW.prodId);
+  if(!p){ cerrarOpcion(); return; }
+  const u1txt = (OP_FLOW.u1 || []).map(m => m.o).join(' · ') || (getLang('mod_comoviene') || 'Como viene');
+  document.getElementById('opTitle').textContent = '🎁 2x1 · ¿La segunda igual o distinta?';
+  document.getElementById('opSub').textContent = toTitleCase(p.nombre) + ' · 1ª: ' + u1txt;
+  document.getElementById('opChips').innerHTML =
+    `<button class="op-chip" style="font-weight:800" onclick="v2Pareja(1)">Igual ✌️</button>` +
+    `<button class="op-chip" onclick="v2Pareja(0)">Distinta ›</button>`;
+  document.getElementById('opOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('opSheet').classList.add('open'), 10);
+}
+function v2Pareja(igual){
+  if(!OP_FLOW || !OP_FLOW.parejaQ) return;
+  const p = ALL_PRODUCTS.find(x => x.id === OP_FLOW.prodId);
+  if(!p){ cerrarOpcion(); return; }
+  if(igual){
+    const u1 = OP_FLOW.u1 || [];
+    cerrarOpcion();
+    _pushPareja(p, u1, u1.map(m => Object.assign({}, m)));
+    showToastMsg('🎁 2x1 · ' + toTitleCase(p.nombre) + ' × 2 · iguales');
+    return;
+  }
+  // distinta → secondo giro SOLO sulle domande mod2
+  OP_FLOW.parejaQ = false;
+  OP_FLOW.preguntas = (OP_FLOW.preguntas || []).filter(q => q.tipo === 'mod2');
+  OP_FLOW.idx = 0; OP_FLOW.respuestas = {}; OP_FLOW.m2sel = null;
+  _renderPregunta();
+}
+/* le due righe della pareja · agganciate da `dupla` (stesso contratto del
+   mesero v3.11): A = PAGADA (vigente + i suoi extra) · B = REGALO ($0 di
+   base + i SUOI extra — «certo che si paga un extra su un 2x1»).
+   Σ precio×qty resta vero; il KDS produce due cose perché SONO due cose. */
+function _pushPareja(p, m1, m2){
+  if(CART.items.length === 0) CART.gancho_origen = p.id;
+  const regla = PRECIOS_REGLA_MAP[p.id];
+  const base = (regla && parsePrice(regla.precio) > 0) ? parsePrice(regla.precio) : parsePrice(p.precio);
+  const d1 = (m1 || []).reduce((s,m)=> s + (m.d||0), 0);
+  const d2 = (m2 || []).reduce((s,m)=> s + (m.d||0), 0);
+  const par = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+  const A = { id: p.id, nombre: p.nombre, precio: base + d1, qty: 1,
+    op: (m1||[]).map(m=>m.o).join(' · '), termino: '', es_menu: false, p2x1: true,
+    dupla: par, precio_base: base };
+  if(m1 && m1.length) A.mods = m1;
+  const B = { id: p.id, nombre: p.nombre + ' · regalo 2x1', precio: d2, qty: 1,
+    op: (m2||[]).map(m=>m.o).join(' · '), termino: '', es_menu: false, p2x1: true,
+    dupla: par, regalo2x1: 1, precio_base: 0 };
+  if(m2 && m2.length) B.mods = m2;
+  CART.items.push(A); CART.items.push(B);
+  saveCart();
+  try { v2RefreshCtrl(p.id); } catch(e){}
+  try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
 }
 function cerrarOpcion(){
   document.getElementById('opSheet').classList.remove('open');
@@ -11698,6 +11888,20 @@ function cartChangeQty(idx, delta){
      mentiva, che è il difetto peggiore in una carta che porta a un conto.
      L'id va salvato PRIMA: la riga può sparire due istruzioni più sotto. */
   const _id = it.id;
+  // v2.85.0 · la pareja del 2x1 si tocca con le sue regole: il ＋ non esiste
+  // (per un'altra coppia si riordina il prodotto — così ogni unità ha la sua
+  // preparación); il − sulla PAGADA porta via la coppia intera, sul REGALO
+  // solo il regalo (v0 della renuncia: «basta uno»).
+  if(it.dupla){
+    if(delta > 0){ showToastMsg('🎁 Es una pareja 2x1 — para otra, pídelo de nuevo'); return; }
+    if(!it.regalo2x1){ const par = it.dupla; CART.items = CART.items.filter(x => x.dupla !== par); }
+    else CART.items.splice(idx, 1);
+    if(CART.items.length === 0) CART.gancho_origen = '';
+    saveCart(); renderCart();
+    try { v2RefreshCtrl(_id); } catch(e){}
+    try { v2RenderBarra(); }   catch(e){}
+    return;
+  }
   it.qty = (it.qty||1) + delta;
   if(it.qty <= 0) CART.items.splice(idx, 1);
   if(CART.items.length === 0) CART.gancho_origen = '';
@@ -11780,7 +11984,10 @@ function renderCart(){
         : (i.op || '');
       const detalles = [
         i.es_menu ? '🍱 ' + (ALMUERZO_INCLUYE_TXT || 'Incluye entrada y postre') : '',
-        i.p2x1 ? `🎁 2x1 · ${getLang('promo_pagas')||'pagas'} ${i.qty||1}, ${getLang('promo_llevas')||'llevas'} ${(i.qty||1)*2}` : '',
+        // v2.85.0 · la pareja si dichiara riga per riga; il vecchio «pagas 1
+        // llevas 2» resta per il 2x1 classico (senza pareja)
+        i.dupla ? (i.regalo2x1 ? '🎁 2x1 · unidad de REGALO · se cobra sólo el extra' : '🎁 2x1 · unidad pagada')
+                : (i.p2x1 ? `🎁 2x1 · ${getLang('promo_pagas')||'pagas'} ${i.qty||1}, ${getLang('promo_llevas')||'llevas'} ${(i.qty||1)*2}` : ''),
         opSinMods ? '🥤 ' + (i.es_menu ? opSinMods : trOpFull(opSinMods)) : '',
         i.termino ? '🥩 ' + trOp(i.termino) : '',
         modsTxt ? '🧩 ' + modsTxt : '',
@@ -12324,21 +12531,26 @@ async function _enviarPedidoDigitalInner(opts){
     //   llevar = unità DA SERVIRE/PRODURRE → il KDS prepara llevar
     //   op     = bebida/copa del menú · es_menu · promo ('2x1' | '')
     const qty = i.qty||1;
+    // v2.85.0 · la pareja: `llevar` NON raddoppia (la 2ª unità è la SUA riga)
+    const es2v = i.p2x1 && !i.dupla;
     return { id:i.id,
       nombre: (i.es_menu ? (getLang('group_almuerzo')||'Menú del Día') + ' · ' : '') + i.nombre
         + (i.op ? ' · ' + i.op : '')
         + (i.termino ? ' · ' + i.termino : '')
-        + (i.p2x1 ? ' · 2x1 (llevar ' + (qty*2) + ')' : ''),
-      precio:i.precio, qty: qty, llevar: i.p2x1 ? qty*2 : qty,
+        + (es2v ? ' · 2x1 (llevar ' + (qty*2) + ')' : ''),
+      precio:i.precio, qty: qty, llevar: es2v ? qty*2 : qty,
       op: i.op||'', termino: i.termino||'', es_menu: !!i.es_menu, promo: i.p2x1 ? '2x1' : '',
       cat: p ? p.categoria : '',
+      // v2.85.0 · la pareja del 2x1 (ADDITIVO, stesso contratto del mesero
+      // v3.11): `dupla` lega le due righe, `regalo2x1` marca il regalo
+      dupla: i.dupla || undefined, regalo2x1: i.regalo2x1 || undefined,
       // v2.81.0 · MODS2 (contratto §4, ADDITIVO): precio porta già i delta
       // dentro (Σ precio×qty resta vero ovunque); mods[] è il dettaglio per
       // macchine — cucina per estación, boleta, cervello. precio_base è il
       // listino nudo (separa piatto da extra in forense/boleta). Fossile:
       // i delta sono i vigenti AL MOMENTO della scrittura, mai reinterpretati.
       mods: (i.mods && i.mods.length) ? i.mods.map(m => ({ g: m.g, gn: m.gn, oid: m.oid, o: m.o, d: m.d, cl: m.cl })) : undefined,
-      precio_base: (i.mods && i.mods.length) ? i.precio_base : undefined };
+      precio_base: ((i.mods && i.mods.length) || i.dupla) ? i.precio_base : undefined };
   });
   // v2.17 · LA BEBIDA DEL MENÚ È UNA RIGA VERA (VB sab 18: da lunedì Barra e
   // Cocina separate, per codice). Il carrito resta com'è (una riga per plato,
