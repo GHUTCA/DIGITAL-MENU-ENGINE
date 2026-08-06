@@ -5506,7 +5506,7 @@ html.vestido2 #bienvenidaSplash.bv2.bv2-noche .bv2-poi{color:rgba(241,228,210,.5
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.86.0 · las bienvenidas: la escala de las ocasiones · el CERRADO con el vestido · la flor en variable · 06ago</span>
+<span id="ver" hidden>menu2 · v2.86.1 · la bienvenida promete la hora en que se puede venir (no la de la regla) · las bienvenidas: la escala de las ocasiones · 06ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8538,7 +8538,18 @@ function bvScalaCalc(){
   const proxTit = prox ? ((lang === 'pt' && prox.pt && prox.pt.propuesta_titulo) || prox.propuesta_titulo) : '';
   const mi = (typeof MENU_INFO !== 'undefined') ? MENU_INFO : null;
   if(mi && mi.estado === 'on' && mi.precio > 0 && (!mi.hasta || hhmm < mi.hasta)){
-    out.eb  = H('bv_desde', mi.desde || apertura);
+    /* v2.86.1 · L'ORA CHE SI PROMETTE È QUELLA IN CUI SI PUÒ VENIRE.
+       La regla del menù parte alle 08:00 (`mi.desde`), ma il locale apre alle
+       11:45: l'occhiello diceva «desde las 08:00» mentre il bottone sotto
+       diceva «te esperamos a las 11:45» — due ore diverse nella stessa
+       schermata, e chi legge non sa a quale credere.
+       Vince la PIÙ TARDA: prima di quell'ora il piatto non esiste per il
+       cliente, per quanto la regla sia accesa. (Confronto fra stringhe
+       'HH:mm': a parità di formato l'ordine alfabetico È l'ordine orario.) */
+    const _desdeReal = (mi.desde && apertura)
+      ? (mi.desde > apertura ? mi.desde : apertura)
+      : (mi.desde || apertura);
+    out.eb  = H('bv_desde', _desdeReal);
     out.tit = (mi.n ? mi.n + ' ' : '') + (getLang('bv_platos') || 'platos a elección');
     out.sub = (getLang('group_almuerzo') || 'Menú del Día') +
               (mi.hasta ? ' · ' + (getLang('menu_hasta') || 'Hasta las') + ' ' + mi.hasta : '');
