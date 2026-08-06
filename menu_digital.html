@@ -5402,7 +5402,7 @@ html.vestido2 #v2ShDest .v2-fila .ph img{
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.83.0 · destacados desde el borde + identidad optimista (LA LISTA) · 05ago</span>
+<span id="ver" hidden>menu2 · v2.84.0 · el tick viejo es reserva (no hielo) + la cola prueba el borde + boot sin tiro doble · 06ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -11326,21 +11326,32 @@ async function _tickDesdeGas(){
    espere. Cualquier duda → el GAS de siempre. Se apaga con ?borde=0. */
 async function loadMenuTick(){
   if(!BRAND.gas_url && !GAS_URL) return null;
+  let tickViejo = null;   // v2.84.0 · la foto vieja del borde: reserva, no basura
   if (new URLSearchParams(location.search).get('borde') !== '0') {
     try {
       const bu = 'https://pinsita-borde.alberto-agostini.workers.dev/estado/'
         + encodeURIComponent(LOCAL_ID) + '?t=7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ&seccion=menu_tick';
       const br = await fetchWithTimeout(bu, 4000);
       const bj = await br.json();
-      if (bj && bj.ok && bj.datos && bj.datos.datos && bj.datos.datos.ok
-          && bj.datos.edad_ms < 10 * 60 * 1000) {
-        aplicarMenuTick(bj.datos.datos);
-        if ((TICK_GIRO++ % 5) === 0) { _tickDesdeGas(); }   // djbox, detrás
-        return bj.datos.datos;
+      if (bj && bj.ok && bj.datos && bj.datos.datos && bj.datos.datos.ok) {
+        if (bj.datos.edad_ms < 10 * 60 * 1000) {
+          aplicarMenuTick(bj.datos.datos);
+          // v2.84.0 · ++GIRO: el giro 0 (boot) ya NO dispara el getMenuTick de
+          // 29,5s en background — el djbox se refresca al giro 5 y de ahí cada 5
+          if ((++TICK_GIRO % 5) === 0) { _tickDesdeGas(); }   // djbox, detrás
+          return bj.datos.datos;
+        }
+        tickViejo = bj.datos.datos;   // rancia (>10 min): sirve sólo si el GAS también calla
       }
     } catch(e){ /* al GAS, en silencio */ }
   }
-  return await _tickDesdeGas();
+  const g = await _tickDesdeGas();
+  if (g) return g;
+  // v2.84.0 · T1 (mapa 06-ago): al minuto 10 de un mutismo el tick del borde
+  // dejaba de aceptarse y el menú se CONGELABA en silencio. La foto vieja del
+  // borde es mejor que el hielo: se aplica como reserva (pattern registro v76).
+  if (tickViejo) { try { aplicarMenuTick(tickViejo); } catch(e){} return tickViejo; }
+  return null;
 }
 function startMenuTick(){
   if(MENU_TICK_TIMER) return;
@@ -12062,8 +12073,8 @@ function _nuevoUuid(){
    LA CINTURA: il bordo è un tentativo, MAI l'unica strada — qualsiasi
    risposta che non riconosciamo come definitiva (token_invalid, rate_limit,
    sin_guardias, 5xx, timeout, rete) → si passa al GAS come sempre.
-   La cola offline (_colaFlush) NON passa di qui: spara al GAS, che
-   deduplica per uuid anche contro il forward del DO — mai una riga doppia. */
+   v2.84.0 · anche la cola offline (_colaFlush) passa di qui: il DO deduplica
+   per uuid e il GAS pure — mai una riga doppia, da nessuna delle due porte. */
 function _postBorde(body, timeoutMs){
   const ctrl = new AbortController();
   const tid = setTimeout(()=>ctrl.abort(), timeoutMs || 6000);
@@ -12136,7 +12147,11 @@ async function _colaFlush(){
   try {
     for (const entry of pend) {
       let resp = null;
-      try { resp = await _postGAS(entry.payload); }
+      // v2.84.0 · T3 (mapa 06-ago): la cola ahora prueba el borde primero,
+      // como el envío directo. Antes picaba SOLO al GAS cada 15s — durante un
+      // mutismo de Google, con el borde vivo al lado que los habría aceptado.
+      // Sin riesgo de doble fila: el DO deduplica por uuid, y el GAS también.
+      try { resp = await _postPedido(entry.payload); }
       catch(e){ entry.intentos = (entry.intentos || 0) + 1; _colaPut(entry); break; }   // ancora senza rete: al prossimo giro
       if (resp && resp.ok) { _pedidoRegistrarExito(entry, resp); continue; }
       if (resp && resp.need === 'mesa_confirmar') {
