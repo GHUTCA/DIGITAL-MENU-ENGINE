@@ -1081,9 +1081,36 @@ html.vestido2 body.theme-dark[data-fascia-menu="tarde"] .v2-menu-draw svg rect:f
    stessa altezza (84), quindi la foto è quadrata per costruzione e la
    lista prende un ritmo regolare invece di ballare riga per riga. Il nome
    lungo si chiude su due righe coi puntini, come già fa la descrizione. */
-html.vestido2 .v2-fila{ height:84px; min-height:84px }
+/* 🩹 v2.87.0 · LA CELLA NON ESPLODE PIÙ ─────────────────────────────────
+   Alberto, 06-ago col menù del giorno acceso: «le descrizioni stan
+   esplodendo fuori dalla cella». Misurato sul vivo (144 righe, mesa 83):
+   **13 righe rotte, e sono ESATTAMENTE le 13 del Menú del Día** — `.b`
+   chiedeva 123 px (141 col nome su due righe) dentro una riga bloccata a
+   84, e `overflow:hidden` tagliava a metà l'ultima riga di testo.
+   La causa non è la descrizione: è la RIGA DEL PREZZO. Quelle 13 hanno
+   quattro pezzi in fila — `15.000` barrato + `11.900` + 🍽️ Menù del
+   Giorno + elige al agregar = 271 px di contenuto in una colonna larga
+   **175** (il `＋` si prende il resto). Con `flex-wrap:wrap` diventavano
+   tre righe = 66 px di solo prezzo.
+   📌 La lezione: `height` fisso + `overflow:hidden` non è un contenitore,
+   è una **ghigliottina**. Regge finché il contenuto non cresce, e quando
+   cresce non lo dice — lo taglia. Un tetto si mette con `min-height`, e
+   quello che eccede fa crescere la cella.
+   Tre mosse, in ordine di guadagno:
+   ① `min-height` invece di `height` — la riga può crescere, nessun taglio;
+   ② i tag più stretti (9,5 px, padding 5) — 15 px risparmiati per tag;
+   ③ via il 🍽️ dal tag della riga (vale 15 px, e il tag è già verde e
+      scritto): così `15.000 11.900 Menù del Giorno` sta in 171 ≤ 175 e la
+      riga del prezzo torna a due righe invece di tre.
+   📏 Risultato misurato dopo la cura: **0 righe tagliate su 144** ·
+   126 righe restano a 84 px (il ritmo non si muove) · 18 crescono a 95-96.
+   La foto resta larga 84 e `align-self:stretch`: sulle 18 righe alte è
+   84×95 con `object-fit:cover` — un ritaglio, non una deformazione. */
+html.vestido2 .v2-fila{ min-height:84px }
 html.vestido2 .v2-fila .ph{ width:84px; flex:0 0 84px }
 html.vestido2 .v2-fila .b{ min-width:0; overflow:hidden }
+html.vestido2 .v2-fila .pr{ row-gap:3px; column-gap:6px; margin-top:2px }
+html.vestido2 .v2-fila .v2-tagx{ font-size:9.5px; padding:1.5px 5px; white-space:nowrap }
 html.vestido2 .v2-fila .nom{
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
   overflow:hidden; line-height:1.2;
@@ -5506,7 +5533,7 @@ html.vestido2 #bienvenidaSplash.bv2.bv2-noche .bv2-poi{color:rgba(241,228,210,.5
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.86.1 · la bienvenida promete la hora en que se puede venir (no la de la regla) · las bienvenidas: la escala de las ocasiones · 06ago</span>
+<span id="ver" hidden>menu2 · v2.87.0 · la cella non esplode più: la riga cresce invece di tagliare (13 righe del Menú del Día) · 06ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10632,7 +10659,11 @@ function renderProductCard(p){
     : catEmoji;
   const tags = [
     isDosPorUno ? `<span class="v2-tagx v2-tag2x1">2x1</span>` : '',
-    isAlmuerzoActivo ? `<span class="v2-tagx v2-tagmenu">🍽️ ${getLang('group_almuerzo')||'Menú del Día'}</span>` : '',
+    // v2.87.0 · senza 🍽️: nella RIGA quel piattino costava 15 px di larghezza
+    // (misurati) e con essi la riga del prezzo passava da due a tre capi —
+    // cioè la cella esplodeva. Il tag è già verde, contornato e scritto: dice
+    // la stessa cosa. Nella scheda e nell'intestazione del gruppo l'emoji resta.
+    isAlmuerzoActivo ? `<span class="v2-tagx v2-tagmenu">${getLang('group_almuerzo')||'Menú del Día'}</span>` : '',
     isPushed ? `<span class="v2-tagx v2-tagpush">★ ${pushFrase}</span>` : '',
     v2Preguntas(p).length ? `<span class="v2-tagx v2-tagq">elige al agregar</span>` : '',
   ].join('');
