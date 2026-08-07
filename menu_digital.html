@@ -5644,7 +5644,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.89.0 · la riga de quien está sentado (una sola vez) · la campanilla pregunta qué necesitas · 07ago</span>
+<span id="ver" hidden>menu2 · v2.90.0 · el beacon de apertura: quien abre la carta ya se ve · 07ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7593,6 +7593,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateCartBadge();
   hideLoading();
   try{ bvMesaMuestra(); }catch(e){}   // v2.89.0 · la riga di chi è seduto
+  try{ menuAbiertoBeacon(); }catch(e){}   // v2.90.0 · la misura: quien abre la carta
 
   // v1.13 · S6 · attendo bienvenida (era parallela al menu) e mostro splash se applicabile
   // Aspetto un tick perché ritmo+DJ devono prima arrivare per popolare slogan+DJ ribbon NOCHE
@@ -14055,6 +14056,25 @@ function coachCampanillaFin(){
 }
 
 /* ═ v2.89.0 · la riga di chi è seduto · UNA VOLTA SOLA ════════════ */
+
+/* ═ v2.90.0 · LA MISURA: el beacon de apertura ═════════════════
+   Pedido de Alberto (07-ago): «praticamente tutti i tavoli aprono il menu,
+   ma non tutti passano dal menu». El que abria y no pedia era INVISIBLE.
+   UN beacon por mesa-sesion (guardia local de 90 min: reabrir la carta
+   durante la misma comida NO cuenta dos veces), fire-and-forget como la
+   campanilla — jamas bloquea el boot, jamas espera respuesta. */
+function menuAbiertoBeacon(){
+  if(!MESA_ID || IS_VETRINA) return;
+  try{
+    const k = 'pinsita_abierto_' + LOCAL_ID + '_' + MESA_ID;
+    const last = +(localStorage.getItem(k) || 0);
+    if(Date.now() - last < 90*60*1000) return;
+    localStorage.setItem(k, String(Date.now()));
+    navigator.sendBeacon(BRAND.gas_url || GAS_URL,
+      JSON.stringify({ action:'menuAbierto', local: LOCAL_ID, mesa: MESA_ID, ts: Date.now() }));
+  }catch(e){}
+}
+
 function bvMesaMuestra(){
   if(!MESA_ID || IS_VETRINA) return;                 // solo chi è al tavolo
   if(!document.documentElement.classList.contains('vestido2')) return;
