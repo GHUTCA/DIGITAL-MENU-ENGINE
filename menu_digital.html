@@ -1011,8 +1011,22 @@ html.vestido2 .v2-fila{
 html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-menu="tarde"]) .v2-fila{
   box-shadow:0 0 0 1px rgba(255,150,70,.16), 0 2px 10px -5px rgba(0,0,0,.7);
 }
+/* 🍽 v2.88.0 · LA FOTO È UN QUADRATO, E RESTA UN QUADRATO.
+   Alberto, 07-ago: «la sezione del testo mangia la foto, taglia un bordo
+   del piatto, orribile». Aveva ragione, ed era una conseguenza non vista
+   del v2.87.0: tolto l'`height` fisso, la riga cresce col testo — e la
+   foto, che era `align-self:stretch`, cresceva con lei restando larga 84.
+   📏 Misurato sul vivo col menù del giorno acceso (139 righe): 13 righe a
+   84 px, 79 a 95-97 e **47 a 115**. Su una riga da 115 il piatto veniva
+   scalato per coprire 84×115 e `object-fit:cover` gli mangiava **18% per
+   lato** — il bordo del piatto, esattamente quello che si vedeva.
+   📌 La regola: un ritratto non si allunga per riempire la cornice. La
+   cornice tiene la sua forma e, se la riga cresce, cresce lo SFONDO della
+   card — mai il soggetto. `flex-start` invece di `stretch`: la foto resta
+   agganciata in alto, allineata al nome, e il quadrato è garantito per
+   costruzione qualunque cosa faccia il testo. */
 html.vestido2 .v2-fila .ph{
-  width:84px; height:auto; align-self:stretch;
+  width:84px; height:84px; align-self:flex-start;
   border-radius:0;             /* lo dà la card: così combacia sempre */
   flex:0 0 84px;
 }
@@ -5530,10 +5544,34 @@ html.vestido2 #bienvenidaSplash.bv2 .bv2-poi{
   margin-top:9px; font-size:11.5px; color:#6B5A4F; text-align:center; line-height:1.5;
 }
 html.vestido2 #bienvenidaSplash.bv2.bv2-noche .bv2-poi{color:rgba(241,228,210,.5)}
+
+/* ═ v2.88.0 · LA CONFERMA NON SI CERCA ═══════════════════════════════════
+   Alberto, 07-ago: «il primo click non ti porta sulla seconda conferma,
+   questa è appiccicata in basso e bisogna scrollare per vederla».
+   Il click PARTE — `renderRevisionPedido` disegna subito — ma disegna la
+   lista completa del pedido e i due bottoni SOTTO di essa, dentro un
+   foglio alto al massimo 85dvh che scorre. Con un carrello di 6-7 righe
+   l'azione finisce sotto la piega: il cliente vede il riepilogo, non vede
+   il verde, e crede che il tocco non sia servito.
+   📌 La regola: **quando chiedi una conferma, il modo di darla non si
+   cerca.** Se l'azione è fuori campo la schermata sta dicendo «rileggi»
+   quando voleva dire «conferma». Ora la lista scorre e la coppia di
+   bottoni resta agganciata al fondo del foglio, sempre visibile — il
+   riepilogo si legge scorrendo, la decisione è sempre lì.
+   (Il velo sfumato sopra i bottoni dice che sotto la lista continua: un
+   bordo netto avrebbe fatto sembrare finita una lista che prosegue.) */
+html.vestido2 #cartSheet .cart-recap .v2-seguro-row{
+  position:sticky; bottom:0; z-index:3;
+  margin-top:0; padding:12px 0 4px;
+  background:linear-gradient(to top, var(--brand-surface) 62%, transparent);
+}
+/* la lista non deve mai spingere i bottoni fuori: il suo stacco dal fondo
+   lo dà ora la barra appiccicata, non un margine fisso */
+html.vestido2 #cartSheet .cart-recap .cart-recap-list{ margin-bottom:6px }
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.87.0 · la cella non esplode più: la riga cresce invece di tagliare (13 righe del Menú del Día) · 06ago</span>
+<span id="ver" hidden>menu2 · v2.88.0 · la foto torna un quadrato (il piatto non si taglia più) · la riga del prezzo non va a capo · la conferma non si cerca · 07ago</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10665,7 +10703,19 @@ function renderProductCard(p){
     // la stessa cosa. Nella scheda e nell'intestazione del gruppo l'emoji resta.
     isAlmuerzoActivo ? `<span class="v2-tagx v2-tagmenu">${getLang('group_almuerzo')||'Menú del Día'}</span>` : '',
     isPushed ? `<span class="v2-tagx v2-tagpush">★ ${pushFrase}</span>` : '',
-    v2Preguntas(p).length ? `<span class="v2-tagx v2-tagq">elige al agregar</span>` : '',
+    /* v2.88.0 · «elige al agregar» ESCE DALLA RIGA e resta nella scheda.
+       📏 È il pezzo che faceva esplodere il ritmo: nella riga del prezzo
+       costa 78 px + 6 di stacco, e a 375 px di telefono lo spazio utile è
+       ~196. Col menù del giorno acceso la riga chiede
+       `15.000` + `11.900` + `Menú del Día` + `elige al agregar` = **259 px**
+       → andava a capo, la riga cresceva di 20 px, e sono le 47 righe da
+       115 misurate stamattina. Senza: **174 px, una riga sola.**
+       📌 Ma la ragione vera non è lo spazio, è il mestiere: la lista serve
+       a SCEGLIERE, la scheda serve a CONFIGURARE. Un'istruzione su cosa
+       succederà quando tocchi sta dove si tocca — e ripetuta su decine di
+       righe aveva già smesso di essere letta (è la lezione del v2.54.0:
+       «se il contrassegno ce l'hanno tutti, ha smesso di contrassegnare»).
+       Chi tocca ＋ trova comunque la domanda: nessuna funzione persa. */
   ].join('');
   return `
     <div class="v2-fila" data-id="${p.id}" style="position:relative">
