@@ -8787,10 +8787,12 @@ function bvScalaAbiertoCalc(franja){
       out.cta = getLang('bv_ver_menu') || 'Ver el Menú del Día';
       BIENVENIDA_CTA_TARGET = '__ALMUERZO__';
     } else {
-      // ③ l'ultimo gradino, e a locale aperto non è un appuntamento: è la porta
+      // ③ l'ultimo gradino, e a locale aperto non è un appuntamento: è la porta.
+      //    `ghost` perché qui il bottone pieno direbbe la STESSA cosa del ghost
+      //    che c'è sempre sotto — due bottoni identici sono rumore (VB 07-ago).
       out.eb  = getLang('bv_ahora') || 'Ahora';
       out.tit = getLang('bv_estamos_abiertos') || 'Estamos abiertos';
-      out.cta = getLang('bv_mirar') || 'Mirar la carta';
+      out.ghost = true;
       BIENVENIDA_CTA_TARGET = '';
     }
   }
@@ -8802,7 +8804,9 @@ function bvScalaAbiertoCalc(franja){
     const viva = ds.find(d => d.en_vivo && d.nombre);
     if(viva) dj = '🎧 ' + viva.nombre + ' ' + (getLang('bv_en_cabina') || 'en cabina');
   }catch(e){}
-  const prox = fr.find(f => f.id !== 'CERRADO' && f.propuesta_titulo && f.hora_inicio > hhmm);
+  // mai annunciare come «prossima» quella che stai già vivendo (visto nel collaudo)
+  const prox = fr.find(f => f.id !== 'CERRADO' && f.id !== franja.id &&
+                            f.propuesta_titulo && f.hora_inicio > hhmm);
   const proxTit = prox ? ((lang === 'pt' && prox.pt && prox.pt.propuesta_titulo) || prox.propuesta_titulo) : '';
   const dopo = prox ? ((getLang('bv_despues') || 'Después') + ' · ' + prox.hora_inicio + ' · ' + proxTit) : '';
   out.poi = dj && dopo ? (dj + ' · ' + dopo) : (dj || dopo);
