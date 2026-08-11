@@ -332,6 +332,13 @@
     else if(localStorage.getItem('pinsita_mods2') === '1') on = true;
   }catch(e){}
   window.MODS2_ON = on;
+  /* v2.82.0 · chi ha messo `?mods2=` nell'URL sta PROVANDO: la sua scelta
+     esplicita vince anche sul server (è così che si collauda un motore mentre
+     la sala gira con l'altro). Senza parametro, comanda il server — ed è
+     l'unico modo di accendere per tutti, e soprattutto di SPEGNERE per tutti
+     in 30 secondi. Un interruttore che vive in mille localStorage non è un
+     interruttore: è mille interruttori. */
+  window.MODS2_FORZADO = (q === '1' || q === '0');
 })();
 </script>
 <style>
@@ -5655,7 +5662,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.93.0 · la bienvenida a local ABIERTO: la misma escala, en presente · 09ago</span>
+<span id="ver" hidden>menu2 · v2.94.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -11863,6 +11870,19 @@ function applyPreciosRegla(data){
   if(!data || !data.ok) return;
   PRECIOS_REGLA_MAP = data.reglas || {};
   MODS_RECARGO = data.mods_recargo || null;   // v2.81.0 · il ricarico sui delta (cancello v3.66.0)
+  /* v2.82.0 · L'INTERRUTTORE DEI MODIFICADORES arriva dal server, in questo
+     stesso viaggio (zero chiamate nuove). Chi ha forzato `?mods2=` resta dov'è.
+     Se si accende adesso e il vocabolario non c'è ancora, si carica al volo:
+     all'avvio `loadModificadores()` era un no-op perché il flag era spento, e
+     senza questa riga il motore resterebbe acceso ma MUTO — il modo peggiore
+     di accendere qualcosa. */
+  if(!window.MODS2_FORZADO){
+    const srv = (data.mods2_on === true);
+    if(srv !== window.MODS2_ON){
+      window.MODS2_ON = srv;
+      if(srv && !MODS2_VOC) loadModificadores();
+    }
+  }
     // v2.16 · menu_info: carta d'identità del menú (estado/precio/giorni) —
     // alimenta i token bienvenida, indipendente dalla fascia
     MENU_INFO = data.menu_info || null;
