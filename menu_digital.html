@@ -5662,7 +5662,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.94.0</span>
+<span id="ver" hidden>menu2 · v2.95.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -13073,18 +13073,32 @@ async function _enviarPedidoDigitalInner(opts){
   // parte una riga in più a $0 con id/cat veri → _estacionDe la manda a Barra.
   // Etichetta legacy senza prodotto → resta solo dentro il nombre (com'era).
   (function(){
+    /* ═══ v2.86.0 · 12-ago · LA BIBITA CHE NON ARRIVAVA MAI ALLA BARRA ═══════
+       La lookup era `MENU_OP_MAP[i.op]` — l'op INTERO. Ma dal v1.42 l'op può
+       essere composto: «Coca Zero / Pepsi Zero · Tres cuartos» (bebida +
+       término, o + salsa). La chiave composta non matcha, il `return` era
+       muto, e la bebida spariva: MAI un item per la barra, MAI una riga nel
+       cervello. Misurato sul fossile: 57 perse su 64 in un giorno, ~400 in 17
+       giorni (89%), tutte dal QR, tutte sui piatti che fanno una seconda
+       domanda. Due feature giuste da sole (v2.17 esplosione bebida · v1.42
+       término), rotte INSIEME — e nessuna delle due teste se n'è accorta,
+       perché il piatto arrivava sempre.
+       Cura: si cerca OGNI pezzo dell'op — la bebida matcha la mappa, il
+       término/salsa no e resta dov'era (nel testo per il cuoco). */
     const bebidas = {};
     snapshot.items.forEach(i => {
       if(!i.es_menu || !i.op) return;
-      const opInfo = MENU_OP_MAP[i.op];
-      if(!opInfo) return;
-      const qty = i.qty||1;
-      if(bebidas[opInfo.id]){ bebidas[opInfo.id].qty += qty; bebidas[opInfo.id].llevar += qty; }
-      else bebidas[opInfo.id] = {
-        id: opInfo.id,
-        nombre: (getLang('group_almuerzo')||'Menú del Día') + ' · ' + opInfo.nombre,
-        precio: 0, qty: qty, llevar: qty,
-        op: '', termino: '', es_menu: true, promo: '', cat: opInfo.cat };
+      String(i.op).split(' · ').forEach(parte => {
+        const opInfo = MENU_OP_MAP[parte.trim()];
+        if(!opInfo) return;
+        const qty = i.qty||1;
+        if(bebidas[opInfo.id]){ bebidas[opInfo.id].qty += qty; bebidas[opInfo.id].llevar += qty; }
+        else bebidas[opInfo.id] = {
+          id: opInfo.id,
+          nombre: (getLang('group_almuerzo')||'Menú del Día') + ' · ' + opInfo.nombre,
+          precio: 0, qty: qty, llevar: qty,
+          op: '', termino: '', es_menu: true, promo: '', cat: opInfo.cat };
+      });
     });
     Object.keys(bebidas).forEach(k => items.push(bebidas[k]));
   })();
