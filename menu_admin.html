@@ -375,7 +375,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">v2.6 · 18jul</div>
+    <div class="hub-footer-version" id="ver">v2.7 · 12ago</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -488,7 +488,7 @@
   <div class="form-screen">
     <label class="input-label">Franja</label>
     <div class="lst-chips" style="background:transparent;border:none;padding:0 0 10px" id="franjaChips"></div>
-    <input type="text" class="input-field" id="asignarFranja" placeholder="19–cierre" maxlength="20">
+    <input type="text" class="input-field" id="asignarFranja" placeholder="19:00-03:00" maxlength="20">
     <label class="input-label">Mesero <span class="opt">(vacío = liberar la franja)</span></label>
     <!-- v2.2 · STAFF_SALA (#18): dropdown dall'anagrafica — il nome non si digita
          più. Il campo testo resta: fallback (GAS pre-v3.5.0) e via manuale multi-nome. -->
@@ -1374,7 +1374,34 @@ async function undoLastPriceChange(){
 /* ═════ TURNO & PLAZAS · v2.0 · cantiere MENU (spec 03-jul) ═════ */
 const esc = s => (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const encA = s => encodeURIComponent((s||'').toString());
-const FRANJAS_SUGERIDAS = ['19–cierre','19–00','00–cierre'];
+/* ═════ LE FRANJE · v2.7 · 12-ago-2026 — «basta cambiare i chip» (Alberto) ═════
+   I tre chip di prima erano `19–cierre · 19–00 · 00–cierre`, e due su tre
+   dicevano «cierre». Sembrava innocuo ed era la causa: `_franjaVenceMs` nel
+   bound MENU torna `null` per qualunque testo che contenga «cierre» — cioè
+   **quella franja non scade MAI**. Ieri sera 10 assegnazioni su 14 dicevano
+   `19–cierre`: nessuno usciva dal turno da solo, e restare dentro il turno era
+   esattamente il problema da curare.
+   🎓 Il chip non era un suggerimento: era la decisione. Se un campo ha dei
+      chip, quasi nessuno scrive a mano — e il valore piu' comodo diventa il
+      valore di tutti. Un default e' una regola travestita da comodita'.
+
+   Le ore sono state scelte da Alberto e verificate contro `HORARIOS` (12-ago):
+   il locale apre alle 08:00, la barra chiude all'**01:30** (L·M·X·D) e alle
+   **02:30** (J·V·S). Le tre franje della sera finiscono alle 03:00, cioe'
+   DOPO l'ultima chiusura: nessuno viene chiuso fuori mentre il locale serve.
+   ⚠️ Chi resta oltre la sua ora trova `franja_vencida` e ha la sua via
+      d'uscita di sempre, «Sigo en sala +1h». Quello e' il comportamento
+      voluto, non un effetto collaterale: e' cosi' che si esce dal turno.
+   Il campo resta scrivibile a mano: le eccezioni esistono e non si tolgono. */
+const FRANJAS_SUGERIDAS = ['10:00-18:30','12:00-18:30','18:30-03:00','19:00-03:00','19:30-03:00'];
+/* 🔴 IL DEFAULT NON E' IL PRIMO DELLA LISTA, ED E' VOLUTO.
+   La lista sta in ordine cronologico perche' e' come la legge un umano; ma il
+   valore precompilato dev'essere il caso VERO piu' frequente — la sera. Col
+   default preso da `[0]` un JL che non tocca il campo assegnerebbe un mesero
+   della sera a un turno finito alle 18:30, cioe' **gia' scaduto**: bloccato
+   al primo pedido. Regola zero gesti JL: se nessuno fa niente, il default
+   deve essere giusto. */
+const FRANJA_DEFAULT = '19:00-03:00';
 
 function fechaLarga(){
   const s = new Date().toLocaleDateString('es-CL',{ weekday:'long', day:'numeric', month:'long' });
@@ -1716,7 +1743,7 @@ function openAsignar(plazaEnc, franjaEnc, meseroEnc){
   const mesero = decodeURIComponent(meseroEnc||'');
   STATE.asignarCtx = { plaza };
   document.getElementById('asignarSub').textContent = plaza;
-  document.getElementById('asignarFranja').value = franja || FRANJAS_SUGERIDAS[0];
+  document.getElementById('asignarFranja').value = franja || FRANJA_DEFAULT;
   document.getElementById('franjaChips').innerHTML = FRANJAS_SUGERIDAS.map(f=>
     `<button class="lst-chip" onclick="document.getElementById('asignarFranja').value='${f}'">${f}</button>`).join('');
   // v2.2 · primo paint con cache (o fallback), poi re-render solo se il fetch cambia le carte
