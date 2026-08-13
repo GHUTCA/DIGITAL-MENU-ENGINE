@@ -5662,7 +5662,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.96.0</span>
+<span id="ver" hidden>menu2 · v2.97.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -13003,6 +13003,9 @@ async function regaloEnviar(prodId){
     const payload = {
       action: 'enviarPedido', local: LOCAL_ID, uuid: _nuevoUuid(),
       mesa: MESA_ID, total: precio,
+      // v2.97.0 · la provenienza viaggia anche col regalo (stessi campi del pedido)
+      idioma: ((navigator.language || (navigator.languages || [])[0] || '') + '').slice(0, 8),
+      idioma_menu: (typeof LANG_CODE !== 'undefined' && LANG_CODE) ? LANG_CODE : '',
       precios_epoch: PRECIOS_EPOCH || '',   // v2.80.0 · il cancello dell'epoch
       ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
       member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
@@ -13147,6 +13150,15 @@ async function _enviarPedidoDigitalInner(opts){
   const payloadPedido = {
     action: 'enviarPedido', local: LOCAL_ID, uuid: uuid,
     mesa: MESA_ID, total: snapshot.total,
+    /* v2.97.0 · LA PROVENIENZA DEL TELEFONO (Alberto, 13-ago: «il dato di
+       stranieri») — due segnali che il client ha già in mano: la lingua del
+       browser grezza (pt-BR = il telefono viene dal Brasile) e quella in cui
+       il cliente ha LETTO il menù (LANG_CODE, catena v1.24). Additivi: il GAS
+       li ignora finché non ha la colonna (r.13154, garanzia già scritta).
+       ⚠️ pt-BR è un TELEFONO in portoghese, non un passaporto: nei report si
+       conta il flusso, non si etichetta la persona. */
+    idioma: ((navigator.language || (navigator.languages || [])[0] || '') + '').slice(0, 8),
+    idioma_menu: (typeof LANG_CODE !== 'undefined' && LANG_CODE) ? LANG_CODE : '',
     precios_epoch: PRECIOS_EPOCH || '',   // v2.80.0 · il cancello dell'epoch
     ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
     member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
