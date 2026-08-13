@@ -5662,7 +5662,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.95.0</span>
+<span id="ver" hidden>menu2 · v2.96.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10081,14 +10081,29 @@ function formatPriceWithSymbol(n){
   return s + num.toFixed(2);
 }
 
+/* v2.96.0 · EL TACHADO ES GRAMÁTICA DE DESCUENTO, NO DE RECARGO.
+   El precio tachado dice una sola cosa: «antes costaba más, hoy te cuesta menos».
+   Cuando el precio SUBE — el recargo de noche ×1,10 — mostrar el precio viejo
+   tachado al lado del nuevo le está enseñando al cliente el aumento, línea por
+   línea, en cada producto de la carta. Es una regla de negocio convertida en
+   reproche: nadie enseña la subida al que está por pedir.
+   Regla, de aquí en adelante: **el tachado se muestra SOLO si el precio baja.**
+   Si sube, se muestra el precio nuevo y basta — que es exactamente lo que hace
+   cualquier carta de papel cuando cambian los precios. */
+function tachadoVisible(nuevo, base){
+  return parsePrice(nuevo) < parsePrice(base);
+}
+
 function getDisplayPrice(p){
   if(ACTIVE_MEMBER && p.precio_member)
-    return { main: formatPrice(p.precio_member), orig: formatPrice(p.precio) };
-  // v1.23 · S13fix · prezzo per fascia (PRECIOS_REGLA) · regola attiva ADESSO sovrascrive base,
-  // mostra barrato (prezzo base) + nuovo. Priorità: member > regola-fascia > base.
+    return { main: formatPrice(p.precio_member),
+             orig: tachadoVisible(p.precio_member, p.precio) ? formatPrice(p.precio) : null };
+  // v1.23 · S13fix · prezzo per fascia (PRECIOS_REGLA) · regola attiva ADESSO sovrascrive base.
+  // v2.96.0 · il barrato appare solo se la regola ABBASSA. Priorità: member > regola-fascia > base.
   const regla = PRECIOS_REGLA_MAP[p.id];
   if(regla && regla.precio > 0 && parsePrice(regla.precio) !== parsePrice(p.precio)){
-    return { main: formatPrice(regla.precio), orig: formatPrice(p.precio) };
+    return { main: formatPrice(regla.precio),
+             orig: tachadoVisible(regla.precio, p.precio) ? formatPrice(p.precio) : null };
   }
   return { main: formatPrice(p.precio), orig: null };
 }
@@ -10883,7 +10898,11 @@ function renderProductCard(p){
   // Altri tipi (combo/tabla) = prezzo fisso promo che sostituisce il prezzo.
   const isDosPorUno = promo && (promo.tipo === '2x1' || promo.tipo === 'multiplo');
   const promoPriceMain = (promo && !isDosPorUno) ? formatPrice(promo.precio_final) : prices.main;
-  const promoPriceOrig = (promo && !isDosPorUno) ? formatPrice(p.precio) : prices.orig;
+  // v2.96.0 · una promo normalmente ABBASSA, ma se col recargo acceso il precio_final
+  // finisse sopra il base, il barrato mostrerebbe di nuovo l'aumento: stessa guardia.
+  const promoPriceOrig = (promo && !isDosPorUno)
+    ? (tachadoVisible(promo.precio_final, p.precio) ? formatPrice(p.precio) : null)
+    : prices.orig;
   const badgesHtml = (promo || badges || almuerzoBadge || pushBadge)
     ? `<div class="card-badges">${pushBadge}${almuerzoBadge}${promoBadge}${badges || ''}</div>`
     : '';
@@ -11055,12 +11074,15 @@ function openDetail(id){
   // v1.11 · Nella scheda dettaglio (NON nelle card list) reintroduco simbolo $ per chiarezza.
   // Il prezzo qui è isolato e grande · disambiguazione utile, niente sovraccarico visivo.
   const prices = ACTIVE_MEMBER && p.precio_member
-    ? { main: formatPriceWithSymbol(p.precio_member), orig: formatPriceWithSymbol(p.precio) }
+    ? { main: formatPriceWithSymbol(p.precio_member),
+        orig: tachadoVisible(p.precio_member, p.precio) ? formatPriceWithSymbol(p.precio) : null }
     : (() => {
         // v1.23 · S13fix · prezzo per fascia anche nella scheda dettaglio
+        // v2.96.0 · anche qui il barrato solo se il prezzo SCENDE (mai col recargo)
         const regla = PRECIOS_REGLA_MAP[p.id];
         if(regla && regla.precio > 0 && parsePrice(regla.precio) !== parsePrice(p.precio)){
-          return { main: formatPriceWithSymbol(regla.precio), orig: formatPriceWithSymbol(p.precio) };
+          return { main: formatPriceWithSymbol(regla.precio),
+                   orig: tachadoVisible(regla.precio, p.precio) ? formatPriceWithSymbol(p.precio) : null };
         }
         return { main: formatPriceWithSymbol(p.precio), orig: null };
       })();
