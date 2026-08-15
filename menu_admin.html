@@ -375,7 +375,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v2.9</div>
+    <div class="hub-footer-version" id="ver">menu_admin v3.0</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -1711,8 +1711,12 @@ function renderMeseroControl(meseroActual){
   sel.dataset.actual = meseroActual || '';
   sel.innerHTML =
     '<option value="">— libre —</option>' +
-    (meseroActual && !esMulti
-      ? `<option value="__mas__">👥 agregar 2ª persona a ${meseroActual.replace(/"/g,'&quot;')}</option>` : '') +
+    /* v3.0 · SEMPRE presente, senza condizioni. Il v2.8 la mostrava solo se la
+       plaza aveva già un titolare all'apertura, il v2.9 aggiungeva un bottone
+       che compare dopo la scelta: due vie che dipendono dallo STATO, e sul
+       terreno nessuna delle due si è vista. Una voce che c'è solo a volte è
+       una voce che non c'è: qui non dipende più da niente. */
+    `<option value="__mas__">👥 dos personas en esta plaza…</option>` +
     '<option value="__manual__">✍️ escribir a mano (varios, coma)</option>' +
     '<option value="__nuevo__">➕ agregar mesero nuevo…</option>' +
     '<option value="" disabled>──────────────</option>' +
@@ -1758,7 +1762,11 @@ function asignarSegunda(){
   const sel = document.getElementById('asignarMeseroSel');
   const inp = document.getElementById('asignarMesero');
   const btnMas = document.getElementById('asignarMasBtn');
-  const ya = (sel.dataset.actual || sel.value || '').trim();
+  /* v3.0 · il primo nome può venire da tre posti: chi era assegnato all'apertura,
+     chi è stato appena scelto nella tendina, o niente (franja che si sta armando
+     da zero — allora il campo si apre vuoto e si scrivono tutti e due). */
+  let ya = (sel.dataset.actual || '').trim();
+  if (!ya && sel.value && sel.value.indexOf('__') !== 0) ya = sel.value.trim();
   if (btnMas) btnMas.style.display = 'none';
   document.getElementById('staffAltaBox').style.display = 'none';
   sel.style.display = 'none'; inp.style.display = '';
