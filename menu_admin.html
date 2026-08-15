@@ -375,7 +375,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v2.8</div>
+    <div class="hub-footer-version" id="ver">menu_admin v2.9</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -493,6 +493,12 @@
     <!-- v2.2 · STAFF_SALA (#18): dropdown dall'anagrafica — il nome non si digita
          più. Il campo testo resta: fallback (GAS pre-v3.5.0) e via manuale multi-nome. -->
     <select class="input-field" id="asignarMeseroSel" style="display:none" onchange="onMeseroSelChange()"></select>
+    <!-- v2.9 · IL BOTTONE DELLA SECONDA PERSONA. La voce nella tendina non basta:
+         si costruisce all'APERTURA della schermata, quindi su una franja ancora
+         vuota (la sera che si sta armando) non c'è nessuno a cui aggiungere, e
+         dopo aver scelto il primo la lista non si ricostruisce. Questo bottone
+         compare appena un nome è selezionato — dove sta l'occhio, quando serve. -->
+    <button class="lst-chip" id="asignarMasBtn" style="display:none;margin:2px 0 8px" onclick="asignarSegunda()">👥 agregar 2ª persona</button>
     <input type="text" class="input-field" id="asignarMesero" placeholder="Nombre" maxlength="30" autocomplete="off">
     <div id="staffAltaBox" style="display:none">
       <label class="input-label">Nuevo mesero · nombre</label>
@@ -1685,7 +1691,9 @@ async function loadStaff(force){
 function renderMeseroControl(meseroActual){
   const sel = document.getElementById('asignarMeseroSel');
   const inp = document.getElementById('asignarMesero');
+  const btnMas = document.getElementById('asignarMasBtn');
   document.getElementById('staffAltaBox').style.display = 'none';
+  if (btnMas) btnMas.style.display = 'none';
   if (!STAFF_CACHE || !STAFF_CACHE.length) {
     sel.style.display = 'none'; inp.style.display = ''; inp.value = meseroActual || '';
     return;
@@ -1716,6 +1724,8 @@ function renderMeseroControl(meseroActual){
     sel.style.display = ''; inp.style.display = 'none'; inp.value = '';
     sel.value = meseroActual || '';
     if (sel.value === '__nuevo__' || sel.value === '__manual__') sel.value = '';
+    // v2.9 · plaza già assegnata all'apertura → il bottone c'è subito
+    if (btnMas && sel.value) btnMas.style.display = '';
   }
 }
 
@@ -1727,17 +1737,33 @@ function onMeseroSelChange(){
      virgola pronta — si scrive solo il secondo. È lo stesso `__manual__`, ma
      senza dover ricordare la sintassi. ⚠️ Il server valida OGNI nome contro
      STAFF_SALA: un nome sbagliato non scrive niente, risponde e basta. */
-  if (sel.value === '__mas__') {
-    const ya = (sel.dataset.actual || '').trim();
-    sel.style.display = 'none'; inp.style.display = '';
-    inp.value = ya ? ya + ',' : '';
-    inp.focus(); try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch (e) {}
-    alta.style.display = 'none';
-    return;
-  }
+  const btnMas = document.getElementById('asignarMasBtn');
+  if (btnMas) btnMas.style.display = 'none';
+  if (sel.value === '__mas__') { asignarSegunda(); return; }
   if (sel.value === '__manual__') { sel.style.display = 'none'; inp.style.display = ''; inp.value = ''; inp.focus(); }
   else if (sel.value === '__nuevo__') { alta.style.display = ''; document.getElementById('staffAltaNombre').focus(); }
-  else alta.style.display = 'none';
+  else {
+    alta.style.display = 'none';
+    /* v2.9 · scelto un nome VERO → da qui si può aggiungere il secondo, e il
+       bottone lo dice. `dataset.actual` segue la scelta, non l'apertura: era
+       questo il buco (franja vuota = nessun titolare all'apertura = nessuna
+       via per il secondo). */
+    if (sel.value) { sel.dataset.actual = sel.value; if (btnMas) btnMas.style.display = ''; }
+  }
+}
+
+/* v2.9 · la seconda persona: il campo si apre col primo nome e la virgola già
+   scritti, cursore in fondo. Il server valida OGNI nome contro STAFF_SALA. */
+function asignarSegunda(){
+  const sel = document.getElementById('asignarMeseroSel');
+  const inp = document.getElementById('asignarMesero');
+  const btnMas = document.getElementById('asignarMasBtn');
+  const ya = (sel.dataset.actual || sel.value || '').trim();
+  if (btnMas) btnMas.style.display = 'none';
+  document.getElementById('staffAltaBox').style.display = 'none';
+  sel.style.display = 'none'; inp.style.display = '';
+  inp.value = ya ? ya + ',' : '';
+  inp.focus(); try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch (e) {}
 }
 
 async function confirmStaffAlta(){
