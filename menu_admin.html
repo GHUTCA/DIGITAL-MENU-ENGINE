@@ -375,7 +375,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">v2.7 · 12ago</div>
+    <div class="hub-footer-version" id="ver">menu_admin v2.8</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -1692,12 +1692,24 @@ function renderMeseroControl(meseroActual){
   }
   const esMulti = (meseroActual || '').indexOf(',') >= 0;
   const enLista = !!meseroActual && STAFF_CACHE.some(s => s.nombre === meseroActual);
+  /* v2.8 · 15-ago · DUE PERSONE IN UNA PLAZA: si poteva già (il server spacca
+     sulla virgola dal v3.5.0) ma la voce stava IN FONDO alla tendina, dopo
+     «libre», dodici nomi e «agregar nuevo» — su un telefono non ci arriva
+     nessuno. Alberto oggi: «lo posso fare dal foglio ma non dall'admin».
+     🎓 «C'è» e «si vede» sono due collaudi diversi: un'uscita che non si trova
+     non è un'uscita. Le vie speciali salgono in CIMA, e quando la plaza ha già
+     un titolare la seconda persona si aggiunge con un gesto che si legge da
+     solo, col nome già scritto nel campo. */
+  sel.dataset.actual = meseroActual || '';
   sel.innerHTML =
     '<option value="">— libre —</option>' +
-    STAFF_CACHE.map(s => `<option value="${s.nombre.replace(/"/g,'&quot;')}">${s.nombre}${s.tiene_chat ? ' 🔔' : ''}</option>`).join('') +
-    (meseroActual && !enLista && !esMulti ? `<option value="${meseroActual.replace(/"/g,'&quot;')}">${meseroActual} (fuera del staff)</option>` : '') +
+    (meseroActual && !esMulti
+      ? `<option value="__mas__">👥 agregar 2ª persona a ${meseroActual.replace(/"/g,'&quot;')}</option>` : '') +
+    '<option value="__manual__">✍️ escribir a mano (varios, coma)</option>' +
     '<option value="__nuevo__">➕ agregar mesero nuevo…</option>' +
-    '<option value="__manual__">✍️ escribir a mano (varios, coma)</option>';
+    '<option value="" disabled>──────────────</option>' +
+    STAFF_CACHE.map(s => `<option value="${s.nombre.replace(/"/g,'&quot;')}">${s.nombre}${s.tiene_chat ? ' 🔔' : ''}</option>`).join('') +
+    (meseroActual && !enLista && !esMulti ? `<option value="${meseroActual.replace(/"/g,'&quot;')}">${meseroActual} (fuera del staff)</option>` : '');
   if (esMulti) {   // multi-nome: si edita a mano, il server valida ogni nome
     sel.style.display = 'none'; inp.style.display = ''; inp.value = meseroActual;
   } else {
@@ -1711,6 +1723,18 @@ function onMeseroSelChange(){
   const sel = document.getElementById('asignarMeseroSel');
   const inp = document.getElementById('asignarMesero');
   const alta = document.getElementById('staffAltaBox');
+  /* v2.8 · «agregar 2ª persona»: il campo si apre col nome di chi c'è già e la
+     virgola pronta — si scrive solo il secondo. È lo stesso `__manual__`, ma
+     senza dover ricordare la sintassi. ⚠️ Il server valida OGNI nome contro
+     STAFF_SALA: un nome sbagliato non scrive niente, risponde e basta. */
+  if (sel.value === '__mas__') {
+    const ya = (sel.dataset.actual || '').trim();
+    sel.style.display = 'none'; inp.style.display = '';
+    inp.value = ya ? ya + ',' : '';
+    inp.focus(); try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch (e) {}
+    alta.style.display = 'none';
+    return;
+  }
   if (sel.value === '__manual__') { sel.style.display = 'none'; inp.style.display = ''; inp.value = ''; inp.focus(); }
   else if (sel.value === '__nuevo__') { alta.style.display = ''; document.getElementById('staffAltaNombre').focus(); }
   else alta.style.display = 'none';
