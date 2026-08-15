@@ -375,7 +375,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v3.0</div>
+    <div class="hub-footer-version" id="ver">menu_admin v3.1</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -500,6 +500,13 @@
          compare appena un nome è selezionato — dove sta l'occhio, quando serve. -->
     <button class="lst-chip" id="asignarMasBtn" style="display:none;margin:2px 0 8px" onclick="asignarSegunda()">👥 agregar 2ª persona</button>
     <input type="text" class="input-field" id="asignarMesero" placeholder="Nombre" maxlength="30" autocomplete="off">
+    <!-- v3.1 · I NOMI SI TOCCANO, NON SI DIGITANO (Alberto, 15-ago sera: «devo
+         digitare il nome del secondo invece di selezionarlo dalla lista»).
+         Digitare a mano un nome che il server valida contro STAFF_SALA vuol dire
+         che un refuso è un rifiuto secco, e su un telefono in servizio è la cosa
+         più facile da sbagliare. Il campo resta (fallback e via libera), ma la
+         via normale è toccare. -->
+    <div class="lst-chips" id="asignarChips" style="display:none;background:transparent;border:none;padding:0 0 10px;flex-wrap:wrap"></div>
     <div id="staffAltaBox" style="display:none">
       <label class="input-label">Nuevo mesero · nombre</label>
       <input type="text" class="input-field" id="staffAltaNombre" placeholder="Anthony" maxlength="30" autocomplete="off">
@@ -1692,8 +1699,10 @@ function renderMeseroControl(meseroActual){
   const sel = document.getElementById('asignarMeseroSel');
   const inp = document.getElementById('asignarMesero');
   const btnMas = document.getElementById('asignarMasBtn');
+  const chips = document.getElementById('asignarChips');
   document.getElementById('staffAltaBox').style.display = 'none';
   if (btnMas) btnMas.style.display = 'none';
+  if (chips) chips.style.display = 'none';
   if (!STAFF_CACHE || !STAFF_CACHE.length) {
     sel.style.display = 'none'; inp.style.display = ''; inp.value = meseroActual || '';
     return;
@@ -1724,6 +1733,7 @@ function renderMeseroControl(meseroActual){
     (meseroActual && !enLista && !esMulti ? `<option value="${meseroActual.replace(/"/g,'&quot;')}">${meseroActual} (fuera del staff)</option>` : '');
   if (esMulti) {   // multi-nome: si edita a mano, il server valida ogni nome
     sel.style.display = 'none'; inp.style.display = ''; inp.value = meseroActual;
+    asignarChipsRender();   // v3.1 · plaza già in coppia: i chip mostrano chi c'è
   } else {
     sel.style.display = ''; inp.style.display = 'none'; inp.value = '';
     sel.value = meseroActual || '';
@@ -1771,7 +1781,34 @@ function asignarSegunda(){
   document.getElementById('staffAltaBox').style.display = 'none';
   sel.style.display = 'none'; inp.style.display = '';
   inp.value = ya ? ya + ',' : '';
+  asignarChipsRender();
   inp.focus(); try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch (e) {}
+}
+
+/* v3.1 · i chip riflettono SEMPRE il campo (che resta la verità): si può toccare
+   o scrivere, e le due vie non possono divergere. Il confronto è per slug, così
+   «carlos» e «Carlos» sono la stessa persona e non si aggiunge due volte. */
+function _slugNom(s){ return (s||'').toString().trim().toLowerCase(); }
+function asignarChipsRender(){
+  const cont = document.getElementById('asignarChips');
+  const inp = document.getElementById('asignarMesero');
+  if (!cont) return;
+  if (!STAFF_CACHE || !STAFF_CACHE.length) { cont.innerHTML = ''; cont.style.display = 'none'; return; }
+  const puestos = (inp.value || '').split(',').map(s => s.trim()).filter(Boolean);
+  cont.style.display = '';
+  cont.innerHTML = STAFF_CACHE.map(function (s) {
+    const on = puestos.some(p => _slugNom(p) === _slugNom(s.nombre));
+    return '<button class="lst-chip' + (on ? ' active' : '') + '" onclick="asignarChipTap(this.dataset.n)" data-n="' +
+      s.nombre.replace(/"/g, '&quot;') + '">' + (on ? '✓ ' : '') + s.nombre + (s.tiene_chat ? ' 🔔' : '') + '</button>';
+  }).join('');
+}
+function asignarChipTap(nombre){
+  const inp = document.getElementById('asignarMesero');
+  let arr = (inp.value || '').split(',').map(s => s.trim()).filter(Boolean);
+  const i = arr.findIndex(p => _slugNom(p) === _slugNom(nombre));
+  if (i >= 0) arr.splice(i, 1); else arr.push(nombre);
+  inp.value = arr.join(',');
+  asignarChipsRender();
 }
 
 async function confirmStaffAlta(){
