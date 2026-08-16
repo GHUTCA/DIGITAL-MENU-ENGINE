@@ -375,7 +375,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v3.1</div>
+    <div class="hub-footer-version" id="ver">menu_admin v3.2</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -1860,6 +1860,16 @@ async function confirmAsignar(){
     const r = await withRetry(() => gasPost('asignarPlaza', { pin: lastSavedPin, plaza: ctx.plaza, franja: franja, mesero: mesero }), 'asignarPlaza');
     if (r && r.ok) {
       showToast('success', r.mesero || mesero ? `${ctx.plaza} · ${franja} → ${r.mesero || mesero}` : `${ctx.plaza} · ${franja} liberada`);
+      /* v3.2 · AUT-0003 · LA RICEVUTA DEL TRASPASO: il GAS @243 la risponde
+         da ieri (traspaso:{n,monto,mesas}) e nessuno la mostrava. Il JL che
+         sposta una persona DEVE vedere cosa si è mosso con lei — ~$250k sono
+         passati di mano ieri senza che nessuno schermo lo dicesse. */
+      if (r.traspaso && r.traspaso.n) {
+        const tMesas = (r.traspaso.mesas || []).join(' · ');
+        showToast('success', `🔄 Con ${r.mesero || mesero} pasan ${r.traspaso.n} mesa(s)` +
+          (r.traspaso.monto ? ` · $${Number(r.traspaso.monto).toLocaleString('es-CL')}` : '') +
+          (tMesas ? ` · ${tMesas}` : ''));
+      }
       await loadTurno(); backToTurno();
     } else if (r && r.error === 'mesero_desconocido') {
       showToast('error', `⚠️ ${r.mesero || 'Ese nombre'} no está en el staff — agrégalo con ➕`);
