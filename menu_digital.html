@@ -5662,7 +5662,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.97.0</span>
+<span id="ver" hidden>menu2 · v2.98.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10750,11 +10750,26 @@ function v2LimpiaQ(){
   renderMenu();
 }
 function v2Norm(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+
+/* v2.98.0 · AUT-0015 · LA CARTA ERA CIECA ALLE PROPRIE PAROLE
+   La ricerca guardava nome + descrizione + descrizione tradotta, MAI la categoria.
+   Gli 8 prodotti sushi si chiamano tutti «… Maki»: nessuno ha «sushi» nel nome.
+   Misura di 🛎 SALA (16-ago, 166 prodotti attivi): 142 invisibili col nome della
+   propria categoria = l'86% della carta · 15 categorie su 20 cieche.
+   Il dato è GIÀ nell'oggetto prodotto in memoria: zero rete, zero tab, zero campi nuovi.
+   🔒 Additiva per costruzione: si cerca dentro una stringa PIÙ LUNGA, quindi non può
+   togliere nessun risultato che oggi c'è (stessa garanzia del sovrainsieme di AUT-0012).
+   🧯 Freno: ?cat=0 → il comportamento esatto di prima, senza deploy. */
+const BUSCA_CATEGORIA = (function(){
+  try{ return new URLSearchParams(location.search).get('cat') !== '0'; }catch(e){ return true; }
+})();
+function pCat(p){ return BUSCA_CATEGORIA ? (p && p.categoria || '') : ''; }
+
 function v2SearchHTML(){
   const q = v2Norm(V2_Q);
   const hits = ALL_PRODUCTS.filter(p =>
     !p.agotado && productInFaja(p) &&
-    v2Norm(p.nombre + ' ' + (p.descripcion||'') + ' ' + getProductDesc(p)).indexOf(q) >= 0);
+    v2Norm(p.nombre + ' ' + (p.descripcion||'') + ' ' + getProductDesc(p) + ' ' + pCat(p)).indexOf(q) >= 0);
   let h = `<div class="v2-sec-t">🔎 ${hits.length} para «${escapeHtml(V2_Q)}»</div>`;
   h += hits.length
     ? `<div class="product-list">${hits.map(p=>renderProductCard(p)).join('')}</div>`
@@ -11576,7 +11591,8 @@ function renderSearchOverlayResults(){
     return p.nombre.toLowerCase().includes(q) ||
            (p.descripcion||'').toLowerCase().includes(q) ||
            (getProductDesc(p)||'').toLowerCase().includes(q) ||
-           (p.badges||'').toLowerCase().includes(q);
+           (p.badges||'').toLowerCase().includes(q) ||
+           pCat(p).toLowerCase().includes(q);   // v2.98.0 · AUT-0015 · freno ?cat=0
   }).slice(0, 30); // hard cap a 30 risultati
 
   if(matches.length === 0){
