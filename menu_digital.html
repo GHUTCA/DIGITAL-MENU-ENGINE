@@ -2767,6 +2767,21 @@ body.feature-pedir-directo .card-pedir-btn{display:flex}
 .cart-agregar-btn.added{background:var(--success,#3DAA68);}
 #cartSheet{position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:480px;z-index:401;background:var(--brand-surface);border-radius:20px 20px 0 0;max-height:85dvh;overflow-y:auto;padding:20px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,0.25);transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);}
 #cartSheet.open{transform:translate(-50%,0);}
+/* v3.0.0 · AUT-0030 · la finestra unica sta IN CENTRO, non appoggiata in basso.
+   Il foglio dal basso nasce già sotto il pollice — ma appena il carrello cresce
+   spinge il bottone d'invio fuori dallo schermo (misurato: 6 prodotti → y 1076
+   su 812). Al centro il bottone resta raggiungibile con qualunque carrello.
+   ⚖️ Il prezzo, dichiarato: col carrello piccolo il pollice fa ~77 px in più. */
+#cartSheet.una-ventana{bottom:auto;top:50%;border-radius:20px;max-height:80dvh;
+  transform:translate(-50%,-46%) scale(.97);opacity:0;
+  padding:18px 18px calc(16px + env(safe-area-inset-bottom));
+  box-shadow:0 24px 60px rgba(0,0,0,0.45);}
+#cartSheet.una-ventana.open{transform:translate(-50%,-50%) scale(1);opacity:1;}
+/* la quantità è la cosa che si sbaglia: qui è grande, e da 3 in su si dichiara */
+#cartSheet.una-ventana .v2-step b{font-size:20px;font-weight:800;min-width:26px;}
+.v2c-warn{background:rgba(245,166,35,.14);color:#f5a623;border-radius:9px;
+  padding:7px 10px;font-size:12px;text-align:left;margin:0 0 4px;}
+.v2c-sub{font-size:12px;color:var(--brand-text-muted);margin:-2px 0 10px;}
 .cart-title{font-family:'Fraunces',serif;font-size:22px;font-weight:300;color:var(--brand-text);margin-bottom:4px;}
 .cart-subtitle{font-size:12px;color:var(--brand-text-muted);margin-bottom:18px;}
 .cart-empty{text-align:center;color:var(--brand-text-muted);font-size:14px;padding:30px 0;}
@@ -5662,7 +5677,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.99.0</span>
+<span id="ver" hidden>menu2 · v3.0.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -6411,7 +6426,7 @@ const TRANSLATIONS = {
     via_seguro:'¿Lo revisaste bien? Va directo a {dest} y a tu cuenta — ya no se puede modificar',
     via_si:'Sí, está listo — ¡enviar!', via_no:'mmm, déjame ver',
     dest_cocina:'la cocina', dest_barra:'la barra', dest_ambos:'cocina y barra',
-    via_mesero:'el mesero',
+    via_mesero:'el mesero', uv_enviar:'Enviar a {dest}', uv_sub:'revísalo y envíalo',
   },
   en:{
     loading:'Loading menu...',
@@ -6527,7 +6542,7 @@ const TRANSLATIONS = {
     via_seguro:'Did you double-check? It goes straight to {dest} and onto your bill — it can\'t be changed anymore',
     via_si:'Yes, it\'s ready — send!', via_no:'hmm, let me look',
     dest_cocina:'the kitchen', dest_barra:'the bar', dest_ambos:'kitchen and bar',
-    via_mesero:'your waiter',
+    via_mesero:'your waiter', uv_enviar:'Send to {dest}', uv_sub:'check it and send it',
   },
   pt:{
     loading:'Carregando cardápio...',
@@ -6614,7 +6629,7 @@ const TRANSLATIONS = {
     via_seguro:'Revisou bem? Vai direto para {dest} e para a tua conta — não dá mais para mudar',
     via_si:'Sim, está pronto — enviar!', via_no:'hmm, deixa eu ver',
     dest_cocina:'a cozinha', dest_barra:'o bar', dest_ambos:'cozinha e bar',
-    via_mesero:'o garçom',
+    via_mesero:'o garçom', uv_enviar:'Enviar para {dest}', uv_sub:'confere e envia',
   },
   it:{
     loading:'Caricamento menu...',
@@ -6721,7 +6736,7 @@ const TRANSLATIONS = {
     via_seguro:'Hai controllato bene? Va diretto a {dest} e sul tuo conto — non si può più modificare',
     via_si:'Sì, è pronto — invia!', via_no:'mmm, fammi vedere',
     dest_cocina:'la cucina', dest_barra:'il bar', dest_ambos:'cucina e bar',
-    via_mesero:'il cameriere',
+    via_mesero:'il cameriere', uv_enviar:'Invia a {dest}', uv_sub:'controlla e invia',
   },
   de:{
     loading:'Menü wird geladen...',
@@ -6808,7 +6823,7 @@ const TRANSLATIONS = {
     via_seguro:'Alles geprüft? Geht direkt an {dest} und auf deine Rechnung — lässt sich nicht mehr ändern',
     via_si:'Ja, passt — senden!', via_no:'hmm, nochmal schauen',
     dest_cocina:'die Küche', dest_barra:'die Bar', dest_ambos:'Küche und Bar',
-    via_mesero:'dem Team',
+    via_mesero:'dem Team', uv_enviar:'An {dest} senden', uv_sub:'prüfen und senden',
   },
   fr:{
     loading:'Chargement du menu...',
@@ -6895,7 +6910,7 @@ const TRANSLATIONS = {
     via_seguro:'Tu as bien vérifié ? Ça part direct à {dest} et sur ta note — plus modifiable ensuite',
     via_si:'Oui, c\'est bon — envoyer !', via_no:'mmm, je regarde encore',
     dest_cocina:'la cuisine', dest_barra:'le bar', dest_ambos:'cuisine et bar',
-    via_mesero:'le serveur',
+    via_mesero:'le serveur', uv_enviar:'Envoyer vers {dest}', uv_sub:'vérifie et envoie',
   },
   zh:{
     loading:'菜单加载中...',
@@ -6982,7 +6997,7 @@ const TRANSLATIONS = {
     via_seguro:'确认好了吗？直接进{dest}并记入你的账单 — 之后不能再修改',
     via_si:'好了 — 发送！', via_no:'嗯，再看看',
     dest_cocina:'厨房', dest_barra:'吧台', dest_ambos:'厨房和吧台',
-    via_mesero:'服务员',
+    via_mesero:'服务员', uv_enviar:'发送到{dest}', uv_sub:'确认后发送',
   },
   ja:{
     loading:'メニュー読み込み中...',
@@ -7069,7 +7084,7 @@ const TRANSLATIONS = {
     via_seguro:'よく確認した？{dest}に直行し、お会計にも入ります — もう変更できません',
     via_si:'はい、OK — 送る！', via_no:'うーん、もう一度見る',
     dest_cocina:'キッチン', dest_barra:'バー', dest_ambos:'キッチンとバー',
-    via_mesero:'スタッフ',
+    via_mesero:'スタッフ', uv_enviar:'{dest}へ送る', uv_sub:'確認して送信',
   },
 };
 
@@ -10765,6 +10780,20 @@ const BUSCA_CATEGORIA = (function(){
 })();
 function pCat(p){ return BUSCA_CATEGORIA ? (p && p.categoria || '') : ''; }
 
+/* v3.0.0 · AUT-0030 · UNA VENTANA
+   Dettato da Alberto (20-ago): «tre o quattro finestre ereditate dal test in
+   parallelo ad ALOHA: ne resti UNA SOLA, semplice, IN CENTRO e non in basso —
+   vedi l'ordine, revisa, confirma, via. Rispettando UN CLICK».
+   Misurato sul DOM vivo (375×812) prima di scrivere una riga:
+     · dopo il tap «listo» c'erano 2 schermate che mostravano la STESSA lista
+     · con 6 prodotti nel carrello il bottone d'invio è FUORI SCHERMO (y 1076/812)
+     · con 9 non è visibile nemmeno nella prima schermata (y 847)
+   La revisione non si toglie: si SPOSTA dentro l'unica finestra (numero grande,
+   −/+ nella riga, avviso ámbar da 3 in su). 🧯 ?ventana=0 = il giro di ieri. */
+const UNA_VENTANA = (function(){
+  try{ return new URLSearchParams(location.search).get('ventana') !== '0'; }catch(e){ return true; }
+})();
+
 function v2SearchHTML(){
   const q = v2Norm(V2_Q);
   const hits = ALL_PRODUCTS.filter(p =>
@@ -12471,7 +12500,13 @@ function openCart(){
   document.body.style.overflow = 'hidden';
   document.body.classList.add('v2-sheet-open');   // oss.7
   // round5 oss.6 · anche il carro si ferma sotto i chip
-  document.getElementById('cartSheet').style.maxHeight = 'calc(100dvh - ' + (v2TopBlockH() + 6) + 'px)';
+  // v3.0.0 · AUT-0030 · la finestra unica non si ferma sotto i chip: è al centro
+  if(UNA_VENTANA){
+    document.getElementById('cartSheet').classList.add('una-ventana');
+    document.getElementById('cartSheet').style.maxHeight = '80dvh';
+  } else {
+    document.getElementById('cartSheet').style.maxHeight = 'calc(100dvh - ' + (v2TopBlockH() + 6) + 'px)';
+  }
   // v1.36 · rinfresca gli stati dello storico serata (one-shot, poi ri-renderizza)
   if(PEDIDO_DIGITAL && _nocheValidos().length > 1){
     _nocheRefrescarEstados().then(()=>{
@@ -12526,6 +12561,7 @@ function renderCart(){
   // v3.3 · "Tu pedido 🛎" · stepper a SINISTRA, dettagli piccoli sotto il nome
   el.innerHTML = `
     <div class="v2c-tit">Tu pedido 🛎</div>
+    ${(UNA_VENTANA && PEDIDO_DIGITAL && MESA_ID) ? `<div class="v2c-sub">${getLang('mesa')||'Mesa'} ${MESA_ID} · ${getLang('uv_sub')||'revísalo y envíalo'}</div>` : ''}
     ${CART.items.map((i, idx) => {
       // v2.81.0 · MODS2: la riga coi mods li dice UNO A UNO col loro importo —
       // e l'importo È nel totale (non più un'etichetta). op resta per il resto.
@@ -12550,7 +12586,8 @@ function renderCart(){
         <span class="v2-step"><button onclick="cartChangeQty(${idx},-1)">−</button><b>${i.qty||1}</b><button onclick="cartChangeQty(${idx},1)">＋</button></span>
         <span class="nom">${toTitleCase(i.nombre)}${detalles ? `<small>${detalles}</small>` : ''}</span>
         <span class="imp">${formatPrice(i.precio * (i.qty||1))}</span>
-      </div>`;
+      </div>
+      ${(UNA_VENTANA && (i.qty||1) >= 3) ? `<div class="v2c-warn">✋ ${escapeHtml(v2T('warn_qty', {n: i.qty||1}))}</div>` : ''}`;
     }).join('')}
     <div class="v2c-tot">
       <span>${getLang('cart_total') || 'Total'}</span>
@@ -12617,6 +12654,23 @@ function v2ViasHTML(){
   // dorme con un "próximamente" — il cliente sa che arriva.
   // v2.22 · tutto il giro parla la lingua del cliente (VB dom 19: coi
   // brasiliani in sala l'irreversibilità detta solo in spagnolo non vale)
+  /* v3.0.0 · AUT-0030 · UN CLICK: il bottone MANDA, non apre un'altra schermata.
+     La lista l'ha già davanti (è questa finestra), quindi lo specchio chiedeva
+     una seconda volta una cosa già mostrata — domanda ③ della norma UN CLICK. */
+  if(UNA_VENTANA){
+    const alt = `<button class="v2-via-mesero" onclick="v2UnaVentanaEnviar(this,false)">🙋 ${escapeHtml(v2T('via_revisar', {mesero: mesero, dest: d.txt}))}</button>`;
+    if(!ENVIO_DIRECTO){
+      /* la via diretta non è sul vetro: un bottone solo, e non c'è nessuna scelta
+         da offrire (il «próximamente» spento era un bottone che non fa niente) */
+      return `<div class="v2-vias" id="v2Vias">
+        <button class="cart-listo-btn cart-btn-pedido" id="btnEnviarPedido" style="margin:0" onclick="v2UnaVentanaEnviar(this,false)">🛎 ${escapeHtml(v2T('via_mesa', {mesa: MESA_ID, mesero: mesero}))}</button>
+      </div>`;
+    }
+    return `<div class="v2-vias" id="v2Vias">
+      <button class="v2-via-si" id="btnEnviarPedido" onclick="v2UnaVentanaEnviar(this,true)">${d.emo} ${escapeHtml(v2T('uv_enviar', {dest: d.txt}))}</button>
+      ${alt}
+    </div>`;
+  }
   if(!ENVIO_DIRECTO){
     return `<div class="v2-vias" id="v2Vias">
       <button class="cart-listo-btn cart-btn-pedido" id="btnEnviarPedido" style="margin:0" onclick="cartListo()">🛎 ${escapeHtml(v2T('via_mesa', {mesa: MESA_ID, mesero: mesero}))}</button>
@@ -12627,6 +12681,16 @@ function v2ViasHTML(){
       <button class="v2-via-si" onclick="v2Confirmar()">${d.emo} ${escapeHtml(v2T('via_directa_q', {dest: d.txt}))}<small>${escapeHtml(getLang('via_directa_sub'))}</small></button>
       <button class="v2-via-mesero" onclick="cartListo()">🙋 ${escapeHtml(v2T('via_revisar', {mesero: mesero, dest: d.txt}))}</button>
     </div>`;
+}
+/* v3.0.0 · AUT-0030 · il tap unico: arma il bottone, scrive la via nel carrito
+   (contratto v2.32.1: la via viaggia col carrito, così ogni ripiego la porta)
+   e manda. Niente schermata in mezzo. */
+function v2UnaVentanaEnviar(btn, directo){
+  if(CART.items.length === 0) return;
+  if(btn){ btn.disabled = true; btn.textContent = getLang('pedido_enviando') || 'Enviando…'; }
+  CART.via = directo ? 'directa' : (ENVIO_DIRECTO ? 'revisar' : 'unica');
+  saveCart();
+  enviarPedidoDigital(directo ? { directo: true } : undefined);
 }
 function v2Confirmar(){
   const d = v2DestinoDe();
