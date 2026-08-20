@@ -5662,7 +5662,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.99.1</span>
+<span id="ver" hidden>menu2 · v2.99.2</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -6411,7 +6411,7 @@ const TRANSLATIONS = {
     via_seguro:'¿Lo revisaste bien? Va directo a {dest} y a tu cuenta — ya no se puede modificar',
     via_si:'Sí, está listo — ¡enviar!', via_no:'mmm, déjame ver',
     dest_cocina:'la cocina', dest_barra:'la barra', dest_ambos:'cocina y barra',
-    via_mesero:'el mesero',
+    via_mesero:'el mesero', ses_pagada_titulo:'Esta mesa ya pagó', ses_pagada_sub:'Lo anterior quedó en la cuenta cerrada — este es un pedido nuevo',
     /* v2.99.1 · LE CHIAVI CHE IL CLIENTE VEDEVA NUDE (foto di Alberto, mesa 72,
        20-ago ~12:33: sul vetro c'era scritto «pedido_st_listo»).
        🔴 Il testo qui sotto NON è inventato: è quello che l'autore aveva già
@@ -6550,7 +6550,7 @@ const TRANSLATIONS = {
     via_seguro:'Did you double-check? It goes straight to {dest} and onto your bill — it can\'t be changed anymore',
     via_si:'Yes, it\'s ready — send!', via_no:'hmm, let me look',
     dest_cocina:'the kitchen', dest_barra:'the bar', dest_ambos:'kitchen and bar',
-    via_mesero:'your waiter',
+    via_mesero:'your waiter', ses_pagada_titulo:'This table already paid', ses_pagada_sub:'The previous order is on the closed bill — this is a new one',
   },
   pt:{
     loading:'Carregando cardápio...',
@@ -6637,7 +6637,7 @@ const TRANSLATIONS = {
     via_seguro:'Revisou bem? Vai direto para {dest} e para a tua conta — não dá mais para mudar',
     via_si:'Sim, está pronto — enviar!', via_no:'hmm, deixa eu ver',
     dest_cocina:'a cozinha', dest_barra:'o bar', dest_ambos:'cozinha e bar',
-    via_mesero:'o garçom',
+    via_mesero:'o garçom', ses_pagada_titulo:'Esta mesa já pagou', ses_pagada_sub:'O pedido anterior ficou na conta fechada — este é um pedido novo',
     precios_cambiaron:'Os preços foram atualizados — confira seu pedido',
     beb_ya:'Você já escolheu as',
     elige:'Escolha',
@@ -6806,7 +6806,7 @@ const TRANSLATIONS = {
     via_seguro:'Hai controllato bene? Va diretto a {dest} e sul tuo conto — non si può più modificare',
     via_si:'Sì, è pronto — invia!', via_no:'mmm, fammi vedere',
     dest_cocina:'la cucina', dest_barra:'il bar', dest_ambos:'cucina e bar',
-    via_mesero:'il cameriere',
+    via_mesero:'il cameriere', ses_pagada_titulo:'Questo tavolo ha già pagato', ses_pagada_sub:'L\'ordine di prima è sul conto chiuso — questo è un ordine nuovo',
   },
   de:{
     loading:'Menü wird geladen...',
@@ -6893,7 +6893,7 @@ const TRANSLATIONS = {
     via_seguro:'Alles geprüft? Geht direkt an {dest} und auf deine Rechnung — lässt sich nicht mehr ändern',
     via_si:'Ja, passt — senden!', via_no:'hmm, nochmal schauen',
     dest_cocina:'die Küche', dest_barra:'die Bar', dest_ambos:'Küche und Bar',
-    via_mesero:'dem Team',
+    via_mesero:'dem Team', ses_pagada_titulo:'Dieser Tisch hat schon bezahlt', ses_pagada_sub:'Die vorige Bestellung ist auf der geschlossenen Rechnung — das hier ist neu',
   },
   fr:{
     loading:'Chargement du menu...',
@@ -6980,7 +6980,7 @@ const TRANSLATIONS = {
     via_seguro:'Tu as bien vérifié ? Ça part direct à {dest} et sur ta note — plus modifiable ensuite',
     via_si:'Oui, c\'est bon — envoyer !', via_no:'mmm, je regarde encore',
     dest_cocina:'la cuisine', dest_barra:'le bar', dest_ambos:'cuisine et bar',
-    via_mesero:'le serveur',
+    via_mesero:'le serveur', ses_pagada_titulo:'Cette table a déjà payé', ses_pagada_sub:'La commande précédente est sur la note fermée — celle-ci est nouvelle',
   },
   zh:{
     loading:'菜单加载中...',
@@ -7067,7 +7067,7 @@ const TRANSLATIONS = {
     via_seguro:'确认好了吗？直接进{dest}并记入你的账单 — 之后不能再修改',
     via_si:'好了 — 发送！', via_no:'嗯，再看看',
     dest_cocina:'厨房', dest_barra:'吧台', dest_ambos:'厨房和吧台',
-    via_mesero:'服务员',
+    via_mesero:'服务员', ses_pagada_titulo:'这桌已经结账了', ses_pagada_sub:'之前的订单在已结的账单上 — 这是一笔新订单',
   },
   ja:{
     loading:'メニュー読み込み中...',
@@ -7154,7 +7154,7 @@ const TRANSLATIONS = {
     via_seguro:'よく確認した？{dest}に直行し、お会計にも入ります — もう変更できません',
     via_si:'はい、OK — 送る！', via_no:'うーん、もう一度見る',
     dest_cocina:'キッチン', dest_barra:'バー', dest_ambos:'キッチンとバー',
-    via_mesero:'スタッフ',
+    via_mesero:'スタッフ', ses_pagada_titulo:'このテーブルは会計済みです', ses_pagada_sub:'前のご注文は締めたお会計に入っています — こちらは新しいご注文です',
   },
 };
 
@@ -12610,6 +12610,7 @@ function renderCart(){
   const total = CART.items.reduce((s,i)=> s + i.precio * (i.qty||1), 0);
   // v3.3 · "Tu pedido 🛎" · stepper a SINISTRA, dettagli piccoli sotto il nome
   el.innerHTML = `
+    ${_sesionAvisoHTML()}
     <div class="v2c-tit">Tu pedido 🛎</div>
     ${CART.items.map((i, idx) => {
       // v2.81.0 · MODS2: la riga coi mods li dice UNO A UNO col loro importo —
@@ -13579,6 +13580,60 @@ async function _nocheRefrescarEstados(){
     } catch(e){ /* il prossimo giro */ }
   }
   _nocheSave();
+  _sesionRevisar();   // v2.99.2 · AUT-0036: il conto può essersi chiuso mentre guardavamo
+}
+
+/* ═══ v2.99.2 · AUT-0036 lato QR · LA SESSIONE MUORE COL CONTO ═══════════════
+   Il fatto (misura 20-ago): pedidos entrati dal QR su mese il cui conto era
+   già chiuso — 34 entro mezz'ora dal pago, e il cliente non aveva NESSUN modo
+   di saperlo. Continuava ad aggiungere a una sessione che per il locale non
+   esisteva più, e lo scopriva quando arrivava il conto.
+
+   🔑 IL SEGNALE NON VA COSTRUITO: è già in casa. «registrarPago» (e la mesa
+   limpia) mettono i pedidos a «cerrado» — e il poll «getEstadoPedido» che il
+   telefono FA GIÀ torna quel campo. Zero endpoint nuovi, zero letture in più.
+   La regola vera della seduta vive nel GAS («_sesionDeMesa», la catena dei
+   pagos): qui NON la reinvento, leggo la sua conseguenza sui MIEI pedidos.
+
+   LA REGOLA: se la serata di questo telefono ha pedidos e i suoi pedidos VIVI
+   sono tutti chiusi, la seduta è finita → sessione NUOVA, e MAI in silenzio.
+   ⚠️ Guardia: se restano solo expirado/cancelado NON si rinnova — quelli non
+   sono un conto pagato, sono ordini mai andati a buon fine, e il cliente è
+   probabilmente ancora seduto lì ad aspettare.
+   🧯 ?sesion=0 → il comportamento di ieri, riga per riga. */
+const SESION_VIVA = (function(){
+  try{ return new URLSearchParams(location.search).get('sesion') !== '0'; }catch(e){ return true; }
+})();
+let SES_RENOVADA = null;      // {ts, n} → l'avviso che il carrello mostra in testa
+
+function _sesionTerminada(){
+  if(!SESION_VIVA) return false;
+  if(!Array.isArray(PEDIDOS_NOCHE) || !PEDIDOS_NOCHE.length) return false;
+  const vivos = _nocheValidos();
+  if(!vivos.length) return false;                       // solo expirado/cancelado: non è un conto
+  return vivos.every(p => String(p.estado||'').toLowerCase() === 'cerrado');
+}
+
+function _sesionRevisar(){
+  if(!_sesionTerminada()) return false;
+  const n = _nocheValidos().length;
+  /* la mesa resta (il cliente è ancora seduto lì): muore la STORIA, non il posto */
+  PEDIDOS_NOCHE = []; _nocheSave();
+  detenerPollPedido(); PEDIDO_ACTUAL = null; try { mstDel(PEDIDO_KEY); } catch(e){}
+  try { CART.items = []; CART.via = ''; CART.gancho_origen = ''; saveCart(); updateCartBadge(); } catch(e){}
+  ULTIMA_RONDA = []; try { mstDel(RONDA_KEY); } catch(e){}
+  SES_RENOVADA = { ts: Date.now(), n: n };
+  try { mstSet('ses_renovada', String(Date.now())); } catch(e){}
+  try { showToastMsg('🧾 ' + (getLang('ses_pagada_titulo') || 'Esta mesa ya pagó')); } catch(e){}
+  try { if(document.getElementById('cartSheet')?.classList.contains('open')) renderCart(); } catch(e){}
+  return true;
+}
+
+/* l'avviso in testa al carrello — è il posto dove il cliente guarda quando
+   sta per ordinare, cioè l'istante esatto in cui la cosa gli serve */
+function _sesionAvisoHTML(){
+  if(!SES_RENOVADA) return '';
+  return `<div class="v2c-warn" style="margin:0 0 10px">🧾 <b>${escapeHtml(getLang('ses_pagada_titulo')||'Esta mesa ya pagó')}</b><br>${escapeHtml(getLang('ses_pagada_sub')||'Lo anterior quedó en la cuenta cerrada — este es un pedido nuevo')}</div>`;
 }
 
 function cerrarPedidoActual(){
@@ -13612,6 +13667,7 @@ function iniciarPollPedido(){
       PEDIDO_ACTUAL.prod = r.prod || '';
       try { mstSet(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
       _nocheSave();   // v1.36 · PEDIDO_ACTUAL vive anche dentro PEDIDOS_NOCHE (stesso oggetto)
+      if(cambio && _sesionRevisar()) return;   // v2.99.2 · AUT-0036: il conto si è chiuso adesso
       if(cambio && PEDIDO_ACTUAL.estado === 'atendido'){
         showToastMsg('✓ ' + (PEDIDO_ACTUAL.mesero || (getLang('pedido_el_mesero')||'El mesero')) + ' ' + (getLang('pedido_camino_toast')||'va en camino'));
       }
@@ -13638,6 +13694,8 @@ function detenerPollPedido(){
 /* refresh/rientro: il pedido vive in sessionStorage — si riprende da dove era */
 function restaurarPedidoActual(){
   _nocheLoad();   // v1.36 · lo storico serata torna sempre
+  // v2.99.2 · AUT-0036: se la serata salvata è già chiusa, si riparte puliti
+  if(_sesionRevisar()) return;
   try {
     const raw = mstGet(PEDIDO_KEY);
     if(!raw) return;
