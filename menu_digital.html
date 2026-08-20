@@ -5662,7 +5662,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.99.2</span>
+<span id="ver" hidden>menu2 · v2.99.3</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -8818,16 +8818,42 @@ function bvScalaAbiertoCalc(franja){
                 stato: franja.nombre_visible || getLang('bv_abierto') || 'Abierto ahora' };
 
   const H = (k, h, def) => ((getLang(k) || def || '')).replace(/\{h\}/g, h || '');
-  const hasta = franja.hora_fin || '';
+  /* ═══ v2.99.3 · IL MENÙ LO COMANDA «PRECIOS_REGLA», NON L'ORARIO ═══════════
+     Trovato il 20-ago: il foglio BIENVENIDA diceva ALMUERZO 11:45→16:00 a
+     11.900, e PRECIOS_REGLA diceva che il menù finisce alle 15:00 a 11.990.
+     Due fogli che non si parlano → per un'ora al giorno il vetro prometteva un
+     menù che il sistema aveva già spento: 14 piatti venduti a 16.000 mentre la
+     bienvenida diceva 11.900.
+     🔑 La guardia ESISTEVA e non veniva mai raggiunta: bvTokens() spegne la
+     frase a menù spento, ma solo se il testo contiene un token «{MENU_…}» — e
+     quel titolo è scritto a mano. Una guardia che dipende da come qualcuno
+     scrive una cella non è una guardia.
+     Da qui: dall'orario si prende SOLO l'ora di apertura; ora di fine e prezzo
+     vengono da MENU_INFO, che nasce da PRECIOS_REGLA. Se domani il menù finisce
+     alle 14:00, il vetro dice 14:00 senza che nessuno tocchi il codice.
+     🧯 ?menuhora=0 → il comportamento di ieri, riga per riga. */
+  const MENU_DA_REGLA = (function(){
+    try{ return new URLSearchParams(location.search).get('menuhora') !== '0'; }catch(e){ return true; }
+  })();
+  const _mi = (typeof MENU_INFO !== 'undefined') ? MENU_INFO : null;
+  const _esAlmuerzo = MENU_DA_REGLA && String(franja.id || '').toUpperCase() === 'ALMUERZO' && !franja.override_activo;
+  const _menuVivo = !!(_mi && _mi.estado === 'on' && _mi.precio > 0);
+  const hasta = (_esAlmuerzo && _menuVivo && _mi.hasta) ? _mi.hasta : (franja.hora_fin || '');
 
   // ① la franja viva con la sua propuesta · bvTokens può svuotarla (menù spento
   //    → la frase che parla del menù sparisce da sola): allora si scende.
-  const tit = bvTokens(P('propuesta_titulo'), useT);
+  /* v2.99.3 · se la franja è ALMUERZO e il menù è spento, la sua proposta non
+     si mostra e si scende al gradino sotto — esattamente quello che bvTokens fa
+     già quando il testo ha i token, ma senza dipendere da come è scritta la cella */
+  const tit = (_esAlmuerzo && !_menuVivo) ? '' : bvTokens(P('propuesta_titulo'), useT);
   if(tit){
     out.eb  = hasta ? H('bv_ahora_hasta', hasta, 'Ahora · hasta las {h}') : (getLang('bv_ahora') || 'Ahora');
     out.tit = tit;
     out.sub = bvTokens(P('propuesta_detalle'), useT) || '';
-    if(franja.propuesta_precio > 0) out.precio = formatPrice(franja.propuesta_precio);
+    // v2.99.3 · il prezzo del menù è quello VIVO di PRECIOS_REGLA (la cella
+    // della bienvenida resta solo come ripiego per le altre franje)
+    const _precio = (_esAlmuerzo && _menuVivo) ? _mi.precio : franja.propuesta_precio;
+    if(_precio > 0) out.precio = formatPrice(_precio);
     out.cta = bvTokens(P('cta_label'), useT) || getLang('bv_mirar') || 'Mirar la carta';
     BIENVENIDA_CTA_TARGET = (useT && franja.pt.cta_target) ? franja.pt.cta_target : (franja.cta_target || '');
   } else {
