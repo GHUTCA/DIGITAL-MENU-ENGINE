@@ -6412,6 +6412,29 @@ const TRANSLATIONS = {
     via_si:'Sí, está listo — ¡enviar!', via_no:'mmm, déjame ver',
     dest_cocina:'la cocina', dest_barra:'la barra', dest_ambos:'cocina y barra',
     via_mesero:'el mesero',
+    /* v2.99.1 · LE CHIAVI CHE IL CLIENTE VEDEVA NUDE (foto di Alberto, mesa 72,
+       20-ago ~12:33: sul vetro c'era scritto «pedido_st_listo»).
+       🔴 Il testo qui sotto NON è inventato: è quello che l'autore aveva già
+       scritto nel codice come scorta dopo un || — e che non
+       compariva MAI, perché getLang() quando la chiave manca torna LA CHIAVE,
+       e una stringa non vuota è truthy: quel || non scatta mai.
+       🎓 Una rete di sicurezza che non può scattare è peggio di nessuna rete:
+          chi ha scritto quella riga era convinto di averla. */
+    precios_cambiaron:'Los precios se actualizaron — revisa tu pedido',
+    beb_ya:'Ya elegiste las',
+    elige:'Elige',
+    est_cocina:'la cocina',
+    est_barra:'la barra',
+    est_ultimo:'¿Último pedido antes de que cierre',
+    carta_noche_lista:'La carta de la noche está lista',
+    reenviar:'vuelve a enviar',
+    est_cerrada_msg:'La cocina ya cerró',
+    est_cerrada_resto:'saca eso del carrito y el resto te lo mandamos igual',
+    pedido_st_ventana_sub:'Esperamos un momento por si alguien más de tu mesa pide — así les sale todo junto',
+    pedido_st_listo:'¡Listo! — va en camino a tu mesa',
+    pedido_st_listo_sub:'Ya salió de cocina y barra',
+    djx_solo_propias:'Esta noche el DJ toma pedidos sólo de su repertorio 🎛',
+    djx_sin_fuentes:'La cabina no está tomando pedidos ahora — pero la música sigue 🔊',
   },
   en:{
     loading:'Loading menu...',
@@ -6615,6 +6638,21 @@ const TRANSLATIONS = {
     via_si:'Sim, está pronto — enviar!', via_no:'hmm, deixa eu ver',
     dest_cocina:'a cozinha', dest_barra:'o bar', dest_ambos:'cozinha e bar',
     via_mesero:'o garçom',
+    precios_cambiaron:'Os preços foram atualizados — confira seu pedido',
+    beb_ya:'Você já escolheu as',
+    elige:'Escolha',
+    est_cocina:'a cozinha',
+    est_barra:'o bar',
+    est_ultimo:'Último pedido antes de fechar',
+    carta_noche_lista:'O cardápio da noite está pronto',
+    reenviar:'envie de novo',
+    est_cerrada_msg:'A cozinha já fechou',
+    est_cerrada_resto:'tire isso do carrinho e o resto a gente manda do mesmo jeito',
+    pedido_st_ventana_sub:'Esperamos um pouco caso mais alguém da sua mesa peça — assim sai tudo junto',
+    pedido_st_listo:'Pronto! — está a caminho da sua mesa',
+    pedido_st_listo_sub:'Já saiu da cozinha e do bar',
+    djx_solo_propias:'Hoje o DJ aceita pedidos só do repertório dele 🎛',
+    djx_sin_fuentes:'A cabine não está aceitando pedidos agora — mas a música continua 🔊',
     /* v2.99.1 · LE 42 CHE MANCAVANO — il portoghese è la lingua di 2 clienti su 3
        che ordinano dal QR (180 su 268 in quattro giorni). La carta parlava pt al
        93%, ma il GIRO DEL PEDIDO no: getLang() ripiegava sullo spagnolo IN
