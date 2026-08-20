@@ -5662,7 +5662,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.99.0</span>
+<span id="ver" hidden>menu2 · v2.99.1</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -6615,6 +6615,53 @@ const TRANSLATIONS = {
     via_si:'Sim, está pronto — enviar!', via_no:'hmm, deixa eu ver',
     dest_cocina:'a cozinha', dest_barra:'o bar', dest_ambos:'cozinha e bar',
     via_mesero:'o garçom',
+    /* v2.99.1 · LE 42 CHE MANCAVANO — il portoghese è la lingua di 2 clienti su 3
+       che ordinano dal QR (180 su 268 in quattro giorni). La carta parlava pt al
+       93%, ma il GIRO DEL PEDIDO no: getLang() ripiegava sullo spagnolo IN
+       SILENZIO, e il cliente lo scopriva nel momento in cui ordinava.
+       Registro «você»/«seu»: quello dominante nel blocco. */
+    pedido_btn:'🛎 Enviar pedido e chamar o garçom',
+    pedido_hint:'🛎 Novo — seu pedido chega no garçom na hora',
+    pedido_enviando:'Enviando…',
+    pedido_fallback:'Não consegui enviar — mostre esta lista ao garçom 🙌',
+    pedido_st_pendiente:'Chamando o garçom…',
+    pedido_st_pendiente_sub:'Seu pedido já está no sistema',
+    pedido_st_atendido:'{nombre} está a caminho',
+    pedido_st_atendido_sub:'Confirme seu pedido quando ele chegar à mesa',
+    pedido_st_digitado:'No sistema',
+    pedido_st_digitado_sub:'Cozinha e bar já estão preparando',
+    pedido_st_entregado:'Entregue — bom apetite!',
+    pedido_st_entregado_sub:'Obrigado por pedir da sua mesa',
+    pedido_st_problema:'Melhor falar com o garçom',
+    pedido_st_problema_sub:'Não conseguimos confirmar — chame o garçom ou vá até o bar',
+    pedido_el_mesero:'O garçom',
+    pedido_camino_toast:'está a caminho',
+    pedido_items:'produtos',
+    pedido_pedir_mas:'Pedir mais alguma coisa',
+    pedido_noche_titulo:'O que você pediu hoje à noite',
+    pedido_total_noche:'Total da noite',
+    pedido_ya_noche:'Já pedido hoje à noite',
+    ses_cm_titulo:'Você mudou de mesa?',
+    ses_cm_sub:'Este QR é da mesa {n} — seus pedidos desta noite vão com você.',
+    ses_cm_si:'Sim — agora estou na mesa {n}',
+    ses_cm_no:'Não — continuo na mesa {m}',
+    llamada_cooldown:'🔔 O garçom já foi avisado · está a caminho',
+    llamada_hint_pedido:'💡 Sabia que dá para me mandar seu pedido pelo carrinho? Chego com tudo pronto',
+    coach_campanilla:'Sabia que dá para chamar {m} sem levantar a mão? É só tocar a campainha 🔔',
+    almuerzo_elige:'Escolha sua bebida ou taça',
+    termino_elige:'O ponto da sua carne',
+    saludo_mesero_dia:'Oi — hoje quem te atende é',
+    saludo_mesero_noche:'Oi — hoje à noite quem te atende é',
+    promo_pagas:'paga',
+    promo_llevas:'leva',
+    respaldo_banner:'📖 Cardápio de referência · peça ao garçom para fazer o pedido',
+    push_default_frase:'A recomendação do Comandante',
+    djp_lbl:'As do Comandante',
+    djp_suya:'⚡ SUA',
+    djm_dice:'diz pra você',
+    djm_resp:'Responda com um toque',
+    djm_grx:'Chegou na cabine! 🎧',
+    djm_cx:'fechar',
   },
   it:{
     loading:'Caricamento menu...',
