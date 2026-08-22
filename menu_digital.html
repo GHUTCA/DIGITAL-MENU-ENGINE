@@ -5662,7 +5662,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.99.2</span>
+<span id="ver" hidden>menu2 · v2.99.3</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7500,11 +7500,42 @@ function mods2Chip(op, gid){
    precio eso era plata perdida en silencio. Los items de promo (p2x1 /
    es_menu) NO se tocan: su precio es de la promo, no del listino. */
 let PRECIOS_EPOCH = null;
+/* v2.99.3 · [AUT-EMERG-0004] · LA FINESTRA DI GRAZIA — 20 minuti, decisa da
+   Alberto il 22-ago dopo la serata del cambio prezzi.
+   IL CASO: il cliente aggiunge la copa a $5.490 alle 22:55; alle 23:00 la
+   fascia scatta e questo carrello si riscriveva SOTTO I SUOI OCCHI a $6.040,
+   col toast «los precios se actualizaron». Chi sta ordinando in quel momento
+   vede i numeri muoversi da soli mentre tocca — ed è successo a Alberto in
+   persona la notte del 21.
+   LA REGOLA: **il prezzo che il cliente ha VISTO quando ha aggiunto vale 20
+   minuti.** Passati quelli, si riprezza e glielo si dice, come prima.
+   ⚠️ IL COSTO, DICHIARATO E VOLUTO (decisione di Alberto, non un effetto
+   collaterale): per ≤20 min dopo una fascia, un item già nel carrello si
+   vende al prezzo vecchio. È limitato a quella finestra, una o due volte a
+   sera. Il carrello PARCHEGGIATO resta coperto: alla scadenza della grazia
+   il riprezzo scatta da solo (si ri-arma qui sotto), quindi il carrello
+   aperto alle 22:00 e mandato alle 2 NON paga i prezzi delle 22.
+   🧯 Freno: GRACIA_PRECIO_MS = 0 → comportamento di ieri, riga sola. */
+const GRACIA_PRECIO_MS = 20 * 60 * 1000;
+let _graciaTimer = null;
 function repriceCart(){
   let cambiados = 0;
+  let prossimaScadenza = null;
   try {
     (CART.items || []).forEach(function(i){
       if (i.p2x1 || i.es_menu) return;                 // promo: precio suyo
+      /* la grazia: un item toccato da meno di 20 min non si muove. Senza
+         timbro (carrello di prima del deploy) NON si protegge da solo —
+         `_cartTimbra` lo mette al primo salvataggio, e fino ad allora si
+         comporta come ieri: mai una protezione che nasce da un dato assente. */
+      if (GRACIA_PRECIO_MS > 0 && i.ts_add) {
+        const eta = Date.now() - i.ts_add;
+        if (eta < GRACIA_PRECIO_MS) {
+          const scade = i.ts_add + GRACIA_PRECIO_MS;
+          if (prossimaScadenza === null || scade < prossimaScadenza) prossimaScadenza = scade;
+          return;
+        }
+      }
       const regla = PRECIOS_REGLA_MAP[i.id];
       const base = (ALL_PRODUCTS.find(p => p.id === i.id) || {}).precio;
       let nuevo = (regla && regla.precio != null) ? parsePrice(regla.precio) : parsePrice(base);
@@ -7528,6 +7559,15 @@ function repriceCart(){
       try { renderCart(); } catch(e){}
       try { updateCartBadge(); } catch(e){}
       showToastMsg('💲 ' + (getLang('precios_cambiaron') || 'Los precios se actualizaron — revisa tu pedido'));
+    }
+    /* v2.99.3 · IL RIARMO: `repriceCart` gira solo quando cambia l'epoch, e
+       un carrello protetto adesso non verrebbe mai più riguardato (la fascia
+       dopo può essere fra ore). Si ri-arma alla PRIMA scadenza utile, così la
+       grazia è davvero una finestra e non un condono. Un solo timer vivo. */
+    if (prossimaScadenza !== null) {
+      const fra = Math.max(1000, prossimaScadenza - Date.now() + 1000);
+      try { if (_graciaTimer) clearTimeout(_graciaTimer); } catch(e){}
+      _graciaTimer = setTimeout(function(){ _graciaTimer = null; try { repriceCart(); } catch(e){} }, fra);
     }
   } catch(e){}
   return cambiados;
@@ -12184,7 +12224,20 @@ function loadCart(){
   } catch(e){ CART = { items: [], updated_ts: 0, gancho_origen: '' }; }
 }
 
+/* v2.99.3 · [AUT-EMERG-0004] · L'ORA IN CUI L'ITEM È ENTRATO NEL CARRELLO.
+   Ordine di Alberto, 22-ago: «il prezzo che si aggiunge al tavolo deve
+   rimanere congelato». Il timbro si mette QUI e non nei quattro `push`
+   sparsi: uno dimenticato sarebbe un item senza protezione, cioè un buco
+   silenzioso. Tutti i cammini passano da saveCart (16 chiamate).
+   Un item che arriva da un carrello salvato PRIMA di questo deploy non ha
+   timbro: lo prende adesso — la grazia parte da ora, mai contro il cliente. */
+function _cartTimbra(){
+  try {
+    (CART.items || []).forEach(function(i){ if (!i.ts_add) i.ts_add = Date.now(); });
+  } catch(e){}
+}
 function saveCart(){
+  _cartTimbra();
   CART.updated_ts = Date.now();
   try { mstSet(CART_KEY, JSON.stringify(CART)); } catch(e){ /* sessionStorage pieno/bloccato */ }
   updateCartBadge();
