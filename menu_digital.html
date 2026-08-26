@@ -5662,7 +5662,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.99.3</span>
+<span id="ver" hidden>menu2 · v2.99.4</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7402,6 +7402,10 @@ let V2_WORLD      = null;         // mondo del lema evidenziato (i chip SALTANO,
 try { ULTIMA_RONDA = JSON.parse(mstGet(RONDA_KEY) || 'null'); } catch(e){}
 
 let ALL_PRODUCTS     = [];
+/* v2.99.4 · [AUT-0087] · i prodotti che LA NOTTE SPENTA tiene fuori dal mondo.
+   Stessa forma di MEMBER_OCULTOS due righe più giù: escono da ALL_PRODUCTS
+   PRIMA di ogni render e rientrano quando il server smette di nominarli. */
+let AURORA_OCULTOS   = [];
 let ALL_CATEGORIES   = [];
 let FILTERED         = [];
 let CURRENT_FAJA     = 'all';
@@ -12032,6 +12036,11 @@ async function loadAgotados(){
 function applyPreciosRegla(data){
   if(!data || !data.ok) return;
   PRECIOS_REGLA_MAP = data.reglas || {};
+  /* v2.99.4 · [AUT-0087] · prima dei prezzi, chi non deve stare in carta esce.
+     Sta QUI e non altrove per una ragione sola: sotto c'è già `renderMenu()`,
+     quindi la carta si ridisegna nello stesso giro e non serve nessun render
+     nuovo. Campo assente → insieme vuoto → i tolti RIENTRANO (v. la funzione). */
+  auroraOcultarAplicar(data.ocultos);
   MODS_RECARGO = data.mods_recargo || null;   // v2.81.0 · il ricarico sui delta (cancello v3.66.0)
   /* v2.82.0 · L'INTERRUTTORE DEI MODIFICADORES arriva dal server, in questo
      stesso viaggio (zero chiamate nuove). Chi ha forzato `?mods2=` resta dov'è.
@@ -14241,6 +14250,48 @@ function memberRevelar(){
   if(!mios.length) return;
   mios.forEach(p => { if(!ALL_PRODUCTS.some(x => x.id === p.id)) ALL_PRODUCTS.push(p); });
   MEMBER_OCULTOS = MEMBER_OCULTOS.filter(p => mios.indexOf(p) < 0);
+}
+/* ═══ v2.99.4 · [AUT-0087] · QUELLO CHE LA NOTTE SPEGNE NON STA IN CARTA ═══════
+   Il difetto, misurato il 25-ago: il GAS sa già cosa la notte nasconde
+   (`_auroraOcultos`) e lo applica in `getProducts` — ma il telefono NON legge da
+   lì: legge il CSV pubblicato GREZZO che il bordo gli serve (bytes identici,
+   zero rischio parser). Nessuna logica del GAS lo tocca. Risultato: con AURORA
+   spenta le 4 bottiglie di `AURORA-BOTELLAS` erano visibili E ORDINABILI dalle
+   20:00 alle 04:00 — non solo nel carosello.
+   👉 Il server adesso DICHIARA la lista (`ocultos`), e qui si applica.
+
+   🔑 LA CARD DEI DESTACADOS NON SI TOCCA: muore da sola, perché nasce solo con
+   ≥2 prodotti e la lista diventa vuota. Toccare il suo filtro sarebbe curare di
+   nuovo il sintomo, solo meglio — ed è esattamente il perimetro che il 24-ago è
+   stato sospeso: avrebbe fatto sparire la card lasciando le bottiglie ordinabili.
+
+   ⚠️ CAMPO ASSENTE = MONDO DI IERI, e in tutti e due i sensi: il server lo omette
+   quando il freno `menu_ocultos_off` è tirato, quando non c'è niente da
+   nascondere, o quando qualcosa è andato storto. Tutti e tre vogliono la stessa
+   cosa dal client — NON NASCONDERE NIENTE — quindi assente si legge come insieme
+   VUOTO e i prodotti tolti RIENTRANO. Così il freno è un rollback completo e
+   immediato, non un «da qui in poi non nascondo più».
+   🔴 È simmetrica apposta: nasconde e rivela. Una funzione che sa solo togliere
+   avrebbe reso l'interruttore inutile fino al reload del telefono.                */
+function auroraOcultarAplicar(lista){
+  const ids = {};
+  (Array.isArray(lista) ? lista : []).forEach(function(x){ const s = String(x || '').trim(); if(s) ids[s] = true; });
+  let cambiato = false;
+  // ① escono dal mondo quelli nominati
+  const daTogliere = ALL_PRODUCTS.filter(p => ids[p.id]);
+  if(daTogliere.length){
+    daTogliere.forEach(p => { if(!AURORA_OCULTOS.some(x => x.id === p.id)) AURORA_OCULTOS.push(p); });
+    ALL_PRODUCTS = ALL_PRODUCTS.filter(p => !ids[p.id]);
+    cambiato = true;
+  }
+  // ② rientrano quelli che il server NON nomina più (o che non nomina nessuno)
+  const daRimettere = AURORA_OCULTOS.filter(p => !ids[p.id]);
+  if(daRimettere.length){
+    daRimettere.forEach(p => { if(!ALL_PRODUCTS.some(x => x.id === p.id)) ALL_PRODUCTS.push(p); });
+    AURORA_OCULTOS = AURORA_OCULTOS.filter(p => ids[p.id]);
+    cambiato = true;
+  }
+  return cambiato;
 }
 function memberPintar(data){
   ACTIVE_MEMBER = data;
