@@ -5662,7 +5662,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.99.5</span>
+<span id="ver" hidden>menu2 · v2.99.6</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -13207,6 +13207,8 @@ async function regaloEnviar(prodId){
       // v2.97.0 · la provenienza viaggia anche col regalo (stessi campi del pedido)
       idioma: ((navigator.language || (navigator.languages || [])[0] || '') + '').slice(0, 8),
       idioma_menu: (typeof LANG_CODE !== 'undefined' && LANG_CODE) ? LANG_CODE : '',
+      // [AUT-0136] · grezzo (navigator.userAgent), non classificato qui — vedi nota gemella sotto
+      plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
       precios_epoch: PRECIOS_EPOCH || '',   // v2.80.0 · il cancello dell'epoch
       ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
       member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
@@ -13360,6 +13362,19 @@ async function _enviarPedidoDigitalInner(opts){
        conta il flusso, non si etichetta la persona. */
     idioma: ((navigator.language || (navigator.languages || [])[0] || '') + '').slice(0, 8),
     idioma_menu: (typeof LANG_CODE !== 'undefined' && LANG_CODE) ? LANG_CODE : '',
+    /* [AUT-0136] · IL TETTO DEI 7 GIORNI DI SAFARI (reperto 🎛
+       CONTROLLER V18): dopo 7gg senza interazione Safari/iOS cancella il
+       localStorage — il modello Ⓑ di Alberto (l'apparecchio ricorda) ha
+       un'emivita di 7gg lì. `plataforma` = navigator.userAgent GREZZO: su
+       iOS anche Chrome è WebKit, e iPadOS si dichiara "Macintosh" — si
+       classifica in lettura, non qui (una colonna già classificata butta
+       via l'informazione per correggersi quando sbaglia). write-if-exists
+       come `idioma`: il GAS di oggi la ignora finché non ha la colonna.
+       300 e non 150: gli UA in-app (Instagram/Facebook/WhatsApp, traffico
+       comune da un QR condiviso sui social) portano il loro marcatore IN
+       CODA alla stringa — proprio la parte che distingue un WebView da un
+       browser vero. Verificato su UA reali: 150 la tagliava, 300 no. */
+    plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
     precios_epoch: PRECIOS_EPOCH || '',   // v2.80.0 · il cancello dell'epoch
     ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
     member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
