@@ -5662,7 +5662,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.99.4</span>
+<span id="ver" hidden>menu2 · v2.99.5</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7382,6 +7382,27 @@ let ALMUERZO_OPCIONES = [];
    Tres cuartos, Bien cocida" + token 'carne' nella colonna Badges del prodotto
    → al tap si chiede il término. Data-gated come le bebidas. */
 let TERMINO_OPCIONES = [];
+/* v2.99.5 · [reperto 31-ago, Alberto sul vivo: Filete Mignon chiedeva il
+   término DUE volte] · la regola "una sola sorgente" del 04-ago (v2.81.0)
+   copriva mods2 vs `Modificadores`, ma non il caso più vecchio: il badge
+   `carne` (término) e il testo libero `Modificadores` dello STESSO prodotto
+   possono dire la stessa cosa con parole diverse — es. `MODIFICADORES`
+   tab aveva "Tres cuartos/Bien cocido" su un piatto che già chiede il
+   término globale (che porta "Bien cocidA"). Il confronto letterale non
+   basta: l'aggettivo cambia genere (cocido/cocida) e un match esatto non
+   l'avrebbe preso. Si normalizza togliendo la vocale finale prima di
+   confrontare — root cause, non il sintomo di stanotte: qualsiasi doneness
+   futuro scritto con genere diverso viene comunque riconosciuto.
+   `TERMINO_DEDUP_ON` = interruttore di rollback (`?termino_dedup=0`),
+   default ON: spento torna ESATTAMENTE al comportamento di prima (nessun
+   filtro, le due domande possono ripresentarsi). */
+let TERMINO_DEDUP_ON = URL_PARAMS.get('termino_dedup') !== '0';
+function _terminoNorm(s){ return (s||'').toString().trim().toLowerCase().replace(/[oa]$/, ''); }
+function _sinDuplicadoDeTermino(opciones){
+  if(!TERMINO_DEDUP_ON || !TERMINO_OPCIONES.length) return opciones;
+  const termSet = new Set(TERMINO_OPCIONES.map(_terminoNorm));
+  return opciones.filter(o => !termSet.has(_terminoNorm(o)));
+}
 /* ═══ v2.0 · stato del menù che VENDE ═══ */
 let ENVIO_DIRECTO = false;        // PARAMETROS.envio_directo_activo (via A carrello)
 let DJBOX_ON      = false;        // PARAMETROS.djbox_on (porta DJ-BOX nel mondo BPM)
@@ -11125,6 +11146,10 @@ function v2Preguntas(p){
   // che non si stampa: il chit resta pulito sul caso normale.
   else if(p.modificadores){
     let _mods = p.modificadores.split('/').map(x=>x.trim()).filter(Boolean);
+    // v2.99.5 · se il badge 'carne' già chiede el término (arriba), no se
+    // repite aquí — normalizado por género (cocido/cocida), no por texto
+    // exacto: es la causa real del doble "¿cómo lo quieres?" del 31-ago.
+    if(esCarne) _mods = _sinDuplicadoDeTermino(_mods);
     if(_mods.length === 1) _mods = [getLang('mod_comoviene') || 'Como viene'].concat(_mods);
     if(_mods.length >= 2) preguntas.push({ tipo:'mod', opciones: _mods });
   }
@@ -12320,6 +12345,10 @@ function addToCart(prodId){
   // che non si stampa: il chit resta pulito sul caso normale.
   else if(p.modificadores){
     let _mods = p.modificadores.split('/').map(x=>x.trim()).filter(Boolean);
+    // v2.99.5 · se il badge 'carne' già chiede el término (arriba), no se
+    // repite aquí — normalizado por género (cocido/cocida), no por texto
+    // exacto: es la causa real del doble "¿cómo lo quieres?" del 31-ago.
+    if(esCarne) _mods = _sinDuplicadoDeTermino(_mods);
     if(_mods.length === 1) _mods = [getLang('mod_comoviene') || 'Como viene'].concat(_mods);
     if(_mods.length >= 2) preguntas.push({ tipo:'mod', opciones: _mods });
   }
