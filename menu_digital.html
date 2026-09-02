@@ -5662,7 +5662,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.99.6</span>
+<span id="ver" hidden>menu2 · v2.99.7</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10915,11 +10915,23 @@ const BUSCA_CATEGORIA = (function(){
 })();
 function pCat(p){ return BUSCA_CATEGORIA ? (p && p.categoria || '') : ''; }
 
+/* [02-set] · «agua» portava 10 prodotti (reperto di Alberto sul vivo): il
+   confronto era UNA stringa sola (nome+descripción+categoría), quindi un
+   prodotto che nomina "agua" solo di striscio nella descrizione pesava
+   uguale a "Agua Mineral". Non si toglie niente (stessa garanzia
+   dell'AUT-0015 sopra: mai un risultato in meno) — si ORDINA: prima chi
+   ha la query nel NOME (quello che l'utente sta davvero cercando), poi il
+   resto. Stesso principio già usato da `_cmBuscar` in sala.html
+   (prefisso prima, sostanza dopo) — qui per campo invece che per prefisso. */
 function v2SearchHTML(){
   const q = v2Norm(V2_Q);
-  const hits = ALL_PRODUCTS.filter(p =>
-    !p.agotado && productInFaja(p) &&
-    v2Norm(p.nombre + ' ' + (p.descripcion||'') + ' ' + getProductDesc(p) + ' ' + pCat(p)).indexOf(q) >= 0);
+  const porNombre = [], porResto = [];
+  ALL_PRODUCTS.forEach(p => {
+    if (p.agotado || !productInFaja(p)) return;
+    if (v2Norm(p.nombre || '').indexOf(q) >= 0) { porNombre.push(p); return; }
+    if (v2Norm((p.descripcion||'') + ' ' + getProductDesc(p) + ' ' + pCat(p)).indexOf(q) >= 0) porResto.push(p);
+  });
+  const hits = porNombre.concat(porResto);
   let h = `<div class="v2-sec-t">🔎 ${hits.length} para «${escapeHtml(V2_Q)}»</div>`;
   h += hits.length
     ? `<div class="product-list">${hits.map(p=>renderProductCard(p)).join('')}</div>`
