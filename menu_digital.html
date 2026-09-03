@@ -2667,6 +2667,37 @@ body.theme-dark .cat-header-count{color:rgba(255,255,255,0.4)}
    ─ niente più campanella per card
    ─ niente più bordo verde animato
    ─ prezzo senza simbolo, peso medium 14px neutro chiaro */
+/* ═══ v2.100.0 · [AUT-0160] · LA BARRA DI NAVIGAZIONE (spenta senza `?nav=1`)
+   Tutto sotto `html.nav2`: senza quella classe questo blocco non esiste per
+   il browser, e la carta è identica a quella di ieri.
+   Il pieno resta della barra del pedido: questa è NAVIGAZIONE ⇒ contorno
+   (regola 6.3 della Carta del Vestito). E il bordo è arancio-strelitzia
+   perché deve ESISTERE per l'occhio: la lezione della pillola-fantasma
+   (contrasto 1,12:1) era proprio su una barra come questa. */
+/* 🔴 IL DEFAULT VIENE PRIMA: la lente esiste nel DOM sempre (è markup), ma
+   senza `html.nav2` NON SI VEDE. Senza questa riga il bottone comparirebbe
+   dentro la barra dei mondi di oggi — cioè lo stato «spento» non sarebbe
+   identico a oggi, che è esattamente ciò che il collaudo deve garantire. */
+#nav2Lupa{display:none}
+html.nav2 #nav2Lupa{display:flex}
+html.nav2 #v2Buscar{display:none}                 /* il buscador sale nella barra */
+html.nav2 #groupBar{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:0;
+  width:100%;max-width:480px;z-index:398;
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+  background:linear-gradient(transparent,var(--brand-bg) 34%);
+  display:flex!important;gap:6px;align-items:stretch;
+}
+html.nav2 #groupBar .group-grid{flex:1;min-width:0}
+html.nav2 #nav2Lupa{
+  flex:0 0 auto;width:46px;border-radius:12px;cursor:pointer;
+  background:var(--brand-surface);color:var(--brand-text);
+  border:1.5px solid var(--brand-border-strong,rgba(255,140,80,.55));
+  font-size:17px;display:flex;align-items:center;justify-content:center;
+}
+html.nav2 #nav2Lupa:active{transform:scale(.94)}
+/* il contenuto non finisce sotto la barra */
+html.nav2 body{padding-bottom:76px}
 .product-list{padding:0 16px;display:flex;flex-direction:column;gap:8px}
 .product-card{background:var(--brand-surface);border-radius:14px;border:1px solid var(--brand-border);position:relative;transition:border-color var(--transition);cursor:pointer;padding:12px;display:flex;gap:12px;align-items:flex-start;}
 .product-card:active{border-color:rgba(233,69,96,0.4)}
@@ -5677,7 +5708,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.99.8</span>
+<span id="ver" hidden>menu2 · v2.100.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -5835,7 +5866,13 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </div></div>
 
 <!-- ── MACRO-GROUPS ── -->
-<div id="groupBar"><div class="group-grid" id="groupGrid"></div></div>
+<div id="groupBar"><div class="group-grid" id="groupGrid"></div><!--
+  v2.100.0 · [AUT-0160] · la lente vive nella barra e RIUSA l'overlay di
+  ricerca che esiste già (`openSearchOverlay`) — non ne nasce una seconda.
+  Fuori da `?nav=1` il CSS di `#groupBar` non la posiziona e resta invisibile
+  come oggi (il bottone c'è ma `html.nav2` non c'è: nessuno stile lo mostra
+  fuori dalla barra fissa). --><button id="nav2Lupa" type="button"
+  onclick="try{openSearchOverlay()}catch(e){}" aria-label="Buscar">🔎</button></div>
 
 <!-- v1.11 · ex searchBarWrap sticky · RIMOSSO. Search ora vive in overlay full-screen
      attivato da #headerSearchBtn. Recuperati ~50px verticali = mezza card in più. -->
@@ -6061,6 +6098,21 @@ let   MESA_ID    = URL_PARAMS.get('mesa')  || null;   // v2.9 · mutable: «¿Te
 let   MEMBER_ID  = URL_PARAMS.get('member')|| null;   // v2.31.0 · il telefono ricorda (v. blocco member sotto)
 // v1.19 · S10 · vetrina = QR fuori locale (?local=X senza ?mesa=N)
 const IS_VETRINA = !MESA_ID && !!LOCAL_RAW.trim();
+/* ═══ v2.100.0 · [AUT-0160] · LA BARRA DI NAVIGAZIONE — NASCE SPENTA ═══════
+   Reperto di Alberto sul vivo (02-set): «i tre bottoni se stanno in fondo
+   scrollano, quindi non si troveranno facilmente». Oggi i chip dei mondi e
+   il buscador vivono in cima e scorrono via col contenuto; qui vanno in una
+   barra FISSA nell'arco del pollice.
+   🔴 SPENTA DI DEFAULT: senza `?nav=1` non cambia NIENTE per nessun cliente.
+   🔴 E IL PARAMETRO NON SI RICORDA — per-richiesta, mai in localStorage
+      (condizione del CONTROLLER): i link del menu si condividono fra clienti,
+      e un parametro appiccicoso girerebbe per sempre su una cosa che nessuno
+      ha acceso. È la stessa forma della mesa ricordata, con un altro nome.
+   📌 Additiva per costruzione: NON tocca `renderGroups()` né il componente
+      prodotto — RIPOSIZIONA `#groupBar` e riusa `openSearchOverlay()`.
+      Il passaggio riga→card (1b) è un lavoro suo, senza data. */
+const NAV2 = URL_PARAMS.get('nav') === '1';
+if (NAV2) { try { document.documentElement.classList.add('nav2'); } catch(e){} }
 // v1.10 · Lingua all'avvio: spagnolo SEMPRE come default, ignorando localStorage.
 // Eccezione: ?lang=xx in URL = scelta deliberata di chi ha fatto il QR (vince).
 // localStorage viene riconsiderato SOLO quando il GAS torna brand.default_lang
@@ -6124,6 +6176,9 @@ function _fechaOpCliente(){
 }
 let SES = null;
 let SES_MESA_CONFLICTO = null;   // {vieja, nueva} → sesGuardiaMostrar() al boot
+/* v2.100.0 · [AUT-0160] · 'qr' | 'sesion' | 'qr_conflicto' | 'confirmada' | ''
+   ('' = nessuna mesa: vetrina o QR fuori locale) */
+let MESA_ORIGEN = '';
 function sesSave(){ try { SES.ts = Date.now(); SES.fop = SES.fop || _fechaOpCliente(); localStorage.setItem(SES_KEY, JSON.stringify(SES)); } catch(e){} }
 function mstGet(k){ return (SES && SES.kv && SES.kv[k] !== undefined) ? SES.kv[k] : null; }
 function mstSet(k, v){ if (!SES) return; SES.kv[k] = String(v); sesSave(); }
@@ -6153,15 +6208,25 @@ function sesLoad(){
     sesSave();
     return;
   }
+  /* ═══ v2.100.0 · [AUT-0160] · DA DOVE VIENE LA MESA ═══════════════════════
+     Ieri sera tre stanze hanno passato un'ora a ricostruire se un pedido fosse
+     nato sulla mesa giusta, e non si poteva sapere: una mesa letta dal QR e una
+     tirata fuori dalla memoria arrivano al fossile IDENTICHE.
+     🔑 Questo campo NON cura niente — serve a impedire di INVENTARE un guasto.
+     Popolato su TUTTE E TRE le strade (condizione del CONTROLLER): se lo
+     scrivesse solo il ramo sospetto, un'assenza sarebbe ambigua come oggi. */
   if (MESA_ID && SES.mesa && String(SES.mesa) !== String(MESA_ID)) {
+    MESA_ORIGEN = 'qr_conflicto';   // il QR contraddice la sessione → la guardia chiede
     // QR di una mesa diversa dalla sessione viva → la guardia chiede.
     // Default alla NUEVA (il QR in mano è l'evidenza fisica); «sigo en la M» torna indietro.
     SES_MESA_CONFLICTO = { vieja: String(SES.mesa), nueva: String(MESA_ID) };
     SES.mesa = String(MESA_ID);
   } else if (MESA_ID) {
     SES.mesa = String(MESA_ID);
+    MESA_ORIGEN = 'qr';           // la mesa viene dal QR in mano: l'evidenza fisica
   } else if (SES.mesa && !IS_VETRINA) {
     MESA_ID = String(SES.mesa);   // scheda riaperta senza ?mesa: la sessione ricorda
+    MESA_ORIGEN = 'sesion';       // 🔴 il ramo di R12: nessun QR, la memoria decide
   }
   sesSave();
 }
@@ -6202,8 +6267,9 @@ function sesGuardiaMostrar(){
 function sesGuardiaResolver(quedarse){
   const c = SES_MESA_CONFLICTO; SES_MESA_CONFLICTO = null;
   const ov = document.getElementById('sesGuardiaMesa'); if (ov) ov.remove();
-  if (!c || quedarse) return;   // quedarse: SES.mesa è già la nueva (sesLoad)
+  if (!c || quedarse) { MESA_ORIGEN = 'confirmada'; return; }   // ha confermato il QR nuovo
   MESA_ID = c.vieja; SES.mesa = c.vieja; sesSave();
+  MESA_ORIGEN = 'confirmada';   // ha scelto lui: in entrambi i versi è una risposta umana
   try { const u = new URL(location.href); u.searchParams.set('mesa', c.vieja); history.replaceState(null, '', u.toString()); } catch(e){}
   if (typeof MESERO_MESA !== 'undefined') MESERO_MESA = '';
   if (typeof cargarMeseroDeMesa === 'function') cargarMeseroDeMesa();
@@ -13479,6 +13545,11 @@ async function _enviarPedidoDigitalInner(opts){
     // v2.9.1 · mesa fantasma strato ②: dopo una mesa_limpia recente il GAS
     // chiede conferma (need:mesa_confirmar) — questo flag è la risposta "sí"
     confirmado: !!(opts && opts.confirmado),
+    /* v2.100.0 · [AUT-0160] · da dove viene la mesa di questo pedido.
+       Additivo: il GAS di oggi lo ignora e non cambia niente — ma dal
+       giorno che lo scrive, un caso come quello di ieri sera si legge dal
+       fossile invece di costare un'ora a tre stanze. */
+    mesa_origen: MESA_ORIGEN || '',
     ts: Date.now(),
   };
   // v2.10 · l'intento si persiste PRIMA del primo colpo: se la rete cade
