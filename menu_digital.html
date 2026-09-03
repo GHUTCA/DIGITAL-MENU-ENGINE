@@ -2679,16 +2679,41 @@ body.theme-dark .cat-header-count{color:rgba(255,255,255,0.4)}
    dentro la barra dei mondi di oggi — cioè lo stato «spento» non sarebbe
    identico a oggi, che è esattamente ciò che il collaudo deve garantire. */
 #nav2Lupa{display:none}
+#nav2Bar{display:none}                      /* il contenitore non esiste senza nav2 */
 html.nav2 #nav2Lupa{display:flex}
 html.nav2 #v2Buscar{display:none}                 /* il buscador sale nella barra */
-html.nav2 #groupBar{
+/* 🔴 v2.100.1 · SECONDA VERSIONE, e il perché sta qui perché è la lezione.
+   La prima riposizionava `#groupBar` direttamente. Sul vivo si è rotta: i chip
+   diventavano colonne a tutta altezza. **Non ho trovato la causa**: ho estratto
+   le 17 regole vere in una riproduzione minima e lì la barra era SANA (45px, in
+   fondo) — quindi la rottura viene da qualcosa che la mia repro non conteneva,
+   e su `#groupBar` ci sono SEI regole di altri (sticky · z-index 478 · padding
+   !important · border-bottom !important · due su display).
+   ⇒ **Non combatto una cascata che non so riprodurre: me ne esco.** La barra è
+   ora un contenitore MIO (`#nav2Bar`) senza nessuna regola ereditata, e
+   `#groupBar` ci viene spostato dentro azzerato. Costa una riga di JS e non
+   dipende dal capire il difetto. */
+html.nav2 #nav2Bar{
   position:fixed;left:50%;transform:translateX(-50%);bottom:0;
-  width:100%;max-width:480px;z-index:398;
+  width:100%;max-width:480px;z-index:398;box-sizing:border-box;
   padding:8px 10px calc(8px + env(safe-area-inset-bottom));
   background:linear-gradient(transparent,var(--brand-bg) 34%);
-  display:flex!important;gap:6px;align-items:stretch;
+  display:flex;gap:6px;align-items:center;
 }
-html.nav2 #groupBar .group-grid{flex:1;min-width:0}
+/* dentro la barra, #groupBar smette di essere quello che era */
+html.nav2 #nav2Bar #groupBar{
+  position:static!important;display:block!important;flex:1;min-width:0;
+  max-width:none;margin:0;padding:0!important;border:0!important;
+  box-shadow:none!important;background:none!important;
+}
+/* 🔑 e il difetto che la repro HA trovato: `repeat(auto-fit,minmax(0,1fr))`
+   genera 48 tracce, 44 larghe 0px — è la «striscia vuota» vista sul vivo.
+   Due id battono un id, quindi questa vince sul suo !important. */
+html.nav2 #nav2Bar #groupGrid{
+  grid-template-columns:none!important;      /* via l'auto-fit e le sue 48 tracce */
+  grid-auto-flow:column;grid-auto-columns:1fr;   /* N chip = N colonne uguali, sempre */
+  grid-auto-rows:auto;align-items:center;
+}
 html.nav2 #nav2Lupa{
   flex:0 0 auto;width:46px;border-radius:12px;cursor:pointer;
   background:var(--brand-surface);color:var(--brand-text);
@@ -5708,7 +5733,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.100.0</span>
+<span id="ver" hidden>menu2 · v2.100.1</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -5873,6 +5898,10 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
   come oggi (il bottone c'è ma `html.nav2` non c'è: nessuno stile lo mostra
   fuori dalla barra fissa). --><button id="nav2Lupa" type="button"
   onclick="try{openSearchOverlay()}catch(e){}" aria-label="Buscar">🔎</button></div>
+<!-- v2.100.1 · [AUT-0160] · il contenitore della barra: VUOTO e invisibile
+     senza `?nav=1`. Non ha nessuna regola ereditata — è il punto di tutta la
+     seconda versione. -->
+<div id="nav2Bar"></div>
 
 <!-- v1.11 · ex searchBarWrap sticky · RIMOSSO. Search ora vive in overlay full-screen
      attivato da #headerSearchBtn. Recuperati ~50px verticali = mezza card in più. -->
@@ -6113,6 +6142,20 @@ const IS_VETRINA = !MESA_ID && !!LOCAL_RAW.trim();
       Il passaggio riga→card (1b) è un lavoro suo, senza data. */
 const NAV2 = URL_PARAMS.get('nav') === '1';
 if (NAV2) { try { document.documentElement.classList.add('nav2'); } catch(e){} }
+/* v2.100.1 · la barra è un contenitore MIO: `#groupBar` e la lente ci vengono
+   spostati dentro al boot. Se qualcosa manca non si fa niente e resta la carta
+   di oggi — una cura che fallisce deve fallire chiusa. */
+function nav2Montar(){
+  if (!NAV2) return;
+  try {
+    const bar = document.getElementById('nav2Bar');
+    const gb  = document.getElementById('groupBar');
+    const lu  = document.getElementById('nav2Lupa');
+    if (!bar || !gb || !lu) return;      // manca un pezzo: non tocco niente
+    if (bar.contains(gb)) return;        // già montata
+    bar.appendChild(gb); bar.appendChild(lu);
+  } catch(e){}
+}
 // v1.10 · Lingua all'avvio: spagnolo SEMPRE come default, ignorando localStorage.
 // Eccezione: ?lang=xx in URL = scelta deliberata di chi ha fatto il QR (vince).
 // localStorage viene riconsiderato SOLO quando il GAS torna brand.default_lang
@@ -7788,6 +7831,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderFajas();
   renderGroups();      // v1.12 · S5 · fix bug latente v1.11 · senza questo i macro-groups
                        // Comida/Barra/Dolci NON appaiono al boot fino al primo polling ritmi
+  nav2Montar();        // v2.100.1 · [AUT-0160] · dopo renderGroups: sposta la barra
+                       // in fondo. No-op senza `?nav=1`.
   renderCatTabs();
   renderMenu();
   setupSearch();
