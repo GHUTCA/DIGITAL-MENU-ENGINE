@@ -2711,9 +2711,19 @@ html.nav2 #nav2Bar #groupBar{
    Due id battono un id, quindi questa vince sul suo !important. */
 html.nav2 #nav2Bar #groupGrid{
   grid-template-columns:none!important;      /* via l'auto-fit e le sue 48 tracce */
-  grid-auto-flow:column;grid-auto-columns:1fr;   /* N chip = N colonne uguali, sempre */
+  grid-auto-flow:column;
+  /* 🔴 v2.100.2 · `1fr` NON basta: `1fr` è `minmax(AUTO,1fr)`, e il minimo
+     `auto` è la LARGHEZZA DEL CONTENUTO — quindi le colonne seguono il testo
+     invece della griglia, e la somma sfonda il contenitore.
+     Misurato sul vivo dal CONTROLLER: 68 · 91 · 75 · 60 px (non 96 uguali
+     come diceva la mia repro) e il chip BPM che finiva 9px SOTTO la lente —
+     due bersagli sovrapposti su una superficie che si tocca.
+     `minmax(0,1fr)` toglie quel minimo: le colonne possono stringersi. */
+  grid-auto-columns:minmax(0,1fr);
   grid-auto-rows:auto;align-items:center;
 }
+/* e i chip non sfondano la loro colonna: il testo si tronca, non spinge */
+html.nav2 #nav2Bar #groupGrid > *{min-width:0;overflow:hidden}
 html.nav2 #nav2Lupa{
   flex:0 0 auto;width:46px;border-radius:12px;cursor:pointer;
   background:var(--brand-surface);color:var(--brand-text);
@@ -5733,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.100.1</span>
+<span id="ver" hidden>menu2 · v2.100.2</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
