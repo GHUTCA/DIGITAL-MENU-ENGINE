@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.100.2</span>
+<span id="ver" hidden>menu2 · v2.101.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7700,9 +7700,34 @@ function repriceCart(){
         if (eta < GRACIA_PRECIO_MS) {
           const scade = i.ts_add + GRACIA_PRECIO_MS;
           if (prossimaScadenza === null || scade < prossimaScadenza) prossimaScadenza = scade;
+          /* ═══ [AUT-0207] 06-set · LA GRAZIA SI DICHIARA NEL FOSSILE ═══════════
+             La grazia è giusta (non si cobra più di quanto mostrato) ma finora
+             non lasciava traccia: nel libro un item protetto è IDENTICO a uno
+             che ha mancato il ricarico. Tre stanze in due giorni l'hanno contato
+             come perdita, con tre metodi diversi — l'ultima stimava $181.500.
+             🔑 Una tolleranza che parla sparisce da sola quando la cura morde;
+                una silenziosa diventa l'architettura.
+             `gracia_vig` porta il prezzo che SAREBBE stato applicato: così il
+             costo della grazia si MISURA, non si stima. Additivo: il GAS di oggi
+             ignora i due campi finché non li guarda. */
+          try {
+            const _rgG = PRECIOS_REGLA_MAP[i.id];
+            const _bsG = (ALL_PRODUCTS.find(p => p.id === i.id) || {}).precio;
+            let _vig = (_rgG && _rgG.precio != null) ? parsePrice(_rgG.precio) : parsePrice(_bsG);
+            if (typeof _vig === 'number' && !isNaN(_vig)) {
+              if (i.mods && i.mods.length) i.mods.forEach(function (m) { _vig += (m.d || 0); });
+              // si marca SOLO se il prezzo vivo è davvero diverso: una grazia che
+              // non protegge niente non va dichiarata (sarebbe rumore nel fossile)
+              if (_vig !== i.precio) { i.gracia = 1; i.gracia_vig = _vig; }
+              else { delete i.gracia; delete i.gracia_vig; }
+            }
+          } catch (eG) {}
           return;
         }
       }
+      /* l'item NON è più protetto: il marchio va tolto, o mentirebbe.
+         (la grazia è una finestra, non un condono — v2.99.3) */
+      if (i.gracia) { delete i.gracia; delete i.gracia_vig; }
       const regla = PRECIOS_REGLA_MAP[i.id];
       const base = (ALL_PRODUCTS.find(p => p.id === i.id) || {}).precio;
       let nuevo = (regla && regla.precio != null) ? parsePrice(regla.precio) : parsePrice(base);
@@ -13499,7 +13524,12 @@ async function _enviarPedidoDigitalInner(opts){
       // listino nudo (separa piatto da extra in forense/boleta). Fossile:
       // i delta sono i vigenti AL MOMENTO della scrittura, mai reinterpretati.
       mods: (i.mods && i.mods.length) ? i.mods.map(m => ({ g: m.g, gn: m.gn, oid: m.oid, o: m.o, d: m.d, cl: m.cl })) : undefined,
-      precio_base: ((i.mods && i.mods.length) || i.dupla) ? i.precio_base : undefined };
+      precio_base: ((i.mods && i.mods.length) || i.dupla) ? i.precio_base : undefined,
+      /* [AUT-0207] 06-set · LA GRAZIA VIAGGIA. Questa mappa elenca i campi uno
+         per uno: un marchio messo nel carrello e non aggiunto QUI non arriverebbe
+         mai al fossile — e il difetto sarebbe invisibile esattamente come prima.
+         (stessa forma di `precio_base`, e di `sala.html` r.4446) */
+      gracia: i.gracia || undefined, gracia_vig: i.gracia ? i.gracia_vig : undefined };
   });
   // v2.17 · LA BEBIDA DEL MENÚ È UNA RIGA VERA (VB sab 18: da lunedì Barra e
   // Cocina separate, per codice). Il carrito resta com'è (una riga per plato,
