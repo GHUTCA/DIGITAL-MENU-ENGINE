@@ -10675,7 +10675,17 @@ function v2DestacadosHTML(){
       const e = d.e;
       const tit = e.titulo_es || e.titulo || e.Titulo || '';
       const eyebrow = e.eyebrow_es || e.eyebrow || e.Eyebrow || 'EVENTO';
-      const ph = e.foto_url ? `<img src="${e.foto_url}" alt="" loading="lazy" onerror="this.parentElement.textContent='🪩'">` : '🪩';
+      /* v2.102.0 · [AUT-0230, 11-set] MINIATURA ≠ POSTER, CAMPO OPZIONALE.
+         Fino a oggi `foto_url` serviva DUE mestieri: la miniatura piccola del
+         carosello (ritaglio duro 200×~100) E il poster a tutta pagina del
+         lightbox — bene finché l'uno era un ritaglio decente dell'altro. Il
+         Menú de la Noche ha un poster verticale a 4 portate che in miniatura
+         si taglia a caso (caso reale, Alberto/DESIGN, 11-set mattina).
+         `foto_thumb_url` è ADDITIVO: se assente, `ph` cade su `foto_url`
+         com'era — zero cambio per gli eventi DJ/Mundial già vivi, che non lo
+         scrivono mai. Il lightbox continua a leggere SEMPRE `foto_url`. */
+      const fotoThumb = e.foto_thumb_url || e.foto_url;
+      const ph = fotoThumb ? `<img src="${fotoThumb}" alt="" loading="lazy" onerror="this.parentElement.textContent='🪩'">` : '🪩';
       // v2.8.2 (13-lug · VB Alberto) · il poster dell'evento si apre a TUTTA
       // PAGINA in lightbox (come il poster DJ EVENTS), non nello sheet a metà.
       /* v2.92.0 · l'URL viaggia DENTRO la card, non in una globale.
@@ -10688,8 +10698,14 @@ function v2DestacadosHTML(){
       const _evU = String(e.foto_url || '').replace(/'/g, "\'");
       const _evC = String(e.subtitulo_es || e.titulo_es || tit || '').replace(/'/g, "\'");
       const evClick = e.foto_url ? `v2LightboxOpen('${_evU}','${_evC}')` : "v2AbrirDest('ev')";
+      /* v2.102.0 · [AUT-0230] una miniatura disegnata apposta (foto_thumb_url)
+         porta già il suo badge dentro l'immagine (es. "NOCHE") — il flag
+         generico "🎉 EVENTO" sopra ci farebbe un doppione. Si nasconde SOLO
+         in quel caso: gli eventi di sempre (senza foto_thumb_url) lo vedono
+         identico a ieri. */
+      const flag = e.foto_thumb_url ? '' : `<span class="flag v2-flag-evento">🎉 EVENTO</span>`;
       return `<button class="v2-dst" onclick="${evClick}">
-        <span class="flag v2-flag-evento">🎉 EVENTO</span>
+        ${flag}
         <div class="ph">${ph}</div>
         <div class="inf"><div class="eyebrow">${eyebrow}</div><div class="nom">${tit}</div></div></button>`;
     }
