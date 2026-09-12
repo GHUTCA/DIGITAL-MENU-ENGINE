@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.102.0</span>
+<span id="ver" hidden>menu2 · v2.103.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10477,6 +10477,15 @@ function v2DestacadosHTML(){
   // il MUNDIAL è la scena, deve essere la prima cosa che l'occhio incontra.
   const ev = (CARTELERA_DATA && CARTELERA_DATA.evento) || (CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos) || null;
   if(ev && (ev.titulo_es || ev.titulo || ev.Titulo)) dst.push({ tipo:'evento', e: ev });
+  /* v2.103.0 · [AUT-0235, 12-set] IL SECONDO POSTO — Menú de la Noche non
+     compete più per lo slot `evento` qui sopra: un evento PERMANENTE (el DJ
+     del sábado, activo cada semana) lo ganaba siempre, y darle una ventana
+     de fechas a la Noche no arregla nada si el otro nunca tiene una
+     estrecha. `menu_noche` viene de una lectura DEDICADA en el GAS (por ID
+     fijo, sin competencia) — mismo render `tipo:'evento'` de arriba,
+     verbatim: el DJ sigue en su lugar, la Noche tiene el suyo. */
+  const noche = CARTELERA_DATA && CARTELERA_DATA.menu_noche;
+  if(noche && (noche.titulo_es || noche.titulo)) dst.push({ tipo:'evento', e: noche });
   ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && esPush(p))
     .forEach(p=>dst.push({ tipo:'push', p }));
   const alm = v2AlmuerzoProds();
@@ -10704,10 +10713,19 @@ function v2DestacadosHTML(){
          in quel caso: gli eventi di sempre (senza foto_thumb_url) lo vedono
          identico a ieri. */
       const flag = e.foto_thumb_url ? '' : `<span class="flag v2-flag-evento">🎉 EVENTO</span>`;
+      /* v2.103.0 · [AUT-0235, 12-set] IL PREZZO COME LE ALTRE CARD.
+         Alberto, guardando il Menú de la Noche accanto a "Menú del Día" e
+         "Niña Bonita": «il prezzo non può apparire come nelle altre due
+         card?». Loro hanno un `.precio` testuale sotto il titolo; l'evento
+         non l'ha mai avuto (non gli serviva, un DJ non ha un prezzo).
+         `precio_es` opzionale, stessa classe CSS già viva (`.v2-dst .precio`,
+         nessun CSS nuovo) — assente = niente riga, gli eventi DJ restano
+         BYTE PER BYTE come ieri. */
+      const precioHtml = e.precio_es ? `<div class="precio">${e.precio_es}</div>` : '';
       return `<button class="v2-dst" onclick="${evClick}">
         ${flag}
         <div class="ph">${ph}</div>
-        <div class="inf"><div class="eyebrow">${eyebrow}</div><div class="nom">${tit}</div></div></button>`;
+        <div class="inf"><div class="eyebrow">${eyebrow}</div><div class="nom">${tit}</div>${precioHtml}</div></button>`;
     }
     if(d.tipo === 'almuerzo'){
       // v2.14 · CARD-FORMULA (VB 17-lug): la card MENÚ vende la FORMULA
