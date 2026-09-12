@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.103.0</span>
+<span id="ver" hidden>menu2 · v2.104.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10485,7 +10485,15 @@ function v2DestacadosHTML(){
      fijo, sin competencia) — mismo render `tipo:'evento'` de arriba,
      verbatim: el DJ sigue en su lugar, la Noche tiene el suyo. */
   const noche = CARTELERA_DATA && CARTELERA_DATA.menu_noche;
-  if(noche && (noche.titulo_es || noche.titulo)) dst.push({ tipo:'evento', e: noche });
+  /* v2.104.0 · [reperto 🎛, 12-set, dopo il deploy] LO STESSO ID NON SI
+     DISEGNA DUE VOLTE. Quando MENU-NOCHE è l'unica riga attiva in
+     CARTELERA_EVENTOS (es. il DJ spento), vince ANCHE la gara dello slot
+     `evento` qui sopra (`ev.id === 'MENU-NOCHE'`) — e senza questa riga
+     usciva due volte in carosello. Non è un caso raro: è lo stato del
+     foglio ogni volta che nessun evento è attivo, non solo un incidente
+     di stamattina. */
+  const nocheGiaDisegnata = ev && noche && ev.id === noche.id;
+  if(noche && (noche.titulo_es || noche.titulo) && !nocheGiaDisegnata) dst.push({ tipo:'evento', e: noche });
   ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && esPush(p))
     .forEach(p=>dst.push({ tipo:'push', p }));
   const alm = v2AlmuerzoProds();
