@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.104.0</span>
+<span id="ver" hidden>menu2 · v2.105.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7637,7 +7637,13 @@ function mods2GruposDe(p){
 // Ref_Producto → il delta è il prezzo vigente di QUEL prodotto (una verità).
 function mods2DeltaVigente(op, gid){
   let d0 = op.d;
-  if(op.ref){
+  /* [AUT-0316 · 15-set] Ref_Producto sovrascriveva d0 SEMPRE, anche quando
+     Precio_Delta era un numero deciso (0 compreso) — diagnosticato il 07-set
+     (PIANO_DOMANI_PRODUCTO_MADRE_NOCHE), mai applicato in 5 settimane.
+     Un Precio_Delta=0 esplicito ORA vince: l'opzione aggancia il prodotto per
+     tracciabilità (cucina/bar/stock) senza ereditarne il prezzo. Stessa riga
+     in sala.html — i due vetri leggono la stessa grammatica. */
+  if(op.ref && d0 == null){
     const rp = ALL_PRODUCTS.find(x => x.id === op.ref);
     if(rp){ const rg = PRECIOS_REGLA_MAP[op.ref]; d0 = (rg && rg.precio > 0) ? parsePrice(rg.precio) : parsePrice(rp.precio); }
     else d0 = null;
