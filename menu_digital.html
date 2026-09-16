@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.105.0</span>
+<span id="ver" hidden>menu2 · v2.106.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10482,7 +10482,6 @@ function v2DestacadosHTML(){
   // v2.8.1 (13-lug · VB Alberto) · l'EVENTO apre il carosello (primo della lista):
   // il MUNDIAL è la scena, deve essere la prima cosa che l'occhio incontra.
   const ev = (CARTELERA_DATA && CARTELERA_DATA.evento) || (CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos) || null;
-  if(ev && (ev.titulo_es || ev.titulo || ev.Titulo)) dst.push({ tipo:'evento', e: ev });
   /* v2.103.0 · [AUT-0235, 12-set] IL SECONDO POSTO — Menú de la Noche non
      compete più per lo slot `evento` qui sopra: un evento PERMANENTE (el DJ
      del sábado, activo cada semana) lo ganaba siempre, y darle una ventana
@@ -10499,7 +10498,18 @@ function v2DestacadosHTML(){
      foglio ogni volta che nessun evento è attivo, non solo un incidente
      di stamattina. */
   const nocheGiaDisegnata = ev && noche && ev.id === noche.id;
-  if(noche && (noche.titulo_es || noche.titulo) && !nocheGiaDisegnata) dst.push({ tipo:'evento', e: noche });
+  /* 🔴 [16-set, Alberto in servizio: «il prezzo non si vede più appena
+     attivato»] LA RIGA SOPRA EVITAVA IL DOPPIONE SCEGLIENDO IL POVERO. `ev`
+     (lo slot legacy) NON porta `precio_es` né `foto_thumb_url` — solo
+     `noche` (la lettura dedicata, AUT-0235) li porta. Con lo stesso id, si
+     pushava SEMPRE `ev` (riga sotto, incondizionata) e si SALTAVA `noche`
+     (riga ancora sotto, `!nocheGiaDisegnata`): la card usciva senza prezzo
+     ogni volta che i due slot coincidono — cioè ogni volta che nessun altro
+     evento è attivo, lo stato normale di una sera qualunque, non un caso
+     raro. Zero cambio quando sono DUE eventi distinti (un Mundial + la
+     Noche): escono entrambi come ieri. */
+  if(ev && (ev.titulo_es || ev.titulo || ev.Titulo) && !nocheGiaDisegnata) dst.push({ tipo:'evento', e: ev });
+  if(noche && (noche.titulo_es || noche.titulo)) dst.push({ tipo:'evento', e: noche });
   ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && esPush(p))
     .forEach(p=>dst.push({ tipo:'push', p }));
   const alm = v2AlmuerzoProds();
