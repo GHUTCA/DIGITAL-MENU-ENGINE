@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.107.0</span>
+<span id="ver" hidden>menu2 · v2.108.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -13609,8 +13609,7 @@ async function _enviarPedidoDigitalInner(opts){
        término/salsa no e resta dov'era (nel testo per il cuoco). */
     const bebidas = {};
     snapshot.items.forEach(i => {
-      if(!i.es_menu) return;
-      if (i.op) String(i.op).split(' · ').forEach(parte => {
+      if (i.es_menu && i.op) String(i.op).split(' · ').forEach(parte => {
         const opInfo = MENU_OP_MAP[parte.trim()];
         if(!opInfo) return;
         const qty = i.qty||1;
@@ -13621,15 +13620,26 @@ async function _enviarPedidoDigitalInner(opts){
           precio: 0, qty: qty, llevar: qty,
           op: '', termino: '', es_menu: true, promo: '', cat: opInfo.cat };
       });
-      /* v2.87.0 · 24-set · LA BIBITA DELLA NOCHE NON È UN ITEM (🍳 COCINA,
+      /* v2.88.0 · 24-set · LA BIBITA DELLA NOCHE NON È UN ITEM (🍳 COCINA,
          trovato + provato alla sorgente: 4 pedidos su 5 senza bibita separata,
          Día 36/36 verde come controllo positivo). Il Menú de la Noche (mods2,
          AUT-0235) non passa da `i.op`: la scelta viaggia in `i.mods`, con
          `ref` quando punta a un prodotto vero (`v2M2Mods`, `ref: op.ref`).
-         Stessa esplosione del Día, stessa forma, stesso posto: un mod con
-         `ref` diventa una riga a $0 con id/cat veri → `_estacionDe` la manda
-         alla stazione giusta (`cat` decide, non "è del Día o della Noche"). */
-      if (i.mods && i.mods.length) i.mods.forEach(m => {
+         ✏️ CORRETTO dopo la seconda lettura di COCINA (v2.107.0 era inerte):
+         ⓐ `i.es_menu` è `regla.tipo==='almuerzo'` (r.12623) — SOLO il Día ha
+            una `regla`; la Noche non passa mai da lì, quindi la guardia
+            vecchia la escludeva SEMPRE. Il perimetro giusto per un
+            contenitore-menù è la sua CATEGORIA di catalogo, non `es_menu`.
+         ⓑ+ⓒ senza un perimetro sul CONTENITORE, ogni piatto con un mod2 —
+            anche un ingrediente AGGIUNTO E PAGATO su un piatto qualsiasi —
+            esploderebbe in una riga a $0: un doppione sul chit (i mod si
+            stampano già riga per riga, r.13831+) e un fantasma sul conto.
+            Il filtro è sulla categoria VERA del prodotto-contenitore
+            (`menu_contenitore`, osservata da COCINA nel fossile reale) —
+            mai su "ha un mod con ref", che prenderebbe anche un piatto
+            normale. */
+      const _pCont = (i.mods && i.mods.length) ? ALL_PRODUCTS.find(x=>x.id===i.id) : null;
+      if (_pCont && _pCont.categoria === 'menu_contenitore') i.mods.forEach(m => {
         if (!m.ref) return;
         const p = ALL_PRODUCTS.find(x=>x.id===m.ref);
         if (!p) return;
