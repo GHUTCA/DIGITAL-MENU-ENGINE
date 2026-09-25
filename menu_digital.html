@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.108.0</span>
+<span id="ver" hidden>menu2 · v2.108.1</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -13630,19 +13630,29 @@ async function _enviarPedidoDigitalInner(opts){
             una `regla`; la Noche non passa mai da lì, quindi la guardia
             vecchia la escludeva SEMPRE. Il perimetro giusto per un
             contenitore-menù è la sua CATEGORIA di catalogo, non `es_menu`.
-         ⓑ+ⓒ senza un perimetro sul CONTENITORE, ogni piatto con un mod2 —
+         ⓑ senza un perimetro sul CONTENITORE, ogni piatto con un mod2 —
             anche un ingrediente AGGIUNTO E PAGATO su un piatto qualsiasi —
             esploderebbe in una riga a $0: un doppione sul chit (i mod si
             stampano già riga per riga, r.13831+) e un fantasma sul conto.
             Il filtro è sulla categoria VERA del prodotto-contenitore
             (`menu_contenitore`, osservata da COCINA nel fossile reale) —
             mai su "ha un mod con ref", che prenderebbe anche un piatto
-            normale. */
+            normale.
+         ⓒ ✏️ SECONDO GIRO DI COCINA: ⓑ dice QUALI ITEM esplodono, ⓒ è un
+            asse diverso — QUALI MODS di quell'item esplodono. Un Menú de
+            la Noche ha PIÙ mods con ref (entrada · bebida · fondo ·
+            postre): solo la bebida vuole una stazione nuova, gli altri
+            sono piatto e il chit li stampa già dentro il contenitore.
+            Senza questo filtro il cuoco legge il piatto due volte. Stesso
+            idioma già vivo nel file (r.13013/13150/15858), nessun dato
+            nuovo dal GAS. */
       const _pCont = (i.mods && i.mods.length) ? ALL_PRODUCTS.find(x=>x.id===i.id) : null;
+      const _barraCats = new Set((CATEGORY_GROUPS && (CATEGORY_GROUPS['Barra']||{}).cats) || []);
       if (_pCont && _pCont.categoria === 'menu_contenitore') i.mods.forEach(m => {
         if (!m.ref) return;
         const p = ALL_PRODUCTS.find(x=>x.id===m.ref);
         if (!p) return;
+        if (!_barraCats.has(p.categoria)) return;
         const qty = i.qty||1;
         if(bebidas[m.ref]){ bebidas[m.ref].qty += qty; bebidas[m.ref].llevar += qty; }
         else bebidas[m.ref] = {
