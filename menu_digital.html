@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.109.0</span>
+<span id="ver" hidden>menu2 · v2.110.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -9097,11 +9097,24 @@ function bvScalaAbiertoCalc(franja){
                 stato: franja.nombre_visible || getLang('bv_abierto') || 'Abierto ahora' };
 
   const H = (k, h, def) => ((getLang(k) || def || '')).replace(/\{h\}/g, h || '');
-  const hasta = franja.hora_fin || '';
+  let hasta = franja.hora_fin || '';
 
   // ① la franja viva con la sua propuesta · bvTokens può svuotarla (menù spento
   //    → la frase che parla del menù sparisce da sola): allora si scende.
-  const tit = bvTokens(P('propuesta_titulo'), useT);
+  let tit = bvTokens(P('propuesta_titulo'), useT);
+  /* [27-set · Alberto, BKS almuerzo] la propuesta «Menú del Día» diceva
+     «hasta las 16:00» = l'ora di fine della FRANJA di benvenuta, non del menù.
+     L'orario del menù vive in PARAMETROS (`leva_auto_de/hasta`, oggi 08-15) e
+     arriva in `MENU_INFO`; il JL lo spegne dalla leva. Se la propuesta È il
+     menù: ora = quella del menù, e se il menù è spento o finito la propuesta
+     non si mostra (si scende al gradino ②/③). */
+  const mi0 = (typeof MENU_INFO !== 'undefined') ? MENU_INFO : null;
+  const esMenu = !!tit && ((mi0 && mi0.precio > 0 && franja.propuesta_precio > 0 &&
+      Math.round(franja.propuesta_precio) === Math.round(mi0.precio)) || /men[uú] del d[ií]a/i.test(tit));
+  if (esMenu) {
+    if (mi0 && (mi0.estado !== 'on' || (mi0.hasta && hhmm >= mi0.hasta))) tit = '';
+    else hasta = (mi0 && mi0.hasta) ? mi0.hasta : '';
+  }
   if(tit){
     out.eb  = hasta ? H('bv_ahora_hasta', hasta, 'Ahora · hasta las {h}') : (getLang('bv_ahora') || 'Ahora');
     out.tit = tit;
