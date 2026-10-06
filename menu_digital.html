@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.110.0</span>
+<span id="ver" hidden>menu2 · v2.111.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7661,6 +7661,21 @@ function mods2DeltaVigente(op, gid){
 // le domande-gruppo di un prodotto, già pronte per OP_FLOW
 function mods2Preguntas(p){
   return mods2GruposDe(p).map(gr => ({ tipo: 'mod2', grupo: gr }));
+}
+/* [AUT-0574 · 05-ott] IL MENÙ-CONTENITORE NON HA UN «CASO NORMALE».
+   Per un piatto il default a $0 non si scrive («Como viene»: il chit resta pulito).
+   Per un menù a gruppi obbligatori sì: «ha toccato l'opzione evidenziata» e «non ha
+   scelto» davano LO STESSO record (niente) — l'ordine di mesa 77 del 05-ott è partito
+   senza entrada e senza postre. Il perimetro è la CATEGORIA vera del prodotto
+   (`menu_contenitore`, la stessa chiave di v2.88.0), mai «ha un gruppo con min≥1»:
+   un piatto normale con un modificatore obbligatorio resta com'è. */
+function _esMenuContenedor(p){ return !!(p && p.categoria === 'menu_contenitore'); }
+// i gruppi OBBLIGATORI (min ≥ 1) di un contenitore a cui la riga non risponde: [] = completa
+function _menuGruposFaltantes(p, mods){
+  if(!_esMenuContenedor(p)) return [];
+  const hechos = {};
+  (mods || []).forEach(m => { if(m && m.g) hechos[m.g] = true; });
+  return mods2GruposDe(p).filter(gr => (gr.min || 0) >= 1 && !hechos[gr.g]);
 }
 // etichetta chip: nome + delta vigente se > 0
 function mods2Chip(op, gid){
@@ -12699,7 +12714,7 @@ function _renderPregunta(){
   const subExtra = q.tipo === 'bebida' && ALMUERZO_INCLUYE_TXT ? ' · ' + ALMUERZO_INCLUYE_TXT : '';
   const paso = OP_FLOW.preguntas.length > 1 ? ` (${OP_FLOW.idx+1}/${OP_FLOW.preguntas.length})` : '';
   // ═══ v2.81.0 · MODS2 (tappa ③) · la domanda-GRUPPO ═══
-  // unica    → chip radio, tap = risposta (il default è già evidenziato)
+  // unica    → chip radio, tap = risposta (il default è evidenziato, TRANNE nel menù-contenitore)
   // opcional → chips + «Sin ajustes ›» per passare oltre
   // multiple → chip toggle + tetto Max + «Listo ✓» — i prezzi SUL chip,
   //            vigenti (col ricarico dentro): difetto ② disfatto alla vista
@@ -12717,7 +12732,11 @@ function _renderPregunta(){
       const lleno = gr.tipo === 'multiple' && gr.max && nSel >= gr.max && !on;
       if(gr.tipo === 'multiple')
         return `<button class="op-chip" style="${on ? 'border-color:var(--brand-primary);background:rgba(233,69,96,.12);font-weight:700' : ''}${lleno ? ';opacity:.35;pointer-events:none' : ''}" onclick="mods2Toggle(${i})">${on ? '✓ ' : ''}${mods2Chip(op, gr.g)}</button>`;
-      return `<button class="op-chip" style="${op.def ? 'border-color:var(--brand-border);font-weight:700' : ''}" onclick="mods2Elegir(${i})">${op.def ? '● ' : ''}${mods2Chip(op, gr.g)}</button>`;
+      // [AUT-0574] in un menù-contenitore NESSUNA opzione si disegna come già scelta («● » e bordo
+      // erano un'affermazione falsa: un tocco sull'evidenziato non lasciava traccia). Il default
+      // evidenziato resta solo per i modificatori di un piatto, dove «Como viene» è davvero il caso normale.
+      const _evid = op.def && !_esMenuContenedor(p);
+      return `<button class="op-chip" style="${_evid ? 'border-color:var(--brand-border);font-weight:700' : ''}" onclick="mods2Elegir(${i})">${_evid ? '● ' : ''}${mods2Chip(op, gr.g)}</button>`;
     }).join('');
     if(gr.tipo === 'multiple')
       html += `<button class="op-chip" style="border-color:var(--brand-primary);font-weight:800" onclick="mods2Listo()">Listo ✓</button>`;
@@ -12738,16 +12757,19 @@ function _renderPregunta(){
 /* ═══ v2.81.0 · MODS2 · le risposte del gruppo ═══
    La risposta scelta diventa un record {g,gn,oid,o,d,cl}: il DELTA è un
    numero, fossilizzato al valore vigente di ADESSO — non un'etichetta. Il
-   default a $0 non si registra (è il «Como viene»: il chit resta pulito). */
+   default a $0 non si registra (è il «Como viene»: il chit resta pulito) —
+   TRANNE in un menù-contenitore, dove ogni gruppo ha la sua scelta scritta
+   (AUT-0574: senza, «scelta» e «non scelta» sono lo stesso niente). */
 function _mods2Avanza(elegidos){
   const q = OP_FLOW.preguntas[OP_FLOW.idx];
   const gr = q.grupo;
   OP_FLOW.respuestas.mods = OP_FLOW.respuestas.mods || [];
+  const _contenedor = _esMenuContenedor(ALL_PRODUCTS.find(x => x.id === OP_FLOW.prodId));
   (elegidos || []).forEach(i => {
     const op = gr.ops[i];
     const d = mods2DeltaVigente(op, gr.g);
     if(d === null) return;
-    if(op.def && d === 0) return;                      // il caso normale non si scrive
+    if(op.def && d === 0 && !_contenedor) return;      // il caso normale non si scrive (tranne nel contenitore)
     OP_FLOW.respuestas.mods.push({ g: gr.g, gn: gr.gn, oid: op.oid, o: op.o, d: d, cl: op.cl, d0: (op.ref ? null : op.d), ref: op.ref || undefined });
   });
   OP_FLOW.m2sel = null;
@@ -12783,6 +12805,17 @@ function _opFinaliza(){
   if(!p){ cerrarOpcion(); return; }
   const r = OP_FLOW.respuestas;
   const mods = r.mods || [];
+  /* [AUT-0574] difesa in profondità: con la scelta sempre scritta nel contenitore un gruppo
+     senza risposta non dovrebbe esistere — ma se esiste la riga NON entra nel carrello:
+     si dice quale gruppo manca e si RIPARTE PULITO dalla prima domanda (tornare a metà
+     farebbe riscrivere due volte i gruppi già risposti). Mai un menù a due portate in silenzio. */
+  const _falta = _menuGruposFaltantes(p, mods);
+  if(_falta.length){
+    showToastMsg('Falta elegir: ' + (_falta[0].gn || 'una opción'));
+    OP_FLOW.respuestas.mods = []; OP_FLOW.m2sel = null; OP_FLOW.idx = 0;
+    _renderPregunta();
+    return;
+  }
   // v2.85.0 · LA PAREJA DEL 2x1 (stessa grammatica del mesero v3.11): su un
   // 2x1 col vocabolario v2, chiuse le domande della 1ª unità si chiede
   // «¿la segunda igual o distinta?» — la seconda unità è una COSA, non un
@@ -13559,6 +13592,17 @@ async function enviarPedidoDigital(opts){
 }
 async function _enviarPedidoDigitalInner(opts){
   if(CART.items.length === 0) return;
+  /* [AUT-0574] un menù-contenitore incompleto NON parte, e si dice quale gruppo manca.
+     Serve soprattutto per le righe già nel carrello (localStorage) da prima della cura:
+     quelle non hanno le scelte di default. Chi ha il vocabolario spento o non ancora
+     caricato non ha gruppi da controllare: la guardia tace (peggio di oggi non può essere). */
+  for(const _it of CART.items){
+    const _fa = _menuGruposFaltantes(ALL_PRODUCTS.find(x => x.id === _it.id), _it.mods);
+    if(_fa.length){
+      showToastMsg('Tu ' + toTitleCase(_it.nombre) + ' está incompleto (' + (_fa[0].gn || _fa[0].g) + '). Quítalo y vuelve a armarlo.');
+      return;
+    }
+  }
   const btn = document.getElementById('btnEnviarPedido');
   if(btn){ btn.disabled = true; btn.textContent = getLang('pedido_enviando') || 'Enviando…'; }
 
