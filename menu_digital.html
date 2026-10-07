@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.111.0</span>
+<span id="ver" hidden>menu2 · v2.112.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -13085,7 +13085,11 @@ function v2RecapQty(ix, delta){
 }
 function v2MeEquivoque(btn){
   if(btn){ btn.disabled = true; setTimeout(function(){ btn.disabled = false; }, 15000); }
-  notifyWaiter({ tipo_llamada: 'me_equivoque' });
+  /* [AUT-0587 · 07-ott] «me equivoqué» mandava `tipo_llamada:'me_equivoque'`, che la whitelist del GAS non ha
+     (`invalid_tipo_llamada`, provato sul vivo): il cliente vedeva «viene en camino» e nessuno veniva avvisato — e
+     partiva anche il cooldown di 90 s, quindi non poteva più chiamare per davvero. Il GAS accetta `generica` e scrive
+     il `motivo` (v3.71.0): si manda quello, e funziona anche nel ripiego sul GAS, senza toccare il GAS. */
+  notifyWaiter({ tipo_llamada: 'generica', motivo: 'me_equivoque' });
 }
 function v2T(key, map){
   let s = getLang(key);
@@ -15088,7 +15092,27 @@ function onCallWaiterGeneric(){
   });
 }
 
-function notifyWaiter(payload){
+/* [AUT-0587 · 07-ott] LA LLAMADA AL MESERO · il telefono ora PARLA CON IL BORDO e ne LEGGE la risposta.
+   Prima: UN `sendBeacon` al GAS, nessuna risposta letta, e il toast diceva «viene en camino» sempre.
+   Il GAS non ha limiti (il cooldown di sopra è solo di questo telefono) e scartava «me equivoqué».
+   Ora: `fetch` a /llama/<local> del bordo (token SOLO in header: rotta nuova, niente ?t=) con timeout 3 s.
+     · ok → si dice la verità: «ya avisamos» (limite) o «mesero llamado»
+     · errore del CLIENTE (`definitivo`: mesa sconosciuta, raffica) → si dice, e NON si ripiega sul GAS
+       (ripiegare vorrebbe dire aggirare il limite)
+     · il bordo non risponde (leva spenta 404 · rete · 5xx · sin_gas) → RIPIEGO sul GAS come prima.
+   `?borde=0` salta il bordo (lo stesso interruttore della carta). Il bordo inoltra al GAS dietro la risposta
+   con 3 tentativi: se anche quello fallisce non lo sa il telefono, lo sa il forense (`LLAMA_ALARMA`).
+   Un timeout dopo che il bordo ha già accettato può far partire anche il ripiego: due chiamate, non zero. */
+function _llamadaDev(){
+  let d = '';
+  try { d = localStorage.getItem('pinsita_dev') || ''; } catch(e){}
+  if(!d){
+    d = 'd' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    try { localStorage.setItem('pinsita_dev', d); } catch(e){}
+  }
+  return d;
+}
+async function notifyWaiter(payload){
   if(!BRAND.gas_url || !MESA_ID){
     showToastMsg(getLang('call_send_error'));
     return;
@@ -15105,8 +15129,41 @@ function notifyWaiter(payload){
        sola chiamata vada persa. */
     motivo:         payload.motivo || '',
     prod_id_intent: payload.prod_id || '',
+    dev:            _llamadaDev(),   // [AUT-0587] l'apparecchio: il bordo limita per telefono, non solo per mesa
     ts:             Date.now(),
   };
+  // ── 1) il BORDO: limiti e risposta vera ──
+  let r = null;
+  let saltaBorde = false;
+  try { saltaBorde = new URLSearchParams(location.search).get('borde') === '0'; } catch(e){}
+  if(!saltaBorde){
+    const ctrl = new AbortController();
+    const tid = setTimeout(()=>ctrl.abort(), 3000);
+    try {
+      const resp = await fetch('https://pinsita-borde.alberto-agostini.workers.dev/llama/' + encodeURIComponent(LOCAL_ID), {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8', 'X-Borde-Token': '7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ' },
+        body: JSON.stringify(body),
+        signal: ctrl.signal,
+      });
+      r = await resp.json();
+    } catch(e){ r = null; }
+    clearTimeout(tid);
+  }
+  if(r && r.ok === true){
+    _llamadaMarcaTs();   // v1.37 · parte il cooldown SOLO se la chiamata è davvero partita
+    showToastMsg(r.ya_avisado
+      ? (getLang('llamada_cooldown') || '🔔 El mesero ya fue avisado · va en camino')
+      : (MESERO_MESA ? '🔔 ' + MESERO_MESA + ' viene en camino' : (getLang('call_sent') || '🔔 Mesero llamado · llega pronto')));
+    return;
+  }
+  if(r && r.ok === false && r.definitivo === true){
+    showToastMsg(r.error === 'mesa_desconocida'
+      ? 'No reconocemos esta mesa — avisa al mesero en persona'
+      : (r.error === 'rate_limit' ? (getLang('llamada_cooldown') || '🔔 El mesero ya fue avisado · va en camino') : getLang('call_retry_error')));
+    return;
+  }
+  // ── 2) RIPIEGO: il GAS, come prima (leva spenta · rete · 5xx · sin_gas) ──
   try {
     navigator.sendBeacon(BRAND.gas_url, JSON.stringify(body));
     _llamadaMarcaTs();   // v1.37 · parte il cooldown
