@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.112.0</span>
+<span id="ver" hidden>menu2 · v2.113.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -10538,6 +10538,19 @@ function v2DestacadosHTML(){
      raro. Zero cambio quando sono DUE eventi distinti (un Mundial + la
      Noche): escono entrambi come ieri. */
   if(ev && (ev.titulo_es || ev.titulo || ev.Titulo) && !nocheGiaDisegnata) dst.push({ tipo:'evento', e: ev });
+  /* v2.113.0 · [09-ott, Alberto in servizio: «prima vedevo sia le pizze che il
+     DJ, ora è uno o l'altro»] IL SECONDO EVENTO NON SPARISCE PIÙ. La cartelera
+     ha DUE letture del foglio: `evento` (la prima riga valida) e
+     `cartelera_eventos` (la finestra più stretta). Qui sopra si sceglieva
+     `evento || cartelera_eventos`: se i due sono eventi DIVERSI (venerdì: la
+     locandina delle Pizze Italiane da una parte, il DJ AURORA dall'altra) il
+     secondo veniva buttato e il cliente ne vedeva uno solo. Ora, se è un
+     evento con un altro id (e non è la Noche, che ha il suo posto), esce come
+     seconda card. Con UN evento solo — lo stato di sempre — non cambia un
+     byte: `ev2.id === ev.id` e non si disegna niente di più. */
+  const ev2 = CARTELERA_DATA && CARTELERA_DATA.cartelera_eventos;
+  if(ev && ev2 && ev2.id && ev2.id !== ev.id && (!noche || ev2.id !== noche.id)
+     && (ev2.titulo_es || ev2.titulo || ev2.Titulo)) dst.push({ tipo:'evento', e: ev2 });
   if(noche && (noche.titulo_es || noche.titulo)) dst.push({ tipo:'evento', e: noche });
   ALL_PRODUCTS.filter(p=>!p.agotado && productInFaja(p) && esPush(p))
     .forEach(p=>dst.push({ tipo:'push', p }));
