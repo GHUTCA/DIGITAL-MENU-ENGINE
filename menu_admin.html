@@ -375,7 +375,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v3.2</div>
+    <div class="hub-footer-version" id="ver">menu_admin v3.3</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -656,6 +656,36 @@ async function gasPost(action, body) {
 }
 
 /* helper retry · 1 retry su timeout o network */
+/* ═══ [5.7 · 08-ott · 📖 MENU] L'86 PASSA DAL BORDO (POST /admin86), CON RIPIEGO SUL GAS ═══════════════════════════
+   Il bordo giudica il PIN e tiene l'86 come fatto (Postgres); con la sua leva spenta risponde 404 ruta_apagada e QUI si ripiega sul
+   GAS come sempre: questo file si puo' spedire PRIMA della leva senza cambiare niente (salvo ~150 ms di un tentativo al bordo).
+   · risposta ok del bordo → fatto, il GAS NON si chiama · errore DEFINITIVO (PIN, raffica, id) → si mostra, NON si ripiega
+     (ripiegare aggirerebbe il limite del bordo) · bordo che non risponde (404, need:gas, 5xx, rete, 3 s) → GAS.
+   · una chiave per GESTO (uid): un retry o un ripiego dopo un timeout riusa la stessa, il bordo non applica due volte.
+   · dichiarato: se il bordo e' giu' e si ripiega sul GAS, l'86 va al foglio e il bordo (se autorevole) non lo sa finche' non torna.
+   · ?borde=0 salta il bordo. */
+const BORDE_86 = 'https://pinsita-borde.alberto-agostini.workers.dev';
+const BORDE_TOKEN_86 = '7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ';
+function uid86() { return 'a86-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); }
+async function adminToggle86Via(pin, prodId, value, uid) {
+  let salta = false;
+  try { salta = new URLSearchParams(location.search).get('borde') === '0'; } catch (e) {}
+  if (!salta) {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 3000);
+    try {
+      const r = await fetch(BORDE_86 + '/admin86/' + encodeURIComponent(CFG.LOCAL), {
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8', 'X-Borde-Token': BORDE_TOKEN_86 },
+        body: JSON.stringify({ action: 'adminToggle86', pin: pin, prod_id: prodId, value: value, uid: uid }), signal: ctrl.signal,
+      });
+      clearTimeout(tid);
+      const j = await r.json();
+      if (j && j.ok === true) return j;
+      if (j && j.definitivo === true) return j;
+    } catch (e) { clearTimeout(tid); }
+  }
+  return gasPost('adminToggle86', { pin: pin, prod_id: prodId, value: value });
+}
 async function withRetry(fn, label) {
   try { return await fn(); }
   catch (e1) {
@@ -1121,7 +1151,8 @@ async function confirmCurrentAction(){
 
     // 3. Chiamata GAS in background
     try {
-      const r = await withRetry(() => gasPost('adminToggle86', { pin: lastSavedPin, prod_id: p.id, value: newAgotado }), 'adminToggle86');
+      const uidG = uid86();   // [5.7 · 08-ott] UNA chiave per gesto: il retry riusa la stessa
+      const r = await withRetry(() => adminToggle86Via(lastSavedPin, p.id, newAgotado, uidG), 'adminToggle86');
       if (r && r.ok) {
         showToast('success', newAgotado ? `${p.nombre} · 86 hasta mañana 06:00` : `${p.nombre} · disponible`);
       } else {
