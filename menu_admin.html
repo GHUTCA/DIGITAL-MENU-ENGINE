@@ -375,7 +375,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v3.3</div>
+    <div class="hub-footer-version" id="ver">menu_admin v3.3.1</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -667,6 +667,34 @@ async function gasPost(action, body) {
 const BORDE_86 = 'https://pinsita-borde.alberto-agostini.workers.dev';
 const BORDE_TOKEN_86 = '7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ';
 function uid86() { return 'a86-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); }
+/* ═══ v3.3.1 · [18-ott · 📖 MENU BKS · AUT del 🎛 `ARQ LA PORTA DI MENU_ADMIN CHIUSA PRIMA DI DOMATTINA`] LE PLAZAS SI ASSEGNANO SOLO DALL'APP DEL JL ═══
+   Questo pannello assegnava le plazas dritto al GAS (`asignarPlaza`) anche con la scrittura del turno già al bordo
+   (`turno_escribe_pg_on`, misurata "1" il 18-ott): un piano scritto nel GAS non entra in `hechos_turno` e buca «le asig da Postgres» in silenzio. È la N9: la porta nuova
+   (l'app del JL, P4) non aveva elencato chi passava dalla vecchia. ⇒ quando la leva copre questo locale, il pannello NON chiama il GAS per
+   assegnare (né per «Repetir semana», che scrive assegnazioni): lo dice e porta all'app del JL. Una porta sola.
+   · stessa semantica di `turnoEscribeOn()` dell'app del JL e di `levaTurnoEscribe` del bordo: '' / '0' / 'FALSE' = spenta · '1' / 'TRUE' = tutti · altrimenti CSV di locali;
+   · 🔴 DIVERSO dall'app del JL, apposta: se `/salud` non risponde la porta resta CHIUSA (là «senza /salud ⇒ spenta» lascia il vetro di ieri; qui
+     riaprirebbe proprio la porta da chiudere, e la strada giusta — l'app del JL — esiste sempre);
+   · `?borde=0` NON la riapre: salta il bordo, non riapre una scrittura che non deve esistere. */
+const APP_JL_URL = 'https://sistema.pinsita.cl/app_jl.html';
+async function turnoPortaGasChiusa() {
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), 3000);
+  try {
+    const r = await fetch(BORDE_86 + '/salud', { signal: ctrl.signal, cache: 'no-store' });
+    clearTimeout(tid);
+    const j = await r.json();
+    const m = /"turno_escribe_pg_on"\s*:\s*"([^"]*)"/.exec(JSON.stringify(j || {}));
+    const v = (m ? m[1] : '0').trim().toUpperCase();
+    if (v === '' || v === '0' || v === 'FALSE') return { chiusa: false };
+    if (v === '1' || v === 'TRUE') return { chiusa: true };
+    return { chiusa: v.split(',').map(function (x) { return x.trim(); }).filter(Boolean).indexOf(CFG.LOCAL) >= 0 };
+  } catch (e) { clearTimeout(tid); return { chiusa: true, sinSalud: true }; }
+}
+function avisoPlazasEnAppJl(t) {
+  const msg = (t && t.sinSalud ? 'No pude verificar el sistema. ' : '') + 'Las plazas se asignan en la app JL.\n\n¿Abrirla ahora?';
+  if (window.confirm(msg)) location.href = APP_JL_URL;
+}
 async function adminToggle86Via(pin, prodId, value, uid) {
   let salta = false;
   try { salta = new URLSearchParams(location.search).get('borde') === '0'; } catch (e) {}
@@ -1863,7 +1891,9 @@ async function confirmStaffAlta(){
   } finally { btn.disabled = false; }
 }
 
-function openAsignar(plazaEnc, franjaEnc, meseroEnc){
+async function openAsignar(plazaEnc, franjaEnc, meseroEnc){
+  const porta = await turnoPortaGasChiusa();   // v3.3.1 · le plazas si assegnano dall'app del JL
+  if (porta.chiusa) { avisoPlazasEnAppJl(porta); return; }
   const plaza = decodeURIComponent(plazaEnc||'');
   const franja = decodeURIComponent(franjaEnc||'');
   const mesero = decodeURIComponent(meseroEnc||'');
@@ -1888,6 +1918,8 @@ async function confirmAsignar(){
   if(!franja){ showToast('error','Ingresa la franja'); return; }
   const btn = document.getElementById('asignarBtn'); btn.disabled = true;
   try {
+    const porta = await turnoPortaGasChiusa();   // v3.3.1 · ricontrollata al gesto: la leva può essersi accesa a vista aperta
+    if (porta.chiusa) { backToTurno(); avisoPlazasEnAppJl(porta); return; }
     const r = await withRetry(() => gasPost('asignarPlaza', { pin: lastSavedPin, plaza: ctx.plaza, franja: franja, mesero: mesero }), 'asignarPlaza');
     if (r && r.ok) {
       showToast('success', r.mesero || mesero ? `${ctx.plaza} · ${franja} → ${r.mesero || mesero}` : `${ctx.plaza} · ${franja} liberada`);
@@ -1937,6 +1969,8 @@ async function confirmPlazaCfg(){
 /* Repetir semana */
 async function doRepetirSemana(){
   try {
+    const porta = await turnoPortaGasChiusa();   // v3.3.1 · «Repetir semana» scrive assegnazioni: stessa porta
+    if (porta.chiusa) { avisoPlazasEnAppJl(porta); return; }
     const r = await withRetry(() => gasPost('repetirSemana', { pin: lastSavedPin }), 'repetirSemana');
     if (r && r.ok) {
       showToast(r.copiadas>0?'success':'warn', r.copiadas>0 ? `${r.copiadas} ${r.copiadas>1?'asignaciones copiadas':'asignación copiada'} de la semana pasada` : 'Nada que copiar de la semana pasada');
