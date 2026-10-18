@@ -675,20 +675,28 @@ function uid86() { return 'a86-' + Date.now().toString(36) + '-' + Math.random()
    · stessa semantica di `turnoEscribeOn()` dell'app del JL e di `levaTurnoEscribe` del bordo: '' / '0' / 'FALSE' = spenta · '1' / 'TRUE' = tutti · altrimenti CSV di locali;
    · 🔴 DIVERSO dall'app del JL, apposta: se `/salud` non risponde la porta resta CHIUSA (là «senza /salud ⇒ spenta» lascia il vetro di ieri; qui
      riaprirebbe proprio la porta da chiudere, e la strada giusta — l'app del JL — esiste sempre);
-   · `?borde=0` NON la riapre: salta il bordo, non riapre una scrittura che non deve esistere. */
+   · `?borde=0` NON la riapre: salta il bordo, non riapre una scrittura che non deve esistere.
+   · 🔴 [⚙️ ARQ, `ARQ 51F10E6 GIUSTO MA NON SI PUBBLICA COSI STASERA`] si chiude SOLO quando la strada del bordo dell'app è davvero aperta:
+     `turno_escribe_pg_on` copre il locale E `turno_pg_on` è "1" (sul bordo è globale e stretta: `env.TURNO_PG_ON !== '1'` → 503, turno.js r.73).
+     Con ESCRIBE "1" e PG_ON "0" l'app del JL non può assegnare (lista del GAS ⇒ `lista_gas`, e P4 chiude il GAS): chiudere anche qui lascerebbe
+     il JL senza nessuna porta. Così ogni freno di `TURNO_PG_ON` la riapre da solo. */
 const APP_JL_URL = 'https://sistema.pinsita.cl/app_jl.html';
+function turnoEscribeCopre(v) {
+  v = String(v == null ? '0' : v).trim().toUpperCase();
+  if (v === '' || v === '0' || v === 'FALSE') return false;
+  if (v === '1' || v === 'TRUE') return true;
+  return v.split(',').map(function (x) { return x.trim(); }).filter(Boolean).indexOf(CFG.LOCAL) >= 0;
+}
 async function turnoPortaGasChiusa() {
   const ctrl = new AbortController();
   const tid = setTimeout(() => ctrl.abort(), 3000);
   try {
     const r = await fetch(BORDE_86 + '/salud', { signal: ctrl.signal, cache: 'no-store' });
     clearTimeout(tid);
-    const j = await r.json();
-    const m = /"turno_escribe_pg_on"\s*:\s*"([^"]*)"/.exec(JSON.stringify(j || {}));
-    const v = (m ? m[1] : '0').trim().toUpperCase();
-    if (v === '' || v === '0' || v === 'FALSE') return { chiusa: false };
-    if (v === '1' || v === 'TRUE') return { chiusa: true };
-    return { chiusa: v.split(',').map(function (x) { return x.trim(); }).filter(Boolean).indexOf(CFG.LOCAL) >= 0 };
+    const s = JSON.stringify((await r.json()) || {});
+    const esc = /"turno_escribe_pg_on"\s*:\s*"([^"]*)"/.exec(s);
+    const pg = /"turno_pg_on"\s*:\s*"([^"]*)"/.exec(s);
+    return { chiusa: turnoEscribeCopre(esc ? esc[1] : '0') && !!pg && pg[1] === '1' };
   } catch (e) { clearTimeout(tid); return { chiusa: true, sinSalud: true }; }
 }
 function avisoPlazasEnAppJl(t) {

@@ -3,8 +3,8 @@
    (🎛 CONTROLLER V30 · bacheca `ARQ LA PORTA DI MENU_ADMIN CHIUSA PRIMA DI DOMATTINA`)
    NON È IL BANCO (quello è di ⚙️ ARQ). Estrae le funzioni VERE (vm) — turnoPortaGasChiusa, avisoPlazasEnAppJl, openAsignar,
    confirmAsignar, doRepetirSemana — con un /salud e un GAS finti. Dice:
-   leva "1"/"TRUE"/CSV col locale → nessun asignarPlaza / repetirSemana al GAS, avviso e (se il JL accetta) app del JL ·
-   leva "0"/""/"FALSE"/CSV senza il locale/campo assente → il GAS si chiama come prima · /salud morto o lento → porta CHIUSA ·
+   leva "1"/"TRUE"/CSV col locale E turno_pg_on "1" → nessun asignarPlaza / repetirSemana al GAS, avviso e (se il JL accetta) app del JL ·
+   leva "0"/""/"FALSE"/CSV senza il locale/campo assente, o turno_pg_on diversa da "1" (lo stato di stasera) → il GAS si chiama come prima · /salud morto o lento → porta CHIUSA ·
    la leva accesa a vista aperta la chiude anche alla conferma.
    Uso: node smoke_porta_plazas_18OTT2026.mjs [menu_admin.html]   (uscita 0 = verde) */
 import { readFileSync } from 'node:fs';
@@ -24,7 +24,7 @@ function estrai(nome, asincrona) {
 const riga = (p) => { const a = html.indexOf(p); if (a < 0) throw new Error('manca ' + p); return html.slice(a, html.indexOf('\n', a)); };
 const codice = [
   riga("const BORDE_86 = "), riga("const APP_JL_URL = "),
-  estrai('turnoPortaGasChiusa', true), estrai('avisoPlazasEnAppJl'),
+  estrai('turnoEscribeCopre'), estrai('turnoPortaGasChiusa', true), estrai('avisoPlazasEnAppJl'),
   estrai('openAsignar', true), estrai('confirmAsignar', true), estrai('doRepetirSemana', true),
 ].join('\n');
 
@@ -49,8 +49,9 @@ function mondo(o) {
       if (o.salud === 'muerto') throw new Error('net');
       if (o.salud === 'lento') return new Promise((res, rej) => { opt.signal.addEventListener('abort', () => rej(new Error('abort'))); });
       if (o.salud === 'html') return { json: async () => { throw new Error('json'); } };
-      const leve = typeof o.leva === 'undefined' ? {} : { turno_escribe_pg_on: o.leva, turno_pg_on: '0' };
-      if (typeof o.levaDopo !== 'undefined' && log.salud > 1) leve.turno_escribe_pg_on = o.levaDopo;
+      const leve = typeof o.leva === 'undefined' ? {} : { turno_escribe_pg_on: o.leva };
+      if (o.pg !== null) leve.turno_pg_on = typeof o.pg === 'undefined' ? '1' : o.pg;
+      if (typeof o.levaDopo !== 'undefined' && log.salud > 1) { leve.turno_escribe_pg_on = o.levaDopo; leve.turno_pg_on = '1'; }
       return { json: async () => ({ ok: true, version: 'v0.200.0', leve }) };
     },
     gasPost: async (accion, p) => { log.gas.push(accion); return { ok: true, copiadas: 0, mesero: p.mesero }; },
@@ -87,6 +88,16 @@ for (const leva of ['0', '', 'FALSE', 'false', 'RSC', 'RSC,CDL', undefined]) {
 }
 { const a = await apri({ leva: 'BKSX' }); ok(a.log.vista.indexOf('viewAsignar') >= 0, 'CSV «BKSX» non è BKS (uguaglianza, non sottostringa)'); }
 { const a = await apri({ leva: 'BKS', local: 'RSC' }); ok(a.log.vista.indexOf('viewAsignar') >= 0, 'leva «BKS» con ?local=RSC → aperta per RSC'); }
+
+console.log('— la strada del bordo deve essere aperta davvero: anche turno_pg_on "1" (⚙️ ARQ, 18-ott 15:43)');
+for (const [leva, pg, nome] of [['1', '0', 'stasera: ESCRIBE "1" + PG_ON "0"'], ['1', null, 'turno_pg_on assente'], ['1', '', 'turno_pg_on vuota'], ['1', 'TRUE', 'turno_pg_on "TRUE" (il bordo vuole "1" e basta)'], ['1', ' 1', 'turno_pg_on " 1" (stretta come il bordo)'], ['1', 'BKS', 'turno_pg_on "BKS" (non è CSV)'], ['0', '1', 'ESCRIBE "0" + PG_ON "1"']]) {
+  const a = await apri({ leva, pg }); ok(a.log.vista.indexOf('viewAsignar') >= 0 && a.log.confirm.length === 0, nome + ' → porta APERTA');
+  const c = await conferma({ leva, pg }); ok(c.log.gas.join() === 'asignarPlaza', nome + ' → asignarPlaza al GAS', c.log.gas.join());
+  const r = await ripeti({ leva, pg }); ok(r.log.gas.join() === 'repetirSemana', nome + ' → repetirSemana al GAS', r.log.gas.join());
+}
+{ const w = C({ leva: '1', pg: '0', levaDopo: '1', ctx: null });
+  await w.ctx.openAsignar('MAIN', 'PM', 'Ana'); ok(w.log.vista.indexOf('viewAsignar') >= 0, 'aperta con PG_ON "0"');
+  await w.ctx.confirmAsignar(); ok(w.log.gas.length === 0 && w.log.confirm.length === 1, 'PG_ON acceso a scheda aperta → la conferma non parte', w.log.gas.join()); }
 
 console.log('— senza /salud la porta resta CHIUSA (fail-closed)');
 for (const salud of ['muerto', 'lento', 'html']) {
