@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.113.0</span>
+<span id="ver" hidden>menu2 · v2.113.1</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -15112,10 +15112,12 @@ function onCallWaiterGeneric(){
      · ok → si dice la verità: «ya avisamos» (limite) o «mesero llamado»
      · errore del CLIENTE (`definitivo`: mesa sconosciuta, raffica) → si dice, e NON si ripiega sul GAS
        (ripiegare vorrebbe dire aggirare il limite)
-     · il bordo non risponde (leva spenta 404 · rete · 5xx · sin_gas) → RIPIEGO sul GAS come prima.
+     · il bordo non risponde (rete · 5xx · ?borde=0) → [AUT-0726, 22-ott] NIENTE ripiego sul GAS: si dice
+       al cliente di riprovare o di avvisare in persona (la sala legge le llamadas dal bordo).
    `?borde=0` salta il bordo (lo stesso interruttore della carta). Il bordo inoltra al GAS dietro la risposta
    con 3 tentativi: se anche quello fallisce non lo sa il telefono, lo sa il forense (`LLAMA_ALARMA`).
-   Un timeout dopo che il bordo ha già accettato può far partire anche il ripiego: due chiamate, non zero. */
+   Un timeout dopo che il bordo ha già accettato fa dire «no pudimos» anche se la chiamata è partita: se il
+   cliente riprova, il bordo risponde «ya avisado» (una riga sola aperta). Meglio una in più che zero. */
 function _llamadaDev(){
   let d = '';
   try { d = localStorage.getItem('pinsita_dev') || ''; } catch(e){}
@@ -15126,7 +15128,8 @@ function _llamadaDev(){
   return d;
 }
 async function notifyWaiter(payload){
-  if(!BRAND.gas_url || !MESA_ID){
+  // [AUT-0726 · 22-ott] la chiamata non passa più dal GAS: basta la mesa (prima serviva anche gas_url)
+  if(!MESA_ID){
     showToastMsg(getLang('call_send_error'));
     return;
   }
@@ -15176,15 +15179,12 @@ async function notifyWaiter(payload){
       : (r.error === 'rate_limit' ? (getLang('llamada_cooldown') || '🔔 El mesero ya fue avisado · va en camino') : getLang('call_retry_error')));
     return;
   }
-  // ── 2) RIPIEGO: il GAS, come prima (leva spenta · rete · 5xx · sin_gas) ──
-  try {
-    navigator.sendBeacon(BRAND.gas_url, JSON.stringify(body));
-    _llamadaMarcaTs();   // v1.37 · parte il cooldown
-    showToastMsg(MESERO_MESA ? '🔔 ' + MESERO_MESA + ' viene en camino' : (getLang('call_sent') || '🔔 Mesero llamado · llega pronto'));
-  } catch(e) {
-    console.warn('[v1.10] notifyWaiter failed:', e);
-    showToastMsg(getLang('call_retry_error'));
-  }
+  // ── 2) [AUT-0726 · 22-ott] NIENTE RIPIEGO SUL GAS ──
+  // Dopo il taglio della foto la sala legge le llamadas dal bordo: una chiamata mandata al GAS
+  // esisterebbe solo nel foglio e il mesero non la vedrebbe mai, mentre il cliente leggerebbe
+  // «viene en camino». Se il bordo non risponde (rete · 5xx · ?borde=0) si dice la verità e il
+  // cooldown NON parte, così il cliente può riprovare subito. (💵 EL GIRO, «EL GIRO V32 IL BUCO DEL MENU E NEL VIVO»)
+  showToastMsg("No pudimos avisar al mesero — inténtalo de nuevo o avísale en persona");
 }
 
 /* ════════════════════════════════════════════════════════════════════
