@@ -51,6 +51,8 @@ button{font-family:inherit}
 .addb{margin-top:auto;width:100%;background:transparent;color:var(--ok-chiaro);border:1.5px solid rgba(139,158,79,.6);border-radius:8px;font-weight:800;font-size:11px;min-height:30px;cursor:pointer}
 .cd.dentro{border-color:var(--ok)}
 .pz s{font-weight:600;opacity:.6;margin-right:2px}
+.pz .emd{display:block;font-size:10px;font-weight:700;color:var(--ok-chiaro);letter-spacing:.02em;margin-top:1px}
+.det .pz .emd{font-size:12px;margin-top:3px}
 .cd.agot{opacity:.55;filter:grayscale(1);pointer-events:none}
 .cd .agl{margin-top:auto;font-size:11px;font-weight:800;color:#ff8a7a}
 .cd.fh .agl{color:var(--oro)}
@@ -166,7 +168,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.4.0</div>
+<div class="ver" id="ver">menu v0.4.1</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -228,8 +230,12 @@ function prodotti(csv) {
 const tickP = () => (S.tick && S.tick.precios) || {};
 const tickA = () => (S.tick && S.tick.agotados) || {};
 function visibile(p) { return (tickP().ocultos || []).indexOf(p.id) < 0; }
+/* MENÚ DEL DÍA (Alberto, 28-ott): il prezzo del menú NON è il prezzo del piatto. Il piatto ordinato da solo costa il suo
+   prezzo, a qualsiasi ora; a pranzo sotto il piatto c'è solo l'informazione «En Menú del día» (senza prezzo, senza clic).
+   Il menú si vende dal carosello e dalle promo, come prodotto a sé. ⇒ la regla `almuerzo` non riprezza il piatto. */
+const inMenuDia = (p) => ((tickP().reglas || {})[p.id] || {}).tipo === 'almuerzo';
 function prezzoOra(p) {
-  const r = (tickP().reglas || {})[p.id];
+  const r = inMenuDia(p) ? null : (tickP().reglas || {})[p.id];
   // priorità del vivo: regla-fascia > base; il barrato solo se la regola ABBASSA
   if (r && r.precio > 0 && r.precio !== p.p) return { v: r.precio, orig: r.precio < p.p ? p.p : 0 };
   return { v: p.p, orig: 0 };
@@ -244,7 +250,7 @@ const esaurito = (p) => p.agotado || (tickA().ids || []).indexOf(p.id) >= 0 || S
 /* un piatto che chiede una scelta (modificadores · término · bebida del menú del día · menú a tiempos) NON parte senza:
    finché la schermata delle scelte non c'è, si dice e non si mette nel pedido. Segnali misurati il 28-ott: coprono
    tutti i piatti del vocabolario dei modificatori (che oggi vive solo su Google). */
-const chiedeScelta = (p) => p.mod || p.carne || p.c === 'menu_contenitore' || !!(((tickP().reglas || {})[p.id] || {}).tipo === 'almuerzo');
+const chiedeScelta = (p) => p.mod || p.carne || p.c === 'menu_contenitore';
 /* LA LEVA DELL'INVIO (AUT-0749): `menu_vero_envio_on` nella config del locale. Vuota = spento (vista previa).
    "1" = tutte le mesas · altrimenti l'elenco delle mesas ammesse («998» per la prova). Spegne anche la campanella. */
 function envioOn() {
@@ -325,7 +331,7 @@ function z3() {
   }
   return '<div class="sei">' + daMostrare().map((p) => card(p, true)).join('') + '</div>';
 }
-function pzHTML(p) { const z = prezzoOra(p); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v); }
+function pzHTML(p) { const z = prezzoOra(p); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : ''); }
 /* ═══ il passo dopo (mockup 23-ott): chi ha chiesto dalla prima famiglia (il cibo) atterra sull'ultima (il dolce);
    chi ha chiesto altro atterra sulla prima. Le famiglie e il loro ordine vengono dalla config del locale. ═══ */
 function dopoQuesto(nomi) {
