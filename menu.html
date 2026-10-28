@@ -12,8 +12,9 @@
   🏢 MULTIEMPRESA DAL PRIMO GIORNO (Alberto, 28-ott): nessun locale scritto qui. Il locale arriva dal QR (?l=), e marca, famiglie,
   catalogo, lingue e pezzi accesi vengono dalla sua config sul bordo. Regola e banco: ARCHITETTURA_MENU_VERO_MULTIEMPRESA_28OTT2026.md.
   🚫 NIENTE GOOGLE: legge solo dal bordo (/estado ?seccion=menu_config e /carta). Se il bordo non risponde lo dice, non ripiega su Google.
-  v0.1 = LEGGE E MOSTRA: famiglie, categorie, griglia con foto, scheda grande, carrello. L'INVIO NON C'È ANCORA (passo 2, dopo la
-  prova di Alberto sul suo telefono): il bottone lo dice. Così la pagina può stare online senza che nessun pedido parta da qui.
+  v0.1 = LEGGE E MOSTRA (famiglie, categorie, griglia, scheda grande, carrello) · v0.2 = la carta di adesso dal tick del bordo ·
+  v0.3 = la scheda aperta del mockup · v0.4 = L'INVIO e LA CAMPANELLA (AUT-0749), dietro la leva `menu_vero_envio_on` della config:
+  vuota = vista previa, nessun pedido parte da qui. I piatti che chiedono una scelta non partono finché non c'è la schermata delle scelte.
 -->
 <style>
 :root{
@@ -109,7 +110,8 @@ button{font-family:inherit}
 .cat.on{background:var(--oro);color:#1a1408;border-color:var(--oro)}
 .cartp{flex:0 0 auto;margin-left:auto;border:0;border-radius:99px;background:var(--ok);color:var(--ok-txt);padding:7px 12px;font-weight:800;font-size:12.5px;cursor:pointer;white-space:nowrap}
 /* il pedido */
-.ped{padding:12px 14px}
+/* il pedido, la conferma e la campanella partono dal BASSO, dove sta il pollice (mockup 21-ott) */
+.ped{padding:12px 14px;min-height:100%;display:flex;flex-direction:column;justify-content:flex-end}
 .pedtit{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:19px;letter-spacing:-.2px;margin-bottom:9px}
 .pedx{background:transparent;border:0;color:var(--suave);font-size:18px;cursor:pointer}
 .lin{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--linea)}
@@ -120,6 +122,39 @@ button{font-family:inherit}
 .lin .lq i{font-style:normal;width:28px;height:28px;border-radius:8px;border:1px solid var(--linea2);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .tot{display:flex;justify-content:space-between;font-weight:800;font-size:16px;margin:12px 0 4px}
 .vuoto{color:var(--suave);font-size:13px;padding:18px 0}
+/* l'invio, la conferma, la campanella (mockup 21/23-ott) */
+.opc{margin-top:auto;font-size:10.5px;font-weight:700;color:var(--suave);border:1px dashed var(--linea2);border-radius:8px;padding:6px 4px;text-align:center}
+.ver .vpd.off{background:transparent;color:var(--suave);border:1px dashed var(--linea2);font-size:11px}
+.envG{position:relative;overflow:hidden;margin-top:8px}
+.envG.hold{background:var(--sup);color:var(--txt);border:2px solid var(--ok)}
+.envG.hold span{opacity:.75}
+.envG .barra{position:absolute;left:0;bottom:0;height:4px;background:var(--ok);width:var(--da);animation:vacia linear forwards}
+@keyframes vacia{from{width:var(--da)}to{width:0}}
+.segui{display:block;width:100%;background:transparent;border:0;color:var(--suave);font-size:13px;font-weight:700;padding:10px;margin-top:2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.avv{margin-top:10px;font-size:13px;font-weight:700;color:var(--oro);line-height:1.35}
+.avvs{margin-top:6px;font-size:12px;color:var(--suave)}
+.okv{background:rgba(139,158,79,.14);border:1px solid var(--ok);color:var(--ok-chiaro);border-radius:12px;padding:12px;font-size:16px;font-weight:800;margin:4px 0 10px}
+.okv span{display:block;font-size:12px;font-weight:600;color:var(--suave);margin-top:3px}
+.okr{font-size:13px;padding:5px 0;border-top:1px solid var(--linea)}
+.okr b{color:var(--oro);font-variant-numeric:tabular-nums}
+.sigue2{display:flex;align-items:center;gap:10px;width:100%;margin-top:12px;padding:10px 10px 10px 8px;cursor:pointer;background:var(--card);border:1px solid var(--linea2);border-radius:14px;color:var(--txt);text-align:left}
+.sigue2 .s2f{display:flex;flex:0 0 auto}
+.sigue2 .s2f img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--bg);margin-left:-12px}
+.sigue2 .s2f img:first-child{margin-left:0}
+.sigue2 .s2t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sigue2 .s2t b{font-size:14.5px;line-height:1.2}
+.sigue2 .s2t small{font-size:11.5px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sigue2 .s2v{flex:0 0 auto;background:var(--oro);color:#1a1408;font-weight:800;font-size:13px;padding:8px 12px;border-radius:999px}
+.bell{flex:0 0 auto;width:36px;height:34px;border-radius:50%;border:0;background:var(--oro);font-size:16px;cursor:pointer}
+.cmp{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card);border:1px solid var(--linea);border-radius:12px;padding:11px 12px;margin-top:7px;color:var(--txt);cursor:pointer}
+.cmp .sn{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cmp .sn b{font-size:14px}
+.cmp .sn i{font-style:normal;font-size:11.5px;color:var(--suave)}
+.cmp .sp{color:var(--oro);font-size:18px;font-weight:800}
+.nota{position:fixed;left:50%;bottom:calc(120px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:88%;background:#24201a;color:var(--txt);border:1px solid var(--linea2);
+  border-radius:12px;padding:10px 14px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;z-index:9}
+.nota.vai{animation:notaV 4.5s ease forwards}
+@keyframes notaV{0%{opacity:0;transform:translate(-50%,8px)}8%{opacity:1;transform:translate(-50%,0)}85%{opacity:1}100%{opacity:0}}
 /* stati */
 .msg{padding:40px 22px;text-align:center;color:var(--suave);font-size:14px;line-height:1.45}
 .msg b{display:block;color:var(--txt);font-size:18px;margin-bottom:6px}
@@ -131,7 +166,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.3.0</div>
+<div class="ver" id="ver">menu v0.4.0</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -142,7 +177,8 @@ const LOCAL = /^[A-Za-z]{2,6}$/.test(qs.get('l') || '') ? qs.get('l').toUpperCas
 const MESA = /^[0-9A-Za-z-]{1,6}$/.test(qs.get('mesa') || '') ? qs.get('mesa') : '';
 // la lingua: quella del telefono; l'utente la cambierà col 🌐 (passo successivo)
 const LANG = ((navigator.language || 'es').slice(0, 2)).toLowerCase();
-const S = { cfg: null, prod: [], tick: null, fam: null, cat: null, abierta: null, cart: {}, pedido: false };
+const S = { cfg: null, prod: [], tick: null, fam: null, cat: null, abierta: null, cart: {}, pedido: false,
+  inviando: null, inviaStato: '', uuid: '', uuidFirma: '', listo: null, need: '', errore: '', agotLoc: [], campana: false };
 
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 function clp(n) { const c = S.cfg || {}; return (c.currency_symbol || '$') + Math.round(n).toLocaleString('es-CL'); }
@@ -180,6 +216,8 @@ function prodotti(csv) {
     activo: r[ix('Activo')] === 'TRUE', agotado: r[ix('Agotado')] === 'TRUE', visible: r[ix('Menu_Visible')] !== 'FALSE',
     hi: oraDec(r[ix('Hora_Inicio')], 0), hf: oraDec(r[ix('Hora_Fin')], 24),
     sm: String(r[ix('Solo_Member')] || '').trim(),
+    // i segnali di «questo piatto chiede una scelta» che la carta porta già (modificadores · término della carne)
+    mod: !!String(r[ix('Modificadores')] || '').trim(), carne: /\bcarne\b/i.test(r[ix('Badges')] || ''),
   // Solo_Member: il piatto non esiste per nessuno tranne chi porta quel tag (come il vivo). Rientra col member, passo dopo.
   })).filter((p) => p.activo && p.visible && p.p > 0 && !p.sm);
 }
@@ -202,7 +240,24 @@ function chiusa(p) {
   const e = (a.barra_cats || []).indexOf(p.c) >= 0 ? 'barra' : 'cocina';
   return est[e] && est[e].abierta === false ? e : '';
 }
-const esaurito = (p) => p.agotado || (tickA().ids || []).indexOf(p.id) >= 0;
+const esaurito = (p) => p.agotado || (tickA().ids || []).indexOf(p.id) >= 0 || S.agotLoc.indexOf(p.id) >= 0;
+/* un piatto che chiede una scelta (modificadores · término · bebida del menú del día · menú a tiempos) NON parte senza:
+   finché la schermata delle scelte non c'è, si dice e non si mette nel pedido. Segnali misurati il 28-ott: coprono
+   tutti i piatti del vocabolario dei modificatori (che oggi vive solo su Google). */
+const chiedeScelta = (p) => p.mod || p.carne || p.c === 'menu_contenitore' || !!(((tickP().reglas || {})[p.id] || {}).tipo === 'almuerzo');
+/* LA LEVA DELL'INVIO (AUT-0749): `menu_vero_envio_on` nella config del locale. Vuota = spento (vista previa).
+   "1" = tutte le mesas · altrimenti l'elenco delle mesas ammesse («998» per la prova). Spegne anche la campanella. */
+function envioOn() {
+  const v = String((S.cfg && S.cfg.menu_vero_envio_on) || '').trim().toLowerCase();
+  if (!v || !MESA) return false;
+  if (v === '1' || v === 'true') return true;
+  return v.split(/[\s,;]+/).indexOf(String(MESA).toLowerCase()) >= 0;
+}
+const barraCats = () => tickA().barra_cats || String((S.cfg && S.cfg.kds_barra_cats) || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+function adove(nomi) {
+  const bc = barraCats(); const d = new Set(nomi.map((n) => { const p = S.prod.find((x) => x.n === n); return p && bc.indexOf(p.c) >= 0 ? 'barra' : 'cocina'; }));
+  return d.has('cocina') && d.has('barra') ? 'a cocina y barra' : d.has('barra') ? 'a barra' : 'a cocina';
+}
 /* la finestra oraria del prodotto, anche oltre la mezzanotte (la stessa regola del menù vivo, productInFaja) */
 function inOrario(p) {
   if (p.hf === p.hi) return true;
@@ -235,13 +290,16 @@ function card(p, lista) {
   if (ch) return '<div class="cd agot">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">' + (ch === 'barra' ? 'La barra ya cerró' : 'La cocina ya cerró') + '</div></div>';
   if (!inOrario(p)) return '<div class="cd agot fh">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">Desde las ' + hhmm(p.hi) + '</div></div>';
   return '<div class="cd' + (q ? ' dentro' : '') + '" data-a="abre" data-k="' + esc(p.id) + '">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="pz">' + pzHTML(p) + '</div>' +
-    (!MESA ? '' : q ? '<div class="qn"><i data-a="meno" data-k="' + esc(p.id) + '">−</i>' + q + '<i data-a="mas" data-k="' + esc(p.id) + '">+</i></div>'
+    (!MESA ? '' : chiedeScelta(p) ? '<div class="opc">Con opciones · pronto</div>'
+      : q ? '<div class="qn"><i data-a="meno" data-k="' + esc(p.id) + '">−</i>' + q + '<i data-a="mas" data-k="' + esc(p.id) + '">+</i></div>'
       : '<button class="addb" data-a="mas" data-k="' + esc(p.id) + '">＋ PEDIR</button>') + '</div>';
 }
+const ordinabile = (p) => !!(p && MESA && !chiedeScelta(p) && !esaurito(p) && !chiusa(p) && inOrario(p));
 // la card VER: il tasto stesso. Sopra c'è già tutto (foto, nome, prezzo): sotto il dito serve dire cosa succede se tocchi
 function verCard(p, q) {
   const k = esc(p.id), vnm = '<div class="vnm">' + esc(p.n) + '</div>';
   if (!MESA) return '<div class="cd ora ver">' + vnm + '<div class="vpd">Escanea tu mesa</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
+  if (chiedeScelta(p)) return '<div class="cd ora ver">' + vnm + '<div class="vpd off">Con opciones · pronto</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
   if (!q) return '<div class="cd ora ver" data-a="mas" data-k="' + k + '">' + vnm + '<div class="vpd">＋ PEDIR</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
   return '<div class="cd ora ver dentro">' + vnm + '<div class="vst"><i data-a="meno" data-k="' + k + '">−</i><u>' + q + '</u><i data-a="mas" data-k="' + k + '">＋</i></div></div>';
 }
@@ -255,6 +313,7 @@ function pagine(L) {
   return '<div class="mini">' + h + '</div>' + pu;
 }
 function z3() {
+  if (S.campana) return campanaHTML();
   if (S.pedido) return pedidoHTML();
   if (S.abierta) {
     const p = S.prod.find((x) => x.id === S.abierta);
@@ -267,17 +326,62 @@ function z3() {
   return '<div class="sei">' + daMostrare().map((p) => card(p, true)).join('') + '</div>';
 }
 function pzHTML(p) { const z = prezzoOra(p); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v); }
+/* ═══ il passo dopo (mockup 23-ott): chi ha chiesto dalla prima famiglia (il cibo) atterra sull'ultima (il dolce);
+   chi ha chiesto altro atterra sulla prima. Le famiglie e il loro ordine vengono dalla config del locale. ═══ */
+function dopoQuesto(nomi) {
+  const G = gruppi(); if (!G.length) return null;
+  const fams = new Set(nomi.map((n) => { const p = S.prod.find((x) => x.n === n); const g = p && G.find((x) => x.cats.indexOf(p.c) >= 0); return g ? g.k : ''; }));
+  const d = fams.has(G[0].k) && G.length > 1 ? G[G.length - 1] : G[0];
+  return { fam: d.k, cat: d.cats[0], txt: 'Sigue con ' + nomeGruppo(d.k).toLowerCase() };
+}
+function seguirCard(nomi) {
+  const d = dopoQuesto(nomi); if (!d) return '';
+  const pr = S.prod.filter((p) => p.c === d.cat && p.img && visibile(p) && ordinabile(p));
+  if (!pr.length) return '<button class="segui" data-a="seguir">' + esc(d.txt) + ' ›</button>';
+  const desde = Math.min.apply(null, pr.map((p) => prezzoOra(p).v));
+  return '<button class="sigue2" data-a="seguir"><span class="s2f">' + pr.slice(0, 3).map((p) => '<img src="' + esc(p.img) + '" alt="">').join('') + '</span>' +
+    '<span class="s2t"><b>' + esc(d.txt) + '</b><small>' + esc(pr.slice(0, 3).map((p) => p.n).join(', ')) + (pr.length > 3 ? ' y más' : '') + ' · desde ' + clp(desde) + '</small></span><span class="s2v">Ver ›</span></button>';
+}
 function pedidoHTML() {
   const ks = Object.keys(S.cart);
+  // ¡Listo!: la conferma dice UNA cosa (è partito) e propone UNA mossa (il passo dopo)
+  if (!ks.length && S.listo) {
+    const L = S.listo;
+    return '<div class="ped"><div class="pedtit">¡Listo!<button class="pedx" data-a="chiudiPed">✕</button></div>' +
+      '<div class="okv">✓ Tu pedido va ' + L.dove + '<span>Mesa ' + esc(MESA) + ' · recién enviado</span></div>' +
+      Object.keys(L.items).map((n) => '<div class="okr"><b>' + L.items[n] + '×</b> ' + esc(n) + '</div>').join('') + seguirCard(Object.keys(L.items)) + '</div>';
+  }
   const righe = ks.map((n) => { const p = S.prod.find((x) => x.n === n) || {};
     return '<div class="lin">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<div class="lth"></div>') + '<div class="lnm">' + esc(n) + '</div>' +
       '<div class="lq"><i data-a="meno" data-k="' + esc(p.id) + '">−</i>' + S.cart[n] + '<i data-a="mas" data-k="' + esc(p.id) + '">+</i></div><div class="lpz">' + clp((p.id ? prezzoOra(p).v : 0) * S.cart[n]) + '</div></div>'; }).join('');
   const t = totale();
+  let bot;
+  if (!envioOn()) bot = '<button class="envG spento"><b>ENVIAR PEDIDO · ' + clp(t.s) + '</b><span>vista previa: el envío todavía no está activo</span></button>';
+  else if (S.need === 'mesa') bot = '<div class="avv">🪑 ¿Sigues en la mesa ' + esc(MESA) + '?</div><button class="envG" data-a="mesaSi"><b>Sí — enviar</b></button>' +
+    '<div class="avvs">Si te cambiaste de mesa, escanea el QR de tu mesa nueva.</div>';
+  else if (S.inviando) { const rem = Math.max(0, S.inviando.fine - Date.now());
+    bot = '<button class="envG hold" data-a="annulla"><b>Enviando… ⟲ Cancelar</b><span>toca para corregir · sale en ' + Math.max(1, Math.ceil(rem / 1000)) + ' s</span>' +
+      '<i class="barra" style="--da:' + (rem / ATTESA_INVIO * 100).toFixed(1) + '%;animation-duration:' + rem + 'ms"></i></button>'; }
+  else if (S.inviaStato === 'volando') bot = '<button class="envG hold"><b>Enviando…</b><span>no cierres esta pantalla</span></button>';
+  else bot = (S.errore ? '<div class="avv">' + esc(S.errore) + '</div>' : '') +
+    '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : 'ENVIAR PEDIDO 🛎') + '</b><span>' + t.n + ' producto' + (t.n > 1 ? 's' : '') + ' · ' + clp(t.s) + ' · ' + adove(ks) + '</span></button>';
   return '<div class="ped"><div class="pedtit">Tu pedido<button class="pedx" data-a="chiudiPed">✕</button></div>' +
-    (ks.length ? righe + '<div class="tot"><span>Total</span><span>' + clp(t.s) + '</span></div>' +
-      // v0.1: l'invio non è collegato. Lo dice, invece di fingere (passo 2, dopo la prova di Alberto).
-      '<button class="envG spento"><b>ENVIAR PEDIDO · ' + clp(t.s) + '</b><span>vista previa: el envío se conecta en el paso 2</span></button>'
+    (ks.length ? righe + '<div class="tot"><span>Total</span><span>' + clp(t.s) + '</span></div>' + bot +
+      (S.inviando || S.inviaStato ? '' : '<button class="segui" data-a="chiudiPed">Seguir pidiendo</button>')
       : '<div class="vuoto">Todavía no has pedido nada.</div>') + '</div>';
+}
+/* ═══ la campanella (mockup 23-ott): i motivi; la sala oggi sa dire «la cuenta» e «una duda», gli altri arrivano come «te busca» ═══ */
+const CAMPANA = [
+  { k: 'duda', t: 'Tengo una duda sobre un plato', s: 'ingredientes, alergias, qué me recomiendas' },
+  { k: 'mal', t: 'Algo no está bien con mi pedido', s: 'falta algo, llegó frío, no es lo que pedí' },
+  { k: 'mesa', t: 'Falta algo en la mesa', s: 'servilletas, cubiertos, hielo, salsas' },
+  { k: 'cuenta', t: 'Quiero pagar con la máquina', s: 'te traemos el POS' },
+  { k: 'fiesta', t: 'Celebramos algo 🎂', s: 'cumpleaños, aniversario: te ayudamos a sorprender' },
+  { k: 'otra', t: 'Otra cosa', s: '' }];
+function campanaHTML() {
+  return '<div class="ped"><div class="pedtit">¿En qué te ayudamos?<button class="pedx" data-a="campanaChiudi">✕</button></div>' +
+    '<div class="okr" style="margin-bottom:8px">Tu mesero viene a tu mesa.</div>' +
+    CAMPANA.map((c) => '<button class="cmp" data-a="campanaMotivo" data-k="' + c.k + '"><span class="sn"><b>' + c.t + '</b>' + (c.s ? '<i>' + c.s + '</i>' : '') + '</span><span class="sp">›</span></button>').join('') + '</div>';
 }
 function totale() { let n = 0, s = 0; for (const k of Object.keys(S.cart)) { const p = S.prod.find((x) => x.n === k); n += S.cart[k]; s += S.cart[k] * (p ? prezzoOra(p).v : 0); } return { n, s }; }
 function z2() {
@@ -285,7 +389,7 @@ function z2() {
   // con qualcosa nel carrello le famiglie restano solo emoji: la porta del pedido deve stare intera nella riga (mockup v1.x)
   return '<div class="r">' + G.map((x) => '<button class="fam' + (x.k === f.k ? ' on' : '') + '" data-a="fam" data-k="' + esc(x.k) + '" title="' + esc(nomeGruppo(x.k)) + '">' + x.emoji + (t.n ? '' : ' ' + esc(nomeGruppo(x.k))) + '</button>').join('') +
     (t.n ? '<button class="cartp" data-a="verPed">' + t.n + ' · ENVIAR · ' + clp(t.s) + ' ›</button>' : '') + '</div>' +
-    '<div class="r">' + f.cats.map((c) => '<button class="cat' + (c === S.cat ? ' on' : '') + '" data-a="cat" data-k="' + esc(c) + '">' + esc(nomeCat(c)) + '</button>').join('') + '</div>';
+    '<div class="r">' + (envioOn() ? '<button class="bell" data-a="campana" aria-label="Llamar al mesero">🔔</button>' : '') + f.cats.map((c) => '<button class="cat' + (c === S.cat ? ' on' : '') + '" data-a="cat" data-k="' + esc(c) + '">' + esc(nomeCat(c)) + '</button>').join('') + '</div>';
 }
 let ULTIMA_VER = null;
 function pinta() {
@@ -304,8 +408,77 @@ function pinta() {
   ULTIMA_VER = S.abierta;
   // se la griglia sta in una schermata, va giù; se è più lunga, si comporta come sempre
   const sg = z.querySelector('.sei'); if (sg && !S.abierta && !S.pedido && sg.scrollHeight <= z.clientHeight) z.classList.add('basso');
-  const b = document.getElementById('z2'); b.hidden = S.pedido; if (!S.pedido) b.innerHTML = z2();
+  const pieno = S.pedido || S.campana;
+  const b = document.getElementById('z2'); b.hidden = pieno; if (!pieno) b.innerHTML = z2();
 }
+function nota(txt) { let n = document.getElementById('nota'); if (!n) { n = document.createElement('div'); n.id = 'nota'; n.className = 'nota'; document.body.appendChild(n); }
+  n.textContent = txt; n.classList.remove('vai'); void n.offsetWidth; n.classList.add('vai'); }
+
+/* ═══ L'INVIO (AUT-0749) · stesso contratto di menu_digital.html verso POST /pedido/<local> del bordo ═══
+   ⓐ ENVIAR si può ANNULLARE per 4 s (niente «¿seguro?»: si clicca per abitudine) · ⓑ la chiave d'idempotenza nasce
+   QUI, dal lato che ripete: stesso carrello = stesso uuid, così un Reintentar non fa mai un doppione · ⓒ 3 tentativi
+   (2 s / 5 s) · ⓓ 🚫 NESSUN ripiego su Google: se il bordo non risponde si dice, il carrello resta e si riprova.
+   ⚠️ debito dichiarato: niente coda offline (localStorage) come il vivo — se la pagina muore a metà, il cliente rimanda. */
+const ATTESA_INVIO = 4000;
+let INV = null, INV_TICK = null;
+const _uuid = () => { try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) {} return 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); };
+function payloadPedido(confirmado) {
+  const items = Object.keys(S.cart).map((n) => { const p = S.prod.find((x) => x.n === n); const q = S.cart[n];
+    return { id: p.id, nombre: p.n, precio: prezzoOra(p).v, qty: q, llevar: q, op: '', termino: '', es_menu: false, promo: '', cat: p.c }; });
+  const itemsJson = JSON.stringify(items);
+  if (S.uuidFirma !== itemsJson) { S.uuid = _uuid(); S.uuidFirma = itemsJson; }
+  return { action: 'enviarPedido', local: LOCAL, uuid: S.uuid, mesa: MESA, total: totale().s,
+    idioma: ((navigator.language || '') + '').slice(0, 8), idioma_menu: LANG,
+    plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
+    precios_epoch: (S.tick && S.tick.precios_epoch) || '', ritmo_activo: '', member: '',
+    items_json: itemsJson, envio_directo: false, destino: '', via: 'unica', confirmado: !!confirmado,
+    mesa_origen: 'qr', ts: Date.now() };   // la mesa viene sempre dal QR (?mesa=): menu.html non ha memoria di sessione
+}
+async function postBordo(ruta, body, ms, hdr) {
+  const ctrl = new AbortController(); const tid = setTimeout(() => ctrl.abort(), ms);
+  try { const r = await fetch(BORDO + ruta + encodeURIComponent(LOCAL) + '?t=' + TOKEN_LETTURA, { method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'text/plain;charset=utf-8' }, hdr || {}), body: JSON.stringify(body), signal: ctrl.signal });
+    return await r.json(); } finally { clearTimeout(tid); }
+}
+const DEFINITIVI = ['estacion_cerrada', 'regalo_misma_mesa', 'carrito_vacio', 'items_json_invalid', 'uuid_missing', 'mesa_missing'];
+async function inviaOra(confirmado) {
+  if (!envioOn() || !Object.keys(S.cart).length || S.inviaStato) return;
+  S.inviaStato = 'volando'; S.errore = ''; S.need = ''; pinta();
+  const pl = payloadPedido(confirmado);
+  let r = null;
+  for (let i = 0; i < 3; i++) {
+    if (i) await new Promise((ok) => setTimeout(ok, i === 1 ? 2000 : 5000));
+    try { r = await postBordo('/pedido/', pl, 6000); } catch (e) { r = null; }
+    if (r && (r.ok === true || r.need || DEFINITIVI.indexOf(r.error) >= 0)) break;
+  }
+  S.inviaStato = '';
+  if (r && r.ok === true) {
+    S.listo = { items: Object.assign({}, S.cart), dove: adove(Object.keys(S.cart)) };
+    S.cart = {}; S.uuid = ''; S.uuidFirma = '';
+  } else if (r && r.need === 'mesa_confirmar') { S.need = 'mesa'; }
+  else if (r && r.need === 'items_agotados') {
+    const fuera = Array.isArray(r.agotados) ? r.agotados : [];
+    fuera.forEach((x) => { const p = x && S.prod.find((y) => y.id === x.id); if (p) { S.agotLoc.push(p.id); delete S.cart[p.n]; } });
+    nota('😕 Se acabó justo ahora: ' + fuera.map((x) => (x && x.nombre) || '').filter(Boolean).join(' · ') + ' — lo sacamos de tu pedido');
+  } else if (r && r.need === 'carta_vieja') {
+    if (S.tick && r.precios) { S.tick.precios = r.precios; S.tick.precios_epoch = r.precios_epoch || S.tick.precios_epoch; }
+    S.errore = 'Los precios cambiaron recién: revisa el total y envía de nuevo.';
+  } else if (r && r.need) { S.errore = 'No pudimos enviar (' + r.need + '). Avísale a tu mesero.'; }
+  else if (r && r.error === 'estacion_cerrada') { S.errore = (r.producto ? r.producto + ': ' : '') + 'esa estación ya cerró. Sácalo para enviar el resto.'; }
+  else { S.errore = 'No pudimos enviar tu pedido. Tu pedido sigue aquí: reintenta o avísale a tu mesero.'; }
+  pinta();
+}
+async function llamaMesero(motivo) {
+  let r = null;
+  try { r = await postBordo('/llama/', { action: 'notifyWaiter', local: LOCAL, mesa: MESA, ritmo_attivo: '', tipo_llamada: 'generica', motivo: motivo,
+    prod_id_intent: '', dev: dispositivo(), ts: Date.now() }, 3000, { 'X-Borde-Token': TOKEN_LETTURA }); } catch (e) { r = null; }
+  if (r && r.ok === true) nota(r.ya_avisado ? '🔔 Tu mesero ya fue avisado · va en camino' : '🔔 Le avisamos a tu mesero · viene en un momento');
+  else if (r && r.definitivo) nota(r.error === 'mesa_desconocida' ? 'No reconocemos esta mesa — avísale al mesero en persona' : '🔔 Tu mesero ya fue avisado · va en camino');
+  else nota('No pudimos avisar al mesero — inténtalo de nuevo o avísale en persona');
+}
+// l'apparecchio: il bordo limita le chiamate per telefono, non solo per mesa (stessa chiave del menù vivo)
+function dispositivo() { let d = ''; try { d = localStorage.getItem('pinsita_dev') || ''; } catch (e) {}
+  if (!d) { d = 'd' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); try { localStorage.setItem('pinsita_dev', d); } catch (e) {} } return d; }
 
 /* ═══ i gesti ═══ */
 document.getElementById('app').addEventListener('click', (ev) => {
@@ -315,11 +488,25 @@ document.getElementById('app').addEventListener('click', (ev) => {
   else if (a === 'cat') { S.cat = k; S.abierta = null; }
   else if (a === 'abre') { S.abierta = k; document.getElementById('z3').scrollTop = 0; }
   else if (a === 'cierra') { S.abierta = null; }
-  else if (a === 'mas' && p && MESA) { S.cart[p.n] = (S.cart[p.n] || 0) + 1; }
-  else if (a === 'meno' && p) { S.cart[p.n]--; if (!S.cart[p.n]) delete S.cart[p.n]; if (!Object.keys(S.cart).length) S.pedido = false; }
-  else if (a === 'verPed') { S.pedido = true; }
-  else if (a === 'chiudiPed') { S.pedido = false; }
-  else if (a === 'inicio') { S.pedido = false; S.abierta = null; const g = gruppi()[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; } }
+  // durante i 4 s dell'annullo e il volo il carrello non si tocca: si invia ciò che si vede
+  else if (a === 'mas' && ordinabile(p) && !S.inviando && !S.inviaStato) { S.cart[p.n] = (S.cart[p.n] || 0) + 1; S.listo = null; S.errore = ''; S.need = ''; }
+  else if (a === 'meno' && p && S.cart[p.n] && !S.inviando && !S.inviaStato) { S.cart[p.n]--; if (!S.cart[p.n]) delete S.cart[p.n]; S.errore = ''; S.need = ''; if (!Object.keys(S.cart).length) S.pedido = false; }
+  else if (a === 'verPed') { S.pedido = true; S.campana = false; }
+  else if (a === 'chiudiPed') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.listo = null; }
+  else if (a === 'inicio') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.campana = false; S.listo = null; S.abierta = null; const g = gruppi()[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; } }
+  else if (a === 'env' && envioOn() && !S.inviando && !S.inviaStato && Object.keys(S.cart).length) {
+    S.inviando = { fine: Date.now() + ATTESA_INVIO }; S.errore = '';
+    INV = setTimeout(() => { S.inviando = null; clearInterval(INV_TICK); inviaOra(false); }, ATTESA_INVIO);
+    // il numero scende da solo (solo il testo: la barra corre già in CSS)
+    INV_TICK = setInterval(() => { const sp = document.querySelector('.envG.hold span'); if (!S.inviando || !sp) { clearInterval(INV_TICK); return; }
+      sp.textContent = 'toca para corregir · sale en ' + Math.max(1, Math.ceil((S.inviando.fine - Date.now()) / 1000)) + ' s'; }, 250);
+  }
+  else if (a === 'annulla') { clearTimeout(INV); clearInterval(INV_TICK); S.inviando = null; }
+  else if (a === 'mesaSi') { S.need = ''; inviaOra(true); return; }
+  else if (a === 'seguir') { const d = dopoQuesto(Object.keys((S.listo || {}).items || {})); S.pedido = false; S.listo = null; S.abierta = null; if (d) { S.fam = d.fam; S.cat = d.cat; } }
+  else if (a === 'campana' && envioOn()) { S.campana = true; S.pedido = false; }
+  else if (a === 'campanaChiudi') { S.campana = false; }
+  else if (a === 'campanaMotivo' && envioOn()) { S.campana = false; llamaMesero(k); }
   pinta();
 });
 
