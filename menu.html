@@ -93,7 +93,10 @@ button{font-family:inherit}
 .mini::-webkit-scrollbar{height:0}
 .mini .pag{flex:0 0 100%;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:7px 6px;scroll-snap-align:start}
 .mini .cd{min-height:0;height:96px;padding:7px;gap:3px;position:relative}
-.mini .cd .nm{-webkit-line-clamp:2;font-size:12px;line-height:1.2;min-height:0}
+/* v0.6.3 (Alberto: «la seconda riga viene tagliata»): il nome non si schiaccia mai, chi cede è il riquadro «Con opciones» */
+.mini .cd .nm{-webkit-line-clamp:2;font-size:12px;line-height:1.2;min-height:0;flex:0 0 auto}
+.mini .cd .pz{flex:0 0 auto}
+.mini .cd .opc{font-size:9.5px;line-height:1.15;padding:3px 3px;flex:0 1 auto;min-height:0;overflow:hidden}
 .mini .cd .pz{font-size:12.5px}
 .mini .cd .addb{min-height:30px;font-size:12px;margin-top:auto}
 .mini .cd .qn{min-height:30px;margin-top:auto}
@@ -153,7 +156,9 @@ button{font-family:inherit}
 .addb.chiede{border-style:dashed}
 .lin .lsc{display:block;font-size:11px;font-weight:600;color:var(--ok-chiaro)}
 .opc{margin-top:auto;font-size:10.5px;font-weight:700;color:var(--suave);border:1px dashed var(--linea2);border-radius:8px;padding:6px 4px;text-align:center}
-.ver .vpd.off{background:transparent;color:var(--suave);border:1px dashed var(--linea2);font-size:11px}
+.ver .vpd.off{background:transparent;color:var(--suave);border:1px dashed var(--linea2);font-size:9.5px;line-height:1.15;padding:3px 3px;flex:0 1 auto;min-height:0;overflow:hidden}
+/* v0.6.4 (EL GIRO su 0.6.3): anche nella card VER il nome non cede; cede il riquadro «Con opciones» */
+.ver .vnm,.ver .vpz{flex:0 0 auto}
 .envG{position:relative;overflow:hidden;margin-top:8px}
 .envG.hold{background:var(--sup);color:var(--txt);border:2px solid var(--ok)}
 .envG.hold span{opacity:.75}
@@ -203,7 +208,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.6.2</div>
+<div class="ver" id="ver">menu v0.6.4</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
