@@ -197,7 +197,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.5.6</div>
+<div class="ver" id="ver">menu v0.5.7</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -636,7 +636,17 @@ document.getElementById('app').addEventListener('click', (ev) => {
 });
 
 /* ═══ l'avvio ═══ */
-async function leggi(url) { const r = await fetch(url, { cache: 'no-store' }); if (!r.ok) throw new Error('http ' + r.status); return r; }
+/* v0.5.7 · TAMPONE dichiarato (28-ott 20:39 UTC): il bordo risponde a tratti 500 «error code: 1101» su /carta (≈1 su 20), senza
+   CORS, e il cliente vedeva «No pudimos abrir la carta». Tre tentativi (subito, 0,6 s, 1,5 s) prima di arrendersi. Lo uccide la causa
+   dell'eccezione nella Worker, che è di 🎛 BKP / ⚙️ ARQ (bacheca «IL BORDO RISPONDE «ERROR 1101»»). */
+async function leggi(url) {
+  let err;
+  for (const att of [0, 600, 1500]) {
+    if (att) await new Promise((r) => setTimeout(r, att));
+    try { const r = await fetch(url, { cache: 'no-store' }); if (r.ok) return r; err = new Error('http ' + r.status); } catch (e) { err = e; }
+  }
+  throw err;
+}
 // il tick non rompe mai la carta: se non risponde resta quello di prima (o nessuno)
 async function leggiTick() {
   try { const j = await (await leggi(BORDO + '/estado/' + LOCAL + '?seccion=menu_tick&t=' + TOKEN_LETTURA)).json();
