@@ -89,7 +89,7 @@ button{font-family:inherit}
 .mini{flex:0 0 auto;border-top:1px solid var(--linea2);background:rgba(7,6,5,.55);padding:9px 8px 7px;display:flex;gap:8px;
   overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-padding-inline:8px}
 .mini::-webkit-scrollbar{height:0}
-.mini .pag{flex:0 0 100%;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:8px 6px;scroll-snap-align:start}
+.mini .pag{flex:0 0 100%;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:8px 6px;scroll-snap-align:start}
 .mini .cd{min-height:0;height:118px;padding:8px;gap:4px;position:relative}
 .mini .cd .nm{-webkit-line-clamp:2;font-size:12.5px;min-height:0}
 .mini .cd .pz{font-size:13px}
@@ -201,7 +201,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.6.0</div>
+<div class="ver" id="ver">menu v0.6.1</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -405,10 +405,14 @@ function risultati() {
 }
 const daMostrare = () => cercando() ? risultati() : S.prod.filter((x) => x.c === S.cat && visibile(x));
 let PAG = 0;
+/* v0.6.1 (Alberto 28-ott, Coco Jengibre: «la foto non si vede intera»): una copa col gambo occupa l'85% dell'altezza della foto,
+   e nessun punto di taglio la salva. Lo spazio si prende alla striscia: UNA riga da 3 per pagina invece di due, e la foto
+   torna intera (4:3 a tutta larghezza). Le pagine scorrono di lato come prima, coi punti. */
+const PER_PAG = 3;
 function pagine(L) {
-  const i = L.findIndex((x) => x.id === S.abierta); PAG = i >= 0 ? Math.floor(i / 6) : 0;
-  let h = ''; for (let k = 0; k < L.length; k += 6) h += '<div class="pag">' + L.slice(k, k + 6).map((p) => card(p, false)).join('') + '</div>';
-  const n = Math.ceil(L.length / 6);
+  const i = L.findIndex((x) => x.id === S.abierta); PAG = i >= 0 ? Math.floor(i / PER_PAG) : 0;
+  let h = ''; for (let k = 0; k < L.length; k += PER_PAG) h += '<div class="pag">' + L.slice(k, k + PER_PAG).map((p) => card(p, false)).join('') + '</div>';
+  const n = Math.ceil(L.length / PER_PAG);
   let pu = ''; if (n > 1) { for (let j = 0; j < n; j++) pu += '<i' + (j === PAG ? ' class="on"' : '') + '></i>'; pu = '<div class="punti">' + pu + '</div>'; }
   return '<div class="mini">' + h + '</div>' + pu;
 }
