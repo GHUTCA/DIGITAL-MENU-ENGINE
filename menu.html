@@ -49,6 +49,7 @@ button{font-family:inherit}
 .cd .pz{font-size:12.5px;font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
 .addb{margin-top:auto;width:100%;background:transparent;color:var(--ok-chiaro);border:1.5px solid rgba(139,158,79,.6);border-radius:8px;font-weight:800;font-size:11px;min-height:30px;cursor:pointer}
 .cd.dentro{border-color:var(--ok)}
+.pz s{font-weight:600;opacity:.6;margin-right:2px}
 .cd.agot{opacity:.55;filter:grayscale(1);pointer-events:none}
 .cd .agl{margin-top:auto;font-size:11px;font-weight:800;color:#ff8a7a}
 .cd.fh .agl{color:var(--oro)}
@@ -99,7 +100,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.1.0</div>
+<div class="ver" id="ver">menu v0.2.0</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -110,7 +111,7 @@ const LOCAL = /^[A-Za-z]{2,6}$/.test(qs.get('l') || '') ? qs.get('l').toUpperCas
 const MESA = /^[0-9A-Za-z-]{1,6}$/.test(qs.get('mesa') || '') ? qs.get('mesa') : '';
 // la lingua: quella del telefono; l'utente la cambierà col 🌐 (passo successivo)
 const LANG = ((navigator.language || 'es').slice(0, 2)).toLowerCase();
-const S = { cfg: null, prod: [], fam: null, cat: null, abierta: null, cart: {}, pedido: false };
+const S = { cfg: null, prod: [], tick: null, fam: null, cat: null, abierta: null, cart: {}, pedido: false };
 
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 function clp(n) { const c = S.cfg || {}; return (c.currency_symbol || '$') + Math.round(n).toLocaleString('es-CL'); }
@@ -147,8 +148,30 @@ function prodotti(csv) {
     d: (dCol >= 0 && r[dCol]) ? r[dCol] : r[ix('Descripcion')], p: prezzo(r[ix('Precio')]), img: r[ix('Imagen_URL')] || '',
     activo: r[ix('Activo')] === 'TRUE', agotado: r[ix('Agotado')] === 'TRUE', visible: r[ix('Menu_Visible')] !== 'FALSE',
     hi: oraDec(r[ix('Hora_Inicio')], 0), hf: oraDec(r[ix('Hora_Fin')], 24),
-  })).filter((p) => p.activo && p.visible && p.p > 0);
+    sm: String(r[ix('Solo_Member')] || '').trim(),
+  // Solo_Member: il piatto non esiste per nessuno tranne chi porta quel tag (come il vivo). Rientra col member, passo dopo.
+  })).filter((p) => p.activo && p.visible && p.p > 0 && !p.sm);
 }
+
+/* ═══ il tick: la stessa foto che il menù vivo chiede a Google ogni 60", qui letta dal bordo (sec menu_tick) ═══
+   Porta: i prezzi di fascia (reglas), i nascosti (ocultos), gli agotados di adesso, le stazioni chiuse.
+   Senza tick (bordo che non risponde) la carta resta quella del CSV: prezzo base, nessun nascosto. */
+const tickP = () => (S.tick && S.tick.precios) || {};
+const tickA = () => (S.tick && S.tick.agotados) || {};
+function visibile(p) { return (tickP().ocultos || []).indexOf(p.id) < 0; }
+function prezzoOra(p) {
+  const r = (tickP().reglas || {})[p.id];
+  // priorità del vivo: regla-fascia > base; il barrato solo se la regola ABBASSA
+  if (r && r.precio > 0 && r.precio !== p.p) return { v: r.precio, orig: r.precio < p.p ? p.p : 0 };
+  return { v: p.p, orig: 0 };
+}
+function chiusa(p) {
+  const a = tickA(); const est = a.estaciones; if (!est) return '';
+  if ((a.salvo_ids || []).indexOf(p.id) >= 0) return '';
+  const e = (a.barra_cats || []).indexOf(p.c) >= 0 ? 'barra' : 'cocina';
+  return est[e] && est[e].abierta === false ? e : '';
+}
+const esaurito = (p) => p.agotado || (tickA().ids || []).indexOf(p.id) >= 0;
 /* la finestra oraria del prodotto, anche oltre la mezzanotte (la stessa regola del menù vivo, productInFaja) */
 function inOrario(p) {
   if (p.hf === p.hi) return true;
@@ -160,7 +183,7 @@ const hhmm = (x) => String(Math.floor(x)).padStart(2, '0') + ':' + String(Math.r
 /* ═══ i gruppi (famiglie) dalla config del locale ═══ */
 function gruppi() {
   let g = {}; try { g = JSON.parse((S.cfg && S.cfg.category_groups) || '{}'); } catch (e) { g = {}; }
-  const conProd = new Set(S.prod.map((p) => p.c));
+  const conProd = new Set(S.prod.filter(visibile).map((p) => p.c));
   return Object.keys(g).map((k) => ({ k, emoji: g[k].emoji || '', cats: (g[k].cats || []).filter((c) => conProd.has(c)) })).filter((x) => x.cats.length);
 }
 
@@ -174,9 +197,11 @@ function z1() {
 function card(p) {
   const q = S.cart[p.n] || 0;
   const foto = p.img ? '<img class="th" loading="lazy" src="' + esc(p.img) + '" alt="">' : '<div class="tg">' + esc(p.n) + '</div>';
-  if (p.agotado) return '<div class="cd agot">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">Se acabó por hoy</div></div>';
+  if (esaurito(p)) return '<div class="cd agot">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">Se acabó por hoy</div></div>';
+  const ch = chiusa(p);
+  if (ch) return '<div class="cd agot">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">' + (ch === 'barra' ? 'La barra ya cerró' : 'La cocina ya cerró') + '</div></div>';
   if (!inOrario(p)) return '<div class="cd agot fh">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">Desde las ' + hhmm(p.hi) + '</div></div>';
-  return '<div class="cd' + (q ? ' dentro' : '') + '" data-a="abre" data-k="' + esc(p.id) + '">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="pz">' + clp(p.p) + '</div>' +
+  return '<div class="cd' + (q ? ' dentro' : '') + '" data-a="abre" data-k="' + esc(p.id) + '">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="pz">' + pzHTML(p) + '</div>' +
     (!MESA ? '' : q ? '<div class="qn"><i data-a="meno" data-k="' + esc(p.id) + '">−</i>' + q + '<i data-a="mas" data-k="' + esc(p.id) + '">+</i></div>'
       : '<button class="addb" data-a="mas" data-k="' + esc(p.id) + '">＋ PEDIR</button>') + '</div>';
 }
@@ -186,18 +211,19 @@ function z3() {
     const p = S.prod.find((x) => x.id === S.abierta);
     const fo = p.img ? '<div class="fo" style="background-image:url(\'' + esc(p.img) + '\')">' : '<div class="fo tg">' + esc(p.n);
     return '<div class="det">' + fo + '<button class="x" data-a="cierra">✕</button></div>' +
-      '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(p.d || '') + '</div><div class="pz">' + clp(p.p) + '</div></div>' +
-      (MESA ? '<div class="pedir"><button class="envG" data-a="mas" data-k="' + esc(p.id) + '"><b>＋ PEDIR · ' + clp(p.p) + '</b>' +
+      '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(p.d || '') + '</div><div class="pz">' + pzHTML(p) + '</div></div>' +
+      (MESA && !esaurito(p) && !chiusa(p) && inOrario(p) ? '<div class="pedir"><button class="envG" data-a="mas" data-k="' + esc(p.id) + '"><b>＋ PEDIR · ' + clp(prezzoOra(p).v) + '</b>' +
         (S.cart[p.n] ? '<span>ya tienes ' + S.cart[p.n] + '</span>' : '') + '</button></div>' : '') +
-      '</div><div class="sei">' + S.prod.filter((x) => x.c === S.cat).map(card).join('') + '</div>';
+      '</div><div class="sei">' + S.prod.filter((x) => x.c === S.cat && visibile(x)).map(card).join('') + '</div>';
   }
-  return '<div class="sei">' + S.prod.filter((x) => x.c === S.cat).map(card).join('') + '</div>';
+  return '<div class="sei">' + S.prod.filter((x) => x.c === S.cat && visibile(x)).map(card).join('') + '</div>';
 }
+function pzHTML(p) { const z = prezzoOra(p); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v); }
 function pedidoHTML() {
   const ks = Object.keys(S.cart);
   const righe = ks.map((n) => { const p = S.prod.find((x) => x.n === n) || {};
     return '<div class="lin">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<div class="lth"></div>') + '<div class="lnm">' + esc(n) + '</div>' +
-      '<div class="lq"><i data-a="meno" data-k="' + esc(p.id) + '">−</i>' + S.cart[n] + '<i data-a="mas" data-k="' + esc(p.id) + '">+</i></div><div class="lpz">' + clp((p.p || 0) * S.cart[n]) + '</div></div>'; }).join('');
+      '<div class="lq"><i data-a="meno" data-k="' + esc(p.id) + '">−</i>' + S.cart[n] + '<i data-a="mas" data-k="' + esc(p.id) + '">+</i></div><div class="lpz">' + clp((p.id ? prezzoOra(p).v : 0) * S.cart[n]) + '</div></div>'; }).join('');
   const t = totale();
   return '<div class="ped"><div class="pedtit">Tu pedido<button class="pedx" data-a="chiudiPed">✕</button></div>' +
     (ks.length ? righe + '<div class="tot"><span>Total</span><span>' + clp(t.s) + '</span></div>' +
@@ -205,7 +231,7 @@ function pedidoHTML() {
       '<button class="envG spento"><b>ENVIAR PEDIDO · ' + clp(t.s) + '</b><span>vista previa: el envío se conecta en el paso 2</span></button>'
       : '<div class="vuoto">Todavía no has pedido nada.</div>') + '</div>';
 }
-function totale() { let n = 0, s = 0; for (const k of Object.keys(S.cart)) { const p = S.prod.find((x) => x.n === k); n += S.cart[k]; s += S.cart[k] * (p ? p.p : 0); } return { n, s }; }
+function totale() { let n = 0, s = 0; for (const k of Object.keys(S.cart)) { const p = S.prod.find((x) => x.n === k); n += S.cart[k]; s += S.cart[k] * (p ? prezzoOra(p).v : 0); } return { n, s }; }
 function z2() {
   const G = gruppi(); const f = G.find((x) => x.k === S.fam) || G[0]; const t = totale();
   // con qualcosa nel carrello le famiglie restano solo emoji: la porta del pedido deve stare intera nella riga (mockup v1.x)
@@ -239,6 +265,14 @@ document.getElementById('app').addEventListener('click', (ev) => {
 
 /* ═══ l'avvio ═══ */
 async function leggi(url) { const r = await fetch(url, { cache: 'no-store' }); if (!r.ok) throw new Error('http ' + r.status); return r; }
+// il tick non rompe mai la carta: se non risponde resta quello di prima (o nessuno)
+async function leggiTick() {
+  try { const j = await (await leggi(BORDO + '/estado/' + LOCAL + '?seccion=menu_tick&t=' + TOKEN_LETTURA)).json();
+    const x = j && j.datos && j.datos.datos; if (x && x.ok !== false) S.tick = x; } catch (e) { /* resta il tick di prima */ }
+}
+// un giro ogni 60", come il vivo, e solo col telefono in mano (sostituisce il poll a Google, non se ne aggiunge uno)
+setInterval(async () => { if (!LOCAL || !S.prod.length || document.visibilityState !== 'visible') return; await leggiTick(); pinta(); }, 60000);
+document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && LOCAL && S.prod.length) { await leggiTick(); pinta(); } });
 (async function avvio() {
   if (!LOCAL) { document.getElementById('z3').innerHTML = '<div class="msg"><b>Escanea el QR de tu mesa</b>Así sabemos dónde estás y qué carta mostrarte.</div>'; return; }
   try {
@@ -249,6 +283,7 @@ async function leggi(url) { const r = await fetch(url, { cache: 'no-store' }); i
     const jc = await rc.json();
     S.cfg = (jc && jc.datos && jc.datos.datos && jc.datos.datos.config) || {};
     S.prod = prodotti(await rk.text());
+    await leggiTick();
     if (S.cfg.brand_name) document.title = S.cfg.brand_name;
     const g = gruppi()[0];
     if (!g) throw new Error('carta vacía');
