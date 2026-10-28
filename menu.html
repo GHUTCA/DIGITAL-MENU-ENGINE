@@ -43,7 +43,7 @@ button{font-family:inherit}
 /* poche card: si appoggiano al fondo, nell'arco del pollice (mockup, Alberto 21-ott) */
 .z3.basso{display:flex;flex-direction:column;justify-content:flex-end}
 .cd{display:flex;flex-direction:column;gap:4px;background:var(--card);border:1px solid var(--linea);border-radius:12px;padding:6px;min-height:188px;cursor:pointer;text-align:left;color:var(--txt)}
-.cd .th{width:100%;height:76px;border-radius:8px;object-fit:cover;background:var(--sup)}
+.cd .th{width:100%;height:auto;aspect-ratio:4/3;border-radius:8px;object-fit:cover;background:var(--sup)}
 .cd .tg{width:100%;height:76px;border-radius:8px;background:#1b140a;color:var(--oro);display:flex;align-items:center;justify-content:center;
   text-align:center;padding:4px;font-family:Fraunces,Georgia,serif;font-size:12px;line-height:1.15}
 .cd .nm{font-size:12px;font-weight:700;line-height:1.22;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px}
@@ -66,7 +66,13 @@ button{font-family:inherit}
 .split{display:flex;flex-direction:column;height:100%}
 /* con le domande la foto cede spazio (fino a 60px) e, se ancora non basta, la metà alta scorre: le scelte stanno sempre nello schermo */
 .det{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow-y:auto}
-.det .fo{flex:1 1 auto;min-height:60px;background:#000 center/cover no-repeat;position:relative}
+/* la foto grande non si taglia mai: intera (contain) sopra la stessa foto sfocata che riempie i bordi */
+.det .fo{flex:1 1 auto;min-height:60px;background:#000;position:relative;overflow:hidden}
+.det .fo::before,.det .fo::after{content:'';position:absolute;inset:0;z-index:0;background-image:var(--f);background-position:center;background-repeat:no-repeat}
+.det .fo::before{background-size:cover;filter:blur(16px) brightness(.45);transform:scale(1.1)}
+.det .fo::after{background-size:contain}
+.det .fo.tg::before,.det .fo.tg::after{content:none}
+.det .fo>*{position:relative;z-index:1}
 .det .fo.tg{display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;font-family:Fraunces,Georgia,serif;font-weight:300;font-size:25px;color:#fff;
   background:radial-gradient(120% 80% at 50% 0%,rgba(255,197,61,.18),#0b0906 65%)}
 .det .x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.45);color:#fff;font-size:16px;cursor:pointer}
@@ -181,7 +187,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.5.2</div>
+<div class="ver" id="ver">menu v0.5.3</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -387,7 +393,7 @@ function z3() {
   if (S.abierta) {
     const p = S.prod.find((x) => x.id === S.abierta);
     // senza foto non un rettangolo grigio (si leggerebbe come un guasto): una targa col nome
-    const fo = p.img ? '<div class="fo" style="background-image:url(\'' + esc(p.img) + '\')">' : '<div class="fo tg">' + esc(p.n);
+    const fo = p.img ? '<div class="fo" style="--f:url(\'' + esc(p.img) + '\')">' : '<div class="fo tg">' + esc(p.n);
     return '<div class="split"><div class="det">' + fo + '<button class="x" data-a="cierra">✕</button></div>' +
       '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(p.d || '') + '</div><div class="pz">' + pzHTML(p) + '</div></div>' +
       domandeHTML(p) + '</div>' + pagine(daMostrare()) + '</div>';
@@ -600,16 +606,28 @@ async function leggiTick() {
 // un giro ogni 60", come il vivo, e solo col telefono in mano (sostituisce il poll a Google, non se ne aggiunge uno)
 setInterval(async () => { if (!LOCAL || !S.prod.length || document.visibilityState !== 'visible') return; await leggiTick(); pinta(); }, 60000);
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && LOCAL && S.prod.length) { await leggiTick(); pinta(); } });
+/* LE NOSTRE FOTO (v0.5.3, Alberto 28-ott): vivono in questo repo, `fotos/<LOCAL>/<id>.webp`, elencate in `fotos/fotos.json`
+   ({"BKS":{"BKS-BAR-002":"BKS-BAR-002.webp"}}), e vincono sulla `Imagen_URL` della carta. Mai su Google.
+   ⏳ TAMPONE dichiarato: lo uccide il catalogo nativo in Postgres (AUT-0752, seme sab 31-ott), dove la foto è una colonna del prodotto.
+   Senza manifesto o con un errore: la foto della carta, come prima. */
+async function fotoNostre() {
+  try { const r = await fetch('fotos/fotos.json', { cache: 'no-cache' }); if (!r.ok) return {};
+    const m = (await r.json())[LOCAL] || {}, out = {};
+    Object.keys(m).forEach((id) => { if (/^[\w.-]+\.(webp|jpe?g|png)$/i.test(m[id])) out[id] = 'fotos/' + LOCAL + '/' + m[id]; });
+    return out; } catch (e) { return {}; }
+}
 (async function avvio() {
   if (!LOCAL) { document.getElementById('z3').innerHTML = '<div class="msg"><b>Escanea el QR de tu mesa</b>Así sabemos dónde estás y qué carta mostrarte.</div>'; return; }
   try {
-    const [rc, rk] = await Promise.all([
+    const [rc, rk, ff] = await Promise.all([
       leggi(BORDO + '/estado/' + LOCAL + '?seccion=menu_config&t=' + TOKEN_LETTURA),
       leggi(BORDO + '/carta/' + LOCAL + '?t=' + TOKEN_LETTURA),
+      fotoNostre(),
     ]);
     const jc = await rc.json();
     S.cfg = (jc && jc.datos && jc.datos.datos && jc.datos.datos.config) || {};
     S.prod = prodotti(await rk.text());
+    S.prod.forEach((p) => { if (ff[p.id]) p.img = ff[p.id]; });
     await leggiTick();
     if (S.cfg.brand_name) document.title = S.cfg.brand_name;
     const g = gruppi()[0];
