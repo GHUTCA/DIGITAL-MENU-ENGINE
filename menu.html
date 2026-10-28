@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>Menú</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap" rel="stylesheet">
@@ -28,7 +28,7 @@
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--txt);font-family:Outfit,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 button{font-family:inherit}
-.app{height:100dvh;display:flex;flex-direction:column;max-width:560px;margin:0 auto;
+.app{height:var(--alto,100dvh);display:flex;flex-direction:column;max-width:560px;margin:0 auto;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 /* la riga in alto: una famiglia sola, stessa altezza, un solo pieno (mockup v1.1) */
 .z1{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));
@@ -42,7 +42,8 @@ button{font-family:inherit}
 /* minmax(0,1fr): tre colonne SEMPRE uguali. Con 1fr un nome lungo su una riga (la card VER) allargava la sua colonna e stringeva le altre */
 .sei{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px;align-content:start}
 /* poche card: si appoggiano al fondo, nell'arco del pollice (mockup, Alberto 21-ott) */
-.z3.basso{display:flex;flex-direction:column;justify-content:flex-end}
+.z3.basso{display:flex;flex-direction:column}
+.z3.basso>*{margin-top:auto}   /* non justify-content:flex-end: se il contenuto cresce, l'eccedenza deve restare scorrevole */
 .cd{display:flex;flex-direction:column;gap:4px;background:var(--card);border:1px solid var(--linea);border-radius:12px;padding:6px;min-height:188px;cursor:pointer;text-align:left;color:var(--txt)}
 .cd .th{width:100%;height:auto;aspect-ratio:4/3;border-radius:8px;object-fit:cover;background:var(--sup)}
 .cd .tg{width:100%;height:76px;border-radius:8px;background:#1b140a;color:var(--oro);display:flex;align-items:center;justify-content:center;
@@ -197,7 +198,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.5.7</div>
+<div class="ver" id="ver">menu v0.5.8</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -592,6 +593,13 @@ async function llamaMesero(motivo) {
 function dispositivo() { let d = ''; try { d = localStorage.getItem('pinsita_dev') || ''; } catch (e) {}
   if (!d) { d = 'd' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); try { localStorage.setItem('pinsita_dev', d); } catch (e) {} } return d; }
 
+/* v0.5.8 (Alberto 28-ott, Buscar con la tastiera aperta: «non riesco a scrollare in basso»). La tastiera copriva il fondo
+   della griglia: l'app era alta quanto lo schermo, non quanto lo spazio sopra la tastiera. Ora l'altezza segue la parte VISIBILE
+   (visualViewport, che su iPhone e su Android tiene conto della tastiera) e la pagina torna in cima: si scorre fino all'ultima card. */
+if (window.visualViewport) {
+  const alto = () => { document.documentElement.style.setProperty('--alto', Math.round(visualViewport.height) + 'px'); if (window.scrollY) window.scrollTo(0, 0); };
+  visualViewport.addEventListener('resize', alto); alto();
+}
 /* ═══ i gesti ═══ */
 // Buscar: ogni lettera ridisegna solo la griglia (la barra col campo resta, vedi pinta)
 document.getElementById('app').addEventListener('input', (ev) => { if (ev.target.classList.contains('bin')) { S.busca = ev.target.value; S.abierta = null; pinta(); } });
