@@ -71,7 +71,7 @@ button{font-family:inherit}
 /* la foto grande prende TUTTA la larghezza (Alberto 28-ott: «sembra troncata»): riempie da bordo a bordo l'altezza che resta
    fra la testa e la striscia sotto, e non supera mai il 4:3 della foto. Dove l'altezza manca, il taglio è sopra e sotto, mai ai lati. */
 .det .fo{flex:1 1 auto;width:100%;max-height:75vw;min-height:60px;background:#000;position:relative;overflow:hidden}
-.det .fo::before,.det .fo::after{content:'';position:absolute;inset:0;z-index:0;background-image:var(--f);background-position:center var(--fy,60%);background-repeat:no-repeat}
+.det .fo::before,.det .fo::after{content:'';position:absolute;inset:0;z-index:0;background-image:var(--f);background-position:center var(--fy,55%);background-repeat:no-repeat}
 /* v0.5.9 (Alberto 28-ott, Caipirisima tagliata sotto): dove l'altezza manca si taglia di più SOPRA che sotto. Il piatto e il
    bicchiere stanno nella metà bassa della foto (il tavolo), il cielo della foto è il fondo del bar. Default 60%; una foto nostra
    può dichiarare il suo punto in fotos.json ({"f":"x.webp","y":70}). */
@@ -82,29 +82,31 @@ button{font-family:inherit}
 .det .fo.tg{display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;font-family:Fraunces,Georgia,serif;font-weight:300;font-size:25px;color:#fff;
   background:radial-gradient(120% 80% at 50% 0%,rgba(255,197,61,.18),#0b0906 65%)}
 .det .x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.45);color:#fff;font-size:16px;cursor:pointer}
-.det .bd{flex:0 0 auto;padding:8px 13px 10px}
+/* v0.6.2: nome e prezzo sulla stessa riga, la descrizione sotto: ~40px restituiti alla foto */
+.det .bd{flex:0 0 auto;padding:6px 13px 7px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n p" "d d";column-gap:10px;align-items:baseline}
+.det .bd h2{grid-area:n}.det .bd .pz{grid-area:p;text-align:right}.det .bd .ds{grid-area:d}
 .det h2{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:20px;margin:0;letter-spacing:-.3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.det .ds{font-size:12px;color:var(--suave);line-height:1.45;margin:5px 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.det .ds{font-size:12px;color:var(--suave);line-height:1.4;margin:3px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .det .pz{font-size:19px;font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
-.mini{flex:0 0 auto;border-top:1px solid var(--linea2);background:rgba(7,6,5,.55);padding:9px 8px 7px;display:flex;gap:8px;
+.mini{flex:0 0 auto;border-top:1px solid var(--linea2);background:rgba(7,6,5,.55);padding:9px 8px 5px;display:flex;gap:8px;
   overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-padding-inline:8px}
 .mini::-webkit-scrollbar{height:0}
-.mini .pag{flex:0 0 100%;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:8px 6px;scroll-snap-align:start}
-.mini .cd{min-height:0;height:118px;padding:8px;gap:4px;position:relative}
-.mini .cd .nm{-webkit-line-clamp:2;font-size:12.5px;min-height:0}
-.mini .cd .pz{font-size:13px}
-.mini .cd .addb{min-height:36px;font-size:12px}
-.mini .cd .qn{min-height:36px}
+.mini .pag{flex:0 0 100%;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:7px 6px;scroll-snap-align:start}
+.mini .cd{min-height:0;height:96px;padding:7px;gap:3px;position:relative}
+.mini .cd .nm{-webkit-line-clamp:2;font-size:12px;line-height:1.2;min-height:0}
+.mini .cd .pz{font-size:12.5px}
+.mini .cd .addb{min-height:30px;font-size:12px;margin-top:auto}
+.mini .cd .qn{min-height:30px;margin-top:auto}
 /* la card del piatto aperto: il tasto stesso, in oro, col segno VER a cavallo del bordo (la linea si interrompe) */
 .mini .cd.ora{overflow:visible;background:rgba(255,197,61,.20);border:2.5px solid var(--oro);box-shadow:0 0 0 3px rgba(255,197,61,.22),0 6px 18px rgba(0,0,0,.45);
-  justify-content:center;align-items:stretch;text-align:center;gap:3px;padding:12px 6px 4px}
+  justify-content:center;align-items:stretch;text-align:center;gap:3px;padding:9px 6px 4px}
 .mini .cd.ora::before{content:"VER ▲";position:absolute;top:-7px;left:50%;transform:translateX(-50%);padding:0 6px;background:var(--bg);line-height:12px;white-space:nowrap;
   font-size:9.5px;font-weight:800;letter-spacing:.08em;color:var(--oro)}
 .ver .vnm{font-size:10.5px;font-weight:700;color:var(--suave);line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
-.ver .vpd{background:var(--ok);color:var(--ok-txt);border-radius:9px;font-weight:800;font-size:13.5px;letter-spacing:.03em;padding:9px 4px}
+.ver .vpd{background:var(--ok);color:var(--ok-txt);border-radius:9px;font-weight:800;font-size:13px;letter-spacing:.03em;padding:6px 4px}
 .ver .vpz{font-size:13px;font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
 .ver .vst{display:flex;gap:6px;align-items:center}
-.ver .vst i{flex:1;height:44px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:22px;font-weight:800;background:var(--ok);color:var(--ok-txt);border-radius:9px;cursor:pointer}
+.ver .vst i{flex:1;height:34px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:22px;font-weight:800;background:var(--ok);color:var(--ok-txt);border-radius:9px;cursor:pointer}
 .ver .vst u{text-decoration:none;font-size:15px;font-weight:800;min-width:18px}
 @keyframes lampoVer{0%{box-shadow:0 0 0 0 rgba(255,197,61,.85);background:rgba(255,197,61,.28)}100%{box-shadow:0 0 0 10px rgba(255,197,61,0)}}
 .mini .cd.ora.lampo{animation:lampoVer .6s ease-out 1}
@@ -201,7 +203,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.6.1</div>
+<div class="ver" id="ver">menu v0.6.2</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -406,9 +408,9 @@ function risultati() {
 const daMostrare = () => cercando() ? risultati() : S.prod.filter((x) => x.c === S.cat && visibile(x));
 let PAG = 0;
 /* v0.6.1 (Alberto 28-ott, Coco Jengibre: «la foto non si vede intera»): una copa col gambo occupa l'85% dell'altezza della foto,
-   e nessun punto di taglio la salva. Lo spazio si prende alla striscia: UNA riga da 3 per pagina invece di due, e la foto
-   torna intera (4:3 a tutta larghezza). Le pagine scorrono di lato come prima, coi punti. */
-const PER_PAG = 3;
+   e nessun punto di taglio la salva. v0.6.2 (Alberto: «6 card trovano il prodotto il doppio più in fretta»): le 6 card restano,
+   ma più basse (96 px), e nome e prezzo della scheda stanno su una riga: lo spazio ripreso va alla foto. */
+const PER_PAG = 6;
 function pagine(L) {
   const i = L.findIndex((x) => x.id === S.abierta); PAG = i >= 0 ? Math.floor(i / PER_PAG) : 0;
   let h = ''; for (let k = 0; k < L.length; k += PER_PAG) h += '<div class="pag">' + L.slice(k, k + PER_PAG).map((p) => card(p, false)).join('') + '</div>';
