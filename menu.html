@@ -181,7 +181,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.5.1</div>
+<div class="ver" id="ver">menu v0.5.2</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -242,7 +242,8 @@ function prodotti(csv) {
    Senza tick (bordo che non risponde) la carta resta quella del CSV: prezzo base, nessun nascosto. */
 const tickP = () => (S.tick && S.tick.precios) || {};
 const tickA = () => (S.tick && S.tick.agotados) || {};
-function visibile(p) { return (tickP().ocultos || []).indexOf(p.id) < 0; }
+// v0.5.2 (Alberto 28-ott): un prodotto in 86 NON si vede affatto, niente card grigia «Se acabó por hoy»
+function visibile(p) { return (tickP().ocultos || []).indexOf(p.id) < 0 && !esaurito(p); }
 /* MENÚ DEL DÍA (Alberto, 28-ott): il prezzo del menú NON è il prezzo del piatto. Il piatto ordinato da solo costa il suo
    prezzo, a qualsiasi ora; a pranzo sotto il piatto c'è solo l'informazione «En Menú del día» (senza prezzo, senza clic).
    Il menú si vende dal carosello e dalle promo, come prodotto a sé. ⇒ la regla `almuerzo` non riprezza il piatto. */
