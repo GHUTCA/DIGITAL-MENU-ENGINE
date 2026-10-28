@@ -187,7 +187,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.5.3</div>
+<div class="ver" id="ver">menu v0.5.4</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -469,6 +469,11 @@ function z2() {
 }
 let ULTIMA_VER = null;
 function pinta() {
+  // v0.5.4 (EL GIRO A5 · B3): l'86 che arriva MENTRE il cliente guarda. La scheda di un prodotto sparito si chiude;
+  // una categoria rimasta senza prodotti cede il posto al primo chip della sua famiglia (o della prima famiglia viva).
+  if (S.abierta) { const pa = S.prod.find((x) => x.id === S.abierta); if (!pa || !visibile(pa)) S.abierta = null; }
+  const gv = gruppi();
+  if (S.cat && !gv.some((g) => g.cats.indexOf(S.cat) >= 0)) { const g = gv.find((x) => x.k === S.fam) || gv[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; } }
   document.getElementById('z1').innerHTML = z1();
   const z = document.getElementById('z3'); z.classList.remove('basso'); z.classList.toggle('aperta', !!S.abierta && !S.pedido); z.innerHTML = z3();
   // la striscia resta sulla pagina del piatto aperto; il passo è pagina + spazio, non la larghezza della striscia
