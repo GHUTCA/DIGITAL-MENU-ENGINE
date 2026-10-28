@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>Menú</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap" rel="stylesheet">
@@ -28,7 +28,7 @@
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--txt);font-family:Outfit,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 button{font-family:inherit}
-.app{height:100dvh;display:flex;flex-direction:column;max-width:560px;margin:0 auto;
+.app{height:var(--alto,100dvh);display:flex;flex-direction:column;max-width:560px;margin:0 auto;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 /* la riga in alto: una famiglia sola, stessa altezza, un solo pieno (mockup v1.1) */
 .z1{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));
@@ -42,9 +42,10 @@ button{font-family:inherit}
 /* minmax(0,1fr): tre colonne SEMPRE uguali. Con 1fr un nome lungo su una riga (la card VER) allargava la sua colonna e stringeva le altre */
 .sei{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px;align-content:start}
 /* poche card: si appoggiano al fondo, nell'arco del pollice (mockup, Alberto 21-ott) */
-.z3.basso{display:flex;flex-direction:column;justify-content:flex-end}
+.z3.basso{display:flex;flex-direction:column}
+.z3.basso>*{margin-top:auto}   /* non justify-content:flex-end: se il contenuto cresce, l'eccedenza deve restare scorrevole */
 .cd{display:flex;flex-direction:column;gap:4px;background:var(--card);border:1px solid var(--linea);border-radius:12px;padding:6px;min-height:188px;cursor:pointer;text-align:left;color:var(--txt)}
-.cd .th{width:100%;height:auto;aspect-ratio:4/3;border-radius:8px;object-fit:cover;background:var(--sup)}
+.cd .th{width:100%;height:auto;aspect-ratio:4/3;border-radius:8px;object-fit:cover;object-position:center 60%;background:var(--sup)}
 .cd .tg{width:100%;height:76px;border-radius:8px;background:#1b140a;color:var(--oro);display:flex;align-items:center;justify-content:center;
   text-align:center;padding:4px;font-family:Fraunces,Georgia,serif;font-size:12px;line-height:1.15}
 .cd .nm{font-size:12px;font-weight:700;line-height:1.22;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px}
@@ -70,7 +71,10 @@ button{font-family:inherit}
 /* la foto grande prende TUTTA la larghezza (Alberto 28-ott: «sembra troncata»): riempie da bordo a bordo l'altezza che resta
    fra la testa e la striscia sotto, e non supera mai il 4:3 della foto. Dove l'altezza manca, il taglio è sopra e sotto, mai ai lati. */
 .det .fo{flex:1 1 auto;width:100%;max-height:75vw;min-height:60px;background:#000;position:relative;overflow:hidden}
-.det .fo::before,.det .fo::after{content:'';position:absolute;inset:0;z-index:0;background-image:var(--f);background-position:center;background-repeat:no-repeat}
+.det .fo::before,.det .fo::after{content:'';position:absolute;inset:0;z-index:0;background-image:var(--f);background-position:center var(--fy,60%);background-repeat:no-repeat}
+/* v0.5.9 (Alberto 28-ott, Caipirisima tagliata sotto): dove l'altezza manca si taglia di più SOPRA che sotto. Il piatto e il
+   bicchiere stanno nella metà bassa della foto (il tavolo), il cielo della foto è il fondo del bar. Default 60%; una foto nostra
+   può dichiarare il suo punto in fotos.json ({"f":"x.webp","y":70}). */
 .det .fo::before{background-size:cover;filter:blur(16px) brightness(.45);transform:scale(1.1)}
 .det .fo::after{background-size:cover}
 .det .fo.tg::before,.det .fo.tg::after{content:none}
@@ -197,7 +201,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.5.7</div>
+<div class="ver" id="ver">menu v0.6.0</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -414,7 +418,7 @@ function z3() {
   if (S.abierta) {
     const p = S.prod.find((x) => x.id === S.abierta);
     // senza foto non un rettangolo grigio (si leggerebbe come un guasto): una targa col nome
-    const fo = p.img ? '<div class="fo" style="--f:url(\'' + esc(p.img) + '\')">' : '<div class="fo tg">' + esc(p.n);
+    const fo = p.img ? '<div class="fo" style="--f:url(\'' + esc(p.img) + '\')' + (p.fy != null ? ';--fy:' + p.fy + '%' : '') + '">' : '<div class="fo tg">' + esc(p.n);
     return '<div class="split"><div class="det">' + fo + '<button class="x" data-a="cierra">✕</button></div>' +
       '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(p.d || '') + '</div><div class="pz">' + pzHTML(p) + '</div></div>' +
       domandeHTML(p) + '</div>' + pagine(daMostrare()) + '</div>';
@@ -592,6 +596,13 @@ async function llamaMesero(motivo) {
 function dispositivo() { let d = ''; try { d = localStorage.getItem('pinsita_dev') || ''; } catch (e) {}
   if (!d) { d = 'd' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); try { localStorage.setItem('pinsita_dev', d); } catch (e) {} } return d; }
 
+/* v0.5.8 (Alberto 28-ott, Buscar con la tastiera aperta: «non riesco a scrollare in basso»). La tastiera copriva il fondo
+   della griglia: l'app era alta quanto lo schermo, non quanto lo spazio sopra la tastiera. Ora l'altezza segue la parte VISIBILE
+   (visualViewport, che su iPhone e su Android tiene conto della tastiera) e la pagina torna in cima: si scorre fino all'ultima card. */
+if (window.visualViewport) {
+  const alto = () => { document.documentElement.style.setProperty('--alto', Math.round(visualViewport.height) + 'px'); if (window.scrollY) window.scrollTo(0, 0); };
+  visualViewport.addEventListener('resize', alto); alto();
+}
 /* ═══ i gesti ═══ */
 // Buscar: ogni lettera ridisegna solo la griglia (la barra col campo resta, vedi pinta)
 document.getElementById('app').addEventListener('input', (ev) => { if (ev.target.classList.contains('bin')) { S.busca = ev.target.value; S.abierta = null; pinta(); } });
@@ -604,7 +615,11 @@ document.getElementById('app').addEventListener('click', (ev) => {
   else if (a === 'abreBusca') { S.busca = ''; S.abierta = null; pinta(); const i = document.querySelector('.bin'); if (i) i.focus(); return; }
   else if (a === 'cierraBusca') { S.busca = null; S.abierta = null; }
   else if (a === 'binput') { return; }
-  else if (a === 'abre') { S.abierta = k; document.getElementById('z3').scrollTop = 0; }
+  else if (a === 'abre') {
+    // v0.6.0 (Alberto 28-ott): trovato e toccato il prodotto, Buscar si chiude da solo e la barra torna famiglia + categoria,
+    // già su quella del prodotto (la striscia sotto la scheda sono i suoi vicini di carta, non i risultati)
+    if (S.busca !== null && S.busca !== undefined && p) { S.busca = null; const g = gruppi().find((x) => x.cats.indexOf(p.c) >= 0); if (g) { S.fam = g.k; S.cat = p.c; } if (document.activeElement) document.activeElement.blur(); }
+    S.abierta = k; document.getElementById('z3').scrollTop = 0; }
   else if (a === 'cierra') { S.abierta = null; }
   // durante i 4 s dell'annullo e il volo il carrello non si tocca: si invia ciò che si vede
   // ＋ su un piatto: con domande aggiunge la SCELTA fatta nella scheda (e solo se completa); senza domande, la riga nuda
@@ -662,7 +677,8 @@ document.addEventListener('visibilitychange', async () => { if (document.visibil
 async function fotoNostre() {
   try { const r = await fetch('fotos/fotos.json', { cache: 'no-cache' }); if (!r.ok) return {};
     const m = (await r.json())[LOCAL] || {}, out = {};
-    Object.keys(m).forEach((id) => { if (/^[\w.-]+\.(webp|jpe?g|png)$/i.test(m[id])) out[id] = 'fotos/' + LOCAL + '/' + m[id]; });
+    Object.keys(m).forEach((id) => { const v = m[id], f = typeof v === 'string' ? v : (v && v.f), y = v && typeof v === 'object' ? Number(v.y) : NaN;
+      if (/^[\w.-]+\.(webp|jpe?g|png)$/i.test(f || '')) out[id] = { img: 'fotos/' + LOCAL + '/' + f, fy: (y >= 0 && y <= 100) ? y : null }; });
     return out; } catch (e) { return {}; }
 }
 (async function avvio() {
@@ -676,7 +692,7 @@ async function fotoNostre() {
     const jc = await rc.json();
     S.cfg = (jc && jc.datos && jc.datos.datos && jc.datos.datos.config) || {};
     S.prod = prodotti(await rk.text());
-    S.prod.forEach((p) => { if (ff[p.id]) p.img = ff[p.id]; });
+    S.prod.forEach((p) => { if (ff[p.id]) { p.img = ff[p.id].img; p.fy = ff[p.id].fy; } });
     await leggiTick();
     if (S.cfg.brand_name) document.title = S.cfg.brand_name;
     const g = gruppi()[0];
