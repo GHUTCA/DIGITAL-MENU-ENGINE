@@ -66,11 +66,12 @@ button{font-family:inherit}
 .split{display:flex;flex-direction:column;height:100%}
 /* con le domande la foto cede spazio (fino a 60px) e, se ancora non basta, la metà alta scorre: le scelte stanno sempre nello schermo */
 .det{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow-y:auto}
-/* la foto grande non si taglia mai: intera (contain) sopra la stessa foto sfocata che riempie i bordi */
-.det .fo{flex:1 1 auto;min-height:60px;background:#000;position:relative;overflow:hidden}
+/* la foto grande prende TUTTA la larghezza (Alberto 28-ott: «sembra troncata»): riempie da bordo a bordo l'altezza che resta
+   fra la testa e la striscia sotto, e non supera mai il 4:3 della foto. Dove l'altezza manca, il taglio è sopra e sotto, mai ai lati. */
+.det .fo{flex:1 1 auto;width:100%;max-height:75vw;min-height:60px;background:#000;position:relative;overflow:hidden}
 .det .fo::before,.det .fo::after{content:'';position:absolute;inset:0;z-index:0;background-image:var(--f);background-position:center;background-repeat:no-repeat}
 .det .fo::before{background-size:cover;filter:blur(16px) brightness(.45);transform:scale(1.1)}
-.det .fo::after{background-size:contain}
+.det .fo::after{background-size:cover}
 .det .fo.tg::before,.det .fo.tg::after{content:none}
 .det .fo>*{position:relative;z-index:1}
 .det .fo.tg{display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;font-family:Fraunces,Georgia,serif;font-weight:300;font-size:25px;color:#fff;
@@ -166,6 +167,14 @@ button{font-family:inherit}
 .sigue2 .s2t b{font-size:14.5px;line-height:1.2}
 .sigue2 .s2t small{font-size:11.5px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sigue2 .s2v{flex:0 0 auto;background:var(--oro);color:#1a1408;font-weight:800;font-size:13px;padding:8px 12px;border-radius:999px}
+/* Buscar: la lente resta ancorata a destra mentre le categorie scorrono; aperta, il campo nasce dentro la barra */
+.cat.lupa{position:sticky;right:0;z-index:2;background:var(--sup);border-color:var(--linea2);box-shadow:-8px 0 10px -6px var(--sup)}
+.rbusca{align-items:center;gap:7px;overflow:visible}
+.rbusca .lup{flex:0 0 auto;font-size:14px}
+.rbusca .bin{flex:1;min-width:0;background:var(--card);border:1px solid var(--linea2);color:var(--txt);border-radius:10px;padding:9px 11px;font:inherit;font-size:16px;min-height:38px}
+.rbusca .bin::placeholder{color:var(--suave)}
+.rbusca .bin::-webkit-search-cancel-button{display:none}
+.rbusca .bx{flex:0 0 auto;background:transparent;border:0;color:var(--suave);font-size:16px;padding:6px 6px;cursor:pointer;min-height:38px}
 .bell{flex:0 0 auto;width:36px;height:34px;border-radius:50%;border:0;background:var(--oro);font-size:16px;cursor:pointer}
 .cmp{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card);border:1px solid var(--linea);border-radius:12px;padding:11px 12px;margin-top:7px;color:var(--txt);cursor:pointer}
 .cmp .sn{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
@@ -187,7 +196,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.5.4</div>
+<div class="ver" id="ver">menu v0.5.5</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -378,7 +387,18 @@ function domandeHTML(p) {
     q.ops.map((o) => '<button class="' + (selDi(p)[q.k] === o.o ? 'on' : '') + '" data-a="sceglie" data-k="' + esc(p.id + '|' + q.k + '|' + o.o) + '">' + esc(o.o) +
       (o.d ? ' <b>+' + clp(o.d) + '</b>' : '') + '</button>').join('') + '</div></div>').join('');
 }
-const daMostrare = () => S.prod.filter((x) => x.c === S.cat && visibile(x));
+/* BUSCAR (mockup 21-ott, Alberto: «il buscar non toglierlo, lo uso moltissimo»): la lente sta in fondo alla riga delle
+   categorie e si apre LÌ DENTRO come campo. Cerca su tutta la carta visibile (nome, descrizione, categoria), senza accenti
+   né maiuscole; prima chi COMINCIA con la parola. Nessuna rete: filtra ciò che il telefono ha già. */
+const normB = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const cercando = () => S.busca !== null && S.busca !== undefined && normB(S.busca).length > 0;
+function risultati() {
+  const q = normB(S.busca), parole = q.split(/\s+/).filter(Boolean);
+  const testo = (p) => normB(p.n + ' ' + (p.d || '') + ' ' + nomeCat(p.c));
+  return S.prod.filter((p) => visibile(p) && parole.every((w) => testo(p).indexOf(w) >= 0))
+    .sort((a, b) => (normB(b.n).startsWith(q) - normB(a.n).startsWith(q)) || a.n.localeCompare(b.n)).slice(0, 36);
+}
+const daMostrare = () => cercando() ? risultati() : S.prod.filter((x) => x.c === S.cat && visibile(x));
 let PAG = 0;
 function pagine(L) {
   const i = L.findIndex((x) => x.id === S.abierta); PAG = i >= 0 ? Math.floor(i / 6) : 0;
@@ -398,7 +418,10 @@ function z3() {
       '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(p.d || '') + '</div><div class="pz">' + pzHTML(p) + '</div></div>' +
       domandeHTML(p) + '</div>' + pagine(daMostrare()) + '</div>';
   }
-  return '<div class="sei">' + daMostrare().map((p) => card(p, true)).join('') + '</div>';
+  if (S.busca !== null && S.busca !== undefined && !cercando()) return '<div class="msg busca"><b>¿Qué se te antoja?</b>Escribe un plato, un trago o un ingrediente.</div>';
+  const L = daMostrare();
+  if (cercando() && !L.length) return '<div class="msg busca"><b>Nada con «' + esc(S.busca.trim()) + '»</b>Prueba con otra palabra.</div>';
+  return '<div class="sei">' + L.map((p) => card(p, true)).join('') + '</div>';
 }
 function pzHTML(p) { const z = prezzoOra(p); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : ''); }
 /* ═══ il passo dopo (mockup 23-ott): chi ha chiesto dalla prima famiglia (il cibo) atterra sull'ultima (il dolce);
@@ -465,7 +488,10 @@ function z2() {
   // con qualcosa nel carrello le famiglie restano solo emoji: la porta del pedido deve stare intera nella riga (mockup v1.x)
   return '<div class="r">' + G.map((x) => '<button class="fam' + (x.k === f.k ? ' on' : '') + '" data-a="fam" data-k="' + esc(x.k) + '" title="' + esc(nomeGruppo(x.k)) + '">' + x.emoji + (t.n ? '' : ' ' + esc(nomeGruppo(x.k))) + '</button>').join('') +
     (t.n ? '<button class="cartp" data-a="verPed">' + t.n + ' · ENVIAR · ' + clp(t.s) + ' ›</button>' : '') + '</div>' +
-    '<div class="r">' + (envioOn() ? '<button class="bell" data-a="campana" aria-label="Llamar al mesero">🔔</button>' : '') + f.cats.map((c) => '<button class="cat' + (c === S.cat ? ' on' : '') + '" data-a="cat" data-k="' + esc(c) + '">' + esc(nomeCat(c)) + '</button>').join('') + '</div>';
+    (S.busca !== null && S.busca !== undefined
+      ? '<div class="r rbusca"><span class="lup">🔍</span><input class="bin" type="search" enterkeyhint="search" autocomplete="off" placeholder="escribe lo que buscas…" value="' + esc(S.busca) + '" data-a="binput"><button class="bx" data-a="cierraBusca" aria-label="Cerrar búsqueda">✕</button></div>'
+      : '<div class="r">' + (envioOn() ? '<button class="bell" data-a="campana" aria-label="Llamar al mesero">🔔</button>' : '') + f.cats.map((c) => '<button class="cat' + (c === S.cat ? ' on' : '') + '" data-a="cat" data-k="' + esc(c) + '">' + esc(nomeCat(c)) + '</button>').join('') +
+        '<button class="cat lupa" data-a="abreBusca">🔍 Buscar</button></div>');
 }
 let ULTIMA_VER = null;
 function pinta() {
@@ -490,7 +516,8 @@ function pinta() {
   // se la griglia sta in una schermata, va giù; se è più lunga, si comporta come sempre
   const sg = z.querySelector('.sei'); if (sg && !S.abierta && !S.pedido && sg.scrollHeight <= z.clientHeight) z.classList.add('basso');
   const pieno = S.pedido || S.campana;
-  const b = document.getElementById('z2'); b.hidden = pieno; if (!pieno) b.innerHTML = z2();
+  // mentre si scrive nel campo di Buscar la barra non si ridisegna: perderebbe il cursore e la tastiera
+  const b = document.getElementById('z2'); b.hidden = pieno; if (!pieno && !(document.activeElement && document.activeElement.classList.contains('bin'))) b.innerHTML = z2();
 }
 function nota(txt) { let n = document.getElementById('nota'); if (!n) { n = document.createElement('div'); n.id = 'nota'; n.className = 'nota'; document.body.appendChild(n); }
   n.textContent = txt; n.classList.remove('vai'); void n.offsetWidth; n.classList.add('vai'); }
@@ -565,11 +592,17 @@ function dispositivo() { let d = ''; try { d = localStorage.getItem('pinsita_dev
   if (!d) { d = 'd' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); try { localStorage.setItem('pinsita_dev', d); } catch (e) {} } return d; }
 
 /* ═══ i gesti ═══ */
+// Buscar: ogni lettera ridisegna solo la griglia (la barra col campo resta, vedi pinta)
+document.getElementById('app').addEventListener('input', (ev) => { if (ev.target.classList.contains('bin')) { S.busca = ev.target.value; S.abierta = null; pinta(); } });
+document.getElementById('app').addEventListener('keydown', (ev) => { if (ev.target.classList.contains('bin') && ev.key === 'Enter') ev.target.blur(); });
 document.getElementById('app').addEventListener('click', (ev) => {
   const el = ev.target.closest('[data-a]'); if (!el) return; ev.stopPropagation();
   const a = el.dataset.a, k = el.dataset.k; const p = k ? S.prod.find((x) => x.id === k) : null;
-  if (a === 'fam') { const g = gruppi().find((x) => x.k === k); S.fam = k; S.cat = g.cats[0]; S.abierta = null; }
-  else if (a === 'cat') { S.cat = k; S.abierta = null; }
+  if (a === 'fam') { const g = gruppi().find((x) => x.k === k); S.fam = k; S.cat = g.cats[0]; S.abierta = null; S.busca = null; }
+  else if (a === 'cat') { S.cat = k; S.abierta = null; S.busca = null; }
+  else if (a === 'abreBusca') { S.busca = ''; S.abierta = null; pinta(); const i = document.querySelector('.bin'); if (i) i.focus(); return; }
+  else if (a === 'cierraBusca') { S.busca = null; S.abierta = null; }
+  else if (a === 'binput') { return; }
   else if (a === 'abre') { S.abierta = k; document.getElementById('z3').scrollTop = 0; }
   else if (a === 'cierra') { S.abierta = null; }
   // durante i 4 s dell'annullo e il volo il carrello non si tocca: si invia ciò che si vede
@@ -584,7 +617,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
   else if (a === 'sceglie') { const [pid, qk, ...ov] = k.split('|'); const pp = S.prod.find((x) => x.id === pid); if (pp) selDi(pp)[qk] = ov.join('|'); }
   else if (a === 'verPed') { S.pedido = true; S.campana = false; }
   else if (a === 'chiudiPed') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.listo = null; }
-  else if (a === 'inicio') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.campana = false; S.listo = null; S.abierta = null; const g = gruppi()[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; } }
+  else if (a === 'inicio') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.campana = false; S.listo = null; S.abierta = null; S.busca = null; const g = gruppi()[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; } }
   else if (a === 'env' && envioOn() && !S.inviando && !S.inviaStato && Object.keys(S.cart).length) {
     S.inviando = { fine: Date.now() + ATTESA_INVIO }; S.errore = '';
     INV = setTimeout(() => { S.inviando = null; clearInterval(INV_TICK); inviaOra(false); }, ATTESA_INVIO);
