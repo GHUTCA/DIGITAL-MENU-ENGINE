@@ -173,7 +173,7 @@ button{font-family:inherit}
 /* stati */
 .msg{padding:40px 22px;text-align:center;color:var(--suave);font-size:14px;line-height:1.45}
 .msg b{display:block;color:var(--txt);font-size:18px;margin-bottom:6px}
-.ver{position:fixed;right:6px;bottom:calc(4px + env(safe-area-inset-bottom,0px));font-size:9px;color:rgba(243,237,228,.3);pointer-events:none}
+#ver{position:fixed;right:6px;bottom:calc(4px + env(safe-area-inset-bottom,0px));font-size:9px;color:rgba(243,237,228,.3);pointer-events:none}
 </style></head>
 <body>
 <div class="app" id="app">
@@ -181,7 +181,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.5.0</div>
+<div class="ver" id="ver">menu v0.5.1</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -267,10 +267,15 @@ const esaurito = (p) => p.agotado || (tickA().ids || []).indexOf(p.id) >= 0 || S
    💰 Il sovrapprezzo scritto nell'opzione («Chelada +$1.500») SI SOMMA al prezzo della riga (il vivo lo lascia etichetta
    sui piatti fuori dal vocabolario: è un buco, non un contratto). ⚠️ Resta FUORI il menú-contenitore (3 Tiempos): le sue
    domande vivono nel vocabolario dei modificatori, che il bordo serve solo allo staff (leva MODS2_BORDE_ON, di 🎛 BKP). */
-const chiedeScelta = (p) => p.c === 'menu_contenitore';
+/* v0.5.1 (D-419 ③, Alberto 28-ott «vai»): LE SCELTE SONO SPENTE finché il bordo non serve al cliente i modificatori di Postgres
+   (lettura pubblica di 🎛 BKP). La colonna `Modificadores` della carta e `termino_opciones` nascono dal foglio: non si leggono.
+   Chi ha domande ⇒ «Con opciones · pronto», mai il ripiego su Google. Si riaccende cambiando la SORGENTE di domande(), non questa riga. */
+const SCELTE_ON = false;
+const chiedeScelta = (p) => p.c === 'menu_contenitore' || (!SCELTE_ON && !!(p.mt || p.carne));
 const normT = (s) => String(s || '').trim().toLowerCase().replace(/[oa]$/, '');
 function parseOp(s) { const m = String(s).match(/^(.*?)\s*\+\s*\$?\s*([\d.]+)\s*$/); return m ? { o: m[1].trim(), d: prezzo(m[2]) } : { o: String(s).trim(), d: 0 }; }
 function domande(p) {
+  if (!SCELTE_ON) return [];
   const out = [], TO = String((S.cfg && S.cfg.termino_opciones) || '').split(',').map((s) => s.trim()).filter(Boolean);
   if (p.carne && TO.length) out.push({ k: 't', tit: 'El término de tu carne', ops: TO.map((o) => ({ o, d: 0 })) });
   if (p.mt) {
