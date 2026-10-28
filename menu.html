@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Menú</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap" rel="stylesheet">
+<!-- DEVICE-CLASS: 1 · cattura in movimento (il telefono del cliente al tavolo) -->
+<!--
+  ═══ IL MENÙ VERO · scheletro v0.1 · 📖 MENU BKS V32 · mer 28-ott-2026 ═══════════════════════════════════════════════════════════
+  Il disegno è il mockup v1.x (ATALAYA/4_CANTIERE_MENU/MOCKUP_MENU_QUATTRO_ZONE_V2_21OTT2026.html), il criterio di chiusura il §⑭ del
+  modello: il vero non può essere più povero del mockup. Il perimetro è il §⑮.
+  🏢 MULTIEMPRESA DAL PRIMO GIORNO (Alberto, 28-ott): nessun locale scritto qui. Il locale arriva dal QR (?l=), e marca, famiglie,
+  catalogo, lingue e pezzi accesi vengono dalla sua config sul bordo. Regola e banco: ARCHITETTURA_MENU_VERO_MULTIEMPRESA_28OTT2026.md.
+  🚫 NIENTE GOOGLE: legge solo dal bordo (/estado ?seccion=menu_config e /carta). Se il bordo non risponde lo dice, non ripiega su Google.
+  v0.1 = LEGGE E MOSTRA: famiglie, categorie, griglia con foto, scheda grande, carrello. L'INVIO NON C'È ANCORA (passo 2, dopo la
+  prova di Alberto sul suo telefono): il bottone lo dice. Così la pagina può stare online senza che nessun pedido parta da qui.
+-->
+<style>
+:root{
+  /* il tema del mockup è il default; una config di locale lo può cambiare con le chiavi tema_* (bozza per 🚚 MIGRA) */
+  --bg:#0A0806;--sup:#14100C;--card:#1A1510;--txt:#F3EDE4;--suave:rgba(243,237,228,.62);
+  --linea:rgba(255,140,80,.18);--linea2:rgba(255,140,80,.36);--acc:#FF6A1F;--oro:#FFC53D;
+  --ok:#8B9E4F;--ok-txt:#14180A;--ok-chiaro:#A9BE68;--male:#FF6B5E;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:Outfit,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit}
+.app{height:100dvh;display:flex;flex-direction:column;max-width:560px;margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* la riga in alto: una famiglia sola, stessa altezza, un solo pieno (mockup v1.1) */
+.z1{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));
+  border-bottom:1px solid var(--linea);min-height:50px;background:linear-gradient(rgba(10,8,6,.92),rgba(10,8,6,.8))}
+.casa{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:transparent;border:0;color:rgba(243,237,228,.82);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.chi{flex:1;min-width:0;line-height:1.15}
+.chi b{display:block;font-size:14px}
+.chi span{display:block;font-size:11px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.z3{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+/* la griglia da 12, con foto (mockup: .sei.fotos) */
+.sei{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;align-content:start}
+/* poche card: si appoggiano al fondo, nell'arco del pollice (mockup, Alberto 21-ott) */
+.z3.basso{display:flex;flex-direction:column;justify-content:flex-end}
+.cd{display:flex;flex-direction:column;gap:4px;background:var(--card);border:1px solid var(--linea);border-radius:12px;padding:6px;min-height:188px;cursor:pointer;text-align:left;color:var(--txt)}
+.cd .th{width:100%;height:76px;border-radius:8px;object-fit:cover;background:var(--sup)}
+.cd .tg{width:100%;height:76px;border-radius:8px;background:#1b140a;color:var(--oro);display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:4px;font-family:Fraunces,Georgia,serif;font-size:12px;line-height:1.15}
+.cd .nm{font-size:12px;font-weight:700;line-height:1.22;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px}
+.cd .pz{font-size:12.5px;font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
+.addb{margin-top:auto;width:100%;background:transparent;color:var(--ok-chiaro);border:1.5px solid rgba(139,158,79,.6);border-radius:8px;font-weight:800;font-size:11px;min-height:30px;cursor:pointer}
+.cd.dentro{border-color:var(--ok)}
+.cd.agot{opacity:.55;filter:grayscale(1);pointer-events:none}
+.cd .agl{margin-top:auto;font-size:11px;font-weight:800;color:#ff8a7a}
+.cd.fh .agl{color:var(--oro)}
+.qn{display:flex;align-items:center;justify-content:space-between;margin-top:auto;background:var(--ok);color:var(--ok-txt);border-radius:8px;min-height:30px;font-weight:800}
+.qn i{font-style:normal;width:34px;text-align:center;font-size:17px;cursor:pointer}
+/* la scheda grande */
+.det .fo{width:100%;aspect-ratio:4/3;max-height:42vh;background:#000 center/cover no-repeat;position:relative}
+.det .fo.tg{display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;font-family:Fraunces,Georgia,serif;font-weight:300;font-size:25px;color:#fff;
+  background:radial-gradient(120% 80% at 50% 0%,rgba(255,197,61,.18),#0b0906 65%)}
+.det .x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.45);color:#fff;font-size:16px;cursor:pointer}
+.det .bd{padding:12px 14px 6px}
+.det h2{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:23px;margin:0;letter-spacing:-.3px}
+.det .ds{font-size:13px;color:var(--suave);margin-top:6px;line-height:1.35}
+.det .pz{font-size:20px;font-weight:800;color:var(--oro);margin-top:8px}
+.pedir{padding:4px 14px 14px}
+.envG{width:100%;background:var(--ok);color:var(--ok-txt);border:0;border-radius:13px;padding:13px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.envG b{font-size:15px;font-weight:800}
+.envG span{font-size:11.5px;font-weight:700;opacity:.8}
+.envG.spento{background:transparent;color:var(--suave);border:2px dashed rgba(139,158,79,.6);cursor:default}
+/* la barra in basso: famiglie + categorie + la porta del pedido */
+.z2{flex:0 0 auto;border-top:1px solid var(--linea);background:var(--sup);padding:6px 8px 8px}
+.r{display:flex;gap:6px;overflow-x:auto;padding:2px 0}
+.r::-webkit-scrollbar{height:0}
+.fam,.cat{flex:0 0 auto;border:1px solid var(--linea2);background:transparent;color:var(--txt);border-radius:99px;padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.fam.on{background:var(--card);border-color:var(--oro)}
+.cat.on{background:var(--oro);color:#1a1408;border-color:var(--oro)}
+.cartp{flex:0 0 auto;margin-left:auto;border:0;border-radius:99px;background:var(--ok);color:var(--ok-txt);padding:7px 12px;font-weight:800;font-size:12.5px;cursor:pointer;white-space:nowrap}
+/* il pedido */
+.ped{padding:12px 14px}
+.pedtit{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:19px;letter-spacing:-.2px;margin-bottom:9px}
+.pedx{background:transparent;border:0;color:var(--suave);font-size:18px;cursor:pointer}
+.lin{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--linea)}
+.lin img,.lin .lth{width:38px;height:38px;border-radius:8px;object-fit:cover;background:var(--sup);flex:0 0 auto}
+.lin .lnm{flex:1;min-width:0;font-size:13px;font-weight:700}
+.lin .lpz{font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
+.lin .lq{display:flex;align-items:center;gap:6px}
+.lin .lq i{font-style:normal;width:28px;height:28px;border-radius:8px;border:1px solid var(--linea2);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tot{display:flex;justify-content:space-between;font-weight:800;font-size:16px;margin:12px 0 4px}
+.vuoto{color:var(--suave);font-size:13px;padding:18px 0}
+/* stati */
+.msg{padding:40px 22px;text-align:center;color:var(--suave);font-size:14px;line-height:1.45}
+.msg b{display:block;color:var(--txt);font-size:18px;margin-bottom:6px}
+.ver{position:fixed;right:6px;bottom:calc(4px + env(safe-area-inset-bottom,0px));font-size:9px;color:rgba(243,237,228,.3);pointer-events:none}
+</style></head>
+<body>
+<div class="app" id="app">
+  <div class="z1" id="z1"></div>
+  <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
+  <div class="z2" id="z2" hidden></div>
+</div>
+<div class="ver" id="ver">menu v0.1.0</div>
+<script>
+'use strict';
+/* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
+const BORDO = 'https://pinsita-borde.alberto-agostini.workers.dev';
+const TOKEN_LETTURA = '7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ';
+const qs = new URLSearchParams(location.search);
+const LOCAL = /^[A-Za-z]{2,6}$/.test(qs.get('l') || '') ? qs.get('l').toUpperCase() : '';
+const MESA = /^[0-9A-Za-z-]{1,6}$/.test(qs.get('mesa') || '') ? qs.get('mesa') : '';
+// la lingua: quella del telefono; l'utente la cambierà col 🌐 (passo successivo)
+const LANG = ((navigator.language || 'es').slice(0, 2)).toLowerCase();
+const S = { cfg: null, prod: [], fam: null, cat: null, abierta: null, cart: {}, pedido: false };
+
+const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+function clp(n) { const c = S.cfg || {}; return (c.currency_symbol || '$') + Math.round(n).toLocaleString('es-CL'); }
+
+/* ═══ i nomi: dalla config del locale; finché la config non li porta, un default GENERICO (non di un locale) ═══ */
+const NOMI_CAT_DEFAULT = { entradas: 'Para compartir', fondos: 'Platos', pastas: 'Pastas', sushi: 'Sushi', acompanamientos: 'Acompañamientos',
+  pizzas: 'Pizzas', pizzas_burger: 'Burgers', nino: 'Niños', bar: 'Coctelería', sour: 'Sour', mojitos: 'Mojitos', spritz: 'Spritz',
+  cervezas: 'Cervezas', vinos: 'Vinos', jarras: 'Jarras', destilados: 'Destilados', bebidas: 'Bebidas', jugos: 'Jugos', postres: 'Postres', cafes: 'Cafés' };
+const NOMI_GRUPPO_DEFAULT = { Comida: 'Comer', Barra: 'Barra', Dolci: 'Postres' };
+function nomeCat(k) { const m = (S.cfg && S.cfg.nombres_categorias) || {}; return m[k] || NOMI_CAT_DEFAULT[k] || (k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ')); }
+function nomeGruppo(k) { const m = (S.cfg && S.cfg.nombres_grupos) || {}; return m[k] || NOMI_GRUPPO_DEFAULT[k] || k; }
+
+/* ═══ la carta: lo stesso CSV del menù vivo, servito dal bordo ═══ */
+function parseCSV(t) {
+  const rows = []; let r = [], c = '', q = false;
+  for (let i = 0; i < t.length; i++) {
+    const ch = t[i];
+    if (q) { if (ch === '"') { if (t[i + 1] === '"') { c += '"'; i++; } else q = false; } else c += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === ',') { r.push(c); c = ''; }
+    else if (ch === '\n') { r.push(c.replace(/\r$/, '')); rows.push(r); r = []; c = ''; }
+    else c += ch;
+  }
+  if (c || r.length) { r.push(c); rows.push(r); }
+  return rows;
+}
+const prezzo = (s) => Number(String(s || '').replace(/[^0-9]/g, '')) || 0;
+const oraDec = (s, def) => { const m = String(s || '').trim().match(/^(\d{1,2})\s*:?\s*(\d{1,2})?/); return m ? (+m[1]) + (m[2] ? (+m[2]) / 60 : 0) : def; };
+function prodotti(csv) {
+  const rows = parseCSV(csv); const h = rows[0] || []; const ix = (n) => h.indexOf(n);
+  const dCol = ix('Descripcion_' + LANG.toUpperCase());
+  return rows.slice(1).filter((r) => r[ix('ID_Producto')]).map((r) => ({
+    id: r[ix('ID_Producto')], n: r[ix('Nombre')], c: String(r[ix('Categoria')] || '').toLowerCase(),
+    d: (dCol >= 0 && r[dCol]) ? r[dCol] : r[ix('Descripcion')], p: prezzo(r[ix('Precio')]), img: r[ix('Imagen_URL')] || '',
+    activo: r[ix('Activo')] === 'TRUE', agotado: r[ix('Agotado')] === 'TRUE', visible: r[ix('Menu_Visible')] !== 'FALSE',
+    hi: oraDec(r[ix('Hora_Inicio')], 0), hf: oraDec(r[ix('Hora_Fin')], 24),
+  })).filter((p) => p.activo && p.visible && p.p > 0);
+}
+/* la finestra oraria del prodotto, anche oltre la mezzanotte (la stessa regola del menù vivo, productInFaja) */
+function inOrario(p) {
+  if (p.hf === p.hi) return true;
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Santiago' })); const h = d.getHours() + d.getMinutes() / 60;
+  return p.hf > p.hi ? (h >= p.hi && h < p.hf) : (h >= p.hi || h < p.hf);
+}
+const hhmm = (x) => String(Math.floor(x)).padStart(2, '0') + ':' + String(Math.round((x % 1) * 60)).padStart(2, '0');
+
+/* ═══ i gruppi (famiglie) dalla config del locale ═══ */
+function gruppi() {
+  let g = {}; try { g = JSON.parse((S.cfg && S.cfg.category_groups) || '{}'); } catch (e) { g = {}; }
+  const conProd = new Set(S.prod.map((p) => p.c));
+  return Object.keys(g).map((k) => ({ k, emoji: g[k].emoji || '', cats: (g[k].cats || []).filter((c) => conProd.has(c)) })).filter((x) => x.cats.length);
+}
+
+/* ═══ il disegno ═══ */
+function z1() {
+  const brand = (S.cfg && S.cfg.brand_name) || LOCAL;
+  const sotto = MESA ? 'Mesa ' + esc(MESA) : 'Para pedir, escanea el QR de tu mesa';
+  return '<button class="casa" data-a="inicio" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>' +
+    '<div class="chi"><b>' + esc(brand) + '</b><span>' + sotto + '</span></div>';
+}
+function card(p) {
+  const q = S.cart[p.n] || 0;
+  const foto = p.img ? '<img class="th" loading="lazy" src="' + esc(p.img) + '" alt="">' : '<div class="tg">' + esc(p.n) + '</div>';
+  if (p.agotado) return '<div class="cd agot">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">Se acabó por hoy</div></div>';
+  if (!inOrario(p)) return '<div class="cd agot fh">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">Desde las ' + hhmm(p.hi) + '</div></div>';
+  return '<div class="cd' + (q ? ' dentro' : '') + '" data-a="abre" data-k="' + esc(p.id) + '">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="pz">' + clp(p.p) + '</div>' +
+    (!MESA ? '' : q ? '<div class="qn"><i data-a="meno" data-k="' + esc(p.id) + '">−</i>' + q + '<i data-a="mas" data-k="' + esc(p.id) + '">+</i></div>'
+      : '<button class="addb" data-a="mas" data-k="' + esc(p.id) + '">＋ PEDIR</button>') + '</div>';
+}
+function z3() {
+  if (S.pedido) return pedidoHTML();
+  if (S.abierta) {
+    const p = S.prod.find((x) => x.id === S.abierta);
+    const fo = p.img ? '<div class="fo" style="background-image:url(\'' + esc(p.img) + '\')">' : '<div class="fo tg">' + esc(p.n);
+    return '<div class="det">' + fo + '<button class="x" data-a="cierra">✕</button></div>' +
+      '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(p.d || '') + '</div><div class="pz">' + clp(p.p) + '</div></div>' +
+      (MESA ? '<div class="pedir"><button class="envG" data-a="mas" data-k="' + esc(p.id) + '"><b>＋ PEDIR · ' + clp(p.p) + '</b>' +
+        (S.cart[p.n] ? '<span>ya tienes ' + S.cart[p.n] + '</span>' : '') + '</button></div>' : '') +
+      '</div><div class="sei">' + S.prod.filter((x) => x.c === S.cat).map(card).join('') + '</div>';
+  }
+  return '<div class="sei">' + S.prod.filter((x) => x.c === S.cat).map(card).join('') + '</div>';
+}
+function pedidoHTML() {
+  const ks = Object.keys(S.cart);
+  const righe = ks.map((n) => { const p = S.prod.find((x) => x.n === n) || {};
+    return '<div class="lin">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<div class="lth"></div>') + '<div class="lnm">' + esc(n) + '</div>' +
+      '<div class="lq"><i data-a="meno" data-k="' + esc(p.id) + '">−</i>' + S.cart[n] + '<i data-a="mas" data-k="' + esc(p.id) + '">+</i></div><div class="lpz">' + clp((p.p || 0) * S.cart[n]) + '</div></div>'; }).join('');
+  const t = totale();
+  return '<div class="ped"><div class="pedtit">Tu pedido<button class="pedx" data-a="chiudiPed">✕</button></div>' +
+    (ks.length ? righe + '<div class="tot"><span>Total</span><span>' + clp(t.s) + '</span></div>' +
+      // v0.1: l'invio non è collegato. Lo dice, invece di fingere (passo 2, dopo la prova di Alberto).
+      '<button class="envG spento"><b>ENVIAR PEDIDO · ' + clp(t.s) + '</b><span>vista previa: el envío se conecta en el paso 2</span></button>'
+      : '<div class="vuoto">Todavía no has pedido nada.</div>') + '</div>';
+}
+function totale() { let n = 0, s = 0; for (const k of Object.keys(S.cart)) { const p = S.prod.find((x) => x.n === k); n += S.cart[k]; s += S.cart[k] * (p ? p.p : 0); } return { n, s }; }
+function z2() {
+  const G = gruppi(); const f = G.find((x) => x.k === S.fam) || G[0]; const t = totale();
+  // con qualcosa nel carrello le famiglie restano solo emoji: la porta del pedido deve stare intera nella riga (mockup v1.x)
+  return '<div class="r">' + G.map((x) => '<button class="fam' + (x.k === f.k ? ' on' : '') + '" data-a="fam" data-k="' + esc(x.k) + '" title="' + esc(nomeGruppo(x.k)) + '">' + x.emoji + (t.n ? '' : ' ' + esc(nomeGruppo(x.k))) + '</button>').join('') +
+    (t.n ? '<button class="cartp" data-a="verPed">' + t.n + ' · ENVIAR · ' + clp(t.s) + ' ›</button>' : '') + '</div>' +
+    '<div class="r">' + f.cats.map((c) => '<button class="cat' + (c === S.cat ? ' on' : '') + '" data-a="cat" data-k="' + esc(c) + '">' + esc(nomeCat(c)) + '</button>').join('') + '</div>';
+}
+function pinta() {
+  document.getElementById('z1').innerHTML = z1();
+  const z = document.getElementById('z3'); z.classList.remove('basso'); z.innerHTML = z3();
+  // se la griglia sta in una schermata, va giù; se è più lunga, si comporta come sempre
+  const sg = z.querySelector('.sei'); if (sg && !S.abierta && !S.pedido && sg.scrollHeight <= z.clientHeight) z.classList.add('basso');
+  const b = document.getElementById('z2'); b.hidden = S.pedido; if (!S.pedido) b.innerHTML = z2();
+}
+
+/* ═══ i gesti ═══ */
+document.getElementById('app').addEventListener('click', (ev) => {
+  const el = ev.target.closest('[data-a]'); if (!el) return; ev.stopPropagation();
+  const a = el.dataset.a, k = el.dataset.k; const p = k ? S.prod.find((x) => x.id === k) : null;
+  if (a === 'fam') { const g = gruppi().find((x) => x.k === k); S.fam = k; S.cat = g.cats[0]; S.abierta = null; }
+  else if (a === 'cat') { S.cat = k; S.abierta = null; }
+  else if (a === 'abre') { S.abierta = k; document.getElementById('z3').scrollTop = 0; }
+  else if (a === 'cierra') { S.abierta = null; }
+  else if (a === 'mas' && p && MESA) { S.cart[p.n] = (S.cart[p.n] || 0) + 1; }
+  else if (a === 'meno' && p) { S.cart[p.n]--; if (!S.cart[p.n]) delete S.cart[p.n]; if (!Object.keys(S.cart).length) S.pedido = false; }
+  else if (a === 'verPed') { S.pedido = true; }
+  else if (a === 'chiudiPed') { S.pedido = false; }
+  else if (a === 'inicio') { S.pedido = false; S.abierta = null; const g = gruppi()[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; } }
+  pinta();
+});
+
+/* ═══ l'avvio ═══ */
+async function leggi(url) { const r = await fetch(url, { cache: 'no-store' }); if (!r.ok) throw new Error('http ' + r.status); return r; }
+(async function avvio() {
+  if (!LOCAL) { document.getElementById('z3').innerHTML = '<div class="msg"><b>Escanea el QR de tu mesa</b>Así sabemos dónde estás y qué carta mostrarte.</div>'; return; }
+  try {
+    const [rc, rk] = await Promise.all([
+      leggi(BORDO + '/estado/' + LOCAL + '?seccion=menu_config&t=' + TOKEN_LETTURA),
+      leggi(BORDO + '/carta/' + LOCAL + '?t=' + TOKEN_LETTURA),
+    ]);
+    const jc = await rc.json();
+    S.cfg = (jc && jc.datos && jc.datos.datos && jc.datos.datos.config) || {};
+    S.prod = prodotti(await rk.text());
+    if (S.cfg.brand_name) document.title = S.cfg.brand_name;
+    const g = gruppi()[0];
+    if (!g) throw new Error('carta vacía');
+    S.fam = g.k; S.cat = g.cats[0];
+    pinta();
+  } catch (e) {
+    // nessun ripiego su Google: si dice che cosa manca
+    document.getElementById('z3').innerHTML = '<div class="msg"><b>No pudimos abrir la carta</b>Revisa tu conexión y vuelve a intentar.<br><small>(' + esc(LOCAL) + ' · ' + esc(e.message) + ')</small></div>';
+  }
+})();
+</script>
+</body></html>
