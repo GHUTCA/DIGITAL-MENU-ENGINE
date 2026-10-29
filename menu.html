@@ -315,7 +315,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.8.1</div>
+<div class="ver" id="ver">menu v0.8.2</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -350,7 +350,21 @@ const TR2 = {
   de: ['Du hast noch nichts bestellt.', 'Wird gesendet…', 'Artikel', 'Artikel', 'Was du von diesem Handy bestellt hast', 'Rechnung anfordern', 'wir bringen das Kartengerät an deinen Tisch', 'Ab', 'in deiner Bestellung', 'Verzehr', 'Wie können wir helfen?', 'Dein Kellner kommt an deinen Tisch.', 'Deine Bestellung geht', 'gerade gesendet', 'Heute ausverkauft', 'Ich habe eine Frage zu einem Gericht', 'Zutaten, Allergien, was empfiehlst du', 'Mit meiner Bestellung stimmt etwas nicht', 'etwas fehlt, kam kalt, nicht was ich bestellt habe', 'Am Tisch fehlt etwas', 'Servietten, Besteck, Eis, Saucen', 'Ich möchte mit Karte zahlen', 'wir bringen das Kartengerät', 'Wir feiern etwas 🎂', 'Geburtstag, Jahrestag: wir helfen beim Überraschen', 'Etwas anderes', 'tippen zum Korrigieren · geht raus in', 'schließe diesen Bildschirm nicht', 'in die Küche', 'an die Bar', 'in Küche und Bar'],
   fr: ["Tu n'as encore rien commandé.", 'Envoi…', 'article', 'articles', 'Ce que tu as commandé depuis ce téléphone', "Demander l'addition", "on t'apporte le terminal à ta table", 'À partir de', 'dans ta commande', 'Consommation', 'Comment pouvons-nous aider ?', 'Ton serveur arrive à ta table.', 'Ta commande part', "à l'instant", "Épuisé pour aujourd'hui", "J'ai une question sur un plat", 'ingrédients, allergies, que me conseilles-tu', 'Quelque chose ne va pas avec ma commande', "il manque quelque chose, c'est arrivé froid, ce n'est pas ce que j'ai commandé", 'Il manque quelque chose à table', 'serviettes, couverts, glaçons, sauces', 'Je veux payer par carte', "on t'apporte le terminal", 'On fête quelque chose 🎂', "anniversaire : on t'aide à surprendre", 'Autre chose', 'touche pour corriger · part dans', 'ne ferme pas cet écran', 'en cuisine', 'au bar', 'en cuisine et au bar'],
   ja: ['まだ何も注文していません。', '送信中…', '品', '品', 'この携帯から注文したもの', 'お会計をお願いする', 'カード端末をお席にお持ちします', '開始', 'ご注文に', 'ご利用額', '何かお困りですか？', 'スタッフがお席に向かいます。', 'ご注文の行き先', '送信しました', '本日売り切れ', '料理について質問があります', '材料、アレルギー、おすすめ', '注文に問題があります', '足りない、冷めている、注文と違う', 'テーブルに足りないものがあります', 'ナプキン、カトラリー、氷、ソース', 'カードで支払いたい', 'カード端末をお持ちします', 'お祝いをしています 🎂', '誕生日、記念日：サプライズをお手伝い', 'その他', 'タップで修正 · 送信まで', 'この画面を閉じないでください', 'キッチンへ', 'バーへ', 'キッチンとバーへ'] };
-Object.keys(TR2).forEach((l) => { if (TR2[l].length !== K2.length) throw new Error('TR2 ' + l + ' ' + TR2[l].length); K2.forEach((k, i) => { TR[l][k] = TR2[l][i]; }); });
+/* v0.8.2 (giallo di 💵 EL GIRO su 7608132): una lingua con le voci sfasate NON ferma il menù: quelle frasi restano in spagnolo e lo dice la console */
+function unisci(K, D, nome) { Object.keys(D).forEach((l) => { if (D[l].length !== K.length) { try { console.warn('[menu] ' + nome + ' ' + l + ': ' + D[l].length + ' voci invece di ' + K.length + ' — resta lo spagnolo'); } catch (e) {} return; } K.forEach((k, i) => { TR[l][k] = D[l][i]; }); }); }
+unisci(K2, TR2, 'TR2');
+/* v0.8.2 (Alberto 29-ott: «vedo alcune traduzioni, non tutto: el menu delle categorie»): i nomi delle categorie (quelli di default; un nome scritto
+   nella config del locale si traduce solo se è uno di questi) */
+const K3 = ['Para compartir', 'Platos', 'Pastas', 'Sushi', 'Acompañamientos', 'Pizzas', 'Burgers', 'Niños', 'Coctelería', 'Sour', 'Mojitos', 'Spritz', 'Cervezas', 'Vinos', 'Jarras', 'Destilados', 'Bebidas', 'Jugos', 'Cafés'];
+unisci(K3, {
+  en: ['To share', 'Mains', 'Pasta', 'Sushi', 'Sides', 'Pizzas', 'Burgers', 'Kids', 'Cocktails', 'Sour', 'Mojitos', 'Spritz', 'Beers', 'Wines', 'Pitchers', 'Spirits', 'Soft drinks', 'Juices', 'Coffee'],
+  pt: ['Para compartilhar', 'Pratos', 'Massas', 'Sushi', 'Acompanhamentos', 'Pizzas', 'Hambúrgueres', 'Crianças', 'Coquetéis', 'Sour', 'Mojitos', 'Spritz', 'Cervejas', 'Vinhos', 'Jarras', 'Destilados', 'Bebidas', 'Sucos', 'Cafés'],
+  it: ['Da condividere', 'Piatti', 'Pasta', 'Sushi', 'Contorni', 'Pizze', 'Burger', 'Bambini', 'Cocktail', 'Sour', 'Mojito', 'Spritz', 'Birre', 'Vini', 'Caraffe', 'Distillati', 'Bibite', 'Succhi', 'Caffè'],
+  zh: ['分享小食', '主菜', '意面', '寿司', '配菜', '披萨', '汉堡', '儿童', '鸡尾酒', '酸酒', '莫吉托', '斯普里茨', '啤酒', '葡萄酒', '扎壶', '烈酒', '饮料', '果汁', '咖啡'],
+  ko: ['나눠 먹는 메뉴', '메인', '파스타', '스시', '사이드', '피자', '버거', '어린이', '칵테일', '사워', '모히토', '스프리츠', '맥주', '와인', '피처', '증류주', '음료', '주스', '커피'],
+  de: ['Zum Teilen', 'Hauptgerichte', 'Pasta', 'Sushi', 'Beilagen', 'Pizzas', 'Burger', 'Kinder', 'Cocktails', 'Sour', 'Mojitos', 'Spritz', 'Biere', 'Weine', 'Krüge', 'Spirituosen', 'Getränke', 'Säfte', 'Kaffee'],
+  fr: ['À partager', 'Plats', 'Pâtes', 'Sushi', 'Accompagnements', 'Pizzas', 'Burgers', 'Enfants', 'Cocktails', 'Sour', 'Mojitos', 'Spritz', 'Bières', 'Vins', 'Carafes', 'Spiritueux', 'Boissons', 'Jus', 'Cafés'],
+  ja: ['シェアメニュー', 'メイン', 'パスタ', '寿司', 'サイド', 'ピザ', 'バーガー', 'キッズ', 'カクテル', 'サワー', 'モヒート', 'スプリッツ', 'ビール', 'ワイン', 'ピッチャー', 'スピリッツ', 'ドリンク', 'ジュース', 'コーヒー'] }, 'K3');
 const CANC = { en: 'Cancel', pt: 'Cancelar', it: 'Annulla', zh: '取消', ko: '취소', de: 'Abbrechen', fr: 'Annuler', ja: 'キャンセル' };
 Object.keys(CANC).forEach((l) => { TR[l].Cancelar = CANC[l]; });
 function langIniziale() { let l = ''; try { l = localStorage.getItem('pinsita_lang') || ''; } catch (e) {} if (!LANGS.some((x) => x[0] === l)) l = LANG; return LANGS.some((x) => x[0] === l) ? l : 'es'; }
@@ -370,7 +384,7 @@ const NOMI_CAT_DEFAULT = { entradas: 'Para compartir', fondos: 'Platos', pastas:
   pizzas: 'Pizzas', pizzas_burger: 'Burgers', nino: 'Niños', bar: 'Coctelería', sour: 'Sour', mojitos: 'Mojitos', spritz: 'Spritz',
   cervezas: 'Cervezas', vinos: 'Vinos', jarras: 'Jarras', destilados: 'Destilados', bebidas: 'Bebidas', jugos: 'Jugos', postres: 'Postres', cafes: 'Cafés' };
 const NOMI_GRUPPO_DEFAULT = { Comida: 'Comer', Barra: 'Barra', Dolci: 'Postres' };
-function nomeCat(k) { const m = (S.cfg && S.cfg.nombres_categorias) || {}; return m[k] || NOMI_CAT_DEFAULT[k] || (k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ')); }
+function nomeCat(k) { const m = (S.cfg && S.cfg.nombres_categorias) || {}; return T(m[k] || NOMI_CAT_DEFAULT[k] || (k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '))); }
 function nomeGruppo(k) { const m = (S.cfg && S.cfg.nombres_grupos) || {}; return T(m[k] || NOMI_GRUPPO_DEFAULT[k] || k); }
 const descP = (p) => (p.dl && p.dl[S.lang]) || p.d || '';   // v0.8: la descrizione nella lingua del menù, se la carta ce l'ha
 

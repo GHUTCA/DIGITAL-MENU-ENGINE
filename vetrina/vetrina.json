@@ -3,7 +3,8 @@
  "BKS": {
   "fondo": "vetrina/BKS/fondo.svg",
   "_show": "Le sere dello show (giorno operativo, taglio 06:00; 0 = domenica). La slide del DJ sale solo in quei giorni, la pillola LIVE solo fra desde e hasta. DATI DEL MOCKUP: li conferma Alberto.",
-  "show": { "dias": [5, 6], "desde": "23:00", "hasta": "04:00" },
+  "_prova": "🔴 PROVA (Alberto 29-ott: «lascialo attivo per vedere anche lui»): show acceso tutti i giorni e a tutte le ore, finché il menù vero è solo sulla 998. PRIMA DI APRIRE IL QR AI CLIENTI si rimette quello del mockup o quello che dice Alberto: dias [5, 6], desde 23:00, hasta 04:00.",
+  "show": { "dias": [0, 1, 2, 3, 4, 5, 6], "desde": "00:00", "hasta": "23:59" },
   "dj": { "nombre": "Comandante", "desde": "23:00", "instagram": "comandantedj",
     "cartelera": [ { "d": "Vie", "n": "Comandante", "h": "23:00" }, { "d": "Sáb", "n": "Comandante", "h": "23:00" } ] },
   "palco": [
