@@ -317,7 +317,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.8.3</div>
+<div class="ver" id="ver">menu v0.8.4</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -367,6 +367,18 @@ unisci(K3, {
   de: ['Zum Teilen', 'Hauptgerichte', 'Pasta', 'Sushi', 'Beilagen', 'Pizzas', 'Burger', 'Kinder', 'Cocktails', 'Sour', 'Mojitos', 'Spritz', 'Biere', 'Weine', 'Krüge', 'Spirituosen', 'Getränke', 'Säfte', 'Kaffee'],
   fr: ['À partager', 'Plats', 'Pâtes', 'Sushi', 'Accompagnements', 'Pizzas', 'Burgers', 'Enfants', 'Cocktails', 'Sour', 'Mojitos', 'Spritz', 'Bières', 'Vins', 'Carafes', 'Spiritueux', 'Boissons', 'Jus', 'Cafés'],
   ja: ['シェアメニュー', 'メイン', 'パスタ', '寿司', 'サイド', 'ピザ', 'バーガー', 'キッズ', 'カクテル', 'サワー', 'モヒート', 'スプリッツ', 'ビール', 'ワイン', 'ピッチャー', 'スピリッツ', 'ドリンク', 'ジュース', 'コーヒー'] }, 'K3');
+/* v0.8.4 (Alberto 29-ott: «la cartelera DJ non è tradotta completa»): le parole della schermata del DJ e i giorni della cartelera
+   (la vetrina li scrive in spagnolo abbreviato: Lun…Dom; un giorno scritto in un altro modo resta com'è) */
+const K4 = ['En vivo · esta noche', 'Esta noche', 'La cartelera', 'Sigue a', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+unisci(K4, {
+  en: ['Live · tonight', 'Tonight', 'Line-up', 'Follow', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  pt: ['Ao vivo · hoje à noite', 'Hoje à noite', 'Programação', 'Siga', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+  it: ['Dal vivo · stasera', 'Stasera', 'Il programma', 'Segui', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'],
+  zh: ['现场 · 今晚', '今晚', '演出安排', '关注', '周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+  ko: ['라이브 · 오늘 밤', '오늘 밤', '라인업', '팔로우', '월', '화', '수', '목', '금', '토', '일'],
+  de: ['Live · heute Abend', 'Heute Abend', 'Programm', 'Folge', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+  fr: ['En direct · ce soir', 'Ce soir', 'Programme', 'Suivez', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+  ja: ['ライブ · 今夜', '今夜', 'ラインナップ', 'フォロー', '月', '火', '水', '木', '金', '土', '日'] }, 'K4');
 const CANC = { en: 'Cancel', pt: 'Cancelar', it: 'Annulla', zh: '取消', ko: '취소', de: 'Abbrechen', fr: 'Annuler', ja: 'キャンセル' };
 Object.keys(CANC).forEach((l) => { TR[l].Cancelar = CANC[l]; });
 function langIniziale() { let l = ''; try { l = localStorage.getItem('pinsita_lang') || ''; } catch (e) {} if (!LANGS.some((x) => x[0] === l)) l = LANG; return LANGS.some((x) => x[0] === l) ? l : 'es'; }
@@ -843,10 +855,10 @@ const famDj = () => { const s = ((S.vet && S.vet.palco) || []).find((x) => x.t =
 function djHTML() {
   const dj = (S.vet && S.vet.dj) || {}, vivo = showAcceso(), ig = /^[\w.]{1,30}$/.test(dj.instagram || '') ? dj.instagram : '';
   return '<div class="split"><div class="det"><div class="pal pal-dj"><button class="pal-close" data-a="djChiudi" aria-label="Cerrar">✕</button><div class="pal-tx">' +
-    '<div class="pal-tag">' + (vivo ? '<i class="onair"></i> En vivo · esta noche' : (giornoShow() ? '🎧 Esta noche' : '🎧 La cartelera')) + '</div>' +
+    '<div class="pal-tag">' + (vivo ? '<i class="onair"></i> ' + T('En vivo · esta noche') : (giornoShow() ? '🎧 ' + T('Esta noche') : '🎧 ' + T('La cartelera'))) + '</div>' +
     '<div class="pal-t">' + esc(dj.nombre || 'DJ') + '</div>' + (dj.desde ? '<div class="pal-s">' + T('Desde las') + ' ' + esc(dj.desde) + '</div>' : '') +
-    (Array.isArray(dj.cartelera) && dj.cartelera.length ? '<div class="lsec"><b>📅 La cartelera</b>' + dj.cartelera.map((c) => '<div class="carte"><span>' + esc(c.d) + '</span><b>' + esc(c.n) + '</b><i>' + esc(c.h) + '</i></div>').join('') + '</div>' : '') +
-    (ig ? '<div class="lsec"><a class="sigue" href="https://www.instagram.com/' + ig + '" target="_blank" rel="noopener">📸 Sigue a <b style="display:inline">@' + esc(ig) + '</b></a></div>' : '') +
+    (Array.isArray(dj.cartelera) && dj.cartelera.length ? '<div class="lsec"><b>📅 ' + T('La cartelera') + '</b>' + dj.cartelera.map((c) => '<div class="carte"><span>' + esc(T(c.d)) + '</span><b>' + esc(c.n) + '</b><i>' + esc(c.h) + '</i></div>').join('') + '</div>' : '') +
+    (ig ? '<div class="lsec"><a class="sigue" href="https://www.instagram.com/' + ig + '" target="_blank" rel="noopener">📸 ' + T('Sigue a') + ' <b style="display:inline">@' + esc(ig) + '</b></a></div>' : '') +
     (famDj() ? '<div class="pal-cta-row" style="margin-top:14px"><button class="pal-cta" data-a="palcoFam" data-k="' + esc(famDj()) + '">' + esc(nomeGruppo(famDj())) + ' ›</button></div>' : '') +
     '</div></div></div></div>';
 }
