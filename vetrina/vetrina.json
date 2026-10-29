@@ -2,8 +2,12 @@
  "_nota": "La vetrina di ogni locale: il palco, i destacados, il fondo. La sceglie Alberto (il cervello, finché non c'è: 29-ott). TAMPONE dichiarato come fotos.json: lo uccide la config del locale in Postgres (menu_config_local, 🚚 MIGRA). Mai su Google.",
  "BKS": {
   "fondo": "vetrina/BKS/fondo.svg",
+  "_show": "Le sere dello show (giorno operativo, taglio 06:00; 0 = domenica). La slide del DJ sale solo in quei giorni, la pillola LIVE solo fra desde e hasta. DATI DEL MOCKUP: li conferma Alberto.",
+  "show": { "dias": [5, 6], "desde": "23:00", "hasta": "04:00" },
+  "dj": { "nombre": "Comandante", "desde": "23:00", "instagram": "comandantedj",
+    "cartelera": [ { "d": "Vie", "n": "Comandante", "h": "23:00" }, { "d": "Sáb", "n": "Comandante", "h": "23:00" } ] },
   "palco": [
-   { "t": "show", "vid": "vetrina/BKS/DJ_GLAMOUR.mp4", "poster": "vetrina/BKS/DJ_GLAMOUR.webp",
+   { "t": "show", "solo_show": true, "vid": "vetrina/BKS/DJ_GLAMOUR.mp4", "poster": "vetrina/BKS/DJ_GLAMOUR.webp",
      "tag": "🎧 Esta noche", "tit": "DJ en vivo desde las 23:00", "sub": "La noche recién empieza",
      "fin_tit": "La noche recién empieza", "fin_sub": "DJ en vivo desde las 23:00", "fin_cta": "Ver la barra", "fin_fam": "Barra" },
    { "t": "plato", "vid": "vetrina/BKS/LASAGNE_BERENJENAS.mp4", "poster": "vetrina/BKS/LASAGNE_BERENJENAS.webp",
