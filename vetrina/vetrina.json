@@ -1,0 +1,24 @@
+{
+ "_nota": "La vetrina di ogni locale: il palco, i destacados, il fondo. La sceglie Alberto (il cervello, finché non c'è: 29-ott). TAMPONE dichiarato come fotos.json: lo uccide la config del locale in Postgres (menu_config_local, 🚚 MIGRA). Mai su Google.",
+ "BKS": {
+  "fondo": "vetrina/BKS/fondo.svg",
+  "palco": [
+   { "t": "show", "vid": "vetrina/BKS/DJ_GLAMOUR.mp4", "poster": "vetrina/BKS/DJ_GLAMOUR.webp",
+     "tag": "🎧 Esta noche", "tit": "DJ en vivo desde las 23:00", "sub": "La noche recién empieza",
+     "fin_tit": "La noche recién empieza", "fin_sub": "DJ en vivo desde las 23:00", "fin_cta": "Ver la barra", "fin_fam": "Barra" },
+   { "t": "plato", "vid": "vetrina/BKS/LASAGNE_BERENJENAS.mp4", "poster": "vetrina/BKS/LASAGNE_BERENJENAS.webp",
+     "tag": "👀 Cómo lo hacemos", "id": "BKS-PAS-001", "tit": "Lasaña de berenjenas, capa por capa", "sub": "Hecha aquí, lenta y caliente" }
+  ],
+  "destacados": [
+   { "id": "BKS-MOJ-006", "b": "★ el más pedido" },
+   { "id": "BKS-SOU-003" },
+   { "id": "BKS-SPR-001" },
+   { "id": "BKS-PAS-005" },
+   { "id": "BKS-FON-008" },
+   { "id": "BKS-FON-003" },
+   { "id": "BKS-ALM-002" },
+   { "id": "BKS-PAS-001" },
+   { "id": "BKS-POS-004" }
+  ]
+ }
+}
