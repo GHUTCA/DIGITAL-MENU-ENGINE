@@ -284,6 +284,30 @@ button{font-family:inherit}
 .tess-m{font-weight:800;font-size:24px;line-height:1.15;color:#fff;margin:6px 0 4px;text-wrap:balance}
 .tess-n{font-size:12.5px;color:var(--suave)}
 .tess-f{font-size:12.5px;font-weight:700;color:var(--oro);margin-top:8px}
+/* ═══ v0.8 · LA RIGA IN ALTO (mockup v1.1, Alberto 23-ott: «quei 4 bottoni non sono degni»): una famiglia sola, stessa altezza e stesso
+   raggio · casetta senza scatola · nome intero · 🌐 · LIVE piccolo · e l'unico PIENO è il Pagar, che porta l'importo ═══ */
+.glb{flex:0 0 auto;width:32px;height:32px;border-radius:50%;border:1px solid var(--linea2);background:transparent;font-size:15px;cursor:pointer;padding:0;color:var(--txt)}
+.live{flex:0 0 auto;display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,#5b2a86,#2a1240);color:#fff;border:1px solid rgba(180,106,224,.7);border-radius:99px;padding:6px 9px;font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer}
+.live i{width:8px;height:8px;border-radius:50%;background:#ff3b5c;animation:onair 1.6s ease-out infinite}
+@keyframes onair{0%{box-shadow:0 0 0 0 rgba(255,59,92,.7)}70%{box-shadow:0 0 0 7px rgba(255,59,92,0)}100%{box-shadow:0 0 0 0 rgba(255,59,92,0)}}
+.paga1{flex:0 0 auto;border:0;border-radius:99px;background:var(--oro);color:#1a1408;padding:7px 11px;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap}
+.paga1 b{font-variant-numeric:tabular-nums}
+.lng{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lng button{padding:12px 10px;border-radius:11px;border:1.5px solid var(--linea2);background:var(--card);color:var(--txt);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;text-align:left}
+.lng button.on{border-color:var(--oro);background:rgba(255,197,61,.16)}
+/* ═══ v0.8 · IL MONDO DEL DJ (mockup 22-ott: «EN VIVO deve portare a una schermata DJ: cartelera, chi suona») — schermo intero, niente prodotti sotto ═══ */
+.pal-dj{background:radial-gradient(circle at 30% 30%,#5b2a86,#1a0f24 70%);cursor:default;overflow-y:auto;justify-content:flex-start}
+.pal-dj::before{content:none}
+.pal-dj .pal-tx{padding:18px 16px 22px}
+.onair{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff3b5c;margin-right:4px;animation:onair 1.6s ease-out infinite}
+.lsec{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;color:rgba(255,255,255,.78)}
+.lsec b{display:block;color:#fff;font-size:14px;margin-bottom:4px}
+.carte{display:flex;gap:8px;align-items:baseline;padding:5px 0;font-size:13.5px;color:rgba(255,255,255,.88)}
+.carte span{width:34px;color:var(--oro);font-weight:800}
+.carte b{flex:1;display:inline;font-size:13.5px;margin:0}
+.carte i{font-style:normal;color:rgba(255,255,255,.6)}
+.sigue{display:block;color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.25)}
+.pal-close{position:absolute;top:10px;right:10px;z-index:30;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.45);color:#fff;font-size:15px;cursor:pointer}
 </style></head>
 <body>
 <div class="app" id="app">
@@ -291,7 +315,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.7.1</div>
+<div class="ver" id="ver">menu v0.8.0</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -300,12 +324,29 @@ const TOKEN_LETTURA = '7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ';
 const qs = new URLSearchParams(location.search);
 const LOCAL = /^[A-Za-z]{2,6}$/.test(qs.get('l') || '') ? qs.get('l').toUpperCase() : '';
 const MESA = /^[0-9A-Za-z-]{1,6}$/.test(qs.get('mesa') || '') ? qs.get('mesa') : '';
-// la lingua: quella del telefono; l'utente la cambierà col 🌐 (passo successivo)
+// la lingua del TELEFONO (grezza, viaggia nel pedido come `idioma`); quella del MENÙ è S.lang, che il 🌐 cambia (v0.8)
 const LANG = ((navigator.language || 'es').slice(0, 2)).toLowerCase();
+/* v0.8 · LE LINGUE (mockup 23-ott, Alberto: «fondamentale: vedo cinesi e giapponesi»): nove, nell'ordine dei turisti veri. Il telefono
+   propone la SUA; il 🌐 la cambia e il telefono se la ricorda. Si traducono le parole del menù e le descrizioni della carta
+   (colonne Descripcion_XX); i nomi dei piatti restano i loro. ⚠️ il coreano non ha ancora descrizioni nella carta: si legge lo spagnolo. */
+const LANGS = [['es', 'Español'], ['pt', 'Português'], ['en', 'English'], ['it', 'Italiano'], ['zh', '中文'], ['ko', '한국어'], ['de', 'Deutsch'], ['fr', 'Français'], ['ja', '日本語']];
+const TR = {
+  en: { Comer: 'Food', Barra: 'Bar', Postres: 'Desserts', Destacados: 'Featured', 'desliza ›': 'swipe ›', PEDIR: 'ORDER', ENVIAR: 'SEND', Pagar: 'Pay', 'OTRA VEZ': 'AGAIN', Buscar: 'Search', 'Tu pedido': 'Your order', 'Tu cuenta': 'Your bill', 'Seguir pidiendo': 'Keep ordering', '¡Listo!': 'Done!', 'Con opciones · pronto': 'Options · soon', Mesa: 'Table', 'ENVIAR PEDIDO': 'SEND ORDER', 'Ver el plato': 'See the dish', '¿Se te antojó?': 'Craving it?', Total: 'Total' },
+  pt: { Comer: 'Comer', Barra: 'Bar', Postres: 'Sobremesas', Destacados: 'Destaques', 'desliza ›': 'deslize ›', PEDIR: 'PEDIR', ENVIAR: 'ENVIAR', Pagar: 'Pagar', 'OTRA VEZ': 'DE NOVO', Buscar: 'Buscar', 'Tu pedido': 'Seu pedido', 'Tu cuenta': 'Sua conta', 'Seguir pidiendo': 'Continuar pedindo', '¡Listo!': 'Pronto!', 'Con opciones · pronto': 'Com opções · em breve', Mesa: 'Mesa', 'ENVIAR PEDIDO': 'ENVIAR PEDIDO', 'Ver el plato': 'Ver o prato', '¿Se te antojó?': 'Deu vontade?', Total: 'Total' },
+  it: { Comer: 'Mangiare', Barra: 'Bar', Postres: 'Dolci', Destacados: 'In evidenza', 'desliza ›': 'scorri ›', PEDIR: 'ORDINA', ENVIAR: 'INVIA', Pagar: 'Paga', 'OTRA VEZ': 'DI NUOVO', Buscar: 'Cerca', 'Tu pedido': 'Il tuo ordine', 'Tu cuenta': 'Il tuo conto', 'Seguir pidiendo': 'Continua a ordinare', '¡Listo!': 'Fatto!', 'Con opciones · pronto': 'Con opzioni · presto', Mesa: 'Tavolo', 'ENVIAR PEDIDO': 'INVIA ORDINE', 'Ver el plato': 'Vedi il piatto', '¿Se te antojó?': 'Ti è venuta voglia?', Total: 'Totale' },
+  zh: { Comer: '食物', Barra: '酒吧', Postres: '甜点', Destacados: '推荐', 'desliza ›': '滑动 ›', PEDIR: '点餐', ENVIAR: '下单', Pagar: '付款', 'OTRA VEZ': '再来一份', Buscar: '搜索', 'Tu pedido': '你的订单', 'Tu cuenta': '你的账单', 'Seguir pidiendo': '继续点餐', '¡Listo!': '好了！', 'Con opciones · pronto': '有选项 · 即将推出', Mesa: '桌', 'ENVIAR PEDIDO': '提交订单', 'Ver el plato': '查看菜品', '¿Se te antojó?': '想吃吗？', Total: '合计' },
+  ko: { Comer: '음식', Barra: '바', Postres: '디저트', Destacados: '추천', 'desliza ›': '밀어보기 ›', PEDIR: '주문', ENVIAR: '보내기', Pagar: '결제', 'OTRA VEZ': '다시', Buscar: '검색', 'Tu pedido': '내 주문', 'Tu cuenta': '내 계산서', 'Seguir pidiendo': '계속 주문하기', '¡Listo!': '완료!', 'Con opciones · pronto': '옵션 있음 · 곧', Mesa: '테이블', 'ENVIAR PEDIDO': '주문 보내기', 'Ver el plato': '요리 보기', '¿Se te antojó?': '먹고 싶어요?', Total: '합계' },
+  de: { Comer: 'Essen', Barra: 'Bar', Postres: 'Desserts', Destacados: 'Empfohlen', 'desliza ›': 'wischen ›', PEDIR: 'BESTELLEN', ENVIAR: 'SENDEN', Pagar: 'Zahlen', 'OTRA VEZ': 'NOCHMAL', Buscar: 'Suchen', 'Tu pedido': 'Deine Bestellung', 'Tu cuenta': 'Deine Rechnung', 'Seguir pidiendo': 'Weiter bestellen', '¡Listo!': 'Fertig!', 'Con opciones · pronto': 'Mit Optionen · bald', Mesa: 'Tisch', 'ENVIAR PEDIDO': 'BESTELLUNG SENDEN', 'Ver el plato': 'Gericht ansehen', '¿Se te antojó?': 'Lust bekommen?', Total: 'Summe' },
+  fr: { Comer: 'Manger', Barra: 'Bar', Postres: 'Desserts', Destacados: 'À la une', 'desliza ›': 'glisser ›', PEDIR: 'COMMANDER', ENVIAR: 'ENVOYER', Pagar: 'Payer', 'OTRA VEZ': 'ENCORE', Buscar: 'Chercher', 'Tu pedido': 'Ta commande', 'Tu cuenta': 'Ton addition', 'Seguir pidiendo': 'Continuer', '¡Listo!': "C'est parti !", 'Con opciones · pronto': 'Avec options · bientôt', Mesa: 'Table', 'ENVIAR PEDIDO': 'ENVOYER LA COMMANDE', 'Ver el plato': 'Voir le plat', '¿Se te antojó?': 'Envie ?', Total: 'Total' },
+  ja: { Comer: 'フード', Barra: 'バー', Postres: 'スイーツ', Destacados: 'おすすめ', 'desliza ›': 'スワイプ ›', PEDIR: '注文', ENVIAR: '送信', Pagar: '支払う', 'OTRA VEZ': 'もう一度', Buscar: '検索', 'Tu pedido': 'ご注文', 'Tu cuenta': 'お会計', 'Seguir pidiendo': '注文を続ける', '¡Listo!': '完了！', 'Con opciones · pronto': 'オプションあり · 近日', Mesa: 'テーブル', 'ENVIAR PEDIDO': '注文を送信', 'Ver el plato': '料理を見る', '¿Se te antojó?': '食べたくなった？', Total: '合計' } };
+function langIniziale() { let l = ''; try { l = localStorage.getItem('pinsita_lang') || ''; } catch (e) {} if (!LANGS.some((x) => x[0] === l)) l = LANG; return LANGS.some((x) => x[0] === l) ? l : 'es'; }
+const T = (w) => { const d = TR[S.lang]; return (d && d[w]) || w; };
 const S = { cfg: null, prod: [], tick: null, fam: null, cat: null, abierta: null, cart: {}, pedido: false,
   inviando: null, inviaStato: '', uuid: '', uuidFirma: '', listo: null, need: '', errore: '', agotLoc: [], campana: false, sel: {},
   // v0.7: l'inizio (palco + destacados) · la vetrina del locale · «Otra vez» · il regalo a otra mesa
-  palco: false, slide: 0, finVid: false, vet: null, hist: [], dono: null };
+  palco: false, slide: 0, finVid: false, vet: null, hist: [], dono: null,
+  // v0.8: la lingua del menù · il conto di questo telefono · le schermate della riga in alto (lingue, DJ, cuenta)
+  lang: 'es', enviados: [], lingue: false, dj: false, cuenta: false };
 
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 function clp(n) { const c = S.cfg || {}; return (c.currency_symbol || '$') + Math.round(n).toLocaleString('es-CL'); }
@@ -316,7 +357,8 @@ const NOMI_CAT_DEFAULT = { entradas: 'Para compartir', fondos: 'Platos', pastas:
   cervezas: 'Cervezas', vinos: 'Vinos', jarras: 'Jarras', destilados: 'Destilados', bebidas: 'Bebidas', jugos: 'Jugos', postres: 'Postres', cafes: 'Cafés' };
 const NOMI_GRUPPO_DEFAULT = { Comida: 'Comer', Barra: 'Barra', Dolci: 'Postres' };
 function nomeCat(k) { const m = (S.cfg && S.cfg.nombres_categorias) || {}; return m[k] || NOMI_CAT_DEFAULT[k] || (k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ')); }
-function nomeGruppo(k) { const m = (S.cfg && S.cfg.nombres_grupos) || {}; return m[k] || NOMI_GRUPPO_DEFAULT[k] || k; }
+function nomeGruppo(k) { const m = (S.cfg && S.cfg.nombres_grupos) || {}; return T(m[k] || NOMI_GRUPPO_DEFAULT[k] || k); }
+const descP = (p) => (p.dl && p.dl[S.lang]) || p.d || '';   // v0.8: la descrizione nella lingua del menù, se la carta ce l'ha
 
 /* ═══ la carta: lo stesso CSV del menù vivo, servito dal bordo ═══ */
 function parseCSV(t) {
@@ -336,10 +378,11 @@ const prezzo = (s) => Number(String(s || '').replace(/[^0-9]/g, '')) || 0;
 const oraDec = (s, def) => { const m = String(s || '').trim().match(/^(\d{1,2})\s*:?\s*(\d{1,2})?/); return m ? (+m[1]) + (m[2] ? (+m[2]) / 60 : 0) : def; };
 function prodotti(csv) {
   const rows = parseCSV(csv); const h = rows[0] || []; const ix = (n) => h.indexOf(n);
-  const dCol = ix('Descripcion_' + LANG.toUpperCase());
+  // v0.8: tutte le descrizioni della carta restano nel telefono (`dl`), così il 🌐 cambia lingua senza rileggere la carta
+  const dCols = LANGS.map((x) => [x[0], ix('Descripcion_' + x[0].toUpperCase())]).filter((x) => x[0] !== 'es' && x[1] >= 0);
   return rows.slice(1).filter((r) => r[ix('ID_Producto')]).map((r) => ({
     id: r[ix('ID_Producto')], n: r[ix('Nombre')], c: String(r[ix('Categoria')] || '').toLowerCase(),
-    d: (dCol >= 0 && r[dCol]) ? r[dCol] : r[ix('Descripcion')], p: prezzo(r[ix('Precio')]), img: r[ix('Imagen_URL')] || '',
+    d: r[ix('Descripcion')], dl: dCols.reduce((o, x) => { if (r[x[1]]) o[x[0]] = r[x[1]]; return o; }, {}), p: prezzo(r[ix('Precio')]), img: r[ix('Imagen_URL')] || '',
     activo: r[ix('Activo')] === 'TRUE', agotado: r[ix('Agotado')] === 'TRUE', visible: r[ix('Menu_Visible')] !== 'FALSE',
     hi: oraDec(r[ix('Hora_Inicio')], 0), hf: oraDec(r[ix('Hora_Fin')], 24),
     sm: String(r[ix('Solo_Member')] || '').trim(),
@@ -445,7 +488,12 @@ function z1() {
   const sotto = MESA ? 'Mesa ' + esc(MESA) : 'Para pedir, escanea el QR de tu mesa';
   // la casetta compare FUORI dall'inizio (mockup 21-ott: «come ritorno all'inizio?»); all'inizio non serve
   const casa = inPalco() ? '' : '<button class="casa" data-a="inicio" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>';
-  return casa + '<div class="chi"><b>' + esc(brand) + '</b><span>' + sotto + '</span></div>';
+  // v0.8 · la riga intera del mockup v1.1: 🌐 sempre · LIVE solo a show acceso · Pagar (l'unico pieno) dopo il primo invio, con l'importo
+  const cons = consumoTel();
+  return casa + '<div class="chi"><b>' + esc(brand) + '</b><span>' + (MESA ? T('Mesa') + ' ' + esc(MESA) : sotto) + '</span></div>' +
+    '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
+    (showAcceso() ? '<button class="live" data-a="djApri"><i></i>LIVE</button>' : '') +
+    (MESA && cons > 0 ? '<button class="paga1" data-a="cuentaApri">' + esc(T('Pagar')) + ' <b>' + clp(cons) + '</b></button>' : '');
 }
 // la card. `lista` = la griglia intera (con foto); senza = la riga sotto la scheda (niente foto: la foto sta sopra)
 function card(p, lista) {
@@ -457,25 +505,25 @@ function card(p, lista) {
   if (ch) return '<div class="cd agot">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">' + (ch === 'barra' ? 'La barra ya cerró' : 'La cocina ya cerró') + '</div></div>';
   if (!inOrario(p)) return '<div class="cd agot fh">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">Desde las ' + hhmm(p.hi) + '</div></div>';
   return '<div class="cd' + (q ? ' dentro' : '') + '" data-a="abre" data-k="' + esc(p.id) + '">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="pz">' + pzHTML(p) + '</div>' +
-    (!MESA ? '' : chiedeScelta(p) ? '<div class="opc">Con opciones · pronto</div>'
+    (!MESA ? '' : chiedeScelta(p) ? '<div class="opc">' + T('Con opciones · pronto') + '</div>'
       // chi chiede una scelta non mette dalla griglia: apre la scheda, dove si sceglie (il ＋ promette che aggiunge)
-      : conDom ? '<button class="addb chiede" data-a="abre" data-k="' + esc(p.id) + '">' + (q ? q + ' en tu pedido · ＋' : '＋ PEDIR') + '</button>'
+      : conDom ? '<button class="addb chiede" data-a="abre" data-k="' + esc(p.id) + '">' + (q ? q + ' en tu pedido · ＋' : '＋ ' + T('PEDIR')) + '</button>'
       : q ? '<div class="qn"><i data-a="meno" data-k="' + esc(chiave(p)) + '">−</i>' + q + '<i data-a="mas" data-k="' + esc(p.id) + '">+</i></div>'
-      : '<button class="addb" data-a="mas" data-k="' + esc(p.id) + '">＋ PEDIR</button>') + '</div>';
+      : '<button class="addb" data-a="mas" data-k="' + esc(p.id) + '">＋ ' + T('PEDIR') + '</button>') + '</div>';
 }
 const ordinabile = (p) => !!(p && MESA && !chiedeScelta(p) && !esaurito(p) && !chiusa(p) && inOrario(p));
 // la card VER: il tasto stesso. Sopra c'è già tutto (foto, nome, prezzo, le domande): sotto il dito dice cosa succede se tocchi
 function verCard(p) {
   const k = esc(p.id), vnm = '<div class="vnm">' + esc(p.n) + '</div>';
   if (!MESA) return '<div class="cd ora ver">' + vnm + '<div class="vpd">Escanea tu mesa</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
-  if (chiedeScelta(p)) return '<div class="cd ora ver">' + vnm + '<div class="vpd off">Con opciones · pronto</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
+  if (chiedeScelta(p)) return '<div class="cd ora ver">' + vnm + '<div class="vpd off">' + T('Con opciones · pronto') + '</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
   const dq = domande(p);
   if (dq.length && !sceltaCompleta(p)) return '<div class="cd ora ver">' + vnm + '<div class="vpd off">Elige arriba ↑</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
   // la card conta la SCELTA fatta sopra, non il piatto: «1 A punto» e poi «Jugoso» sono due righe
   const ks = chiaveSel(p), q = S.cart[ks] || 0, s = selDi(p);
   const r = { p, t: s.t, m: s.m === 'Como viene' ? '' : s.m, d: (((dq.find((x) => x.k === 'm') || { ops: [] }).ops.find((x) => x.o === s.m)) || {}).d || 0 };
   const vsc = dq.length ? '<div class="vsc">' + esc([r.m, r.t].filter(Boolean).join(' · ') || 'Como viene') + '</div>' : '';
-  if (!q) return '<div class="cd ora ver" data-a="mas" data-k="' + k + '">' + vnm + vsc + '<div class="vpd">＋ PEDIR</div><div class="vpz">' + clp(prezzoRiga(r)) + '</div></div>';
+  if (!q) return '<div class="cd ora ver" data-a="mas" data-k="' + k + '">' + vnm + vsc + '<div class="vpd">＋ ' + T('PEDIR') + '</div><div class="vpz">' + clp(prezzoRiga(r)) + '</div></div>';
   return '<div class="cd ora ver dentro">' + vnm + vsc + '<div class="vst"><i data-a="meno" data-k="' + esc(ks) + '">−</i><u>' + q + '</u><i data-a="mas" data-k="' + k + '">＋</i></div></div>';
 }
 // le domande nella scheda grande: chip, una risposta per domanda; il sovrapprezzo SUL chip
@@ -492,7 +540,7 @@ const normB = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').to
 const cercando = () => S.busca !== null && S.busca !== undefined && normB(S.busca).length > 0;
 function risultati() {
   const q = normB(S.busca), parole = q.split(/\s+/).filter(Boolean);
-  const testo = (p) => normB(p.n + ' ' + (p.d || '') + ' ' + nomeCat(p.c));
+  const testo = (p) => normB(p.n + ' ' + (p.d || '') + ' ' + descP(p) + ' ' + nomeCat(p.c));
   return S.prod.filter((p) => visibile(p) && parole.every((w) => testo(p).indexOf(w) >= 0))
     .sort((a, b) => (normB(b.n).startsWith(q) - normB(a.n).startsWith(q)) || a.n.localeCompare(b.n)).slice(0, 36);
 }
@@ -510,6 +558,9 @@ function pagine(L) {
   return '<div class="mini">' + h + '</div>' + pu;
 }
 function z3() {
+  if (S.lingue) return lingueHTML();
+  if (S.dj) return djHTML();
+  if (S.cuenta) return cuentaHTML();
   if (S.campana) return campanaHTML();
   if (S.dono) return donoHTML();
   if (S.pedido) return pedidoHTML();
@@ -519,7 +570,7 @@ function z3() {
     // senza foto non un rettangolo grigio (si leggerebbe come un guasto): una targa col nome
     const fo = p.img ? '<div class="fo" style="--f:url(\'' + esc(p.img) + '\')' + (p.fy != null ? ';--fy:' + p.fy + '%' : '') + '">' : '<div class="fo tg">' + esc(p.n);
     return '<div class="split"><div class="det">' + fo + '<button class="x" data-a="cierra">✕</button></div>' +
-      '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(p.d || '') + '</div><div class="pz">' + pzHTML(p) + '</div>' +
+      '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(descP(p)) + '</div><div class="pz">' + pzHTML(p) + '</div>' +
       // v0.7: il regalo sta su ogni trago, dove nasce la voglia (solo coi tragos che si mettono senza domande: il regalo non chiede)
       (envioOn() && esTrago(p) && ordinabile(p) && !domande(p).length ? '<button class="dono-in" data-a="donoApri" data-k="' + esc(p.id) + '">🎁 Invítale este trago a otra mesa</button>' : '') + '</div>' +
       domandeHTML(p) + '</div>' + pagine(daMostrare()) + '</div>';
@@ -551,7 +602,7 @@ function pedidoHTML() {
   // ¡Listo!: la conferma dice UNA cosa (è partito) e propone UNA mossa (il passo dopo)
   if (!ks.length && S.listo) {
     const L = S.listo;
-    return '<div class="ped"><div class="pedtit">¡Listo!<button class="pedx" data-a="chiudiPed">✕</button></div>' +
+    return '<div class="ped"><div class="pedtit">' + T('¡Listo!') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
       '<div class="okv">✓ Tu pedido va ' + L.dove + '<span>Mesa ' + esc(MESA) + ' · recién enviado</span></div>' +
       L.righe.map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') + seguirCard(L.righe.map((r) => r.p)) + '</div>';
   }
@@ -569,10 +620,10 @@ function pedidoHTML() {
       '<i class="barra" style="--da:' + (rem / ATTESA_INVIO * 100).toFixed(1) + '%;animation-duration:' + rem + 'ms"></i></button>'; }
   else if (S.inviaStato === 'volando') bot = '<button class="envG hold"><b>Enviando…</b><span>no cierres esta pantalla</span></button>';
   else bot = (S.errore ? '<div class="avv">' + esc(S.errore) + '</div>' : '') +
-    '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : 'ENVIAR PEDIDO 🛎') + '</b><span>' + t.n + ' producto' + (t.n > 1 ? 's' : '') + ' · ' + clp(t.s) + ' · ' + adove(righe().map((r) => r.p)) + '</span></button>';
-  return '<div class="ped"><div class="pedtit">Tu pedido<button class="pedx" data-a="chiudiPed">✕</button></div>' +
-    (ks.length ? lineeH + '<div class="tot"><span>Total</span><span>' + clp(t.s) + '</span></div>' + bot +
-      (S.inviando || S.inviaStato ? '' : '<button class="segui" data-a="chiudiPed">Seguir pidiendo</button>')
+    '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : T('ENVIAR PEDIDO') + ' 🛎') + '</b><span>' + t.n + ' producto' + (t.n > 1 ? 's' : '') + ' · ' + clp(t.s) + ' · ' + adove(righe().map((r) => r.p)) + '</span></button>';
+  return '<div class="ped"><div class="pedtit">' + T('Tu pedido') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
+    (ks.length ? lineeH + '<div class="tot"><span>' + T('Total') + '</span><span>' + clp(t.s) + '</span></div>' + bot +
+      (S.inviando || S.inviaStato ? '' : '<button class="segui" data-a="chiudiPed">' + T('Seguir pidiendo') + '</button>')
       : '<div class="vuoto">Todavía no has pedido nada.</div>') + '</div>';
 }
 /* ═══ v0.7 · L'INIZIO: IL PALCO (mockup §⑫ ①-③, Alberto 21-22 ott) ═══════════════════════════════════════════════════════════════════
@@ -590,6 +641,7 @@ function preparaSlides() {
     if (s.vid && !(PATH_VET.test(s.vid) && PATH_VET.test(s.poster || ''))) return false;
     if (s.t === 'plato') { const p = S.prod.find((x) => x.id === s.id); if (!p || !visibile(p)) return false; }
     if (s.t === 'show' && !s.fin_fam) return false;   // ④ lo show chiude su un gesto (la famiglia da aprire)
+    if (s.solo_show && !giornoShow()) return false;    // v0.8: «esta noche · DJ en vivo» sale solo le sere dello show
     return !!s.vid || (Array.isArray(s.ss) && s.ss.filter((id) => (S.prod.find((x) => x.id === id) || {}).img).length > 1);
   });
   const primo = L.findIndex((s) => s.t === 'show'), testa = primo >= 0 ? L.splice(primo, 1) : [];
@@ -598,7 +650,7 @@ function preparaSlides() {
 }
 const slideP = (s) => (s && s.id ? S.prod.find((x) => x.id === s.id) : null);
 function destacados() { return ((S.vet && S.vet.destacados) || []).map((d) => ({ d, p: S.prod.find((x) => x.id === d.id) })).filter((x) => x.p && visibile(x.p)); }
-const inPalco = () => S.palco && SLIDES.length > 0 && !S.pedido && !S.campana && !S.abierta && !S.dono && (S.busca === null || S.busca === undefined);
+const inPalco = () => S.palco && SLIDES.length > 0 && !S.pedido && !S.campana && !S.abierta && !S.dono && !S.lingue && !S.dj && !S.cuenta && (S.busca === null || S.busca === undefined);
 const palKey = () => (S.slide % SLIDES.length) + '|' + (S.finVid ? 1 : 0);
 function puntiPalco() { return '<div class="pal-dots">' + SLIDES.map((x, i) => '<i class="' + (i === S.slide % SLIDES.length ? 'on' : '') + '" data-a="palcoVai" data-k="' + i + '"></i>').join('') + '</div>'; }
 function slideHTML() {
@@ -607,9 +659,9 @@ function slideHTML() {
     // la pagina di chiusura dopo il video: la voglia è al massimo, qui va il gesto (＋ Pedir mette nel carrello senza uscire)
     const q = qtyDi(p), diretto = ordinabile(p) && !domande(p).length;
     return '<div class="pal pal-fin" style="background-image:url(\'' + esc(s.poster) + '\')"><div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div>' +
-      '<div class="pal-t">¿Se te antojó?</div><div class="pal-s">' + esc(p.n.replace(/`/g, '')) + ' · ' + clp(prezzoOra(p).v) + '</div><div class="pal-cta-row">' +
+      '<div class="pal-t">' + T('¿Se te antojó?') + '</div><div class="pal-s">' + esc(p.n.replace(/`/g, '')) + ' · ' + clp(prezzoOra(p).v) + '</div><div class="pal-cta-row">' +
       (diretto ? '<button class="pal-cta" data-a="mas" data-k="' + esc(p.id) + '">' + (q ? '✓ ' + q + ' en tu pedido · ＋ otra' : '＋ Pedir · ' + clp(prezzoOra(p).v)) + '</button>' : '') +
-      '<button class="pal-x" data-a="palcoPlato">Ver el plato</button><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button></div></div>' + puntiPalco() + '</div>';
+      '<button class="pal-x" data-a="palcoPlato">' + T('Ver el plato') + '</button><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button></div></div>' + puntiPalco() + '</div>';
   }
   if (s.vid && S.finVid) return '<div class="pal pal-fin" style="background-image:url(\'' + esc(s.poster) + '\')"><div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div>' +
     '<div class="pal-t">' + esc(s.fin_tit || s.tit || '') + '</div><div class="pal-s">' + esc(s.fin_sub || '') + '</div><div class="pal-cta-row">' +
@@ -622,13 +674,13 @@ function slideHTML() {
   // la clip: prima l'anteprima (sfondo), poi il video muto sopra; mai una schermata che aspetta
   return '<div class="pal" style="background-image:url(\'' + esc(s.poster) + '\')" data-a="palcoTap"><video class="pal-vid" src="' + esc(s.vid) + '" poster="' + esc(s.poster) + '" autoplay muted playsinline preload="auto"></video>' +
     '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || (p ? p.n : '')) + '</div>' +
-    '<div class="pal-s">' + esc(s.sub || '') + (p ? ' · ' + clp(prezzoOra(p).v) : '') + '</div>' + (s.t === 'plato' ? '<span class="pal-cta">Ver el plato ›</span>' : '') + '</div>' + puntiPalco() + '</div>';
+    '<div class="pal-s">' + esc(s.sub || '') + (p ? ' · ' + clp(prezzoOra(p).v) : '') + '</div>' + (s.t === 'plato' ? '<span class="pal-cta">' + T('Ver el plato') + ' ›</span>' : '') + '</div>' + puntiPalco() + '</div>';
 }
 function destCards() { return destacados().map((x) => '<div class="dsw">' + (x.d.b ? '<span class="dbadge">' + esc(x.d.b) + '</span>' : '') + card(x.p, true) + '</div>').join(''); }
 function palcoHTML() {
   const dc = destCards();
   return '<div class="split pal-split"><div class="det">' + slideHTML() + '</div>' +
-    (dc ? '<div class="destit">Destacados <span>desliza ›</span></div><div class="destrip">' + dc + '</div>' : '') + '</div>';
+    (dc ? '<div class="destit">' + T('Destacados') + ' <span>' + T('desliza ›') + '</span></div><div class="destrip">' + dc + '</div>' : '') + '</div>';
 }
 function palcoStop() { if (PALCO_T) { clearTimeout(PALCO_T); PALCO_T = null; } }
 function palcoAvanti() { S.finVid = false; S.slide = (S.slide + 1) % SLIDES.length; palcoRidisegna(); }
@@ -655,7 +707,7 @@ function ripHTML() {
   if (!MESA || !envioOn()) return '';
   const L = S.hist.map((k) => { const [id, t, m] = k.split('§'); const p = S.prod.find((x) => x.id === id); return p && visibile(p) && ordinabile(p) ? { k, p, lab: [m === 'Como viene' ? '' : m, t].filter(Boolean).join(' · ') } : null; }).filter(Boolean);
   if (!L.length) return '';
-  return '<div class="rip"><div class="rip-t">⟲ OTRA VEZ</div><div class="rip-l">' + L.map((x) => '<button class="rip-c" data-a="ripeti" data-k="' + esc(x.k) + '">' +
+  return '<div class="rip"><div class="rip-t">⟲ ' + T('OTRA VEZ') + '</div><div class="rip-l">' + L.map((x) => '<button class="rip-c" data-a="ripeti" data-k="' + esc(x.k) + '">' +
     (x.p.img ? '<img src="' + esc(x.p.img) + '" alt="">' : '') + '<span><b>' + esc(x.p.n.replace(/ *[(][^)]*[)]/, '').replace(/`/g, '')) + '</b>' + (x.lab ? '<i>' + esc(x.lab) + '</i>' : '') + '</span><em>＋</em></button>').join('') + '</div></div>';
 }
 /* ═══ v0.7 · IL REGALO A OTRA MESA (mockup v1.4-v1.5, Alberto 23-ott: «esiste ed è mal usato perché nessuno lo sa: al cliente glielo dobbiamo
@@ -698,7 +750,7 @@ async function inviaDono() {
   d.volo = true; d.err = ''; if (!d.uuid) d.uuid = _uuid(); pinta();
   const pr = prezzoOra(p).v;
   const pl = { action: 'enviarPedido', local: LOCAL, uuid: d.uuid, mesa: MESA, total: pr,
-    idioma: ((navigator.language || '') + '').slice(0, 8), idioma_menu: LANG, plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
+    idioma: ((navigator.language || '') + '').slice(0, 8), idioma_menu: S.lang, plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
     precios_epoch: (S.tick && S.tick.precios_epoch) || '', ritmo_activo: '', member: '',
     items_json: JSON.stringify([{ id: p.id, nombre: '🎁 ' + p.n, precio: pr, qty: 1, llevar: 1, op: '', termino: '', es_menu: false, promo: '', cat: p.c }]),
     regalo_para: d.mesa, regalo_nota: d.msg, regalo_firma: d.firma === 'anon' ? '' : 'de la mesa ' + MESA,
@@ -716,6 +768,53 @@ async function inviaDono() {
   else if (r && r.need === 'carta_vieja') { if (S.tick && r.precios) { S.tick.precios = r.precios; S.tick.precios_epoch = r.precios_epoch || S.tick.precios_epoch; } d.uuid = ''; d.err = 'El precio cambió recién: revisa y envía de nuevo.'; }
   else d.err = 'No pudimos enviar el regalo. Reintenta o avísale a tu mesero.';
   pinta();
+}
+/* ═══ v0.8 · LO SHOW (mockup §⑫ ②: «lo show è il gancio»): le sere e le ore vengono dalla vetrina del locale (`show`).
+   Il giorno è quello OPERATIVO (taglio 06:00, ora di Santiago): l'1 di notte del sabato è ancora il venerdì. ═══ */
+function oraSantiago() { const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Santiago' })); return d; }
+function giornoShow() { const sh = S.vet && S.vet.show; if (!sh || !Array.isArray(sh.dias)) return false; const d = oraSantiago(); d.setHours(d.getHours() - 6); return sh.dias.indexOf(d.getDay()) >= 0; }
+function showAcceso() {
+  const sh = S.vet && S.vet.show; if (!sh || !giornoShow()) return false;
+  const d = oraSantiago(), h = d.getHours() + d.getMinutes() / 60, de = oraDec(sh.desde, 23), a = oraDec(sh.hasta, 4);
+  return a > de ? (h >= de && h < a) : (h >= de || h < a);
+}
+/* ═══ v0.8 · IL CONTO DI QUESTO TELEFONO (mockup: «Tu cuenta» in alto dopo il primo invio, l'unico bottone pieno, con l'importo).
+   Il menù sa ciò che è PARTITO da questo telefono (i pedidos confermati dal bordo): l'importo è quello, e la schermata lo dice.
+   Il conto intero della mesa e il pago dal telefono (Fintoc) sono il pezzo di domani (Alberto 29-ott); oggi da qui si chiede la máquina. ═══ */
+const ENV_K = () => 'pinsita_env_' + LOCAL + '_' + MESA;
+function envLeggi() { try { const v = JSON.parse(sessionStorage.getItem(ENV_K()) || '[]'); S.enviados = Array.isArray(v) ? v : []; } catch (e) { S.enviados = []; } }
+function envAggiungi(rr) { S.enviados.push({ ts: Date.now(), righe: rr }); try { sessionStorage.setItem(ENV_K(), JSON.stringify(S.enviados)); } catch (e) { /* solo memoria */ } }
+const consumoTel = () => S.enviados.reduce((s, e) => s + (e.righe || []).reduce((t, r) => t + (Number(r.pr) || 0) * (Number(r.q) || 0), 0), 0);
+function cuentaHTML() {
+  const L = []; S.enviados.forEach((e) => (e.righe || []).forEach((r) => { const x = L.find((y) => y.nome === r.nome && y.pr === r.pr); if (x) x.q += r.q; else L.push(Object.assign({}, r)); }));
+  return '<div class="ped"><div class="pedtit">' + T('Tu cuenta') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' +
+    '<div class="okr" style="border-top:0;color:var(--suave)">Lo que pediste desde este teléfono · ' + T('Mesa') + ' ' + esc(MESA) + '</div>' +
+    L.map((r) => { const p = S.prod.find((x) => x.id === r.id);
+      return '<div class="lin">' + (p && p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<div class="lth"></div>') + '<div class="lnm">' + r.q + '× ' + esc(r.nome) + '</div><div class="lpz">' + clp(r.pr * r.q) + '</div></div>'; }).join('') +
+    '<div class="tot"><span>Consumo</span><span>' + clp(consumoTel()) + '</span></div>' +
+    '<button class="envG" data-a="cuentaPos"><b>Pedir la cuenta</b><span>te traemos la máquina a tu mesa</span></button>' +
+    '<button class="segui" data-a="cuentaChiudi">' + T('Seguir pidiendo') + '</button></div>';
+}
+function lingueHTML() {
+  return '<div class="ped"><div class="pedtit">Idioma · Language<button class="pedx" data-a="lingueChiudi">✕</button></div><div class="lng">' +
+    LANGS.map((l) => '<button class="' + (S.lang === l[0] ? 'on' : '') + '" data-a="lingua" data-k="' + l[0] + '">' + l[1] + '</button>').join('') + '</div>' +
+    '<div class="okr" style="margin-top:10px;border-top:0;color:var(--suave)">Los nombres de los platos se quedan en su idioma.</div></div>';
+}
+/* ═══ v0.8 · IL MONDO DEL DJ (mockup 22-ott: «EN VIVO porta a una schermata DJ: cartelera, chi suona»), a schermo intero, senza prodotti
+   sotto («mele con pere»). Si apre da LIVE e dalla slide dello show. Dati dalla vetrina del locale (`dj`).
+   ⚠️ Dichiarato, NON c'è: «Pídele tu canción» e le playlist. Nel vivo la canzone va al GAS (`pedirCancion`): nel menù vero nasce
+   solo con una rotta del bordo E uno schermo del DJ che la legga (voce 6 dell'ecosistema, senza proprietario). ═══ */
+// la famiglia dove porta lo show (la stessa della pagina di chiusura del video): niente nome di famiglia scritto nel codice
+const famDj = () => { const s = ((S.vet && S.vet.palco) || []).find((x) => x.t === 'show'); return s && gruppi().some((g) => g.k === s.fin_fam) ? s.fin_fam : ''; };
+function djHTML() {
+  const dj = (S.vet && S.vet.dj) || {}, vivo = showAcceso(), ig = /^[\w.]{1,30}$/.test(dj.instagram || '') ? dj.instagram : '';
+  return '<div class="split"><div class="det"><div class="pal pal-dj"><button class="pal-close" data-a="djChiudi" aria-label="Cerrar">✕</button><div class="pal-tx">' +
+    '<div class="pal-tag">' + (vivo ? '<i class="onair"></i> En vivo · esta noche' : (giornoShow() ? '🎧 Esta noche' : '🎧 La cartelera')) + '</div>' +
+    '<div class="pal-t">' + esc(dj.nombre || 'DJ') + '</div>' + (dj.desde ? '<div class="pal-s">Desde las ' + esc(dj.desde) + '</div>' : '') +
+    (Array.isArray(dj.cartelera) && dj.cartelera.length ? '<div class="lsec"><b>📅 La cartelera</b>' + dj.cartelera.map((c) => '<div class="carte"><span>' + esc(c.d) + '</span><b>' + esc(c.n) + '</b><i>' + esc(c.h) + '</i></div>').join('') + '</div>' : '') +
+    (ig ? '<div class="lsec"><a class="sigue" href="https://www.instagram.com/' + ig + '" target="_blank" rel="noopener">📸 Sigue a <b style="display:inline">@' + esc(ig) + '</b></a></div>' : '') +
+    (famDj() ? '<div class="pal-cta-row" style="margin-top:14px"><button class="pal-cta" data-a="palcoFam" data-k="' + esc(famDj()) + '">' + esc(nomeGruppo(famDj())) + ' ›</button></div>' : '') +
+    '</div></div></div></div>';
 }
 /* ═══ la campanella (mockup 23-ott): i motivi; la sala oggi sa dire «la cuenta» e «una duda», gli altri arrivano come «te busca» ═══ */
 const CAMPANA = [
@@ -735,12 +834,12 @@ function z2() {
   const G = gruppi(); const f = G.find((x) => x.k === S.fam) || G[0]; const t = totale();
   // con qualcosa nel carrello le famiglie restano solo emoji: la porta del pedido deve stare intera nella riga (mockup v1.x)
   return '<div class="r">' + G.map((x) => '<button class="fam' + (x.k === f.k ? ' on' : '') + '" data-a="fam" data-k="' + esc(x.k) + '" title="' + esc(nomeGruppo(x.k)) + '">' + x.emoji + (t.n ? '' : ' ' + esc(nomeGruppo(x.k))) + '</button>').join('') +
-    (t.n ? '<button class="cartp' + (S.llama ? ' llama' : '') + '" data-a="verPed">' + t.n + ' · ENVIAR · ' + clp(t.s) + ' ›</button>' : '') + '</div>' +
+    (t.n ? '<button class="cartp' + (S.llama ? ' llama' : '') + '" data-a="verPed">' + t.n + ' · ' + T('ENVIAR') + ' · ' + clp(t.s) + ' ›</button>' : '') + '</div>' +
     (t.n && S.llama ? '<div class="llamah">¿Listo? Toca para enviar tu pedido</div>' : '') +
     (S.busca !== null && S.busca !== undefined
       ? '<div class="r rbusca"><span class="lup">🔍</span><input class="bin" type="search" enterkeyhint="search" autocomplete="off" placeholder="escribe lo que buscas…" value="' + esc(S.busca) + '" data-a="binput"><button class="bx" data-a="cierraBusca" aria-label="Cerrar búsqueda">✕</button></div>'
       : '<div class="r">' + (envioOn() ? '<button class="bell" data-a="campana" aria-label="Llamar al mesero">🔔</button>' : '') + f.cats.map((c) => '<button class="cat' + (c === S.cat ? ' on' : '') + '" data-a="cat" data-k="' + esc(c) + '">' + esc(nomeCat(c)) + '</button>').join('') +
-        '<button class="cat lupa" data-a="abreBusca">🔍 Buscar</button></div>');
+        '<button class="cat lupa" data-a="abreBusca">🔍 ' + T('Buscar') + '</button></div>');
 }
 let ULTIMA_VER = null;
 function pinta() {
@@ -767,7 +866,7 @@ function pinta() {
   ULTIMA_VER = S.abierta;
   // se la griglia sta in una schermata, va giù; se è più lunga, si comporta come sempre
   const sg = z.querySelector('.sei'); if (sg && !S.abierta && !S.pedido && sg.scrollHeight <= z.clientHeight) z.classList.add('basso');
-  const pieno = S.pedido || S.campana || !!S.dono;
+  const pieno = S.pedido || S.campana || !!S.dono || S.lingue || S.dj || S.cuenta;
   // mentre si scrive nel campo di Buscar la barra non si ridisegna: perderebbe il cursore e la tastiera
   const b = document.getElementById('z2'); b.hidden = pieno; if (!pieno && !(document.activeElement && document.activeElement.classList.contains('bin'))) b.innerHTML = z2();
   // v0.7 · la pillola che chiama (mockup 22-ott): qualcosa nel carrello e nessun tocco per 12 s ⇒ pulsa e dice cosa fare
@@ -795,7 +894,7 @@ function payloadPedido(confirmado) {
   const itemsJson = JSON.stringify(items);
   if (S.uuidFirma !== itemsJson) { S.uuid = _uuid(); S.uuidFirma = itemsJson; }
   return { action: 'enviarPedido', local: LOCAL, uuid: S.uuid, mesa: MESA, total: totale().s,
-    idioma: ((navigator.language || '') + '').slice(0, 8), idioma_menu: LANG,
+    idioma: ((navigator.language || '') + '').slice(0, 8), idioma_menu: S.lang,
     plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
     precios_epoch: (S.tick && S.tick.precios_epoch) || '', ritmo_activo: '', member: '',
     items_json: itemsJson, envio_directo: false, destino: '', via: 'unica', confirmado: !!confirmado,
@@ -822,7 +921,8 @@ async function inviaOra(confirmado) {
   S.inviaStato = '';
   if (r && r.ok === true) {
     S.listo = { righe: righe().map((r) => ({ nome: nomeRiga(r), q: r.q, p: r.p })), dove: adove(righe().map((r) => r.p)) };
-    histAggiungi(Object.keys(S.cart));   // v0.7 «Otra vez»: ciò che è PARTITO, non ciò che è stato solo messo nel carrello
+    histAggiungi(Object.keys(S.cart));
+    envAggiungi(righe().map((x) => ({ id: x.p.id, nome: nomeRiga(x), q: x.q, pr: prezzoRiga(x) })));   // v0.8: il conto di questo telefono (il Pagar in alto)   // v0.7 «Otra vez»: ciò che è PARTITO, non ciò che è stato solo messo nel carrello
     S.cart = {}; S.uuid = ''; S.uuidFirma = '';
   } else if (r && r.need === 'mesa_confirmar') { S.need = 'mesa'; }
   else if (r && r.need === 'items_agotados') {
@@ -881,11 +981,16 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'palcoRe') { S.finVid = false; palcoRidisegna(); return; }
   if (a === 'palcoTap' || a === 'palcoPlato') {
     const s = SLIDES[S.slide % SLIDES.length], sp = slideP(s);
-    if (s && s.t === 'show') { const g = gruppi().find((x) => x.k === s.fin_fam); if (g) { S.palco = false; S.fam = g.k; S.cat = g.cats[0]; } }
+    if (s && s.t === 'show') { S.dj = true; }   // v0.8: lo show apre il mondo del DJ (mockup)
     else if (sp) { const g = gruppi().find((x) => x.cats.indexOf(sp.c) >= 0); S.palco = false; if (g) { S.fam = g.k; S.cat = sp.c; } S.abierta = sp.id; }
     pinta(); return;
   }
-  if (a === 'palcoFam') { const g = gruppi().find((x) => x.k === k); if (g) { S.palco = false; S.fam = g.k; S.cat = g.cats[0]; S.abierta = null; } pinta(); return; }
+  if (a === 'palcoFam') { const g = gruppi().find((x) => x.k === k); if (g) { S.palco = false; S.dj = false; S.fam = g.k; S.cat = g.cats[0]; S.abierta = null; } pinta(); return; }
+  // v0.8 · la riga in alto: ognuna di queste schermate chiude le altre (una sola metà grande alla volta)
+  if (a === 'lingueApri' || a === 'djApri' || a === 'cuentaApri') { if (S.inviando || S.inviaStato) return; S.lingue = a === 'lingueApri'; S.dj = a === 'djApri'; S.cuenta = a === 'cuentaApri'; S.pedido = false; S.campana = false; S.dono = null; pinta(); return; }
+  if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; pinta(); return; }
+  if (a === 'lingua' && LANGS.some((x) => x[0] === k)) { S.lang = k; S.lingue = false; document.documentElement.lang = k; try { localStorage.setItem('pinsita_lang', k); } catch (e) {} pinta(); return; }
+  if (a === 'cuentaPos' && envioOn()) { S.cuenta = false; llamaMesero('cuenta'); pinta(); return; }
   // v0.7 · «Otra vez»: la stessa riga di prima (piatto + scelta), una in più
   if (a === 'ripeti' && S.hist.indexOf(k) >= 0 && !S.inviando && !S.inviaStato) { const pp = S.prod.find((x) => x.id === k.split('§')[0]);
     if (ordinabile(pp)) { S.cart[k] = (S.cart[k] || 0) + 1; S.listo = null; S.errore = ''; S.need = ''; nota('＋1 ' + pp.n); } pinta(); return; }
@@ -979,6 +1084,7 @@ async function vetrinaLocale() {
   try { const r = await fetch('vetrina/vetrina.json', { cache: 'no-cache' }); if (!r.ok) return null; const v = (await r.json())[LOCAL]; return v && typeof v === 'object' ? v : null; } catch (e) { return null; }
 }
 (async function avvio() {
+  S.lang = langIniziale(); document.documentElement.lang = S.lang;   // v0.8: la lingua del telefono, o quella scelta col 🌐 l'ultima volta
   if (!LOCAL) { document.getElementById('z3').innerHTML = '<div class="msg"><b>Escanea el QR de tu mesa</b>Así sabemos dónde estás y qué carta mostrarte.</div>'; return; }
   try {
     const [rc, rk, ff, vv] = await Promise.all([
@@ -999,7 +1105,7 @@ async function vetrinaLocale() {
     S.fam = g.k; S.cat = g.cats[0];
     // v0.7: il fondo del locale, l'inizio dallo show, «Otra vez» di questa mesa
     if (S.vet && PATH_VET.test(S.vet.fondo || '')) { const app = document.getElementById('app'); app.style.setProperty('--fondo', 'url("' + S.vet.fondo + '")'); app.classList.add('confondo'); }
-    preparaSlides(); S.palco = SLIDES.length > 0; histLeggi();
+    preparaSlides(); S.palco = SLIDES.length > 0; histLeggi(); envLeggi();
     pinta();
   } catch (e) {
     // nessun ripiego su Google: si dice che cosa manca
