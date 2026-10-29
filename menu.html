@@ -15,6 +15,9 @@
   v0.1 = LEGGE E MOSTRA (famiglie, categorie, griglia, scheda grande, carrello) · v0.2 = la carta di adesso dal tick del bordo ·
   v0.3 = la scheda aperta del mockup · v0.4 = L'INVIO e LA CAMPANELLA (AUT-0749), dietro la leva `menu_vero_envio_on` della config:
   vuota = vista previa, nessun pedido parte da qui. I piatti che chiedono una scelta non partono finché non c'è la schermata delle scelte.
+  v0.7 = L'INIZIO E LA CONVERSIONE (Alberto 29-ott: «oggi l'inizio e la conversione, il conto domani; il cervello per ora sono io»):
+  il palco coi video (si avanza a fine video, la pagina di chiusura vende), i destacados sotto, il fondo con le strelitzie, «Otra vez»,
+  la pillola che chiama dopo 12 s, il regalo a otra mesa. Contenuti in vetrina/vetrina.json, per locale (tampone come fotos.json).
 -->
 <style>
 :root{
@@ -201,6 +204,86 @@ button{font-family:inherit}
 .msg{padding:40px 22px;text-align:center;color:var(--suave);font-size:14px;line-height:1.45}
 .msg b{display:block;color:var(--txt);font-size:18px;margin-bottom:6px}
 #ver{position:fixed;right:6px;bottom:calc(4px + env(safe-area-inset-bottom,0px));font-size:9px;color:rgba(243,237,228,.3);pointer-events:none}
+/* ═══ v0.7 · IL FONDO DEL LOCALE (mockup 21-ott, Alberto 28-ott «il fondo con le strelitzie»): stesso blur, stessa maschera a chiazze
+   e stessa opacità del vestito (.71). Si vede negli spazi fra le card, non sotto il testo. Il disegno viene dalla vetrina del locale. */
+.app{position:relative}
+.app.confondo::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.71;filter:blur(4px);background:var(--fondo) center center / cover no-repeat;
+  -webkit-mask-image:radial-gradient(62% 40% at 20% 24%,#000 0%,transparent 80%),radial-gradient(58% 44% at 80% 62%,#000 0%,transparent 82%),radial-gradient(50% 30% at 44% 96%,#000 0%,transparent 78%);
+  mask-image:radial-gradient(62% 40% at 20% 24%,#000 0%,transparent 80%),radial-gradient(58% 44% at 80% 62%,#000 0%,transparent 82%),radial-gradient(50% 30% at 44% 96%,#000 0%,transparent 78%)}
+.app>*{position:relative;z-index:1}
+.det .fo.tg::after{content:"";position:absolute;inset:0;opacity:.38;filter:blur(3px);background:var(--fondo) center center / cover no-repeat;pointer-events:none;
+  -webkit-mask-image:radial-gradient(62% 44% at 22% 26%,#000 0%,transparent 80%),radial-gradient(56% 46% at 80% 66%,#000 0%,transparent 82%);
+  mask-image:radial-gradient(62% 44% at 22% 26%,#000 0%,transparent 80%),radial-gradient(56% 46% at 80% 66%,#000 0%,transparent 82%)}
+/* ═══ v0.7 · IL PALCO (mockup §⑫ ①-③): ~⅔ esperienza sopra, la striscia dei destacados sotto. Ogni contenuto finisce in un gesto. ═══ */
+.pal-split .det{flex:1 1 auto;min-height:0}
+.pal{position:relative;flex:1 1 auto;min-height:0;background-size:cover;background-position:center;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;touch-action:pan-y;user-select:none;overflow:hidden}
+.pal::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(10,8,6,0) 35%,rgba(10,8,6,.92) 100%)}
+.pal-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.pal-tx,.pal-dots{z-index:2}
+.pal-tx{position:relative;padding:12px 14px 26px}
+.pal-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--oro);margin-bottom:4px}
+.pal-t{font-family:Fraunces,Georgia,serif;font-weight:400;font-size:22px;line-height:1.15;color:#fff;text-wrap:balance}
+.pal-s{font-size:12.5px;color:rgba(255,255,255,.8);margin-top:3px}
+.pal-cta{display:inline-block;margin-top:9px;background:var(--ok);color:var(--ok-txt);border:0;border-radius:99px;padding:7px 14px;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.pal-cta-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.pal-x{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:99px;padding:7px 12px;font-family:inherit;font-size:12.5px;font-weight:700;margin-top:9px;cursor:pointer}
+.pal-fin{cursor:default}
+.pal-fin::before{background:linear-gradient(180deg,rgba(10,8,6,.55) 0%,rgba(10,8,6,.93) 100%)}
+.pal-ss-w{background:#000}
+.pal-ss{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;opacity:0;animation:ssin 2.5s ease-out forwards}
+@keyframes ssin{0%{opacity:0;transform:scale(1.08)}20%{opacity:1}100%{opacity:1;transform:scale(1)}}
+.pal-dots{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center}
+.pal-dots i{position:relative;width:22px;height:26px;cursor:pointer;display:block}
+.pal-dots i::after{content:"";position:absolute;left:8px;top:12px;width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.45)}
+.pal-dots i.on::after{left:3px;width:16px;background:var(--oro)}
+.destit{flex:0 0 auto;display:flex;justify-content:space-between;align-items:baseline;padding:7px 10px 3px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--oro);border-top:1px solid var(--linea2);background:rgba(7,6,5,.55)}
+.destit span{color:var(--suave);font-weight:700;letter-spacing:0;text-transform:none}
+.destrip{flex:0 0 auto;display:flex;gap:7px;overflow-x:auto;padding:6px 10px 9px;background:rgba(7,6,5,.55);scroll-snap-type:x mandatory}
+.destrip::-webkit-scrollbar{height:0}
+.dsw{position:relative;flex:0 0 108px;scroll-snap-align:start}
+.destrip .cd{height:150px;min-height:0;padding:5px;gap:2px;border-radius:10px}
+.destrip .cd .th{aspect-ratio:auto;height:58px;border-radius:7px;flex:0 0 auto}
+.destrip .cd .tg{height:58px;flex:0 0 auto;font-size:11px}
+.destrip .cd .nm{font-size:11px;line-height:1.2;min-height:27px;flex:0 0 auto}
+.destrip .cd .pz{font-size:12px;flex:0 0 auto}
+.destrip .cd .addb,.destrip .cd .qn{min-height:28px;height:28px;font-size:11px}
+.destrip .cd .opc{font-size:9.5px;padding:3px}
+.dbadge{position:absolute;top:-5px;right:-3px;z-index:3;background:var(--oro);color:#1a1206;font-size:9px;font-weight:800;border-radius:99px;padding:2px 6px;white-space:nowrap;max-width:96px;overflow:hidden;text-overflow:ellipsis}
+/* ═══ v0.7 · «Otra vez» (mockup 23-ott): le ultime cose già chieste, uguali, a un tocco ═══ */
+.rip{padding:8px 10px 0}
+.z3.basso>.rip+.sei{margin-top:0}   /* con poche card «Otra vez» scende INSIEME alla griglia, attaccata sopra */
+.rip-t{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--oro);margin-bottom:5px}
+.rip-l{display:flex;gap:6px;overflow-x:auto}
+.rip-l::-webkit-scrollbar{height:0}
+.rip-c{flex:0 0 auto;display:flex;align-items:center;gap:7px;max-width:210px;padding:5px 8px 5px 5px;border-radius:12px;border:1.5px solid rgba(255,197,61,.45);background:rgba(255,197,61,.08);color:var(--txt);font-family:inherit;text-align:left;cursor:pointer}
+.rip-c img{width:34px;height:34px;border-radius:8px;object-fit:cover}
+.rip-c span{min-width:0;display:flex;flex-direction:column;line-height:1.15}
+.rip-c b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rip-c i{font-style:normal;font-size:10.5px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rip-c em{font-style:normal;font-weight:800;color:var(--oro);font-size:18px}
+/* ═══ v0.7 · la pillola che chiama (mockup 22-ott: «non ho saputo dove cliccare per enviar») ═══ */
+.cartp{position:relative}
+.cartp.llama{animation:llamaPulse 1.4s ease-out infinite}
+/* il fumetto non sta DENTRO la riga (che scorre di lato e lo taglierebbe): è una riga sua, sopra la barra, allineata a destra */
+.z2 .llamah{position:absolute;right:10px;bottom:calc(100% + 6px);white-space:nowrap;background:var(--oro);color:#1a1206;font-size:12px;font-weight:800;border-radius:9px;padding:6px 10px;box-shadow:0 4px 14px rgba(0,0,0,.5);pointer-events:none}
+.z2{position:relative}
+@keyframes llamaPulse{0%{box-shadow:0 0 0 0 rgba(139,158,79,.8)}70%{box-shadow:0 0 0 12px rgba(139,158,79,0)}100%{box-shadow:0 0 0 0 rgba(139,158,79,0)}}
+/* ═══ v0.7 · il regalo a otra mesa (mockup v1.4-v1.5) ═══ */
+.dono-in{display:block;grid-column:1/-1;width:100%;margin-top:8px;padding:9px 12px;border-radius:12px;cursor:pointer;text-align:left;background:rgba(255,197,61,.08);border:1.5px dashed rgba(255,197,61,.55);color:var(--oro);font-family:inherit;font-size:13px;font-weight:800}
+.prq{font-size:13px;font-weight:800;margin:10px 0 6px}
+.pchips{display:flex;gap:6px;flex-wrap:wrap}
+.pchip{flex:0 0 auto;background:var(--card);border:1.5px solid var(--linea2);color:var(--txt);border-radius:10px;padding:10px 10px;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
+.pchip.on{border-color:var(--ok);background:rgba(139,158,79,.16);color:var(--ok-chiaro)}
+.potro{width:100%;max-width:160px;margin-top:2px;background:var(--card);border:1.5px solid var(--ok);color:var(--txt);border-radius:10px;padding:10px;font-family:inherit;font-size:20px;font-weight:800;text-align:center;letter-spacing:.1em}
+.potro.wapide{animation:wapide .5s}
+@keyframes wapide{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.envG.waspento{background:transparent;color:var(--suave);border:2px dashed rgba(139,158,79,.6)}
+.tess{position:relative;margin:4px 0 10px;padding:14px 14px 12px;border-radius:16px;text-align:center;background:radial-gradient(120% 80% at 50% 0%,rgba(255,197,61,.20),rgba(20,16,10,.95) 65%);border:1.5px solid var(--oro);box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.tess img{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--oro);margin:-2px auto 8px;display:block}
+.tess-ey{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--oro)}
+.tess-m{font-weight:800;font-size:24px;line-height:1.15;color:#fff;margin:6px 0 4px;text-wrap:balance}
+.tess-n{font-size:12.5px;color:var(--suave)}
+.tess-f{font-size:12.5px;font-weight:700;color:var(--oro);margin-top:8px}
 </style></head>
 <body>
 <div class="app" id="app">
@@ -208,7 +291,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.6.5</div>
+<div class="ver" id="ver">menu v0.7.0</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -220,7 +303,9 @@ const MESA = /^[0-9A-Za-z-]{1,6}$/.test(qs.get('mesa') || '') ? qs.get('mesa') :
 // la lingua: quella del telefono; l'utente la cambierà col 🌐 (passo successivo)
 const LANG = ((navigator.language || 'es').slice(0, 2)).toLowerCase();
 const S = { cfg: null, prod: [], tick: null, fam: null, cat: null, abierta: null, cart: {}, pedido: false,
-  inviando: null, inviaStato: '', uuid: '', uuidFirma: '', listo: null, need: '', errore: '', agotLoc: [], campana: false, sel: {} };
+  inviando: null, inviaStato: '', uuid: '', uuidFirma: '', listo: null, need: '', errore: '', agotLoc: [], campana: false, sel: {},
+  // v0.7: l'inizio (palco + destacados) · la vetrina del locale · «Otra vez» · il regalo a otra mesa
+  palco: false, slide: 0, finVid: false, vet: null, hist: [], dono: null };
 
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 function clp(n) { const c = S.cfg || {}; return (c.currency_symbol || '$') + Math.round(n).toLocaleString('es-CL'); }
@@ -358,8 +443,9 @@ function gruppi() {
 function z1() {
   const brand = (S.cfg && S.cfg.brand_name) || LOCAL;
   const sotto = MESA ? 'Mesa ' + esc(MESA) : 'Para pedir, escanea el QR de tu mesa';
-  return '<button class="casa" data-a="inicio" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>' +
-    '<div class="chi"><b>' + esc(brand) + '</b><span>' + sotto + '</span></div>';
+  // la casetta compare FUORI dall'inizio (mockup 21-ott: «come ritorno all'inizio?»); all'inizio non serve
+  const casa = inPalco() ? '' : '<button class="casa" data-a="inicio" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>';
+  return casa + '<div class="chi"><b>' + esc(brand) + '</b><span>' + sotto + '</span></div>';
 }
 // la card. `lista` = la griglia intera (con foto); senza = la riga sotto la scheda (niente foto: la foto sta sopra)
 function card(p, lista) {
@@ -425,19 +511,23 @@ function pagine(L) {
 }
 function z3() {
   if (S.campana) return campanaHTML();
+  if (S.dono) return donoHTML();
   if (S.pedido) return pedidoHTML();
+  if (inPalco()) return palcoHTML();
   if (S.abierta) {
     const p = S.prod.find((x) => x.id === S.abierta);
     // senza foto non un rettangolo grigio (si leggerebbe come un guasto): una targa col nome
     const fo = p.img ? '<div class="fo" style="--f:url(\'' + esc(p.img) + '\')' + (p.fy != null ? ';--fy:' + p.fy + '%' : '') + '">' : '<div class="fo tg">' + esc(p.n);
     return '<div class="split"><div class="det">' + fo + '<button class="x" data-a="cierra">✕</button></div>' +
-      '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(p.d || '') + '</div><div class="pz">' + pzHTML(p) + '</div></div>' +
+      '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(p.d || '') + '</div><div class="pz">' + pzHTML(p) + '</div>' +
+      // v0.7: il regalo sta su ogni trago, dove nasce la voglia (solo coi tragos che si mettono senza domande: il regalo non chiede)
+      (envioOn() && esTrago(p) && ordinabile(p) && !domande(p).length ? '<button class="dono-in" data-a="donoApri" data-k="' + esc(p.id) + '">🎁 Invítale este trago a otra mesa</button>' : '') + '</div>' +
       domandeHTML(p) + '</div>' + pagine(daMostrare()) + '</div>';
   }
   if (S.busca !== null && S.busca !== undefined && !cercando()) return '<div class="msg busca"><b>¿Qué se te antoja?</b>Escribe un plato, un trago o un ingrediente.</div>';
   const L = daMostrare();
   if (cercando() && !L.length) return '<div class="msg busca"><b>Nada con «' + esc(S.busca.trim()) + '»</b>Prueba con otra palabra.</div>';
-  return '<div class="sei">' + L.map((p) => card(p, true)).join('') + '</div>';
+  return (cercando() ? '' : ripHTML()) + '<div class="sei">' + L.map((p) => card(p, true)).join('') + '</div>';
 }
 function pzHTML(p) { const z = prezzoOra(p); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : ''); }
 /* ═══ il passo dopo (mockup 23-ott): chi ha chiesto dalla prima famiglia (il cibo) atterra sull'ultima (il dolce);
@@ -485,6 +575,143 @@ function pedidoHTML() {
       (S.inviando || S.inviaStato ? '' : '<button class="segui" data-a="chiudiPed">Seguir pidiendo</button>')
       : '<div class="vuoto">Todavía no has pedido nada.</div>') + '</div>';
 }
+/* ═══ v0.7 · L'INIZIO: IL PALCO (mockup §⑫ ①-③, Alberto 21-22 ott) ═══════════════════════════════════════════════════════════════════
+   Sopra ~⅔ l'esperienza (show, «cómo lo hacemos»), sotto i destacados col loro PEDIR. Il palco gira finché il cliente non sceglie; al primo
+   tocco su famiglia, categoria, piatto o Buscar lascia il posto alla carta, e la casetta ⌂ lo riporta.
+   REGOLE DEL MOCKUP, nel codice e non nella memoria di chi carica: ① sul palco SOLO chi ha un video o uno slideshow (≥2 immagini) ·
+   ② la slide col video avanza quando il video FINISCE (niente timer che tronca), poi una pagina di chiusura che vende e resta 8 s;
+   se il video non carica si passa oltre dopo 5 s · ③ lo show resta primo, gli altri si mescolano a ogni visita · ④ ogni contenuto finisce
+   in un gesto: se il gesto non esiste nel menù vero, la slide non sale (oggi niente reservas né DJ-box: vivono ancora su Google).
+   I contenuti li sceglie il CERVELLO; finché non c'è, Alberto (29-ott), in vetrina/vetrina.json. */
+const PATH_VET = /^vetrina\/[\w./-]+\.(svg|webp|png|jpe?g|mp4|webm)$/i;
+let SLIDES = [], PALCO_T = null, SWX = null, SWIPED = 0;
+function preparaSlides() {
+  const L = ((S.vet && S.vet.palco) || []).filter((s) => {
+    if (s.vid && !(PATH_VET.test(s.vid) && PATH_VET.test(s.poster || ''))) return false;
+    if (s.t === 'plato') { const p = S.prod.find((x) => x.id === s.id); if (!p || !visibile(p)) return false; }
+    if (s.t === 'show' && !s.fin_fam) return false;   // ④ lo show chiude su un gesto (la famiglia da aprire)
+    return !!s.vid || (Array.isArray(s.ss) && s.ss.filter((id) => (S.prod.find((x) => x.id === id) || {}).img).length > 1);
+  });
+  const primo = L.findIndex((s) => s.t === 'show'), testa = primo >= 0 ? L.splice(primo, 1) : [];
+  L.sort(() => Math.random() - 0.5);
+  SLIDES = testa.concat(L);
+}
+const slideP = (s) => (s && s.id ? S.prod.find((x) => x.id === s.id) : null);
+function destacados() { return ((S.vet && S.vet.destacados) || []).map((d) => ({ d, p: S.prod.find((x) => x.id === d.id) })).filter((x) => x.p && visibile(x.p)); }
+const inPalco = () => S.palco && SLIDES.length > 0 && !S.pedido && !S.campana && !S.abierta && !S.dono && (S.busca === null || S.busca === undefined);
+const palKey = () => (S.slide % SLIDES.length) + '|' + (S.finVid ? 1 : 0);
+function puntiPalco() { return '<div class="pal-dots">' + SLIDES.map((x, i) => '<i class="' + (i === S.slide % SLIDES.length ? 'on' : '') + '" data-a="palcoVai" data-k="' + i + '"></i>').join('') + '</div>'; }
+function slideHTML() {
+  const s = SLIDES[S.slide % SLIDES.length], p = slideP(s);
+  if (s.vid && S.finVid && s.t === 'plato' && p) {
+    // la pagina di chiusura dopo il video: la voglia è al massimo, qui va il gesto (＋ Pedir mette nel carrello senza uscire)
+    const q = qtyDi(p), diretto = ordinabile(p) && !domande(p).length;
+    return '<div class="pal pal-fin" style="background-image:url(\'' + esc(s.poster) + '\')"><div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div>' +
+      '<div class="pal-t">¿Se te antojó?</div><div class="pal-s">' + esc(p.n.replace(/`/g, '')) + ' · ' + clp(prezzoOra(p).v) + '</div><div class="pal-cta-row">' +
+      (diretto ? '<button class="pal-cta" data-a="mas" data-k="' + esc(p.id) + '">' + (q ? '✓ ' + q + ' en tu pedido · ＋ otra' : '＋ Pedir · ' + clp(prezzoOra(p).v)) + '</button>' : '') +
+      '<button class="pal-x" data-a="palcoPlato">Ver el plato</button><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button></div></div>' + puntiPalco() + '</div>';
+  }
+  if (s.vid && S.finVid) return '<div class="pal pal-fin" style="background-image:url(\'' + esc(s.poster) + '\')"><div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div>' +
+    '<div class="pal-t">' + esc(s.fin_tit || s.tit || '') + '</div><div class="pal-s">' + esc(s.fin_sub || '') + '</div><div class="pal-cta-row">' +
+    '<button class="pal-cta" data-a="palcoFam" data-k="' + esc(s.fin_fam) + '">' + esc(s.fin_cta || 'Ver') + ' ›</button><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button></div></div>' + puntiPalco() + '</div>';
+  if (s.ss) {
+    const fr = s.ss.map((id) => S.prod.find((x) => x.id === id)).filter((x) => x && x.img);
+    return '<div class="pal pal-ss-w" data-a="palcoTap">' + fr.map((x, i) => '<div class="pal-ss" style="background-image:url(\'' + esc(x.img) + '\');animation-delay:' + (i * 2.5) + 's;z-index:' + i + '"></div>').join('') +
+      '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || '') + '</div><div class="pal-s">' + esc(s.sub || '') + '</div></div>' + puntiPalco() + '</div>';
+  }
+  // la clip: prima l'anteprima (sfondo), poi il video muto sopra; mai una schermata che aspetta
+  return '<div class="pal" style="background-image:url(\'' + esc(s.poster) + '\')" data-a="palcoTap"><video class="pal-vid" src="' + esc(s.vid) + '" poster="' + esc(s.poster) + '" autoplay muted playsinline preload="auto"></video>' +
+    '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || (p ? p.n : '')) + '</div>' +
+    '<div class="pal-s">' + esc(s.sub || '') + (p ? ' · ' + clp(prezzoOra(p).v) : '') + '</div>' + (s.t === 'plato' ? '<span class="pal-cta">Ver el plato ›</span>' : '') + '</div>' + puntiPalco() + '</div>';
+}
+function destCards() { return destacados().map((x) => '<div class="dsw">' + (x.d.b ? '<span class="dbadge">' + esc(x.d.b) + '</span>' : '') + card(x.p, true) + '</div>').join(''); }
+function palcoHTML() {
+  const dc = destCards();
+  return '<div class="split pal-split"><div class="det">' + slideHTML() + '</div>' +
+    (dc ? '<div class="destit">Destacados <span>desliza ›</span></div><div class="destrip">' + dc + '</div>' : '') + '</div>';
+}
+function palcoStop() { if (PALCO_T) { clearTimeout(PALCO_T); PALCO_T = null; } }
+function palcoAvanti() { S.finVid = false; S.slide = (S.slide + 1) % SLIDES.length; palcoRidisegna(); }
+function palcoRidisegna() { const z = document.getElementById('z3'), d = z.querySelector('.pal-split > .det'); if (!d || !inPalco()) return; d.innerHTML = slideHTML(); z.dataset.pk = palKey(); palcoGira(); }
+function palcoGira() {
+  palcoStop(); if (!inPalco() || document.visibilityState !== 'visible') return;
+  const s = SLIDES[S.slide % SLIDES.length], v = document.querySelector('#z3 .pal-vid');
+  if (s.vid && v && !S.finVid) {
+    if (v.paused && !v.ended) { const pr = v.play(); if (pr && pr.catch) pr.catch(() => {}); }   // tornato in mano: riprende da dov'era
+    v.onended = () => { S.finVid = true; palcoRidisegna(); };
+    v.onerror = () => { PALCO_T = setTimeout(palcoAvanti, 5000); };
+    PALCO_T = setTimeout(palcoAvanti, 90000);   // paracadute: un video che non finisce mai non blocca il palco
+    return;
+  }
+  PALCO_T = setTimeout(palcoAvanti, S.finVid ? 8000 : (s.ss ? s.ss.length * 2500 + 1500 : 5000));
+}
+/* ═══ v0.7 · «OTRA VEZ» (mockup 23-ott, Alberto: «se ho chiesto un mojito frambuesa e ne voglio un altro devo rifare tutto il giro»):
+   in cima alla griglia, le ultime cose già INVIATE da questo telefono, uguali (con la loro scelta), a un tocco. Al massimo 4: una scorciatoia,
+   non una seconda carta. Vive nella sessione del telefono per locale e mesa: chi cambia mesa riparte pulito. */
+const HIST_K = () => 'pinsita_otra_' + LOCAL + '_' + MESA;
+function histLeggi() { try { const v = JSON.parse(sessionStorage.getItem(HIST_K()) || '[]'); S.hist = Array.isArray(v) ? v.filter((k) => typeof k === 'string').slice(0, 4) : []; } catch (e) { S.hist = []; } }
+function histAggiungi(keys) { keys.forEach((k) => { S.hist = [k].concat(S.hist.filter((x) => x !== k)); }); S.hist = S.hist.slice(0, 4); try { sessionStorage.setItem(HIST_K(), JSON.stringify(S.hist)); } catch (e) { /* solo memoria */ } }
+function ripHTML() {
+  if (!MESA || !envioOn()) return '';
+  const L = S.hist.map((k) => { const [id, t, m] = k.split('§'); const p = S.prod.find((x) => x.id === id); return p && visibile(p) && ordinabile(p) ? { k, p, lab: [m === 'Como viene' ? '' : m, t].filter(Boolean).join(' · ') } : null; }).filter(Boolean);
+  if (!L.length) return '';
+  return '<div class="rip"><div class="rip-t">⟲ OTRA VEZ</div><div class="rip-l">' + L.map((x) => '<button class="rip-c" data-a="ripeti" data-k="' + esc(x.k) + '">' +
+    (x.p.img ? '<img src="' + esc(x.p.img) + '" alt="">' : '') + '<span><b>' + esc(x.p.n.replace(/ *[(][^)]*[)]/, '').replace(/`/g, '')) + '</b>' + (x.lab ? '<i>' + esc(x.lab) + '</i>' : '') + '</span><em>＋</em></button>').join('') + '</div></div>';
+}
+/* ═══ v0.7 · IL REGALO A OTRA MESA (mockup v1.4-v1.5, Alberto 23-ott: «esiste ed è mal usato perché nessuno lo sa: al cliente glielo dobbiamo
+   far vedere»). Sta su ogni trago (barra, niente bottiglie né jarras), dove nasce la voglia. Contratto GIÀ VIVO sul bordo, lo stesso di
+   menu_digital: il pedido porta `regalo_para` · `regalo_nota` · `regalo_firma`; la propria mesa il bordo la rifiuta (`regalo_misma_mesa`).
+   La chiave d'idempotenza nasce qui, una per gesto: un ritentativo non regala due volte; cambiare mesa o messaggio è un gesto nuovo.
+   ⚠️ Dichiarato: il lato di CHI RICEVE (il biglietto sul suo telefono, il grazie) non c'è ancora, vuole un canale dal bordo al telefono. */
+const DONO_MSG = ['¡Salud! 🥂', 'Bienvenidos 👋', 'De parte de un admirador', 'Por la buena onda'];
+const esTrago = (p) => !!p && barraCats().indexOf(p.c) >= 0 && !/botella|jarra/i.test(p.n);
+const donoMesaOk = (d) => /^[0-9]{1,3}$/.test(d.mesa || '') && String(Number(d.mesa)) !== String(Number(MESA));
+function tessera(p, ey, msg, firma) {
+  return '<div class="tess">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '') + '<div class="tess-ey">🎁 ' + esc(ey) + '</div>' +
+    '<div class="tess-m">' + esc(msg || '') + '</div><div class="tess-n">' + esc(p.n) + '</div><div class="tess-f">— ' + esc(firma) + '</div></div>';
+}
+function donoHTML() {
+  const d = S.dono, p = S.prod.find((x) => x.id === d.id), X = '<button class="pedx" data-a="donoChiudi">✕</button>';
+  if (!p) return '';
+  const firma = d.firma === 'anon' ? 'Anónimo' : 'De la mesa ' + MESA;
+  if (d.ok) return '<div class="ped"><div class="pedtit">¡Regalo en camino!' + X + '</div>' + tessera(p, 'VA A LA MESA ' + d.mesa, d.msg, firma) +
+    '<div class="okr" style="text-align:center">Se lo llevamos con tu mensaje · va a tu cuenta</div><button class="segui" data-a="donoChiudi">Seguir</button></div>';
+  const ok = donoMesaOk(d);
+  return '<div class="ped"><div class="pedtit">Invitar un trago' + X + '</div>' +
+    '<div class="lin">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<div class="lth"></div>') + '<div class="lnm">1× ' + esc(p.n) + '</div><div class="lpz">' + clp(prezzoOra(p).v) + '</div></div>' +
+    '<div class="prq">¿A qué mesa?</div><input class="potro" type="tel" inputmode="numeric" maxlength="3" placeholder="N° de mesa" value="' + esc(d.mesa || '') + '" data-a="donoMesa">' +
+    '<div class="prq">Tu mensaje</div><div class="pchips">' + DONO_MSG.map((m) => '<button class="pchip' + (d.msg === m ? ' on' : '') + '" data-a="donoMsg" data-k="' + esc(m) + '">' + esc(m) + '</button>').join('') + '</div>' +
+    '<div class="prq">Firma</div><div class="pchips"><button class="pchip' + (d.firma !== 'anon' ? ' on' : '') + '" data-a="donoFirma" data-k="mesa">De la mesa ' + esc(MESA) + '</button>' +
+    '<button class="pchip' + (d.firma === 'anon' ? ' on' : '') + '" data-a="donoFirma" data-k="anon">Anónimo 🤫</button></div>' +
+    (d.err ? '<div class="avv">' + esc(d.err) + '</div>' : '') +
+    (d.volo ? '<button class="envG hold"><b>Enviando…</b><span>no cierres esta pantalla</span></button>'
+      : '<button class="envG' + (ok ? '' : ' waspento') + '" data-a="' + (ok ? 'donoInvia' : 'donoFalta') + '" data-dono-btn="1"><b>Enviar regalo 🎁 · ' + clp(prezzoOra(p).v) + '</b><span>va a tu cuenta · si no lo aceptan, no se cobra</span></button>') + '</div>';
+}
+async function inviaDono() {
+  const d = S.dono, p = d && S.prod.find((x) => x.id === d.id);
+  if (!d || !p || d.volo || d.ok || !envioOn() || !donoMesaOk(d)) return;
+  d.volo = true; d.err = ''; if (!d.uuid) d.uuid = _uuid(); pinta();
+  const pr = prezzoOra(p).v;
+  const pl = { action: 'enviarPedido', local: LOCAL, uuid: d.uuid, mesa: MESA, total: pr,
+    idioma: ((navigator.language || '') + '').slice(0, 8), idioma_menu: LANG, plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
+    precios_epoch: (S.tick && S.tick.precios_epoch) || '', ritmo_activo: '', member: '',
+    items_json: JSON.stringify([{ id: p.id, nombre: '🎁 ' + p.n, precio: pr, qty: 1, llevar: 1, op: '', termino: '', es_menu: false, promo: '', cat: p.c }]),
+    regalo_para: d.mesa, regalo_nota: d.msg, regalo_firma: d.firma === 'anon' ? '' : 'de la mesa ' + MESA,
+    confirmado: true, mesa_origen: 'qr', dispositivo_id: dispositivo(), ts: Date.now() };   // gesto deliberato: niente prompt fantasma (come il vivo)
+  let r = null;
+  for (let i = 0; i < 3; i++) {
+    if (i) await new Promise((ok) => setTimeout(ok, i === 1 ? 2000 : 5000));
+    try { r = await postBordo('/pedido/', pl, 6000); } catch (e) { r = null; }
+    if (r && (r.ok === true || r.need || DEFINITIVI.indexOf(r.error) >= 0)) break;
+  }
+  d.volo = false;
+  if (r && r.ok === true) d.ok = true;
+  else if (r && r.error === 'regalo_misma_mesa') d.err = 'Esa es tu mesa: elige otra.';
+  else if (r && r.need === 'items_agotados') d.err = 'Se acabó justo ahora: elige otro trago.';
+  else if (r && r.need === 'carta_vieja') { if (S.tick && r.precios) { S.tick.precios = r.precios; S.tick.precios_epoch = r.precios_epoch || S.tick.precios_epoch; } d.uuid = ''; d.err = 'El precio cambió recién: revisa y envía de nuevo.'; }
+  else d.err = 'No pudimos enviar el regalo. Reintenta o avísale a tu mesero.';
+  pinta();
+}
 /* ═══ la campanella (mockup 23-ott): i motivi; la sala oggi sa dire «la cuenta» e «una duda», gli altri arrivano come «te busca» ═══ */
 const CAMPANA = [
   { k: 'duda', t: 'Tengo una duda sobre un plato', s: 'ingredientes, alergias, qué me recomiendas' },
@@ -503,7 +730,8 @@ function z2() {
   const G = gruppi(); const f = G.find((x) => x.k === S.fam) || G[0]; const t = totale();
   // con qualcosa nel carrello le famiglie restano solo emoji: la porta del pedido deve stare intera nella riga (mockup v1.x)
   return '<div class="r">' + G.map((x) => '<button class="fam' + (x.k === f.k ? ' on' : '') + '" data-a="fam" data-k="' + esc(x.k) + '" title="' + esc(nomeGruppo(x.k)) + '">' + x.emoji + (t.n ? '' : ' ' + esc(nomeGruppo(x.k))) + '</button>').join('') +
-    (t.n ? '<button class="cartp" data-a="verPed">' + t.n + ' · ENVIAR · ' + clp(t.s) + ' ›</button>' : '') + '</div>' +
+    (t.n ? '<button class="cartp' + (S.llama ? ' llama' : '') + '" data-a="verPed">' + t.n + ' · ENVIAR · ' + clp(t.s) + ' ›</button>' : '') + '</div>' +
+    (t.n && S.llama ? '<div class="llamah">¿Listo? Toca para enviar tu pedido</div>' : '') +
     (S.busca !== null && S.busca !== undefined
       ? '<div class="r rbusca"><span class="lup">🔍</span><input class="bin" type="search" enterkeyhint="search" autocomplete="off" placeholder="escribe lo que buscas…" value="' + esc(S.busca) + '" data-a="binput"><button class="bx" data-a="cierraBusca" aria-label="Cerrar búsqueda">✕</button></div>'
       : '<div class="r">' + (envioOn() ? '<button class="bell" data-a="campana" aria-label="Llamar al mesero">🔔</button>' : '') + f.cats.map((c) => '<button class="cat' + (c === S.cat ? ' on' : '') + '" data-a="cat" data-k="' + esc(c) + '">' + esc(nomeCat(c)) + '</button>').join('') +
@@ -517,7 +745,10 @@ function pinta() {
   const gv = gruppi();
   if (S.cat && !gv.some((g) => g.cats.indexOf(S.cat) >= 0)) { const g = gv.find((x) => x.k === S.fam) || gv[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; } }
   document.getElementById('z1').innerHTML = z1();
-  const z = document.getElementById('z3'); z.classList.remove('basso'); z.classList.toggle('aperta', !!S.abierta && !S.pedido); z.innerHTML = z3();
+  const z = document.getElementById('z3'), pal = inPalco(); z.classList.remove('basso'); z.classList.toggle('aperta', (!!S.abierta && !S.pedido) || pal);
+  // v0.7: sul palco si ridisegna SOLO la striscia dei destacados (un ＋, il tick dei 60"): rifare il palco ricomincerebbe il video
+  if (pal && z.querySelector('.pal-split') && z.dataset.pk === palKey()) { const ds = z.querySelector('.destrip'); if (ds) { const sl = ds.scrollLeft; ds.innerHTML = destCards(); ds.scrollLeft = sl; } }
+  else { z.innerHTML = z3(); z.dataset.pk = pal ? palKey() : ''; if (pal) palcoGira(); else palcoStop(); }
   // la striscia resta sulla pagina del piatto aperto; il passo è pagina + spazio, non la larghezza della striscia
   const m = z.querySelector('.mini');
   if (m) {
@@ -531,10 +762,14 @@ function pinta() {
   ULTIMA_VER = S.abierta;
   // se la griglia sta in una schermata, va giù; se è più lunga, si comporta come sempre
   const sg = z.querySelector('.sei'); if (sg && !S.abierta && !S.pedido && sg.scrollHeight <= z.clientHeight) z.classList.add('basso');
-  const pieno = S.pedido || S.campana;
+  const pieno = S.pedido || S.campana || !!S.dono;
   // mentre si scrive nel campo di Buscar la barra non si ridisegna: perderebbe il cursore e la tastiera
   const b = document.getElementById('z2'); b.hidden = pieno; if (!pieno && !(document.activeElement && document.activeElement.classList.contains('bin'))) b.innerHTML = z2();
+  // v0.7 · la pillola che chiama (mockup 22-ott): qualcosa nel carrello e nessun tocco per 12 s ⇒ pulsa e dice cosa fare
+  if (NUDGE) clearTimeout(NUDGE);
+  if (Object.keys(S.cart).length && !pieno && !S.llama && envioOn()) NUDGE = setTimeout(() => { if (Object.keys(S.cart).length && !S.pedido && !S.campana && !S.dono) { S.llama = true; pinta(); } }, 12000);
 }
+let NUDGE = null;
 function nota(txt) { let n = document.getElementById('nota'); if (!n) { n = document.createElement('div'); n.id = 'nota'; n.className = 'nota'; document.body.appendChild(n); }
   n.textContent = txt; n.classList.remove('vai'); void n.offsetWidth; n.classList.add('vai'); }
 
@@ -582,6 +817,7 @@ async function inviaOra(confirmado) {
   S.inviaStato = '';
   if (r && r.ok === true) {
     S.listo = { righe: righe().map((r) => ({ nome: nomeRiga(r), q: r.q, p: r.p })), dove: adove(righe().map((r) => r.p)) };
+    histAggiungi(Object.keys(S.cart));   // v0.7 «Otra vez»: ciò che è PARTITO, non ciò che è stato solo messo nel carrello
     S.cart = {}; S.uuid = ''; S.uuidFirma = '';
   } else if (r && r.need === 'mesa_confirmar') { S.need = 'mesa'; }
   else if (r && r.need === 'items_agotados') {
@@ -617,11 +853,45 @@ if (window.visualViewport) {
 }
 /* ═══ i gesti ═══ */
 // Buscar: ogni lettera ridisegna solo la griglia (la barra col campo resta, vedi pinta)
-document.getElementById('app').addEventListener('input', (ev) => { if (ev.target.classList.contains('bin')) { S.busca = ev.target.value; S.abierta = null; pinta(); } });
+document.getElementById('app').addEventListener('input', (ev) => {
+  if (ev.target.classList.contains('bin')) { S.busca = ev.target.value; S.abierta = null; pinta(); return; }
+  // il numero della mesa del regalo: niente ridisegno (perderebbe la tastiera), si accende solo il bottone
+  if (ev.target.dataset.a === 'donoMesa' && S.dono) { S.dono.mesa = ev.target.value.replace(/[^0-9]/g, '').slice(0, 3); S.dono.uuid = ''; S.dono.err = '';
+    if (ev.target.value !== S.dono.mesa) ev.target.value = S.dono.mesa;
+    const ok = donoMesaOk(S.dono); document.querySelectorAll('[data-dono-btn]').forEach((b) => { b.classList.toggle('waspento', !ok); b.dataset.a = ok ? 'donoInvia' : 'donoFalta'; }); }
+});
+// il palco si sposta col dito (a sinistra = avanti, a destra = indietro); un tocco che era uno scorrimento non apre niente
+document.getElementById('app').addEventListener('pointerdown', (ev) => { SWX = ev.target.closest('.pal') && inPalco() ? ev.clientX : null; });
+document.getElementById('app').addEventListener('pointerup', (ev) => { if (SWX === null) return; const dx = ev.clientX - SWX; SWX = null;
+  if (Math.abs(dx) > 40) { SWIPED = Date.now(); S.finVid = false; S.slide = (S.slide + (dx < 0 ? 1 : SLIDES.length - 1)) % SLIDES.length; palcoRidisegna(); } });
 document.getElementById('app').addEventListener('keydown', (ev) => { if (ev.target.classList.contains('bin') && ev.key === 'Enter') ev.target.blur(); });
 document.getElementById('app').addEventListener('click', (ev) => {
+  if (Date.now() - SWIPED < 450) return;
   const el = ev.target.closest('[data-a]'); if (!el) return; ev.stopPropagation();
   const a = el.dataset.a, k = el.dataset.k; const p = k ? S.prod.find((x) => x.id === k) : null;
+  S.llama = false;   // ogni tocco spegne la pillola che chiama: il timer riparte da qui
+  // v0.7 · IL PALCO: famiglia, categoria, piatto e Buscar lo lasciano; la casetta lo riporta
+  if (a === 'fam' || a === 'cat' || a === 'abre' || a === 'abreBusca') S.palco = false;
+  if (a === 'palcoVai') { S.slide = Number(k) || 0; S.finVid = false; palcoRidisegna(); return; }
+  if (a === 'palcoRe') { S.finVid = false; palcoRidisegna(); return; }
+  if (a === 'palcoTap' || a === 'palcoPlato') {
+    const s = SLIDES[S.slide % SLIDES.length], sp = slideP(s);
+    if (s && s.t === 'show') { const g = gruppi().find((x) => x.k === s.fin_fam); if (g) { S.palco = false; S.fam = g.k; S.cat = g.cats[0]; } }
+    else if (sp) { const g = gruppi().find((x) => x.cats.indexOf(sp.c) >= 0); S.palco = false; if (g) { S.fam = g.k; S.cat = sp.c; } S.abierta = sp.id; }
+    pinta(); return;
+  }
+  if (a === 'palcoFam') { const g = gruppi().find((x) => x.k === k); if (g) { S.palco = false; S.fam = g.k; S.cat = g.cats[0]; S.abierta = null; } pinta(); return; }
+  // v0.7 · «Otra vez»: la stessa riga di prima (piatto + scelta), una in più
+  if (a === 'ripeti' && S.hist.indexOf(k) >= 0 && !S.inviando && !S.inviaStato) { const pp = S.prod.find((x) => x.id === k.split('§')[0]);
+    if (ordinabile(pp)) { S.cart[k] = (S.cart[k] || 0) + 1; S.listo = null; S.errore = ''; S.need = ''; nota('＋1 ' + pp.n); } pinta(); return; }
+  // v0.7 · il regalo a otra mesa
+  if (a === 'donoApri' && p && envioOn() && esTrago(p) && ordinabile(p)) { S.dono = { id: p.id, mesa: '', msg: DONO_MSG[0], firma: 'mesa', uuid: '' }; pinta(); return; }
+  if (a === 'donoChiudi') { if (S.dono && S.dono.volo) return; S.dono = null; pinta(); return; }
+  if (a === 'donoMsg' && S.dono && !S.dono.volo) { S.dono.msg = k; S.dono.uuid = ''; pinta(); return; }
+  if (a === 'donoFirma' && S.dono && !S.dono.volo) { S.dono.firma = k; S.dono.uuid = ''; pinta(); return; }
+  if (a === 'donoFalta') { const i = document.querySelector('[data-a="donoMesa"]'); if (i) { i.focus(); i.classList.remove('wapide'); void i.offsetWidth; i.classList.add('wapide'); } return; }
+  if (a === 'donoInvia') { inviaDono(); return; }
+  if (a === 'donoMesa') return;
   if (a === 'fam') { const g = gruppi().find((x) => x.k === k); S.fam = k; S.cat = g.cats[0]; S.abierta = null; S.busca = null; }
   else if (a === 'cat') { S.cat = k; S.abierta = null; S.busca = null; }
   else if (a === 'abreBusca') { S.busca = ''; S.abierta = null; pinta(); const i = document.querySelector('.bin'); if (i) i.focus(); return; }
@@ -645,7 +915,8 @@ document.getElementById('app').addEventListener('click', (ev) => {
   else if (a === 'sceglie') { const [pid, qk, ...ov] = k.split('|'); const pp = S.prod.find((x) => x.id === pid); if (pp) selDi(pp)[qk] = ov.join('|'); }
   else if (a === 'verPed') { S.pedido = true; S.campana = false; }
   else if (a === 'chiudiPed') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.listo = null; }
-  else if (a === 'inicio') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.campana = false; S.listo = null; S.abierta = null; S.busca = null; const g = gruppi()[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; } }
+  else if (a === 'inicio') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.campana = false; S.listo = null; S.abierta = null; S.busca = null; const g = gruppi()[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; }
+    S.palco = true; S.slide = 0; S.finVid = false; }   // v0.7: la casetta riporta all'inizio, dallo show
   else if (a === 'env' && envioOn() && !S.inviando && !S.inviaStato && Object.keys(S.cart).length) {
     S.inviando = { fine: Date.now() + ATTESA_INVIO }; S.errore = '';
     INV = setTimeout(() => { S.inviando = null; clearInterval(INV_TICK); inviaOra(false); }, ATTESA_INVIO);
@@ -655,12 +926,16 @@ document.getElementById('app').addEventListener('click', (ev) => {
   }
   else if (a === 'annulla') { clearTimeout(INV); clearInterval(INV_TICK); S.inviando = null; }
   else if (a === 'mesaSi') { S.need = ''; inviaOra(true); return; }
-  else if (a === 'seguir') { const d = dopoQuesto(((S.listo || {}).righe || []).map((r) => r.p)); S.pedido = false; S.listo = null; S.abierta = null; if (d) { S.fam = d.fam; S.cat = d.cat; } }
+  else if (a === 'seguir') { const d = dopoQuesto(((S.listo || {}).righe || []).map((r) => r.p)); S.pedido = false; S.listo = null; S.abierta = null; S.palco = false; if (d) { S.fam = d.fam; S.cat = d.cat; } }
   else if (a === 'campana' && envioOn()) { S.campana = true; S.pedido = false; }
   else if (a === 'campanaChiudi') { S.campana = false; }
   else if (a === 'campanaMotivo' && envioOn()) { S.campana = false; llamaMesero(k); }
   pinta();
+  // il ＋ della pagina di chiusura del video cambia la sua scritta («✓ 1 en tu pedido · ＋ otra»): quella pagina si rifà da sola
+  if (a === 'mas' && inPalco() && S.finVid) palcoRidisegna();
 });
+// il palco si ferma col telefono in tasca e riparte quando torna in mano
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') palcoGira(); else palcoStop(); });
 
 /* ═══ l'avvio ═══ */
 /* v0.5.7 · TAMPONE dichiarato (28-ott 20:39 UTC): il bordo risponde a tratti 500 «error code: 1101» su /carta (≈1 su 20), senza
@@ -693,14 +968,21 @@ async function fotoNostre() {
       if (/^[\w.-]+\.(webp|jpe?g|png)$/i.test(f || '')) out[id] = { img: 'fotos/' + LOCAL + '/' + f, fy: (y >= 0 && y <= 100) ? y : null }; });
     return out; } catch (e) { return {}; }
 }
+/* v0.7 · LA VETRINA DEL LOCALE: `vetrina/vetrina.json` ({"BKS":{"fondo","palco":[…],"destacados":[…]}}), stessa forma di fotos.json.
+   ⏳ TAMPONE dichiarato: lo uccide la config del locale in Postgres (menu_config_local di 🚚 MIGRA). Senza vetrina: si entra in carta, come prima. */
+async function vetrinaLocale() {
+  try { const r = await fetch('vetrina/vetrina.json', { cache: 'no-cache' }); if (!r.ok) return null; const v = (await r.json())[LOCAL]; return v && typeof v === 'object' ? v : null; } catch (e) { return null; }
+}
 (async function avvio() {
   if (!LOCAL) { document.getElementById('z3').innerHTML = '<div class="msg"><b>Escanea el QR de tu mesa</b>Así sabemos dónde estás y qué carta mostrarte.</div>'; return; }
   try {
-    const [rc, rk, ff] = await Promise.all([
+    const [rc, rk, ff, vv] = await Promise.all([
       leggi(BORDO + '/estado/' + LOCAL + '?seccion=menu_config&t=' + TOKEN_LETTURA),
       leggi(BORDO + '/carta/' + LOCAL + '?t=' + TOKEN_LETTURA),
       fotoNostre(),
+      vetrinaLocale(),
     ]);
+    S.vet = vv;
     const jc = await rc.json();
     S.cfg = (jc && jc.datos && jc.datos.datos && jc.datos.datos.config) || {};
     S.prod = prodotti(await rk.text());
@@ -710,6 +992,9 @@ async function fotoNostre() {
     const g = gruppi()[0];
     if (!g) throw new Error('carta vacía');
     S.fam = g.k; S.cat = g.cats[0];
+    // v0.7: il fondo del locale, l'inizio dallo show, «Otra vez» di questa mesa
+    if (S.vet && PATH_VET.test(S.vet.fondo || '')) { const app = document.getElementById('app'); app.style.setProperty('--fondo', 'url("' + S.vet.fondo + '")'); app.classList.add('confondo'); }
+    preparaSlides(); S.palco = SLIDES.length > 0; histLeggi();
     pinta();
   } catch (e) {
     // nessun ripiego su Google: si dice che cosa manca
