@@ -315,7 +315,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.8.0</div>
+<div class="ver" id="ver">menu v0.8.1</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -339,6 +339,20 @@ const TR = {
   de: { Comer: 'Essen', Barra: 'Bar', Postres: 'Desserts', Destacados: 'Empfohlen', 'desliza ›': 'wischen ›', PEDIR: 'BESTELLEN', ENVIAR: 'SENDEN', Pagar: 'Zahlen', 'OTRA VEZ': 'NOCHMAL', Buscar: 'Suchen', 'Tu pedido': 'Deine Bestellung', 'Tu cuenta': 'Deine Rechnung', 'Seguir pidiendo': 'Weiter bestellen', '¡Listo!': 'Fertig!', 'Con opciones · pronto': 'Mit Optionen · bald', Mesa: 'Tisch', 'ENVIAR PEDIDO': 'BESTELLUNG SENDEN', 'Ver el plato': 'Gericht ansehen', '¿Se te antojó?': 'Lust bekommen?', Total: 'Summe' },
   fr: { Comer: 'Manger', Barra: 'Bar', Postres: 'Desserts', Destacados: 'À la une', 'desliza ›': 'glisser ›', PEDIR: 'COMMANDER', ENVIAR: 'ENVOYER', Pagar: 'Payer', 'OTRA VEZ': 'ENCORE', Buscar: 'Chercher', 'Tu pedido': 'Ta commande', 'Tu cuenta': 'Ton addition', 'Seguir pidiendo': 'Continuer', '¡Listo!': "C'est parti !", 'Con opciones · pronto': 'Avec options · bientôt', Mesa: 'Table', 'ENVIAR PEDIDO': 'ENVOYER LA COMMANDE', 'Ver el plato': 'Voir le plat', '¿Se te antojó?': 'Envie ?', Total: 'Total' },
   ja: { Comer: 'フード', Barra: 'バー', Postres: 'スイーツ', Destacados: 'おすすめ', 'desliza ›': 'スワイプ ›', PEDIR: '注文', ENVIAR: '送信', Pagar: '支払う', 'OTRA VEZ': 'もう一度', Buscar: '検索', 'Tu pedido': 'ご注文', 'Tu cuenta': 'お会計', 'Seguir pidiendo': '注文を続ける', '¡Listo!': '完了！', 'Con opciones · pronto': 'オプションあり · 近日', Mesa: 'テーブル', 'ENVIAR PEDIDO': '注文を送信', 'Ver el plato': '料理を見る', '¿Se te antojó?': '食べたくなった？', Total: '合計' } };
+/* v0.8.1 (giallo di 💵 EL GIRO su 491bde3: «la traduzione è parziale»): le FRASI del menù, nello stesso ordine della chiave K2 */
+const K2 = ['Todavía no has pedido nada.', 'Enviando…', 'producto', 'productos', 'Lo que pediste desde este teléfono', 'Pedir la cuenta', 'te traemos la máquina a tu mesa', 'Desde las', 'en tu pedido', 'Consumo', '¿En qué te ayudamos?', 'Tu mesero viene a tu mesa.', 'Tu pedido va', 'recién enviado', 'Se acabó por hoy', 'Tengo una duda sobre un plato', 'ingredientes, alergias, qué me recomiendas', 'Algo no está bien con mi pedido', 'falta algo, llegó frío, no es lo que pedí', 'Falta algo en la mesa', 'servilletas, cubiertos, hielo, salsas', 'Quiero pagar con la máquina', 'te traemos el POS', 'Celebramos algo 🎂', 'cumpleaños, aniversario: te ayudamos a sorprender', 'Otra cosa', 'toca para corregir · sale en', 'no cierres esta pantalla', 'a cocina', 'a barra', 'a cocina y barra'];
+const TR2 = {
+  en: ["You haven't ordered anything yet.", 'Sending…', 'item', 'items', 'What you ordered from this phone', 'Ask for the bill', 'we bring the card machine to your table', 'From', 'in your order', 'Total so far', 'How can we help?', 'Your waiter is coming to your table.', 'Your order goes', 'just sent', 'Sold out for today', 'I have a question about a dish', 'ingredients, allergies, what do you recommend', 'Something is wrong with my order', 'something missing, arrived cold, not what I ordered', 'Something missing at the table', 'napkins, cutlery, ice, sauces', 'I want to pay by card', 'we bring you the card machine', "We're celebrating 🎂", 'birthday, anniversary: we help you surprise', 'Something else', 'tap to fix · sends in', "don't close this screen", 'to the kitchen', 'to the bar', 'to the kitchen and bar'],
+  pt: ['Você ainda não pediu nada.', 'Enviando…', 'produto', 'produtos', 'O que você pediu deste celular', 'Pedir a conta', 'levamos a maquininha à sua mesa', 'A partir das', 'no seu pedido', 'Consumo', 'Como podemos ajudar?', 'Seu garçom está vindo à sua mesa.', 'Seu pedido vai', 'acabou de ser enviado', 'Esgotado por hoje', 'Tenho uma dúvida sobre um prato', 'ingredientes, alergias, o que você recomenda', 'Algo não está certo com meu pedido', 'falta algo, chegou frio, não é o que pedi', 'Falta algo na mesa', 'guardanapos, talheres, gelo, molhos', 'Quero pagar na maquininha', 'levamos a maquininha', 'Estamos comemorando 🎂', 'aniversário: ajudamos a surpreender', 'Outra coisa', 'toque para corrigir · sai em', 'não feche esta tela', 'para a cozinha', 'para o bar', 'para a cozinha e o bar'],
+  it: ['Non hai ancora ordinato nulla.', 'Invio…', 'prodotto', 'prodotti', 'Quello che hai ordinato da questo telefono', 'Chiedi il conto', 'ti portiamo il POS al tavolo', 'Dalle', 'nel tuo ordine', 'Consumo', 'Come possiamo aiutarti?', 'Il tuo cameriere arriva al tavolo.', 'Il tuo ordine va', 'appena inviato', 'Esaurito per oggi', 'Ho un dubbio su un piatto', 'ingredienti, allergie, cosa mi consigli', 'Qualcosa non va con il mio ordine', 'manca qualcosa, è arrivato freddo, non è quello che ho chiesto', 'Manca qualcosa al tavolo', 'tovaglioli, posate, ghiaccio, salse', 'Voglio pagare con il POS', 'ti portiamo il POS', 'Festeggiamo qualcosa 🎂', 'compleanno, anniversario: ti aiutiamo a sorprendere', 'Altro', 'tocca per correggere · parte tra', 'non chiudere questa schermata', 'in cucina', 'al bar', 'in cucina e al bar'],
+  zh: ['你还没有点任何东西。', '发送中…', '件', '件', '你用这部手机点的', '要账单', '我们把刷卡机送到你的桌上', '开始', '在你的订单中', '消费', '需要什么帮助？', '服务员正在过来。', '你的订单送往', '刚刚发送', '今日售罄', '我对一道菜有疑问', '配料、过敏、推荐什么', '我的订单有问题', '少了东西、送来是冷的、不是我点的', '桌上缺东西', '餐巾、餐具、冰块、酱料', '我想刷卡付款', '我们把刷卡机拿来', '我们在庆祝 🎂', '生日、纪念日：我们帮你制造惊喜', '其他', '点击修改 · 发送倒计时', '请不要关闭此页面', '厨房', '吧台', '厨房和吧台'],
+  ko: ['아직 주문한 것이 없어요.', '보내는 중…', '개', '개', '이 휴대폰으로 주문한 것', '계산서 요청', '카드 단말기를 테이블로 가져다 드려요', '시작', '주문에', '이용 금액', '무엇을 도와드릴까요?', '직원이 테이블로 가고 있어요.', '주문이 갑니다', '방금 보냄', '오늘 품절', '요리에 대해 궁금한 게 있어요', '재료, 알레르기, 추천 메뉴', '주문에 문제가 있어요', '빠진 것, 식었음, 주문과 다름', '테이블에 필요한 것이 있어요', '냅킨, 식기, 얼음, 소스', '카드로 결제하고 싶어요', '카드 단말기를 가져다 드려요', '축하할 일이 있어요 🎂', '생일, 기념일: 서프라이즈를 도와드려요', '기타', '눌러서 수정 · 전송까지', '이 화면을 닫지 마세요', '주방으로', '바로', '주방과 바로'],
+  de: ['Du hast noch nichts bestellt.', 'Wird gesendet…', 'Artikel', 'Artikel', 'Was du von diesem Handy bestellt hast', 'Rechnung anfordern', 'wir bringen das Kartengerät an deinen Tisch', 'Ab', 'in deiner Bestellung', 'Verzehr', 'Wie können wir helfen?', 'Dein Kellner kommt an deinen Tisch.', 'Deine Bestellung geht', 'gerade gesendet', 'Heute ausverkauft', 'Ich habe eine Frage zu einem Gericht', 'Zutaten, Allergien, was empfiehlst du', 'Mit meiner Bestellung stimmt etwas nicht', 'etwas fehlt, kam kalt, nicht was ich bestellt habe', 'Am Tisch fehlt etwas', 'Servietten, Besteck, Eis, Saucen', 'Ich möchte mit Karte zahlen', 'wir bringen das Kartengerät', 'Wir feiern etwas 🎂', 'Geburtstag, Jahrestag: wir helfen beim Überraschen', 'Etwas anderes', 'tippen zum Korrigieren · geht raus in', 'schließe diesen Bildschirm nicht', 'in die Küche', 'an die Bar', 'in Küche und Bar'],
+  fr: ["Tu n'as encore rien commandé.", 'Envoi…', 'article', 'articles', 'Ce que tu as commandé depuis ce téléphone', "Demander l'addition", "on t'apporte le terminal à ta table", 'À partir de', 'dans ta commande', 'Consommation', 'Comment pouvons-nous aider ?', 'Ton serveur arrive à ta table.', 'Ta commande part', "à l'instant", "Épuisé pour aujourd'hui", "J'ai une question sur un plat", 'ingrédients, allergies, que me conseilles-tu', 'Quelque chose ne va pas avec ma commande', "il manque quelque chose, c'est arrivé froid, ce n'est pas ce que j'ai commandé", 'Il manque quelque chose à table', 'serviettes, couverts, glaçons, sauces', 'Je veux payer par carte', "on t'apporte le terminal", 'On fête quelque chose 🎂', "anniversaire : on t'aide à surprendre", 'Autre chose', 'touche pour corriger · part dans', 'ne ferme pas cet écran', 'en cuisine', 'au bar', 'en cuisine et au bar'],
+  ja: ['まだ何も注文していません。', '送信中…', '品', '品', 'この携帯から注文したもの', 'お会計をお願いする', 'カード端末をお席にお持ちします', '開始', 'ご注文に', 'ご利用額', '何かお困りですか？', 'スタッフがお席に向かいます。', 'ご注文の行き先', '送信しました', '本日売り切れ', '料理について質問があります', '材料、アレルギー、おすすめ', '注文に問題があります', '足りない、冷めている、注文と違う', 'テーブルに足りないものがあります', 'ナプキン、カトラリー、氷、ソース', 'カードで支払いたい', 'カード端末をお持ちします', 'お祝いをしています 🎂', '誕生日、記念日：サプライズをお手伝い', 'その他', 'タップで修正 · 送信まで', 'この画面を閉じないでください', 'キッチンへ', 'バーへ', 'キッチンとバーへ'] };
+Object.keys(TR2).forEach((l) => { if (TR2[l].length !== K2.length) throw new Error('TR2 ' + l + ' ' + TR2[l].length); K2.forEach((k, i) => { TR[l][k] = TR2[l][i]; }); });
+const CANC = { en: 'Cancel', pt: 'Cancelar', it: 'Annulla', zh: '取消', ko: '취소', de: 'Abbrechen', fr: 'Annuler', ja: 'キャンセル' };
+Object.keys(CANC).forEach((l) => { TR[l].Cancelar = CANC[l]; });
 function langIniziale() { let l = ''; try { l = localStorage.getItem('pinsita_lang') || ''; } catch (e) {} if (!LANGS.some((x) => x[0] === l)) l = LANG; return LANGS.some((x) => x[0] === l) ? l : 'es'; }
 const T = (w) => { const d = TR[S.lang]; return (d && d[w]) || w; };
 const S = { cfg: null, prod: [], tick: null, fam: null, cat: null, abierta: null, cart: {}, pedido: false,
@@ -500,14 +514,14 @@ function card(p, lista) {
   const q = qtyDi(p), conDom = domande(p).length > 0;
   if (!lista && p.id === S.abierta && !esaurito(p) && !chiusa(p) && inOrario(p)) return verCard(p);
   const foto = !lista ? '' : p.img ? '<img class="th" loading="lazy" src="' + esc(p.img) + '" alt="">' : '<div class="tg">' + esc(p.n) + '</div>';
-  if (esaurito(p)) return '<div class="cd agot">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">Se acabó por hoy</div></div>';
+  if (esaurito(p)) return '<div class="cd agot">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">' + T('Se acabó por hoy') + '</div></div>';
   const ch = chiusa(p);
   if (ch) return '<div class="cd agot">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">' + (ch === 'barra' ? 'La barra ya cerró' : 'La cocina ya cerró') + '</div></div>';
-  if (!inOrario(p)) return '<div class="cd agot fh">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">Desde las ' + hhmm(p.hi) + '</div></div>';
+  if (!inOrario(p)) return '<div class="cd agot fh">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">' + T('Desde las') + ' ' + hhmm(p.hi) + '</div></div>';
   return '<div class="cd' + (q ? ' dentro' : '') + '" data-a="abre" data-k="' + esc(p.id) + '">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="pz">' + pzHTML(p) + '</div>' +
     (!MESA ? '' : chiedeScelta(p) ? '<div class="opc">' + T('Con opciones · pronto') + '</div>'
       // chi chiede una scelta non mette dalla griglia: apre la scheda, dove si sceglie (il ＋ promette che aggiunge)
-      : conDom ? '<button class="addb chiede" data-a="abre" data-k="' + esc(p.id) + '">' + (q ? q + ' en tu pedido · ＋' : '＋ ' + T('PEDIR')) + '</button>'
+      : conDom ? '<button class="addb chiede" data-a="abre" data-k="' + esc(p.id) + '">' + (q ? q + ' ' + T('en tu pedido') + ' · ＋' : '＋ ' + T('PEDIR')) + '</button>'
       : q ? '<div class="qn"><i data-a="meno" data-k="' + esc(chiave(p)) + '">−</i>' + q + '<i data-a="mas" data-k="' + esc(p.id) + '">+</i></div>'
       : '<button class="addb" data-a="mas" data-k="' + esc(p.id) + '">＋ ' + T('PEDIR') + '</button>') + '</div>';
 }
@@ -603,7 +617,7 @@ function pedidoHTML() {
   if (!ks.length && S.listo) {
     const L = S.listo;
     return '<div class="ped"><div class="pedtit">' + T('¡Listo!') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
-      '<div class="okv">✓ Tu pedido va ' + L.dove + '<span>Mesa ' + esc(MESA) + ' · recién enviado</span></div>' +
+      '<div class="okv">✓ ' + T('Tu pedido va') + ' ' + T(L.dove) + '<span>' + T('Mesa') + ' ' + esc(MESA) + ' · ' + T('recién enviado') + '</span></div>' +
       L.righe.map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') + seguirCard(L.righe.map((r) => r.p)) + '</div>';
   }
   // ogni riga col suo ＋/− sulla SUA chiave: il ＋ della riga «Filete · A punto» aggiunge un altro a punto, non un filete qualsiasi
@@ -616,15 +630,15 @@ function pedidoHTML() {
   else if (S.need === 'mesa') bot = '<div class="avv">🪑 ¿Sigues en la mesa ' + esc(MESA) + '?</div><button class="envG" data-a="mesaSi"><b>Sí — enviar</b></button>' +
     '<div class="avvs">Si te cambiaste de mesa, escanea el QR de tu mesa nueva.</div>';
   else if (S.inviando) { const rem = Math.max(0, S.inviando.fine - Date.now());
-    bot = '<button class="envG hold" data-a="annulla"><b>Enviando… ⟲ Cancelar</b><span>toca para corregir · sale en ' + Math.max(1, Math.ceil(rem / 1000)) + ' s</span>' +
+    bot = '<button class="envG hold" data-a="annulla"><b>' + T('Enviando…') + ' ⟲ ' + T('Cancelar') + '</b><span>' + T('toca para corregir · sale en') + ' ' + Math.max(1, Math.ceil(rem / 1000)) + ' s</span>' +
       '<i class="barra" style="--da:' + (rem / ATTESA_INVIO * 100).toFixed(1) + '%;animation-duration:' + rem + 'ms"></i></button>'; }
-  else if (S.inviaStato === 'volando') bot = '<button class="envG hold"><b>Enviando…</b><span>no cierres esta pantalla</span></button>';
+  else if (S.inviaStato === 'volando') bot = '<button class="envG hold"><b>' + T('Enviando…') + '</b><span>' + T('no cierres esta pantalla') + '</span></button>';
   else bot = (S.errore ? '<div class="avv">' + esc(S.errore) + '</div>' : '') +
-    '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : T('ENVIAR PEDIDO') + ' 🛎') + '</b><span>' + t.n + ' producto' + (t.n > 1 ? 's' : '') + ' · ' + clp(t.s) + ' · ' + adove(righe().map((r) => r.p)) + '</span></button>';
+    '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : T('ENVIAR PEDIDO') + ' 🛎') + '</b><span>' + t.n + ' ' + T(t.n > 1 ? 'productos' : 'producto') + ' · ' + clp(t.s) + ' · ' + T(adove(righe().map((r) => r.p))) + '</span></button>';
   return '<div class="ped"><div class="pedtit">' + T('Tu pedido') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
     (ks.length ? lineeH + '<div class="tot"><span>' + T('Total') + '</span><span>' + clp(t.s) + '</span></div>' + bot +
       (S.inviando || S.inviaStato ? '' : '<button class="segui" data-a="chiudiPed">' + T('Seguir pidiendo') + '</button>')
-      : '<div class="vuoto">Todavía no has pedido nada.</div>') + '</div>';
+      : '<div class="vuoto">' + T('Todavía no has pedido nada.') + '</div>') + '</div>';
 }
 /* ═══ v0.7 · L'INIZIO: IL PALCO (mockup §⑫ ①-③, Alberto 21-22 ott) ═══════════════════════════════════════════════════════════════════
    Sopra ~⅔ l'esperienza (show, «cómo lo hacemos»), sotto i destacados col loro PEDIR. Il palco gira finché il cliente non sceglie; al primo
@@ -660,7 +674,7 @@ function slideHTML() {
     const q = qtyDi(p), diretto = ordinabile(p) && !domande(p).length;
     return '<div class="pal pal-fin" style="background-image:url(\'' + esc(s.poster) + '\')"><div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div>' +
       '<div class="pal-t">' + T('¿Se te antojó?') + '</div><div class="pal-s">' + esc(p.n.replace(/`/g, '')) + ' · ' + clp(prezzoOra(p).v) + '</div><div class="pal-cta-row">' +
-      (diretto ? '<button class="pal-cta" data-a="mas" data-k="' + esc(p.id) + '">' + (q ? '✓ ' + q + ' en tu pedido · ＋ otra' : '＋ Pedir · ' + clp(prezzoOra(p).v)) + '</button>' : '') +
+      (diretto ? '<button class="pal-cta" data-a="mas" data-k="' + esc(p.id) + '">' + (q ? '✓ ' + q + ' ' + T('en tu pedido') + ' · ＋' : '＋ Pedir · ' + clp(prezzoOra(p).v)) + '</button>' : '') +
       '<button class="pal-x" data-a="palcoPlato">' + T('Ver el plato') + '</button><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button></div></div>' + puntiPalco() + '</div>';
   }
   if (s.vid && S.finVid) return '<div class="pal pal-fin" style="background-image:url(\'' + esc(s.poster) + '\')"><div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div>' +
@@ -741,7 +755,7 @@ function donoHTML() {
     '<div class="prq">Firma</div><div class="pchips"><button class="pchip' + (d.firma !== 'anon' ? ' on' : '') + '" data-a="donoFirma" data-k="mesa">De la mesa ' + esc(MESA) + '</button>' +
     '<button class="pchip' + (d.firma === 'anon' ? ' on' : '') + '" data-a="donoFirma" data-k="anon">Anónimo 🤫</button></div>' +
     (d.err ? '<div class="avv">' + esc(d.err) + '</div>' : '') +
-    (d.volo ? '<button class="envG hold"><b>Enviando…</b><span>no cierres esta pantalla</span></button>'
+    (d.volo ? '<button class="envG hold"><b>' + T('Enviando…') + '</b><span>' + T('no cierres esta pantalla') + '</span></button>'
       : '<button class="envG' + (ok ? '' : ' waspento') + '" data-a="' + (ok ? 'donoInvia' : 'donoFalta') + '" data-dono-btn="1"><b>Enviar regalo 🎁 · ' + clp(prezzoOra(p).v) + '</b><span>va a tu cuenta · si no lo aceptan, no se cobra</span></button>') + '</div>';
 }
 async function inviaDono() {
@@ -784,15 +798,19 @@ function showAcceso() {
 const ENV_K = () => 'pinsita_env_' + LOCAL + '_' + MESA;
 function envLeggi() { try { const v = JSON.parse(sessionStorage.getItem(ENV_K()) || '[]'); S.enviados = Array.isArray(v) ? v : []; } catch (e) { S.enviados = []; } }
 function envAggiungi(rr) { S.enviados.push({ ts: Date.now(), righe: rr }); try { sessionStorage.setItem(ENV_K(), JSON.stringify(S.enviados)); } catch (e) { /* solo memoria */ } }
-const consumoTel = () => S.enviados.reduce((s, e) => s + (e.righe || []).reduce((t, r) => t + (Number(r.pr) || 0) * (Number(r.q) || 0), 0), 0);
+/* v0.8.1 (giallo di 💵 EL GIRO: «il conto del telefono non ha un giorno»): conta solo gli invii del giorno OPERATIVO di oggi (taglio 06:00,
+   Santiago). Chi lascia la scheda aperta e torna il giorno dopo alla stessa mesa non vede il Pagar di ieri. Muore col conto vero della mesa. */
+const giornoOp = (ts) => { const d = new Date(new Date(ts - 6 * 3600 * 1000).toLocaleString('en-US', { timeZone: 'America/Santiago' })); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); };
+const envOggi = () => S.enviados.filter((e) => giornoOp(Number(e.ts) || 0) === giornoOp(Date.now()));
+const consumoTel = () => envOggi().reduce((s, e) => s + (e.righe || []).reduce((t, r) => t + (Number(r.pr) || 0) * (Number(r.q) || 0), 0), 0);
 function cuentaHTML() {
-  const L = []; S.enviados.forEach((e) => (e.righe || []).forEach((r) => { const x = L.find((y) => y.nome === r.nome && y.pr === r.pr); if (x) x.q += r.q; else L.push(Object.assign({}, r)); }));
+  const L = []; envOggi().forEach((e) => (e.righe || []).forEach((r) => { const x = L.find((y) => y.nome === r.nome && y.pr === r.pr); if (x) x.q += r.q; else L.push(Object.assign({}, r)); }));
   return '<div class="ped"><div class="pedtit">' + T('Tu cuenta') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' +
-    '<div class="okr" style="border-top:0;color:var(--suave)">Lo que pediste desde este teléfono · ' + T('Mesa') + ' ' + esc(MESA) + '</div>' +
+    '<div class="okr" style="border-top:0;color:var(--suave)">' + T('Lo que pediste desde este teléfono') + ' · ' + T('Mesa') + ' ' + esc(MESA) + '</div>' +
     L.map((r) => { const p = S.prod.find((x) => x.id === r.id);
       return '<div class="lin">' + (p && p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<div class="lth"></div>') + '<div class="lnm">' + r.q + '× ' + esc(r.nome) + '</div><div class="lpz">' + clp(r.pr * r.q) + '</div></div>'; }).join('') +
-    '<div class="tot"><span>Consumo</span><span>' + clp(consumoTel()) + '</span></div>' +
-    '<button class="envG" data-a="cuentaPos"><b>Pedir la cuenta</b><span>te traemos la máquina a tu mesa</span></button>' +
+    '<div class="tot"><span>' + T('Consumo') + '</span><span>' + clp(consumoTel()) + '</span></div>' +
+    '<button class="envG" data-a="cuentaPos"><b>' + T('Pedir la cuenta') + '</b><span>' + T('te traemos la máquina a tu mesa') + '</span></button>' +
     '<button class="segui" data-a="cuentaChiudi">' + T('Seguir pidiendo') + '</button></div>';
 }
 function lingueHTML() {
@@ -810,7 +828,7 @@ function djHTML() {
   const dj = (S.vet && S.vet.dj) || {}, vivo = showAcceso(), ig = /^[\w.]{1,30}$/.test(dj.instagram || '') ? dj.instagram : '';
   return '<div class="split"><div class="det"><div class="pal pal-dj"><button class="pal-close" data-a="djChiudi" aria-label="Cerrar">✕</button><div class="pal-tx">' +
     '<div class="pal-tag">' + (vivo ? '<i class="onair"></i> En vivo · esta noche' : (giornoShow() ? '🎧 Esta noche' : '🎧 La cartelera')) + '</div>' +
-    '<div class="pal-t">' + esc(dj.nombre || 'DJ') + '</div>' + (dj.desde ? '<div class="pal-s">Desde las ' + esc(dj.desde) + '</div>' : '') +
+    '<div class="pal-t">' + esc(dj.nombre || 'DJ') + '</div>' + (dj.desde ? '<div class="pal-s">' + T('Desde las') + ' ' + esc(dj.desde) + '</div>' : '') +
     (Array.isArray(dj.cartelera) && dj.cartelera.length ? '<div class="lsec"><b>📅 La cartelera</b>' + dj.cartelera.map((c) => '<div class="carte"><span>' + esc(c.d) + '</span><b>' + esc(c.n) + '</b><i>' + esc(c.h) + '</i></div>').join('') + '</div>' : '') +
     (ig ? '<div class="lsec"><a class="sigue" href="https://www.instagram.com/' + ig + '" target="_blank" rel="noopener">📸 Sigue a <b style="display:inline">@' + esc(ig) + '</b></a></div>' : '') +
     (famDj() ? '<div class="pal-cta-row" style="margin-top:14px"><button class="pal-cta" data-a="palcoFam" data-k="' + esc(famDj()) + '">' + esc(nomeGruppo(famDj())) + ' ›</button></div>' : '') +
@@ -825,9 +843,9 @@ const CAMPANA = [
   { k: 'fiesta', t: 'Celebramos algo 🎂', s: 'cumpleaños, aniversario: te ayudamos a sorprender' },
   { k: 'otra', t: 'Otra cosa', s: '' }];
 function campanaHTML() {
-  return '<div class="ped"><div class="pedtit">¿En qué te ayudamos?<button class="pedx" data-a="campanaChiudi">✕</button></div>' +
-    '<div class="okr" style="margin-bottom:8px">Tu mesero viene a tu mesa.</div>' +
-    CAMPANA.map((c) => '<button class="cmp" data-a="campanaMotivo" data-k="' + c.k + '"><span class="sn"><b>' + c.t + '</b>' + (c.s ? '<i>' + c.s + '</i>' : '') + '</span><span class="sp">›</span></button>').join('') + '</div>';
+  return '<div class="ped"><div class="pedtit">' + T('¿En qué te ayudamos?') + '<button class="pedx" data-a="campanaChiudi">✕</button></div>' +
+    '<div class="okr" style="margin-bottom:8px">' + T('Tu mesero viene a tu mesa.') + '</div>' +
+    CAMPANA.map((c) => '<button class="cmp" data-a="campanaMotivo" data-k="' + c.k + '"><span class="sn"><b>' + esc(T(c.t)) + '</b>' + (c.s ? '<i>' + esc(T(c.s)) + '</i>' : '') + '</span><span class="sp">›</span></button>').join('') + '</div>';
 }
 function totale() { let n = 0, s = 0; for (const r of righe()) { n += r.q; s += r.q * prezzoRiga(r); } return { n, s }; }
 function z2() {
@@ -1032,7 +1050,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
     INV = setTimeout(() => { S.inviando = null; clearInterval(INV_TICK); inviaOra(false); }, ATTESA_INVIO);
     // il numero scende da solo (solo il testo: la barra corre già in CSS)
     INV_TICK = setInterval(() => { const sp = document.querySelector('.envG.hold span'); if (!S.inviando || !sp) { clearInterval(INV_TICK); return; }
-      sp.textContent = 'toca para corregir · sale en ' + Math.max(1, Math.ceil((S.inviando.fine - Date.now()) / 1000)) + ' s'; }, 250);
+      sp.textContent = T('toca para corregir · sale en') + ' ' + Math.max(1, Math.ceil((S.inviando.fine - Date.now()) / 1000)) + ' s'; }, 250);
   }
   else if (a === 'annulla') { clearTimeout(INV); clearInterval(INV_TICK); S.inviando = null; }
   else if (a === 'mesaSi') { S.need = ''; inviaOra(true); return; }
