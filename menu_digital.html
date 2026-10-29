@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.113.2</span>
+<span id="ver" hidden>menu2 · v2.113.3</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -11754,6 +11754,26 @@ function v2DetM2(gid, i, el){
   }
   v2DetPinta();
 }
+/* v2.113.3 · IL MOD DI TESTO HA UN PREZZO (🛎 SALA V33, 29-ott: «Queso extra +$1.500» entrava solo come
+   nome dentro op, a prezzo base: 11 righe, $16.500 dal 13-set). Stessa lettura della sala (_modsDeltaTexto):
+   «… +$1.500» → { ok, label:'…', d:1500 } · senza «+$» → d 0 · prezzo illeggibile → ok:false, e la riga
+   NON entra (mai a 0). */
+function _modTextoDelta(op){
+  const s = (op || '').toString().trim();
+  if (!/\+\s*\$/.test(s)) return { ok: true, label: s, d: 0 };
+  const m = /^(.*?)\s*\+\s*\$\s*([\d]{1,3}(?:\.\d{3})*)\s*$/.exec(s);
+  if (!m) return { ok: false };
+  const d = parseInt(m[2].replace(/\./g, ''), 10);
+  if (!(d > 0)) return { ok: false };
+  return { ok: true, label: m[1].trim(), d: d };
+}
+/* il mod di testo diventa un record mods (cl 'ajuste', come la sala) e lascia op col solo nome */
+function _modTextoRec(mv){
+  const x = _modTextoDelta(mv);
+  if (!x.ok) return { ok: false };
+  if (!x.d) return { ok: true, mv: mv, rec: null };
+  return { ok: true, mv: '', rec: { o: x.label, d: x.d, cl: 'ajuste', parseado: true } };
+}
 /* le selezioni della ficha → i record mods (stesso contratto della comandera) */
 function v2M2Mods(){
   const out = [];
@@ -11881,7 +11901,7 @@ function v2DetPinta(){
   const precio = (regla && parsePrice(regla.precio) > 0) ? parsePrice(regla.precio) : parsePrice(V2_DET.p.precio);
   // v2.85.0 · IL PREZZO VIVO NEL CTA: il delta delle scelte è già dentro il
   // bottone («Agregar 1 · $6.500») — il totale non è mai una sorpresa dopo
-  const dSel = v2M2Mods().reduce((s,m)=> s + (m.d||0), 0);
+  const dSel = v2M2Mods().reduce((s,m)=> s + (m.d||0), 0) + (_modTextoDelta(V2_DET.resp.mod).d || 0);
   const precioFinal = ((ACTIVE_MEMBER && V2_DET.p.precio_member) ? parsePrice(V2_DET.p.precio_member) : precio) + dSel;
   cta.disabled = !!falta;
   cta.textContent = falta
@@ -11905,6 +11925,10 @@ function v2DetAgregar(){
   const _esMultiBeb = d.qty > 1 && d.preguntas.some(q => q.tipo === 'bebida') && v2BebTotal() === d.qty;
   // v2.85.0 · MODS2: le selezioni della ficha diventano record coi delta
   const _m2 = v2M2Mods();
+  const _mt2 = _modTextoRec(_mv2);
+  if (!_mt2.ok) { showToastMsg('Esta opción no tiene un precio legible: avísale al mesero'); return; }
+  _mv2 = _mt2.mv;
+  if (_mt2.rec) _m2.push(_mt2.rec);
   const _m2Noms = _m2.map(m => m.o);
   // v2.85.0 · LA PAREJA DEL 2x1 anche dal telefono (stessa grammatica del
   // mesero v3.11): su un 2x1 con qty=1 e vocabolario v2, la ficha chiude la
@@ -11923,8 +11947,8 @@ function v2DetAgregar(){
   }
   if(_esMultiBeb){
     Object.keys(d.bebN).forEach(beb => {
-      const _opB = [beb, _mv2].filter(Boolean).join(' · ');
-      for(let i = 0; i < d.bebN[beb]; i++) _pushLinea(d.p, _opB, d.resp.termino || '');
+      const _opB = [beb, _mv2].concat(_mt2.rec ? [_mt2.rec.o] : []).filter(Boolean).join(' · ');
+      for(let i = 0; i < d.bebN[beb]; i++) _pushLinea(d.p, _opB, d.resp.termino || '', _mt2.rec ? [_mt2.rec] : undefined);
     });
   } else {
     const _op2 = [d.resp.bebida || d.resp.alcohol || '', _mv2].concat(_m2Noms).filter(Boolean).join(' · ');
@@ -11933,7 +11957,7 @@ function v2DetAgregar(){
   try { navigator.vibrate && navigator.vibrate(12); } catch(e){}
   const detalle = _esMultiBeb
     ? Object.keys(d.bebN).map(b => d.bebN[b] + '× ' + b).join(' · ')
-    : [d.resp.bebida, trOp(d.resp.alcohol || ''), trOp(_mv2 || ''), trOp(d.resp.termino || '')].filter(Boolean).join(' · ');
+    : [d.resp.bebida, trOp(d.resp.alcohol || ''), trOp(_mv2 || (_mt2.rec ? _mt2.rec.o : '')), trOp(d.resp.termino || '')].filter(Boolean).join(' · ');
   showToastMsg('✓ ' + d.qty + '× ' + toTitleCase(d.p.nombre) + (detalle ? ' · ' + detalle : '') + ' en tu pedido');
   v2RefreshCtrl(d.p.id);
   closeDetail();
@@ -12848,10 +12872,15 @@ function _opFinaliza(){
       [(u1.map(m=>m.o).join('+') || 'como viene'), (mods.map(m=>m.o).join('+') || 'como viene')].join(' / '));
     return;
   }
-  cerrarOpcion();
   // v2.29.0 · mod → op (binario vivo fino al chit e al KDS); «Como viene» non si scrive
   let _mv = r.mod || '';
   if (_mv === (getLang('mod_comoviene') || 'Como viene')) _mv = '';
+  // v2.113.3 · il mod di testo «+$1.500» entra in precio (record mods), mai a prezzo base
+  const _mt = _modTextoRec(_mv);
+  if (!_mt.ok) { showToastMsg('Esta opción no tiene un precio legible: avísale al mesero'); return; }
+  cerrarOpcion();
+  _mv = _mt.mv;
+  if (_mt.rec) { mods.push(_mt.rec); }
   // op porta ANCHE i nomi dei mods: chit, KDS, mesero e forense continuano a
   // leggere ciò che leggono oggi senza toccare una riga (contratto §4: op non muore)
   const modsNoms = mods.map(m => m.o);
