@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.113.1</span>
+<span id="ver" hidden>menu2 · v2.113.2</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -13564,6 +13564,7 @@ async function regaloEnviar(prodId){
       plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
       precios_epoch: PRECIOS_EPOCH || '',   // v2.80.0 · il cancello dell'epoch
       ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
+      dispositivo_id: _llamadaDev(),   // v2.113.2 · l'apparecchio che ha fatto il gesto (chiave pinsita_dev della campanella), per il conto con ID
       member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
       items_json: JSON.stringify([{ id: p.id, nombre: '🎁 ' + p.nombre, precio: precio, qty: 1, llevar: 1, op: '', termino: '', es_menu: false, promo: '', cat: p.categoria }]),
       regalo_para: destino, regalo_nota: nota,
@@ -13786,6 +13787,7 @@ async function _enviarPedidoDigitalInner(opts){
     plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
     precios_epoch: PRECIOS_EPOCH || '',   // v2.80.0 · il cancello dell'epoch
     ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
+    dispositivo_id: _llamadaDev(),   // v2.113.2 · l'apparecchio (chiave pinsita_dev della campanella): il conto con ID ne fa la nascita «origen qr»
     member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
     items_json: itemsJson,
     // v2.0 · via A (gated envio_directo_activo): il GAS di oggi ignora i campi
