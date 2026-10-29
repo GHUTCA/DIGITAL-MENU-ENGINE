@@ -291,7 +291,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.7.0</div>
+<div class="ver" id="ver">menu v0.7.1</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -663,8 +663,13 @@ function ripHTML() {
    menu_digital: il pedido porta `regalo_para` · `regalo_nota` · `regalo_firma`; la propria mesa il bordo la rifiuta (`regalo_misma_mesa`).
    La chiave d'idempotenza nasce qui, una per gesto: un ritentativo non regala due volte; cambiare mesa o messaggio è un gesto nuovo.
    ⚠️ Dichiarato: il lato di CHI RICEVE (il biglietto sul suo telefono, il grazie) non c'è ancora, vuole un canale dal bordo al telefono. */
+/* v0.7.1 · 🔴 SPENTO (💵 EL GIRO, `EL GIRO 31051A1 VERDE SUL MENU, GIALLO SUL CAMMINO DEL REGALO`): nel vivo il regalo va DRITTO al GAS;
+   dal bordo `regalo_para` oggi è letto solo dalla guardia della propria mesa. Il chit uscirebbe «Mesa 998 · 🎁 …» senza dire a che mesa
+   portarlo, e né il record della sala né la riga PG porterebbero il destino. Si riaccende (true) quando il bordo porta `regalo_para`
+   nel chit, nel record e in `destino_regalo` di PG (🎛 BKP): la schermata e il payload sono pronti e bancati (32/0). */
+const REGALO_ON = false;
 const DONO_MSG = ['¡Salud! 🥂', 'Bienvenidos 👋', 'De parte de un admirador', 'Por la buena onda'];
-const esTrago = (p) => !!p && barraCats().indexOf(p.c) >= 0 && !/botella|jarra/i.test(p.n);
+const esTrago = (p) => REGALO_ON && !!p && barraCats().indexOf(p.c) >= 0 && !/botella|jarra/i.test(p.n);
 const donoMesaOk = (d) => /^[0-9]{1,3}$/.test(d.mesa || '') && String(Number(d.mesa)) !== String(Number(MESA));
 function tessera(p, ey, msg, firma) {
   return '<div class="tess">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '') + '<div class="tess-ey">🎁 ' + esc(ey) + '</div>' +
@@ -689,7 +694,7 @@ function donoHTML() {
 }
 async function inviaDono() {
   const d = S.dono, p = d && S.prod.find((x) => x.id === d.id);
-  if (!d || !p || d.volo || d.ok || !envioOn() || !donoMesaOk(d)) return;
+  if (!REGALO_ON || !d || !p || d.volo || d.ok || !envioOn() || !donoMesaOk(d)) return;
   d.volo = true; d.err = ''; if (!d.uuid) d.uuid = _uuid(); pinta();
   const pr = prezzoOra(p).v;
   const pl = { action: 'enviarPedido', local: LOCAL, uuid: d.uuid, mesa: MESA, total: pr,
