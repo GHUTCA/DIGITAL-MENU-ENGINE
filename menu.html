@@ -297,6 +297,21 @@ button{font-family:inherit}
 .pchips.p210 .pnone{flex:0 0 58%;margin:0 auto;padding:8px;font-size:12px;background:var(--sup);color:var(--suave)}
 .ckf.potrof{margin-top:8px}
 .ckr[hidden]{display:none}
+/* ═══ v0.9.3 · la voce del cliente (il disegno di sala_nueva svqApri, girato verso il cliente) ═══ */
+.opq{position:fixed;inset:0;z-index:40;background:rgba(8,6,4,.62);display:flex;align-items:flex-end;justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.opb{width:100%;max-width:520px;background:var(--sup);color:var(--txt);border:1px solid var(--linea2);border-radius:22px;padding:18px 14px 8px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.opb .opt{font-size:17px;font-weight:800;margin-bottom:14px;text-wrap:balance}
+.opb .opf{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.opb .opf button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 0;border-radius:16px;border:1px solid var(--linea2);background:var(--card);color:var(--txt);font-family:inherit;font-size:30px;cursor:pointer}
+.opb .opf button i{font-style:normal;font-size:12.5px;font-weight:700;color:var(--suave)}
+.opb .opf button.on{border-color:var(--oro);background:rgba(255,197,61,.12)}
+.opb .opm{text-align:left}
+.opb .opm[hidden]{display:none}
+.opb .opq2{font-size:13px;color:var(--suave);margin:2px 2px 8px}
+.opb .opm button[data-om]{display:block;width:100%;text-align:left;margin-bottom:6px;padding:11px 12px;border-radius:12px;border:1px solid var(--linea2);background:var(--card);color:var(--txt);font-family:inherit;font-size:14px;cursor:pointer}
+.opb .opm button[data-om].on{border-color:var(--male);background:rgba(255,107,94,.1)}
+.opb .opok{width:100%;margin-top:6px;border:0;border-radius:14px;padding:14px;background:var(--oro);color:#1a1408;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer}
+.opb .opk{background:transparent;border:0;color:var(--suave);font-family:inherit;font-size:12.5px;padding:10px;cursor:pointer;text-decoration:underline}
 .potro{width:100%;max-width:160px;margin-top:2px;background:var(--card);border:1.5px solid var(--ok);color:var(--txt);border-radius:10px;padding:10px;font-family:inherit;font-size:20px;font-weight:800;text-align:center;letter-spacing:.1em}
 .potro.wapide{animation:wapide .5s}
 @keyframes wapide{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
@@ -350,7 +365,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.2</div>
+<div class="ver" id="ver">menu v0.9.3</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1220,6 +1235,7 @@ async function verificaPago() {
   let mem = null; try { mem = JSON.parse(sessionStorage.getItem(CK_K()) || 'null'); } catch (e) { mem = null; }
   if (r && r.ok === true && r.estado === 'pagado') {
     S.ck.esito = { ok: true, numero: r.numero || '', righe: mem && mem.uuid === RITORNO_CK ? mem.righe : [] };
+    setTimeout(() => opinionApri('pagado', RITORNO_CK || ''), 2500);   // v0.9.3: dopo aver letto «¡Pagado!», non sopra
     S.cart = {}; S.sel = {}; try { sessionStorage.removeItem(CK_K()); } catch (e) {}
     try { const u = new URL(location.href); u.searchParams.delete('ck'); history.replaceState(null, '', u.toString()); } catch (e) {}
     if (CANAL === 'kiosco') setTimeout(() => { location.replace(location.href); }, 20000);
@@ -1285,7 +1301,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'lingueApri' || a === 'djApri' || a === 'cuentaApri') { if (S.inviando || S.inviaStato) return; S.lingue = a === 'lingueApri'; S.dj = a === 'djApri'; S.cuenta = a === 'cuentaApri'; S.pedido = false; S.campana = false; S.dono = null; pinta(); return; }
   if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; pinta(); return; }
   if (a === 'lingua' && LANGS.some((x) => x[0] === k)) { S.lang = k; S.lingue = false; document.documentElement.lang = k; try { localStorage.setItem('pinsita_lang', k); } catch (e) {} pinta(); return; }
-  if (a === 'cuentaPos' && envioOn()) { S.cuenta = false; llamaMesero('cuenta'); pinta(); return; }
+  if (a === 'cuentaPos' && envioOn()) { S.cuenta = false; llamaMesero('cuenta'); pinta(); setTimeout(() => opinionApri('cuenta', ''), 1800); return; }
   // v0.7 · «Otra vez»: la stessa riga di prima (piatto + scelta), una in più
   if (a === 'ripeti' && S.hist.indexOf(k) >= 0 && !S.inviando && !S.inviaStato) { const pp = S.prod.find((x) => x.id === k.split('§')[0]);
     if (ordinabile(pp)) { S.cart[k] = (S.cart[k] || 0) + 1; S.listo = null; S.errore = ''; S.need = ''; nota('＋1 ' + pp.n); } pinta(); return; }
@@ -1405,6 +1421,51 @@ function vestiPelle() {
   const fo = dia ? v.fondo_dia : (v.fondo_noche || v.fondo);
   if (PATH_VET.test(fo || '')) { app.style.setProperty('--fondo', 'url("' + fo + '")'); app.classList.add('confondo'); } else app.classList.remove('confondo');
   const tc = document.getElementById('tc'); if (tc) tc.setAttribute('content', dia ? '#EFE2CF' : '#0A0806');
+}
+/* ═══ v0.9.3 · LA VOCE DEL CLIENTE (Alberto 30-ott: «una cosa simile alla fine del pago sul menu qr, per avere l'info direttamente dal cliente») ═══
+   Il disegno è quello di sala_nueva (svqApri: Mal · Regular · Bien, e con Mal/Regular «¿Qué pasó?» a scelta multipla), girato verso il cliente.
+   Esce UNA volta per telefono e giorno operativo, in due punti: quando il cliente chiede il conto dalla mesa, e al «¡Pagado!» di depto/kiosco.
+   🚫 Niente Google: la risposta va al bordo, POST /opinion/<L>. 🔴 Quella rotta NON esiste ancora (contratto in bacheca per ⚙️ ARQ, la tabella per
+   🚚 MIGRA): per questo nasce dietro la leva della config `opinion_on` — vuota = non si mostra, e nessun dato si perde in silenzio.
+   Il voto non porta dati personali: mesa/destino, canale, voto, motivi, lingua, dispositivo (lo stesso id anonimo del pedido) e l'uuid del pago se c'è. */
+const OPI_TX = {
+  es: ['¿Cómo estuvo todo?', 'Mal', 'Regular', 'Bien', '¿Qué pasó?', 'La comida tardó', 'Los tragos tardaron', 'Un plato o trago no estaba bien', 'La atención', 'Otra cosa', 'Enviar', 'Saltar', '¡Gracias! Nos ayuda a mejorar', 'Elige al menos una'],
+  en: ['How was everything?', 'Bad', 'Okay', 'Good', 'What happened?', 'The food took long', 'The drinks took long', 'A dish or drink wasn’t right', 'The service', 'Something else', 'Send', 'Skip', 'Thanks! It helps us improve', 'Pick at least one'],
+  pt: ['Como foi tudo?', 'Ruim', 'Regular', 'Bom', 'O que aconteceu?', 'A comida demorou', 'Os drinks demoraram', 'Um prato ou drink não estava bom', 'O atendimento', 'Outra coisa', 'Enviar', 'Pular', 'Obrigado! Isso nos ajuda a melhorar', 'Escolha pelo menos uma'],
+  it: ['Com’è andata?', 'Male', 'Così così', 'Bene', 'Cos’è successo?', 'Il cibo ha tardato', 'I drink hanno tardato', 'Un piatto o un drink non andava', 'Il servizio', 'Altro', 'Invia', 'Salta', 'Grazie! Ci aiuta a migliorare', 'Scegline almeno una'],
+  zh: ['一切还好吗？', '不好', '一般', '很好', '发生了什么？', '上菜慢', '饮品慢', '有菜品或饮品不对', '服务', '其他', '提交', '跳过', '谢谢！这能帮助我们改进', '请至少选一项'],
+  ko: ['모두 어떠셨나요?', '별로', '보통', '좋음', '무슨 일이 있었나요?', '음식이 늦었어요', '음료가 늦었어요', '요리나 음료가 이상했어요', '서비스', '기타', '보내기', '건너뛰기', '감사합니다! 개선에 도움이 돼요', '하나 이상 골라 주세요'],
+  de: ['Wie war alles?', 'Schlecht', 'Okay', 'Gut', 'Was war los?', 'Das Essen dauerte', 'Die Drinks dauerten', 'Ein Gericht oder Drink war nicht gut', 'Der Service', 'Etwas anderes', 'Senden', 'Überspringen', 'Danke! Das hilft uns', 'Wähle mindestens eins'],
+  fr: ['Comment était tout ?', 'Mal', 'Moyen', 'Bien', 'Que s’est-il passé ?', 'Le plat a tardé', 'Les boissons ont tardé', 'Un plat ou une boisson n’allait pas', 'Le service', 'Autre chose', 'Envoyer', 'Passer', 'Merci ! Ça nous aide', 'Choisis-en au moins une'],
+  ja: ['いかがでしたか？', '悪い', '普通', '良い', '何がありましたか？', '料理が遅かった', 'ドリンクが遅かった', '料理かドリンクに問題があった', '接客', 'その他', '送信', 'スキップ', 'ありがとうございます！改善に役立てます', '1つ以上選んでください'] };
+const OPI_MOT = ['comida_tardo', 'tragos_tardaron', 'plato_mal', 'atencion', 'otra'];   // le chiavi viaggiano, il testo no (una per lingua)
+const opiOn = () => String((S.cfg && S.cfg.opinion_on) || '').trim() === '1';
+const OPI_K = () => 'pinsita_opi_' + LOCAL + '_' + giornoOp(Date.now());
+function opinionApri(dove, uuid) {
+  if (!opiOn() || document.querySelector('.opq')) return;
+  try { if (localStorage.getItem(OPI_K())) return; localStorage.setItem(OPI_K(), '1'); } catch (e) { /* senza memoria si chiede lo stesso, una volta per pagina */ }
+  const X = OPI_TX[S.lang] || OPI_TX.es, o = document.createElement('div'), rv = { v: null, mot: [] };
+  o.className = 'opq';
+  o.innerHTML = '<div class="opb" role="dialog" aria-label="' + esc(X[0]) + '"><div class="opt">' + esc(X[0]) + '</div>' +
+    '<div class="opf"><button type="button" data-ov="mal">😞<i>' + esc(X[1]) + '</i></button><button type="button" data-ov="regular">😐<i>' + esc(X[2]) + '</i></button><button type="button" data-ov="bien">🙂<i>' + esc(X[3]) + '</i></button></div>' +
+    '<div class="opm" hidden><div class="opq2">' + esc(X[4]) + '</div>' + OPI_MOT.map((k, i) => '<button type="button" data-om="' + k + '">' + esc(X[5 + i]) + '</button>').join('') +
+    '<button type="button" class="opok" data-ov="ok">' + esc(X[10]) + '</button></div>' +
+    '<button type="button" class="opk" data-ov="salta">' + esc(X[11]) + '</button></div>';
+  document.body.appendChild(o);
+  const manda = () => { o.remove(); nota('✓ ' + X[12]);
+    try { fetch(BORDO + '/opinion/' + LOCAL + '?t=' + TOKEN_LETTURA, { method: 'POST', keepalive: true, headers: { 'content-type': 'text/plain' },
+      body: JSON.stringify({ action: 'opinionCliente', local: LOCAL, canal: CANAL || 'mesa', destino: MESA || DEPTO || KIOSCO || '', donde: dove, uuid_pago: uuid || '',
+        voto: rv.v, motivos: rv.mot, idioma: S.lang, dispositivo_id: dispositivo(), ts: Date.now() }) }).catch(() => {}); } catch (e) {} };
+  o.addEventListener('click', (ev) => {
+    if (ev.target === o) { o.remove(); return; }
+    const b = ev.target.closest('[data-ov],[data-om]'); if (!b) return;
+    if (b.dataset.om) { b.classList.toggle('on'); const i = rv.mot.indexOf(b.dataset.om); if (i < 0) rv.mot.push(b.dataset.om); else rv.mot.splice(i, 1); return; }
+    const v = b.dataset.ov;
+    if (v === 'salta') { o.remove(); return; }
+    if (v === 'bien') { rv.v = 'bien'; manda(); return; }
+    if (v === 'mal' || v === 'regular') { rv.v = v; o.querySelectorAll('.opf button').forEach((x) => x.classList.toggle('on', x === b)); o.querySelector('.opm').hidden = false; return; }
+    if (v === 'ok') { if (!rv.mot.length) { nota(X[13]); return; } manda(); }
+  });
 }
 (async function avvio() {
   S.lang = langIniziale(); document.documentElement.lang = S.lang;   // v0.8: la lingua del telefono, o quella scelta col 🌐 l'ultima volta
