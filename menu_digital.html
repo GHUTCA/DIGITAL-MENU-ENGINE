@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.113.3</span>
+<span id="ver" hidden>menu2 · v2.113.4</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -13088,7 +13088,7 @@ function renderCart(){
       ? `<button class="v2-ronda" onclick="v2OtraRonda()">🔁 ¿Otra ronda? — ${v2RondaResumen()}</button>`
       : ''}
     ${(PEDIDO_DIGITAL && _nocheValidos().length > 0)
-      ? `<div class="pedido-hint" style="margin-top:6px">🧾 ${getLang('pedido_ya_noche') || 'Ya pedido esta noche'}: ${_nocheValidos().length} · ${formatPriceWithSymbol(_nocheValidos().reduce((s,p)=>s+(p.total||0),0))}</div>`
+      ? `<div class="pedido-hint" style="margin-top:6px">🧾 ${getLang('pedido_ya_noche') || 'Ya pedido esta noche'}: ${_nocheDelConto().length} · ${formatPriceWithSymbol(_nocheDelConto().reduce((s,p)=>s+(p.total||0),0))}</div>`
       : ''}
     ${v2ViasHTML()}`;
 }
@@ -14089,12 +14089,22 @@ function _nocheLoad(){
 }
 const _NOCHE_ICON = { pendiente:'🛎', atendido:'✓', digitado:'⌨', entregado:'🍽', cerrado:'🍽', expirado:'🙋', cancelado:'🙋' };
 function _nocheValidos(){ return PEDIDOS_NOCHE.filter(p => !['expirado','cancelado'].includes(p.estado)); }
+/* v2.113.4 · [AUT-0772] TAMPONE DICHIARATO (29-ott, mesa 89 di Alberto: il pranzo pagato alla 74 sommato
+   alla cena). La lista è la memoria del TELEFONO, non il conto: un pedido `cerrado` è di un conto già
+   pagato, e finché ce n'è uno vivo non entra nel totale. Rimanda la radice (il telefono che tiene un suo
+   conto): la uccide il totale letto dal conto per ID sul bordo nel menu.html vero, che sostituisce
+   questo file sul QR — data e proprietario in bacheca, «AUT-0772». */
+function _nocheDelConto(){
+  const v = _nocheValidos();
+  const chiuso = (p) => String(p.estado || '').toLowerCase() === 'cerrado';
+  return v.some(p => !chiuso(p)) ? v.filter(p => !chiuso(p)) : v;
+}
 
 // blocco html: gli ALTRI pedidos della serata (escluso quello in vista) + gran totale
 function _nocheHtml(uuidEscluso){
-  const otros = _nocheValidos().filter(p => p.uuid !== uuidEscluso);
+  const otros = _nocheDelConto().filter(p => p.uuid !== uuidEscluso);
   if(!otros.length) return '';
-  const totalNoche = _nocheValidos().reduce((s,p)=> s + (p.total||0), 0);
+  const totalNoche = _nocheDelConto().reduce((s,p)=> s + (p.total||0), 0);
   return `
     <div class="cart-recap-list" style="margin-top:10px">
       <div class="cart-recap-item" style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;color:var(--brand-text-muted)"><span>${getLang('pedido_noche_titulo') || 'Lo pedido esta noche'}</span><span></span></div>
