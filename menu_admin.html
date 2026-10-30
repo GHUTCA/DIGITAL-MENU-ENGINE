@@ -177,6 +177,8 @@
   .bs-prod-meta { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; }
   .bs-action-row { display:flex; align-items:center; gap:14px; padding:14px 4px; border-radius:var(--radius-sm); cursor:pointer; }
   .bs-action-row:active { background:var(--surface-2); }
+  .bs-action-row.off { opacity:.45; cursor:not-allowed; }
+  .bs-action-row.off:active { background:none; }
   .bs-action-row + .bs-action-row { border-top:1px solid var(--border); }
   .bs-action-icon { width:36px; height:36px; border-radius:var(--radius-sm); background:var(--surface-2); display:flex; align-items:center; justify-content:center; color:var(--accent); flex-shrink:0; }
   .bs-action-icon svg { width:18px; height:18px; }
@@ -375,7 +377,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v3.3.1</div>
+    <div class="hub-footer-version" id="ver">menu_admin v3.4.0</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -632,7 +634,19 @@ async function gasGet(action, extraParams) {
   }
 }
 
+/* ═══ v3.4.0 · [AUT-0773 · 📖 MENU BKS · sab 31-ott] IL CATALOGO È CONGELATO DAL SEME ═══
+   Dal seme di sab 31 la carta che il cliente vede esce da Postgres (GET /carta/<local> del bordo), non dal foglio. Prezzo, forzar e
+   push qui scrivono SOLO al GAS (il foglio): dopo il seme non arriverebbero al cliente, e il pannello direbbe «hecho».
+   ⇒ i bottoni si spengono e il tubo li rifiuta. Gli 86 restano: passano dal bordo (/admin86) e il tick li porta sopra la carta.
+   · TAMPONE dichiarato: lo uccide il catalog admin che scrive su PG (dom 1-nov, 📖 MENU BKS); allora CATALOGO_CONGELADO torna false.
+   · ritorno: il blob di menu_admin v3.3.1 (origin/main 85f9619). */
+const CATALOGO_CONGELADO = true;
+const CATALOGO_CONGELADO_MSG = 'Precio, forzar y push vuelven el domingo 1 · los 86 siguen funcionando';
+const ACCIONES_CONGELADAS = ['adminSetPrecio', 'adminForzar', 'adminClearForzar', 'adminPush', 'adminEndPush'];
+const ACCIONES_BS_CONGELADAS = ['push', 'change_price', 'apply_report', 'forzar', 'clear_forzar'];
+const accionCongelada = (id) => CATALOGO_CONGELADO && ACCIONES_BS_CONGELADAS.indexOf(id) >= 0;
 async function gasPost(action, body) {
+  if (CATALOGO_CONGELADO && ACCIONES_CONGELADAS.indexOf(action) >= 0) return { ok: false, error: CATALOGO_CONGELADO_MSG };
   const ctrl = new AbortController();
   const timeoutId = setTimeout(() => ctrl.abort(), CFG.COLD_START_TIMEOUT_MS);
   try {
@@ -1035,7 +1049,7 @@ function renderList(){
   let prefix = '';
   if(STATE.listMode==='push' && getPushed() && STATE.currentCat!=='_pushed'){
     const p = getPushed();
-    prefix = `<div class="push-active-banner"><div class="push-active-icon">${iconStar()}</div><div class="push-active-body"><div class="push-active-title">${p.nombre}</div><div class="push-active-sub">Activo hasta ${p.pushed.until} · ${p.pushed.by}</div></div><button class="push-active-end" onclick="event.stopPropagation();endPush('${p.id}')">Terminar</button></div>`;
+    prefix = `<div class="push-active-banner"><div class="push-active-icon">${iconStar()}</div><div class="push-active-body"><div class="push-active-title">${p.nombre}</div><div class="push-active-sub">Activo hasta ${p.pushed.until} · ${p.pushed.by}</div></div>${CATALOGO_CONGELADO ? '' : `<button class="push-active-end" onclick="event.stopPropagation();endPush('${p.id}')">Terminar</button>`}</div>`;
   }
 
   if((STATE.currentCat==='all'||STATE.currentCat==='_reports') && !STATE.searchQuery){
@@ -1113,7 +1127,8 @@ function openProductActions(prodId){
     }
   }
 
-  document.getElementById('bsActionList').innerHTML = actions.map(a=>`<div class="bs-action-row" onclick="chooseAction('${a.id}')"><div class="bs-action-icon ${a.iconClass||''}">${a.icon}</div><div class="bs-action-body"><div class="bs-action-title">${a.title}</div><div class="bs-action-meta">${a.meta}</div></div><div class="bs-action-arrow">${iconArrow()}</div></div>`).join('');
+  actions.forEach(a => { if (accionCongelada(a.id)) { a.off = true; a.meta = CATALOGO_CONGELADO_MSG; } });
+  document.getElementById('bsActionList').innerHTML = actions.map(a=>`<div class="bs-action-row${a.off?' off':''}" onclick="chooseAction('${a.id}')"><div class="bs-action-icon ${a.iconClass||''}">${a.icon}</div><div class="bs-action-body"><div class="bs-action-title">${a.title}</div><div class="bs-action-meta">${a.meta}</div></div><div class="bs-action-arrow">${iconArrow()}</div></div>`).join('');
   document.getElementById('bsConfirmContent').style.display = 'none';
   document.getElementById('bsActionList').style.display = '';
   document.getElementById('bsBackdrop').classList.add('show');
@@ -1124,6 +1139,7 @@ function closeBs(){ document.getElementById('bsBackdrop').classList.remove('show
 
 function chooseAction(id){
   const p = PRODUCTS.find(x=>x.id===STATE.pendingProdId); if(!p) return;
+  if (accionCongelada(id)) { showToast('warn', CATALOGO_CONGELADO_MSG); return; }
   STATE.pendingAction = id;
   if(id==='86_toggle'){
     showConfirm({
