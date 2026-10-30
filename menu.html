@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
+<meta name="theme-color" id="tc" content="#0A0806">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>Menú</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +26,21 @@
   --bg:#0A0806;--sup:#14100C;--card:#1A1510;--txt:#F3EDE4;--suave:rgba(243,237,228,.62);
   --linea:rgba(255,140,80,.18);--linea2:rgba(255,140,80,.36);--acc:#FF6A1F;--oro:#FFC53D;
   --ok:#8B9E4F;--ok-txt:#14180A;--ok-chiaro:#A9BE68;--male:#FF6B5E;
+  /* v0.9 · i pezzi che avevano il colore scritto a mano: la testa, i veli sotto le strisce, la casetta, il segno di versione, il riquadro senza foto, la nota */
+  --testa:linear-gradient(rgba(10,8,6,.92),rgba(10,8,6,.8));--velo:rgba(7,6,5,.55);--casa:rgba(243,237,228,.82);--sutil:rgba(243,237,228,.3);
+  --tgbg:#1b140a;--notabg:#24201a;--fondo-op:.71;
   color-scheme:dark;
+}
+/* ═══ v0.9 · IL GIORNO (Alberto 30-ott «fondo beige per il giorno … come oggi»): la sabbia del vestito di menu_digital (#EFE2CF, r.542-557),
+   le strelitzie chiare a opacità .57. Il blocco cambia SOLO token: nessuna regola sotto nomina il giorno. La notte è :root.
+   L'oro del giorno è più scuro di quello del vestito (#C98A2E): sui prezzi piccoli in crema #C98A2E non si legge. */
+body.dia{
+  --bg:#EFE2CF;--sup:#F8F1E6;--card:#FFFBF5;--txt:#241A14;--suave:#6B5A4F;
+  --linea:rgba(36,26,20,.10);--linea2:rgba(36,26,20,.18);--acc:#E0561A;--oro:#A8701F;
+  --ok-chiaro:#5E7030;--male:#C0392B;
+  --testa:linear-gradient(rgba(248,241,230,.94),rgba(248,241,230,.84));--velo:rgba(248,241,230,.72);--casa:rgba(36,26,20,.75);--sutil:rgba(36,26,20,.3);
+  --tgbg:#F3E6CF;--notabg:#FFFBF5;--fondo-op:.57;
+  color-scheme:light;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -35,8 +50,8 @@ button{font-family:inherit}
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 /* la riga in alto: una famiglia sola, stessa altezza, un solo pieno (mockup v1.1) */
 .z1{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));
-  border-bottom:1px solid var(--linea);min-height:50px;background:linear-gradient(rgba(10,8,6,.92),rgba(10,8,6,.8))}
-.casa{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:transparent;border:0;color:rgba(243,237,228,.82);display:flex;align-items:center;justify-content:center;cursor:pointer}
+  border-bottom:1px solid var(--linea);min-height:50px;background:var(--testa)}
+.casa{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:transparent;border:0;color:var(--casa);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .chi{flex:1;min-width:0;line-height:1.15}
 .chi b{display:block;font-size:14px}
 .chi span{display:block;font-size:11px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -49,7 +64,7 @@ button{font-family:inherit}
 .z3.basso>*{margin-top:auto}   /* non justify-content:flex-end: se il contenuto cresce, l'eccedenza deve restare scorrevole */
 .cd{display:flex;flex-direction:column;gap:4px;background:var(--card);border:1px solid var(--linea);border-radius:12px;padding:6px;min-height:188px;cursor:pointer;text-align:left;color:var(--txt)}
 .cd .th{width:100%;height:auto;aspect-ratio:4/3;border-radius:8px;object-fit:cover;object-position:center 60%;background:var(--sup)}
-.cd .tg{width:100%;height:76px;border-radius:8px;background:#1b140a;color:var(--oro);display:flex;align-items:center;justify-content:center;
+.cd .tg{width:100%;height:76px;border-radius:8px;background:var(--tgbg);color:var(--oro);display:flex;align-items:center;justify-content:center;
   text-align:center;padding:4px;font-family:Fraunces,Georgia,serif;font-size:12px;line-height:1.15}
 .cd .nm{font-size:12px;font-weight:700;line-height:1.22;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px}
 .cd .pz{font-size:12.5px;font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
@@ -93,7 +108,7 @@ button{font-family:inherit}
 .det h2{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:20px;margin:0;letter-spacing:-.3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .det .ds{font-size:12px;color:var(--suave);line-height:1.4;margin:3px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .det .pz{font-size:19px;font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
-.mini{flex:0 0 auto;border-top:1px solid var(--linea2);background:rgba(7,6,5,.55);padding:9px 8px 5px;display:flex;gap:8px;
+.mini{flex:0 0 auto;border-top:1px solid var(--linea2);background:var(--velo);padding:9px 8px 5px;display:flex;gap:8px;
   overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-padding-inline:8px}
 .mini::-webkit-scrollbar{height:0}
 .mini .pag{flex:0 0 100%;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:7px 6px;scroll-snap-align:start}
@@ -118,7 +133,7 @@ button{font-family:inherit}
 .ver .vst u{text-decoration:none;font-size:15px;font-weight:800;min-width:18px}
 @keyframes lampoVer{0%{box-shadow:0 0 0 0 rgba(255,197,61,.85);background:rgba(255,197,61,.28)}100%{box-shadow:0 0 0 10px rgba(255,197,61,0)}}
 .mini .cd.ora.lampo{animation:lampoVer .6s ease-out 1}
-.punti{flex:0 0 auto;display:flex;justify-content:center;gap:5px;padding:0 0 6px;background:rgba(7,6,5,.55)}
+.punti{flex:0 0 auto;display:flex;justify-content:center;gap:5px;padding:0 0 6px;background:var(--velo)}
 .punti i{width:6px;height:6px;border-radius:3px;background:var(--linea2);transition:width .15s}
 .punti i.on{width:16px;background:var(--oro)}
 .pedir{padding:4px 14px 14px}
@@ -198,18 +213,18 @@ button{font-family:inherit}
 .cmp .sn b{font-size:14px}
 .cmp .sn i{font-style:normal;font-size:11.5px;color:var(--suave)}
 .cmp .sp{color:var(--oro);font-size:18px;font-weight:800}
-.nota{position:fixed;left:50%;bottom:calc(120px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:88%;background:#24201a;color:var(--txt);border:1px solid var(--linea2);
+.nota{position:fixed;left:50%;bottom:calc(120px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:88%;background:var(--notabg);color:var(--txt);border:1px solid var(--linea2);
   border-radius:12px;padding:10px 14px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;z-index:9}
 .nota.vai{animation:notaV 4.5s ease forwards}
 @keyframes notaV{0%{opacity:0;transform:translate(-50%,8px)}8%{opacity:1;transform:translate(-50%,0)}85%{opacity:1}100%{opacity:0}}
 /* stati */
 .msg{padding:40px 22px;text-align:center;color:var(--suave);font-size:14px;line-height:1.45}
 .msg b{display:block;color:var(--txt);font-size:18px;margin-bottom:6px}
-#ver{position:fixed;right:6px;bottom:calc(4px + env(safe-area-inset-bottom,0px));font-size:9px;color:rgba(243,237,228,.3);pointer-events:none}
+#ver{position:fixed;right:6px;bottom:calc(4px + env(safe-area-inset-bottom,0px));font-size:9px;color:var(--sutil);pointer-events:none}
 /* ═══ v0.7 · IL FONDO DEL LOCALE (mockup 21-ott, Alberto 28-ott «il fondo con le strelitzie»): stesso blur, stessa maschera a chiazze
    e stessa opacità del vestito (.71). Si vede negli spazi fra le card, non sotto il testo. Il disegno viene dalla vetrina del locale. */
 .app{position:relative}
-.app.confondo::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.71;filter:blur(4px);background:var(--fondo) center center / cover no-repeat;
+.app.confondo::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:var(--fondo-op);filter:blur(4px);background:var(--fondo) center center / cover no-repeat;
   -webkit-mask-image:radial-gradient(62% 40% at 20% 24%,#000 0%,transparent 80%),radial-gradient(58% 44% at 80% 62%,#000 0%,transparent 82%),radial-gradient(50% 30% at 44% 96%,#000 0%,transparent 78%);
   mask-image:radial-gradient(62% 40% at 20% 24%,#000 0%,transparent 80%),radial-gradient(58% 44% at 80% 62%,#000 0%,transparent 82%),radial-gradient(50% 30% at 44% 96%,#000 0%,transparent 78%)}
 .app>*{position:relative;z-index:1}
@@ -238,9 +253,9 @@ button{font-family:inherit}
 .pal-dots i{position:relative;width:22px;height:26px;cursor:pointer;display:block}
 .pal-dots i::after{content:"";position:absolute;left:8px;top:12px;width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.45)}
 .pal-dots i.on::after{left:3px;width:16px;background:var(--oro)}
-.destit{flex:0 0 auto;display:flex;justify-content:space-between;align-items:baseline;padding:7px 10px 3px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--oro);border-top:1px solid var(--linea2);background:rgba(7,6,5,.55)}
+.destit{flex:0 0 auto;display:flex;justify-content:space-between;align-items:baseline;padding:7px 10px 3px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--oro);border-top:1px solid var(--linea2);background:var(--velo)}
 .destit span{color:var(--suave);font-weight:700;letter-spacing:0;text-transform:none}
-.destrip{flex:0 0 auto;display:flex;gap:7px;overflow-x:auto;padding:6px 10px 9px;background:rgba(7,6,5,.55);scroll-snap-type:x mandatory}
+.destrip{flex:0 0 auto;display:flex;gap:7px;overflow-x:auto;padding:6px 10px 9px;background:var(--velo);scroll-snap-type:x mandatory}
 .destrip::-webkit-scrollbar{height:0}
 .dsw{position:relative;flex:0 0 108px;scroll-snap-align:start}
 .destrip .cd{height:150px;min-height:0;padding:5px;gap:2px;border-radius:10px}
@@ -317,7 +332,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.8.4</div>
+<div class="ver" id="ver">menu v0.9.0</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1111,7 +1126,7 @@ async function leggiTick() {
     const x = j && j.datos && j.datos.datos; if (x && x.ok !== false) S.tick = x; } catch (e) { /* resta il tick di prima */ }
 }
 // un giro ogni 60", come il vivo, e solo col telefono in mano (sostituisce il poll a Google, non se ne aggiunge uno)
-setInterval(async () => { if (!LOCAL || !S.prod.length || document.visibilityState !== 'visible') return; await leggiTick(); pinta(); }, 60000);
+setInterval(async () => { if (!LOCAL || !S.prod.length || document.visibilityState !== 'visible') return; vestiPelle(); await leggiTick(); pinta(); }, 60000);
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && LOCAL && S.prod.length) { await leggiTick(); pinta(); } });
 /* LE NOSTRE FOTO (v0.5.3, Alberto 28-ott): vivono in questo repo, `fotos/<LOCAL>/<id>.webp`, elencate in `fotos/fotos.json`
    ({"BKS":{"BKS-BAR-002":"BKS-BAR-002.webp"}}), e vincono sulla `Imagen_URL` della carta. Mai su Google.
@@ -1128,6 +1143,24 @@ async function fotoNostre() {
    ⏳ TAMPONE dichiarato: lo uccide la config del locale in Postgres (menu_config_local di 🚚 MIGRA). Senza vetrina: si entra in carta, come prima. */
 async function vetrinaLocale() {
   try { const r = await fetch('vetrina/vetrina.json', { cache: 'no-cache' }); if (!r.ok) return null; const v = (await r.json())[LOCAL]; return v && typeof v === 'object' ? v : null; } catch (e) { return null; }
+}
+/* ═══ v0.9 · IL GIORNO E LA NOTTE, da soli (Alberto 30-ott: «deve cambiare automaticamente come oggi») ═══
+   Come menu_digital (getFasciaMenu, r.14464-14483): giorno 06:00→20:00 all'ora del locale, notte il resto. Le due ore sono della
+   config del locale (tema_dia_desde · tema_noche_desde, «HH:MM»); senza, valgono quelle di oggi. È SOLO PELLE: nessun prezzo,
+   promo o orario la legge. I due fondi sono della vetrina (fondo_dia · fondo_noche, e il vecchio «fondo» vale come notte).
+   Prova a vista: ?_fascia=dia | ?_fascia=noche. */
+function minuti(s, def) { const x = /^(\d{1,2}):(\d{2})$/.exec(String(s || '').trim()); return x ? (+x[1]) * 60 + (+x[2]) : def; }
+function fasciaPelle() {
+  const f = qs.get('_fascia'); if (f === 'dia' || f === 'noche') return f;
+  const d = oraSantiago(), m = d.getHours() * 60 + d.getMinutes(), c = S.cfg || {};
+  return (m >= minuti(c.tema_dia_desde, 360) && m < minuti(c.tema_noche_desde, 1200)) ? 'dia' : 'noche';
+}
+function vestiPelle() {
+  const dia = fasciaPelle() === 'dia', v = S.vet || {}, app = document.getElementById('app');
+  document.body.classList.toggle('dia', dia);
+  const fo = dia ? v.fondo_dia : (v.fondo_noche || v.fondo);
+  if (PATH_VET.test(fo || '')) { app.style.setProperty('--fondo', 'url("' + fo + '")'); app.classList.add('confondo'); } else app.classList.remove('confondo');
+  const tc = document.getElementById('tc'); if (tc) tc.setAttribute('content', dia ? '#EFE2CF' : '#0A0806');
 }
 (async function avvio() {
   S.lang = langIniziale(); document.documentElement.lang = S.lang;   // v0.8: la lingua del telefono, o quella scelta col 🌐 l'ultima volta
@@ -1150,7 +1183,7 @@ async function vetrinaLocale() {
     if (!g) throw new Error('carta vacía');
     S.fam = g.k; S.cat = g.cats[0];
     // v0.7: il fondo del locale, l'inizio dallo show, «Otra vez» di questa mesa
-    if (S.vet && PATH_VET.test(S.vet.fondo || '')) { const app = document.getElementById('app'); app.style.setProperty('--fondo', 'url("' + S.vet.fondo + '")'); app.classList.add('confondo'); }
+    vestiPelle();   // v0.9: il fondo e la pelle secondo l'ora (prima: un fondo solo)
     preparaSlides(); S.palco = SLIDES.length > 0; histLeggi(); envLeggi();
     pinta();
   } catch (e) {
