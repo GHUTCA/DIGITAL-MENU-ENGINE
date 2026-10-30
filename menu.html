@@ -310,6 +310,18 @@ button{font-family:inherit}
 .carte i{font-style:normal;color:rgba(255,255,255,.6)}
 .sigue{display:block;color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.25)}
 .pal-close{position:absolute;top:10px;right:10px;z-index:30;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.45);color:#fff;font-size:15px;cursor:pointer}
+/* ═══ PINSA (30-ott) · il tema chiaro del local (config `tema`=claro) e la cassa dei canali depto/kiosco ═══ */
+:root.claro{--bg:#FFFFFF;--sup:#F6F3EE;--card:#FFFFFF;--txt:#1E1A16;--suave:rgba(30,26,22,.62);--linea:rgba(30,26,22,.12);--linea2:rgba(30,26,22,.24);
+  --acc:#E8590C;--oro:#B45309;--ok:#5F7A1F;--ok-txt:#FFFFFF;--ok-chiaro:#4D6418;--male:#C62828}
+:root.claro .z1{background:#FFFFFF}
+:root.claro .mini{background:#F6F3EE}
+.ckf{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.ckf label{font-size:12px;font-weight:800;color:var(--suave)}
+.ckf input[type=text],.ckf input[type=tel],.ckf input[type=email]{width:100%;box-sizing:border-box;background:var(--card);color:var(--txt);border:1.5px solid var(--linea2);border-radius:10px;padding:11px 10px;font:inherit;font-size:15px}
+.ckf input.male{border-color:var(--male)}
+.ckf .chk{display:flex;gap:8px;align-items:flex-start;font-size:12px;font-weight:600;color:var(--suave)}
+.ckr{display:flex;justify-content:space-between;font-size:13px;color:var(--suave);margin-top:4px}
+.ckr.dsc{color:var(--ok-chiaro);font-weight:700}
 </style></head>
 <body>
 <div class="app" id="app">
@@ -317,15 +329,27 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.8.3</div>
+<div class="ver" id="ver">menu v0.8.3+pinsa.1</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
-const BORDO = 'https://pinsita-borde.alberto-agostini.workers.dev';
-const TOKEN_LETTURA = '7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ';
 const qs = new URLSearchParams(location.search);
+/* PINSA · il banco: SOLO quando la pagina gira su questo PC (localhost) si può puntare un bordo finto (?borde=http://localhost:NNNN).
+   Su menu.pinsita.cl il parametro non esiste: nessun link può mandare il cliente a un altro bordo. */
+const SUL_PC = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+const BORDO = SUL_PC && /^http:\/\/(localhost|127\.0\.0\.1):\d{2,5}$/.test(qs.get('borde') || '') ? qs.get('borde') : 'https://pinsita-borde.alberto-agostini.workers.dev';
+const TOKEN_LETTURA = '7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ';
 const LOCAL = /^[A-Za-z]{2,6}$/.test(qs.get('l') || '') ? qs.get('l').toUpperCase() : '';
 const MESA = /^[0-9A-Za-z-]{1,6}$/.test(qs.get('mesa') || '') ? qs.get('mesa') : '';
+/* ═══ PINSA (Alberto 29-ott) · I TRE CANALI DELLO STESSO LOCAL: il canale lo dice il QR, non la config ═══
+   mesa (`?mesa=`) = il flusso di BKS, intatto · depto (`?d=`, QR nel frigo) e kiosco (`?k=`, il totem) = carrello → checkout:
+   un ordine = un pago, il pedido nasce già pagato. La config del local dice solo QUALI canali sono accesi (`canales_on`,
+   vuota = solo mesa: BKS non cambia). Un QR che porta mesa vince: è il canale che esisteva prima. */
+const DEPTO = !MESA && /^[0-9A-Za-z-]{1,8}$/.test(qs.get('d') || '') ? qs.get('d') : '';
+const KIOSCO = !MESA && !DEPTO && /^[0-9A-Za-z-]{1,12}$/.test(qs.get('k') || '') ? qs.get('k') : '';
+const CANAL = MESA ? 'mesa' : DEPTO ? 'depto' : KIOSCO ? 'kiosco' : '';
+const CHECKOUT = CANAL === 'depto' || CANAL === 'kiosco';
+const RITORNO_CK = /^[\w-]{8,64}$/.test(qs.get('ck') || '') ? qs.get('ck') : '';   // il ritorno dal pago (vedi checkout)
 // la lingua del TELEFONO (grezza, viaggia nel pedido come `idioma`); quella del MENÙ è S.lang, che il 🌐 cambia (v0.8)
 const LANG = ((navigator.language || 'es').slice(0, 2)).toLowerCase();
 /* v0.8 · LE LINGUE (mockup 23-ott, Alberto: «fondamentale: vedo cinesi e giapponesi»): nove, nell'ordine dei turisti veri. Il telefono
@@ -376,7 +400,9 @@ const S = { cfg: null, prod: [], tick: null, fam: null, cat: null, abierta: null
   // v0.7: l'inizio (palco + destacados) · la vetrina del locale · «Otra vez» · il regalo a otra mesa
   palco: false, slide: 0, finVid: false, vet: null, hist: [], dono: null,
   // v0.8: la lingua del menù · il conto di questo telefono · le schermate della riga in alto (lingue, DJ, cuenta)
-  lang: 'es', enviados: [], lingue: false, dj: false, cuenta: false };
+  lang: 'es', enviados: [], lingue: false, dj: false, cuenta: false,
+  // PINSA: la cassa di depto/kiosco (dati del cliente, propina, stato del pago)
+  ck: { nombre: '', tel: '', email: '', promos: false, propina: null, stato: '', err: '', uuid: '', firma: '', esito: null } };
 
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 function clp(n) { const c = S.cfg || {}; return (c.currency_symbol || '$') + Math.round(n).toLocaleString('es-CL'); }
@@ -418,6 +444,8 @@ function prodotti(csv) {
     sm: String(r[ix('Solo_Member')] || '').trim(),
     // le scelte che la carta porta già: il testo dei modificadores («Sola/Chelada +$1.500») e il badge della carne (→ término)
     mt: String(r[ix('Modificadores')] || '').trim(), carne: /\bcarne\b/i.test(r[ix('Badges')] || ''),
+    // PINSA: lo sconto del canale depto non tocca chi porta `Sin_Descuento` (le Promociones) · le domande dai mod_* di Postgres
+    sinDesc: String(r[ix('Sin_Descuento')] || '').trim().toUpperCase() === 'TRUE', mods: modsJSON(r[ix('Modificadores_JSON')]),
   // Solo_Member: il piatto non esiste per nessuno tranne chi porta quel tag (come il vivo). Rientra col member, passo dopo.
   })).filter((p) => p.activo && p.visible && p.p > 0 && !p.sm);
 }
@@ -436,8 +464,20 @@ const inMenuDia = (p) => ((tickP().reglas || {})[p.id] || {}).tipo === 'almuerzo
 function prezzoOra(p) {
   const r = inMenuDia(p) ? null : (tickP().reglas || {})[p.id];
   // priorità del vivo: regla-fascia > base; il barrato solo se la regola ABBASSA
-  if (r && r.precio > 0 && r.precio !== p.p) return { v: r.precio, orig: r.precio < p.p ? p.p : 0 };
-  return { v: p.p, orig: 0 };
+  let z = { v: p.p, orig: 0 };
+  if (r && r.precio > 0 && r.precio !== p.p) z = { v: r.precio, orig: r.precio < p.p ? p.p : 0 };
+  // PINSA: lo sconto del canale depto si confronta col prezzo di adesso e vince solo se è più basso (mai due sconti sommati)
+  const dz = prezzoDepto(p);
+  return dz && dz < z.v ? { v: dz, orig: p.p } : z;
+}
+/* PINSA (Alberto 29-ott) · LO SCONTO È DEL CANALE DEPTO, e solo suo: `descuento_depto_pct` nella config del local (vuota/0 = niente).
+   Sul prezzo di carta del prodotto, arrotondato a $10; mai sui sovrapprezzi delle scelte, mai su chi porta Sin_Descuento.
+   ⚠️ Qui si MOSTRA: il conto vero lo rifà il bordo al checkout (il telefono non decide quanto si paga). */
+const R10 = (x) => Math.round(x / 10) * 10;
+function prezzoDepto(p) {
+  const pct = Number((S.cfg && S.cfg.descuento_depto_pct) || 0);
+  if (CANAL !== 'depto' || !(pct > 0 && pct < 100) || p.sinDesc) return 0;
+  return R10(p.p * (100 - pct) / 100);
 }
 function chiusa(p) {
   const a = tickA(); const est = a.estaciones; if (!est) return '';
@@ -457,10 +497,24 @@ const esaurito = (p) => p.agotado || (tickA().ids || []).indexOf(p.id) >= 0 || S
    (lettura pubblica di 🎛 BKP). La colonna `Modificadores` della carta e `termino_opciones` nascono dal foglio: non si leggono.
    Chi ha domande ⇒ «Con opciones · pronto», mai il ripiego su Google. Si riaccende cambiando la SORGENTE di domande(), non questa riga. */
 const SCELTE_ON = false;
-const chiedeScelta = (p) => p.c === 'menu_contenitore' || (!SCELTE_ON && !!(p.mt || p.carne));
+const chiedeScelta = (p) => p.c === 'menu_contenitore' || (!SCELTE_ON && !p.mods && !!(p.mt || p.carne));
 const normT = (s) => String(s || '').trim().toLowerCase().replace(/[oa]$/, '');
 function parseOp(s) { const m = String(s).match(/^(.*?)\s*\+\s*\$?\s*([\d.]+)\s*$/); return m ? { o: m[1].trim(), d: prezzo(m[2]) } : { o: String(s).trim(), d: 0 }; }
+/* PINSA (30-ott) · LE DOMANDE DA POSTGRES: la carta del bordo porta `Modificadores_JSON`, i gruppi di mod_* già applicati al prodotto,
+   in ordine: [{"tit":"Receta 1","ops":[{"o":"Margarita","d":0},{"o":"Pepperoni","d":1500}]}, …]. Non nasce da Google, quindi NON aspetta
+   SCELTE_ON. Più domande per prodotto (la Pinsa intera ne ha due), tutte obbligatorie, una risposta ciascuna.
+   Le opzioni non possono contenere «¦» né «§» (sono i separatori della chiave del carrello): chi le porta si scarta. */
+function modsJSON(s) {
+  if (!s || !String(s).trim()) return null;
+  let a; try { a = JSON.parse(s); } catch (e) { return null; }
+  if (!Array.isArray(a)) return null;
+  const out = a.map((g, i) => ({ k: 'q' + i, tit: String((g && g.tit) || '¿Cómo lo quieres?'),
+    ops: ((g && g.ops) || []).map((o) => ({ o: String((o && o.o) || '').trim(), d: Math.max(0, Math.round(Number(o && o.d) || 0)) }))
+      .filter((o) => o.o && !/[¦§|]/.test(o.o)) })).filter((g) => g.ops.length >= 1);
+  return out.length ? out : null;
+}
 function domande(p) {
+  if (p.mods) return p.mods;
   if (!SCELTE_ON) return [];
   const out = [], TO = String((S.cfg && S.cfg.termino_opciones) || '').split(',').map((s) => s.trim()).filter(Boolean);
   if (p.carne && TO.length) out.push({ k: 't', tit: 'El término de tu carne', ops: TO.map((o) => ({ o, d: 0 })) });
@@ -474,16 +528,27 @@ function domande(p) {
 }
 /* il carrello: una riga = un piatto CON le sue scelte (chiave `id§término§modo`): due filetes a término diverso = due righe */
 const chiave = (p, t, m) => p.id + '§' + (t || '') + '§' + (m || '');
+// la scelta letta dalla chiave: il testo da mostrare (senza «Como viene») e il sovrapprezzo. Con le domande di Postgres
+// (p.mods) `m` porta tutte le risposte in ordine, separate da «¦», e il sovrapprezzo è la somma.
+function sceltaDi(p, m) {
+  const dq = p ? domande(p) : [];
+  if (p && p.mods) { const pz = String(m || '').split('¦'); let d = 0;
+    dq.forEach((q, i) => { d += ((q.ops.find((x) => x.o === pz[i]) || {}).d) || 0; });
+    return { m: pz.filter((x) => x && x !== 'Como viene').join(' · '), d }; }
+  const g = dq.find((x) => x.k === 'm');
+  return { m: m === 'Como viene' ? '' : m, d: (g && (g.ops.find((x) => x.o === m) || {}).d) || 0 };
+}
 function righe() { return Object.keys(S.cart).map((k) => { const [id, t, m] = k.split('§'); const p = S.prod.find((x) => x.id === id);
-  const dq = p ? domande(p) : [], g = dq.find((x) => x.k === 'm'), d = (g && (g.ops.find((x) => x.o === m) || {}).d) || 0;
-  return { k, p, t, m: m === 'Como viene' ? '' : m, q: S.cart[k], d }; }).filter((r) => r.p); }
+  const sc = sceltaDi(p, m);
+  return { k, p, t, m: sc.m, q: S.cart[k], d: sc.d }; }).filter((r) => r.p); }
 const qtyDi = (p) => righe().filter((r) => r.p.id === p.id).reduce((s, r) => s + r.q, 0);
 const prezzoRiga = (r) => prezzoOra(r.p).v + r.d;
 const nomeRiga = (r) => r.p.n + (r.m ? ' · ' + r.m : '') + (r.t ? ' · ' + r.t : '');
 // la scelta in corso del piatto aperto: completa quando ogni domanda ha una risposta
 const selDi = (p) => (S.sel[p.id] = S.sel[p.id] || {});
 const sceltaCompleta = (p) => domande(p).every((q) => selDi(p)[q.k]);
-const chiaveSel = (p) => chiave(p, selDi(p).t, selDi(p).m);
+const mSel = (p) => (p.mods ? domande(p).map((q) => selDi(p)[q.k] || '').join('¦') : selDi(p).m);
+const chiaveSel = (p) => chiave(p, selDi(p).t, mSel(p));
 /* LA LEVA DELL'INVIO (AUT-0749): `menu_vero_envio_on` nella config del locale. Vuota = spento (vista previa).
    "1" = tutte le mesas · altrimenti l'elenco delle mesas ammesse («998» per la prova). Spegne anche la campanella. */
 function envioOn() {
@@ -491,6 +556,24 @@ function envioOn() {
   if (!v || !MESA) return false;
   if (v === '1' || v === 'true') return true;
   return v.split(/[\s,;]+/).indexOf(String(MESA).toLowerCase()) >= 0;
+}
+/* PINSA · chi può ORDINARE da questo QR: la mesa come sempre; depto e kiosco solo se il local li accende (`canales_on`,
+   es. «mesa,depto,kiosco»). Spento = si guarda la carta coi prezzi del canale, senza ＋. */
+function pide() {
+  if (CANAL === 'mesa') return true;
+  if (!CANAL) return false;
+  return String((S.cfg && S.cfg.canales_on) || '').toLowerCase().split(/[\s,;]+/).indexOf(CANAL) >= 0;
+}
+const POSTO = () => (CANAL === 'depto' ? 'Depto ' + DEPTO : CANAL === 'kiosco' ? 'Retiro en el local' : T('Mesa') + ' ' + MESA);
+/* l'orario del canale depto (`depto_horario` «09:00-20:00», Alberto 29-ott: 9-20, modificabile). Vuoto = sempre.
+   Fuori orario si guarda e si mette nel carrello, ma il pago non parte: la cucina non riceve un ordine che non può consegnare. */
+function depOrarioNo() {
+  if (CANAL !== 'depto') return '';
+  const m = String((S.cfg && S.cfg.depto_horario) || '').match(/^\s*(\d{1,2}(?::\d{2})?)\s*-\s*(\d{1,2}(?::\d{2})?)\s*$/);
+  if (!m) return '';
+  const a = oraDec(m[1], 0), b = oraDec(m[2], 24), d = oraSantiago(), h = d.getHours() + d.getMinutes() / 60;
+  const dentro = b > a ? (h >= a && h < b) : (h >= a || h < b);
+  return dentro ? '' : 'Pedidos al departamento de ' + hhmm(a) + ' a ' + hhmm(b);
 }
 const barraCats = () => tickA().barra_cats || String((S.cfg && S.cfg.kds_barra_cats) || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 function adove(prods) {
@@ -515,12 +598,12 @@ function gruppi() {
 /* ═══ il disegno ═══ */
 function z1() {
   const brand = (S.cfg && S.cfg.brand_name) || LOCAL;
-  const sotto = MESA ? 'Mesa ' + esc(MESA) : 'Para pedir, escanea el QR de tu mesa';
+  const sotto = CANAL ? esc(POSTO()) : 'Para pedir, escanea el QR de tu mesa';
   // la casetta compare FUORI dall'inizio (mockup 21-ott: «come ritorno all'inizio?»); all'inizio non serve
   const casa = inPalco() ? '' : '<button class="casa" data-a="inicio" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>';
   // v0.8 · la riga intera del mockup v1.1: 🌐 sempre · LIVE solo a show acceso · Pagar (l'unico pieno) dopo il primo invio, con l'importo
   const cons = consumoTel();
-  return casa + '<div class="chi"><b>' + esc(brand) + '</b><span>' + (MESA ? T('Mesa') + ' ' + esc(MESA) : sotto) + '</span></div>' +
+  return casa + '<div class="chi"><b>' + esc(brand) + '</b><span>' + sotto + '</span></div>' +
     '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
     (showAcceso() ? '<button class="live" data-a="djApri"><i></i>LIVE</button>' : '') +
     (MESA && cons > 0 ? '<button class="paga1" data-a="cuentaApri">' + esc(T('Pagar')) + ' <b>' + clp(cons) + '</b></button>' : '');
@@ -535,30 +618,30 @@ function card(p, lista) {
   if (ch) return '<div class="cd agot">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">' + (ch === 'barra' ? 'La barra ya cerró' : 'La cocina ya cerró') + '</div></div>';
   if (!inOrario(p)) return '<div class="cd agot fh">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">' + T('Desde las') + ' ' + hhmm(p.hi) + '</div></div>';
   return '<div class="cd' + (q ? ' dentro' : '') + '" data-a="abre" data-k="' + esc(p.id) + '">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="pz">' + pzHTML(p) + '</div>' +
-    (!MESA ? '' : chiedeScelta(p) ? '<div class="opc">' + T('Con opciones · pronto') + '</div>'
+    (!pide() ? '' : chiedeScelta(p) ? '<div class="opc">' + T('Con opciones · pronto') + '</div>'
       // chi chiede una scelta non mette dalla griglia: apre la scheda, dove si sceglie (il ＋ promette che aggiunge)
       : conDom ? '<button class="addb chiede" data-a="abre" data-k="' + esc(p.id) + '">' + (q ? q + ' ' + T('en tu pedido') + ' · ＋' : '＋ ' + T('PEDIR')) + '</button>'
       : q ? '<div class="qn"><i data-a="meno" data-k="' + esc(chiave(p)) + '">−</i>' + q + '<i data-a="mas" data-k="' + esc(p.id) + '">+</i></div>'
       : '<button class="addb" data-a="mas" data-k="' + esc(p.id) + '">＋ ' + T('PEDIR') + '</button>') + '</div>';
 }
-const ordinabile = (p) => !!(p && MESA && !chiedeScelta(p) && !esaurito(p) && !chiusa(p) && inOrario(p));
+const ordinabile = (p) => !!(p && pide() && !chiedeScelta(p) && !esaurito(p) && !chiusa(p) && inOrario(p));
 // la card VER: il tasto stesso. Sopra c'è già tutto (foto, nome, prezzo, le domande): sotto il dito dice cosa succede se tocchi
 function verCard(p) {
   const k = esc(p.id), vnm = '<div class="vnm">' + esc(p.n) + '</div>';
-  if (!MESA) return '<div class="cd ora ver">' + vnm + '<div class="vpd">Escanea tu mesa</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
+  if (!pide()) return '<div class="cd ora ver">' + vnm + '<div class="vpd">' + (CANAL ? 'Pronto podrás pedir aquí' : 'Escanea tu mesa') + '</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
   if (chiedeScelta(p)) return '<div class="cd ora ver">' + vnm + '<div class="vpd off">' + T('Con opciones · pronto') + '</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
   const dq = domande(p);
   if (dq.length && !sceltaCompleta(p)) return '<div class="cd ora ver">' + vnm + '<div class="vpd off">Elige arriba ↑</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
   // la card conta la SCELTA fatta sopra, non il piatto: «1 A punto» e poi «Jugoso» sono due righe
   const ks = chiaveSel(p), q = S.cart[ks] || 0, s = selDi(p);
-  const r = { p, t: s.t, m: s.m === 'Como viene' ? '' : s.m, d: (((dq.find((x) => x.k === 'm') || { ops: [] }).ops.find((x) => x.o === s.m)) || {}).d || 0 };
+  const sc = sceltaDi(p, mSel(p)), r = { p, t: s.t, m: sc.m, d: sc.d };
   const vsc = dq.length ? '<div class="vsc">' + esc([r.m, r.t].filter(Boolean).join(' · ') || 'Como viene') + '</div>' : '';
   if (!q) return '<div class="cd ora ver" data-a="mas" data-k="' + k + '">' + vnm + vsc + '<div class="vpd">＋ ' + T('PEDIR') + '</div><div class="vpz">' + clp(prezzoRiga(r)) + '</div></div>';
   return '<div class="cd ora ver dentro">' + vnm + vsc + '<div class="vst"><i data-a="meno" data-k="' + esc(ks) + '">−</i><u>' + q + '</u><i data-a="mas" data-k="' + k + '">＋</i></div></div>';
 }
 // le domande nella scheda grande: chip, una risposta per domanda; il sovrapprezzo SUL chip
 function domandeHTML(p) {
-  if (!MESA || !ordinabile(p)) return '';
+  if (!pide() || !ordinabile(p)) return '';
   return domande(p).map((q) => '<div class="prep"><div class="q">' + esc(q.tit) + (selDi(p)[q.k] ? '' : ' <span class="mreq">elige uno</span>') + '</div><div class="op">' +
     q.ops.map((o) => '<button class="' + (selDi(p)[q.k] === o.o ? 'on' : '') + '" data-a="sceglie" data-k="' + esc(p.id + '|' + q.k + '|' + o.o) + '">' + esc(o.o) +
       (o.d ? ' <b>+' + clp(o.d) + '</b>' : '') + '</button>').join('') + '</div></div>').join('');
@@ -629,6 +712,7 @@ function seguirCard(prods) {
 }
 function pedidoHTML() {
   const ks = Object.keys(S.cart);
+  if (CHECKOUT && S.ck.esito) return esitoHTML();
   // ¡Listo!: la conferma dice UNA cosa (è partito) e propone UNA mossa (il passo dopo)
   if (!ks.length && S.listo) {
     const L = S.listo;
@@ -642,7 +726,8 @@ function pedidoHTML() {
     '<div class="lq"><i data-a="meno" data-k="' + esc(r.k) + '">−</i>' + r.q + '<i data-a="masK" data-k="' + esc(r.k) + '">+</i></div><div class="lpz">' + clp(prezzoRiga(r) * r.q) + '</div></div>').join('');
   const t = totale();
   let bot;
-  if (!envioOn()) bot = '<button class="envG spento"><b>ENVIAR PEDIDO · ' + clp(t.s) + '</b><span>vista previa: el envío todavía no está activo</span></button>';
+  if (CHECKOUT) bot = cassaHTML(t);
+  else if (!envioOn()) bot = '<button class="envG spento"><b>ENVIAR PEDIDO · ' + clp(t.s) + '</b><span>vista previa: el envío todavía no está activo</span></button>';
   else if (S.need === 'mesa') bot = '<div class="avv">🪑 ¿Sigues en la mesa ' + esc(MESA) + '?</div><button class="envG" data-a="mesaSi"><b>Sí — enviar</b></button>' +
     '<div class="avvs">Si te cambiaste de mesa, escanea el QR de tu mesa nueva.</div>';
   else if (S.inviando) { const rem = Math.max(0, S.inviando.fine - Date.now());
@@ -653,7 +738,7 @@ function pedidoHTML() {
     '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : T('ENVIAR PEDIDO') + ' 🛎') + '</b><span>' + t.n + ' ' + T(t.n > 1 ? 'productos' : 'producto') + ' · ' + clp(t.s) + ' · ' + T(adove(righe().map((r) => r.p))) + '</span></button>';
   return '<div class="ped"><div class="pedtit">' + T('Tu pedido') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
     (ks.length ? lineeH + '<div class="tot"><span>' + T('Total') + '</span><span>' + clp(t.s) + '</span></div>' + bot +
-      (S.inviando || S.inviaStato ? '' : '<button class="segui" data-a="chiudiPed">' + T('Seguir pidiendo') + '</button>')
+      (S.inviando || S.inviaStato || S.ck.stato ? '' : '<button class="segui" data-a="chiudiPed">' + T('Seguir pidiendo') + '</button>')
       : '<div class="vuoto">' + T('Todavía no has pedido nada.') + '</div>') + '</div>';
 }
 /* ═══ v0.7 · L'INIZIO: IL PALCO (mockup §⑫ ①-③, Alberto 21-22 ott) ═══════════════════════════════════════════════════════════════════
@@ -868,7 +953,7 @@ function z2() {
   const G = gruppi(); const f = G.find((x) => x.k === S.fam) || G[0]; const t = totale();
   // con qualcosa nel carrello le famiglie restano solo emoji: la porta del pedido deve stare intera nella riga (mockup v1.x)
   return '<div class="r">' + G.map((x) => '<button class="fam' + (x.k === f.k ? ' on' : '') + '" data-a="fam" data-k="' + esc(x.k) + '" title="' + esc(nomeGruppo(x.k)) + '">' + x.emoji + (t.n ? '' : ' ' + esc(nomeGruppo(x.k))) + '</button>').join('') +
-    (t.n ? '<button class="cartp' + (S.llama ? ' llama' : '') + '" data-a="verPed">' + t.n + ' · ' + T('ENVIAR') + ' · ' + clp(t.s) + ' ›</button>' : '') + '</div>' +
+    (t.n ? '<button class="cartp' + (S.llama ? ' llama' : '') + '" data-a="verPed">' + t.n + ' · ' + T(CHECKOUT ? 'Pagar' : 'ENVIAR') + ' · ' + clp(t.s) + ' ›</button>' : '') + '</div>' +
     (t.n && S.llama ? '<div class="llamah">¿Listo? Toca para enviar tu pedido</div>' : '') +
     (S.busca !== null && S.busca !== undefined
       ? '<div class="r rbusca"><span class="lup">🔍</span><input class="bin" type="search" enterkeyhint="search" autocomplete="off" placeholder="escribe lo que buscas…" value="' + esc(S.busca) + '" data-a="binput"><button class="bx" data-a="cierraBusca" aria-label="Cerrar búsqueda">✕</button></div>'
@@ -979,6 +1064,137 @@ async function llamaMesero(motivo) {
   else if (r && r.definitivo) nota(r.error === 'mesa_desconocida' ? 'No reconocemos esta mesa — avísale al mesero en persona' : '🔔 Tu mesero ya fue avisado · va en camino');
   else nota('No pudimos avisar al mesero — inténtalo de nuevo o avísale en persona');
 }
+/* ═══ PINSA (Alberto 29-ott) · LA CASSA DI DEPTO E KIOSCO: carrello → dati → propina → Fintoc → il pedido nasce GIÀ PAGATO ═══
+   Contratto col bordo (di ⚙️ ARQ, `4_CANTIERE_MENU/PINSA_CONTRATTO_CHECKOUT_30OTT2026.md`):
+   POST /checkout/<L>  {action:'checkoutPedido', canal, destino, uuid, items_json, subtotal, propina, total, cliente, vuelta, …}
+        ⇒ {ok:true, url}  (la pagina di Fintoc) · {need:'carta_vieja'|'items_agotados'|'fuera_de_horario'} · {ok:false, error}
+   GET  /checkout/<L>?uuid=  ⇒ {ok:true, estado:'pagado'|'pendiente'|'rechazado', numero?}
+   ⓐ la chiave d'idempotenza nasce QUI (stesso carrello + stessa propina = stesso uuid: un Reintentar non apre due pagos) ·
+   ⓑ il bordo RIFÀ il conto dai suoi prezzi: il totale del telefono è una proposta, mai l'importo · ⓒ il pedido entra in cucina
+   solo quando Fintoc conferma al bordo (webhook), MAI dal ritorno del telefono: il ritorno legge lo stato, non lo scrive.
+   LEVA: `checkout_on` nella config del local. Vuota = spento (vista previa) · "1" = acceso · un elenco = solo quei canali/destini
+   («1204» per la prova su un appartamento, come la mesa 998). */
+function checkoutOn() {
+  const v = String((S.cfg && S.cfg.checkout_on) || '').trim().toLowerCase();
+  if (!v || !CHECKOUT || !pide()) return false;
+  if (v === '1' || v === 'true') return true;
+  const l = v.split(/[\s,;]+/);
+  return l.indexOf(CANAL) >= 0 || l.indexOf(String(DEPTO || KIOSCO).toLowerCase()) >= 0;
+}
+const PROPINE = () => String((S.cfg && S.cfg.propina_opciones) || '10,0').split(',').map((x) => Number(x)).filter((x) => x >= 0 && x <= 30);
+const propinaDi = (s) => (S.ck.propina > 0 ? Math.round(s * S.ck.propina / 100) : 0);
+const CK_K = () => 'pinsita_ck_' + LOCAL + '_' + CANAL + '_' + (DEPTO || KIOSCO);
+function risparmio() { return righe().reduce((s, r) => { const z = prezzoOra(r.p); return s + (z.orig ? (z.orig - z.v) * r.q : 0); }, 0); }
+function cassaHTML(t) {
+  const c = S.ck, pr = propinaDi(t.s), off = !checkoutOn(), ora = depOrarioNo(), aho = risparmio();
+  const dove = CANAL === 'depto' ? 'Te lo llevamos a la recepción del edificio · Depto ' + esc(DEPTO) : 'Te llamamos por tu nombre para retirar en el mesón';
+  if (c.stato === 'volando') return '<button class="envG hold"><b>Abriendo el pago…</b><span>' + T('no cierres esta pantalla') + '</span></button>';
+  if (c.stato === 'verificando') return '<button class="envG hold"><b>Revisando tu pago…</b><span>' + T('no cierres esta pantalla') + '</span></button>';
+  const err = (k) => (c.err && c.errK === k ? ' male' : '');
+  return (aho ? '<div class="ckr dsc"><span>Ahorras con el descuento</span><span>−' + clp(aho) + '</span></div>' : '') +
+    '<div class="prq">Propina para el equipo</div><div class="pchips">' + PROPINE().map((x) => '<button class="pchip' + (c.propina === x ? ' on' : '') + '" data-a="ckPropina" data-k="' + x + '">' +
+      (x ? x + '% · ' + clp(Math.round(t.s * x / 100)) : 'Sin propina') + '</button>').join('') + '</div>' +
+    '<div class="ckf">' +
+    '<label>Tu nombre</label><input type="text" name="nombre" autocomplete="name" maxlength="60" class="' + err('nombre') + '" value="' + esc(c.nombre) + '" data-a="ckCampo">' +
+    '<label>Tu teléfono (te llamamos si hace falta)</label><input type="tel" name="tel" autocomplete="tel" maxlength="16" placeholder="+56 9 …" class="' + err('tel') + '" value="' + esc(c.tel) + '" data-a="ckCampo">' +
+    '<label>Tu correo (opcional)</label><input type="email" name="email" autocomplete="email" maxlength="80" class="' + err('email') + '" value="' + esc(c.email) + '" data-a="ckCampo">' +
+    '<label class="chk"><input type="checkbox" name="promos" data-a="ckCampo"' + (c.promos ? ' checked' : '') + '> Quiero recibir novedades y promociones de ' + esc((S.cfg && S.cfg.brand_name) || LOCAL) + '</label></div>' +
+    (pr ? '<div class="ckr"><span>Propina ' + c.propina + '%</span><span>' + clp(pr) + '</span></div>' : '') +
+    '<div class="tot"><span>A pagar</span><span>' + clp(t.s + pr) + '</span></div>' +
+    (c.err ? '<div class="avv">' + esc(c.err) + '</div>' : '') +
+    (off ? '<button class="envG spento"><b>PAGAR · ' + clp(t.s + pr) + '</b><span>vista previa: el pago todavía no está activo</span></button>'
+      : ora ? '<button class="envG spento"><b>PAGAR · ' + clp(t.s + pr) + '</b><span>' + esc(ora) + '</span></button>'
+      : '<button class="envG" data-a="ckPaga"><b>PAGAR · ' + clp(t.s + pr) + '</b><span>' + esc(dove) + '</span></button>');
+}
+function esitoHTML() {
+  const e = S.ck.esito;
+  if (e.ok) return '<div class="ped"><div class="pedtit">¡Pagado!' + (CANAL === 'kiosco' ? '' : '<button class="pedx" data-a="ckNuovo">✕</button>') + '</div>' +
+    '<div class="okv">✓ Tu pedido va a cocina' + (e.numero ? ' · N° ' + esc(e.numero) : '') + '<span>' + esc(POSTO()) + ' · ' +
+      (CANAL === 'depto' ? 'te lo llevamos a la recepción' : 'te llamamos para retirar') + '</span></div>' +
+    (e.righe || []).map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') +
+    (CANAL === 'kiosco' ? '<div class="avvs">Esta pantalla vuelve al inicio en unos segundos.</div>' : '<button class="segui" data-a="ckNuovo">Hacer otro pedido</button>') + '</div>';
+  // il pago non è confermato: il carrello resta, e si dice cosa NON fare (pagare due volte)
+  return '<div class="ped"><div class="pedtit">' + T('Tu pedido') + '<button class="pedx" data-a="ckChiudiEsito">✕</button></div>' +
+    '<div class="avv">' + esc(e.txt) + '</div>' + (e.riprova ? '<button class="envG" data-a="ckVerifica"><b>Revisar de nuevo</b><span>no pagues dos veces</span></button>' : '') +
+    '<button class="segui" data-a="ckChiudiEsito">Volver a mi pedido</button></div>';
+}
+function ckValida() {
+  const c = S.ck; c.err = ''; c.errK = '';
+  const tel = c.tel.replace(/[\s().-]/g, '');
+  if (c.propina === null) { c.err = 'Elige la propina (puede ser sin propina).'; c.errK = 'propina'; }
+  else if (c.nombre.trim().length < 2) { c.err = 'Escribe tu nombre.'; c.errK = 'nombre'; }
+  else if (!/^\+?[0-9]{8,12}$/.test(tel)) { c.err = 'Escribe un teléfono válido.'; c.errK = 'tel'; }
+  else if (c.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email.trim())) { c.err = 'Revisa tu correo.'; c.errK = 'email'; }
+  return !c.err;
+}
+function payloadCheckout() {
+  const items = righe().map((r) => ({ id: r.p.id, nombre: nomeRiga(r), precio: prezzoRiga(r), qty: r.q, op: r.m || '', termino: r.t || '',
+    cat: r.p.c, precio_carta: r.p.p, precio_base: r.d ? prezzoOra(r.p).v : undefined,
+    // per le macchine: le risposte una per domanda, in ordine (il bordo ne rifà il sovrapprezzo, `op` è solo per gli umani)
+    resp: r.p.mods ? String(r.k.split('§')[2] || '').split('¦') : [] }));
+  const itemsJson = JSON.stringify(items), t = totale(), pr = propinaDi(t.s), firma = itemsJson + '|' + S.ck.propina;
+  if (S.ck.firma !== firma) { S.ck.uuid = _uuid(); S.ck.firma = firma; }
+  const v = new URL(location.href); v.searchParams.set('ck', S.ck.uuid);
+  return { action: 'checkoutPedido', local: LOCAL, canal: CANAL, destino: DEPTO || KIOSCO, uuid: S.ck.uuid, items_json: itemsJson,
+    subtotal: t.s, descuento_pct: CANAL === 'depto' ? Number((S.cfg && S.cfg.descuento_depto_pct) || 0) : 0, propina_pct: S.ck.propina, propina: pr, total: t.s + pr,
+    precios_epoch: (S.tick && S.tick.precios_epoch) || '', idioma_menu: S.lang,
+    cliente: { nombre: S.ck.nombre.trim(), telefono: S.ck.tel.replace(/[\s().-]/g, ''), email: S.ck.email.trim(), acepta_promos: !!S.ck.promos },
+    vuelta: v.toString(), dispositivo_id: dispositivo(), ts: Date.now() };
+}
+// la pagina del pago: https sempre; sul PC del banco anche il Fintoc finto in http://localhost
+const urlPagoOk = (u) => /^https:\/\/[\w.-]+\//.test(u || '') || (SUL_PC && /^http:\/\/(localhost|127\.0\.0\.1):\d{2,5}\//.test(u || ''));
+async function pagaOra() {
+  if (!checkoutOn() || S.ck.stato || !Object.keys(S.cart).length || depOrarioNo()) return;
+  if (!ckValida()) { pinta(); return; }
+  const pl = payloadCheckout();
+  S.ck.stato = 'volando'; pinta();
+  // il carrello sopravvive al giro da Fintoc: torna con ?ck=<uuid> e si ritrova qui
+  // (anche propina e firma: un pago rifiutato si ripaga con lo STESSO uuid, mai due pedidos per lo stesso carrello)
+  try { sessionStorage.setItem(CK_K(), JSON.stringify({ uuid: pl.uuid, firma: S.ck.firma, propina: S.ck.propina, cart: S.cart, sel: S.sel,
+    nombre: S.ck.nombre, tel: S.ck.tel, email: S.ck.email, promos: S.ck.promos, righe: righe().map((r) => ({ nome: nomeRiga(r), q: r.q })), ts: Date.now() })); } catch (e) { /* senza memoria il ritorno mostra solo l'esito */ }
+  let r = null;
+  for (let i = 0; i < 3; i++) {
+    if (i) await new Promise((ok) => setTimeout(ok, i === 1 ? 2000 : 5000));
+    try { r = await postBordo('/checkout/', pl, 8000); } catch (e) { r = null; }
+    if (r && (r.ok === true || r.need || r.error)) break;
+  }
+  if (r && r.ok === true && urlPagoOk(r.url)) { location.href = r.url; return; }
+  S.ck.stato = '';
+  if (r && r.need === 'items_agotados') {
+    const fuera = Array.isArray(r.agotados) ? r.agotados : [];
+    fuera.forEach((x) => { const p = x && S.prod.find((y) => y.id === x.id); if (p) { S.agotLoc.push(p.id); Object.keys(S.cart).forEach((k) => { if (k.split('§')[0] === p.id) delete S.cart[k]; }); } });
+    S.ck.err = 'Se acabó justo ahora: ' + fuera.map((x) => (x && x.nombre) || '').filter(Boolean).join(' · ') + '. Lo sacamos de tu pedido: revisa el total.';
+  } else if (r && r.need === 'carta_vieja') {
+    if (S.tick && r.precios) { S.tick.precios = r.precios; S.tick.precios_epoch = r.precios_epoch || S.tick.precios_epoch; }
+    S.ck.err = 'Los precios cambiaron recién: revisa el total y paga de nuevo.';
+  } else if (r && r.need === 'fuera_de_horario') { S.ck.err = 'Ahora no estamos tomando pedidos al departamento.'; }
+  else { S.ck.err = 'No pudimos abrir el pago. Tu pedido sigue aquí: reintenta en un momento.'; }
+  pinta();
+}
+/* il ritorno da Fintoc: si LEGGE lo stato del pago (il bordo lo sa dal webhook). Al massimo 8 letture in ~16 s, solo qui:
+   non è un poll che resta acceso. Se non è ancora confermato si dice, e c'è «Revisar de nuevo». */
+async function verificaPago() {
+  S.ck.stato = 'verificando'; S.ck.esito = null; S.pedido = true; pinta();
+  let r = null;
+  for (let i = 0; i < 8; i++) {
+    if (i) await new Promise((ok) => setTimeout(ok, 2000));
+    try { r = await (await leggi(BORDO + '/checkout/' + encodeURIComponent(LOCAL) + '?uuid=' + encodeURIComponent(RITORNO_CK) + '&t=' + TOKEN_LETTURA)).json(); } catch (e) { r = null; }
+    if (r && r.ok === true && r.estado !== 'pendiente') break;
+  }
+  S.ck.stato = '';
+  let mem = null; try { mem = JSON.parse(sessionStorage.getItem(CK_K()) || 'null'); } catch (e) { mem = null; }
+  if (r && r.ok === true && r.estado === 'pagado') {
+    S.ck.esito = { ok: true, numero: r.numero || '', righe: mem && mem.uuid === RITORNO_CK ? mem.righe : [] };
+    S.cart = {}; S.sel = {}; try { sessionStorage.removeItem(CK_K()); } catch (e) {}
+    try { const u = new URL(location.href); u.searchParams.delete('ck'); history.replaceState(null, '', u.toString()); } catch (e) {}
+    if (CANAL === 'kiosco') setTimeout(() => { location.replace(location.href); }, 20000);
+  } else if (r && r.ok === true && r.estado === 'rechazado') {
+    S.ck.esito = { ok: false, txt: 'El pago no se completó. Tu pedido sigue aquí: puedes pagar de nuevo.' };
+  } else {
+    S.ck.esito = { ok: false, riprova: true, txt: 'Todavía no vemos tu pago confirmado. Si ya pagaste, tu pedido entra solo apenas llegue la confirmación.' };
+  }
+  pinta();
+}
 // l'apparecchio: il bordo limita le chiamate per telefono, non solo per mesa (stessa chiave del menù vivo)
 function dispositivo() { let d = ''; try { d = localStorage.getItem('pinsita_dev') || ''; } catch (e) {}
   if (!d) { d = 'd' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); try { localStorage.setItem('pinsita_dev', d); } catch (e) {} } return d; }
@@ -994,6 +1210,9 @@ if (window.visualViewport) {
 // Buscar: ogni lettera ridisegna solo la griglia (la barra col campo resta, vedi pinta)
 document.getElementById('app').addEventListener('input', (ev) => {
   if (ev.target.classList.contains('bin')) { S.busca = ev.target.value; S.abierta = null; pinta(); return; }
+  // PINSA: i campi della cassa si ricordano senza ridisegnare (perderebbe la tastiera)
+  if (ev.target.dataset.a === 'ckCampo') { const n = ev.target.name; if (n === 'promos') S.ck.promos = ev.target.checked; else if (n in S.ck) S.ck[n] = String(ev.target.value || '').slice(0, 80);
+    if (S.ck.errK === n) { S.ck.errK = ''; S.ck.err = ''; ev.target.classList.remove('male'); const av = document.querySelector('.ped .avv'); if (av) av.remove(); } return; }
   // il numero della mesa del regalo: niente ridisegno (perderebbe la tastiera), si accende solo il bottone
   if (ev.target.dataset.a === 'donoMesa' && S.dono) { S.dono.mesa = ev.target.value.replace(/[^0-9]/g, '').slice(0, 3); S.dono.uuid = ''; S.dono.err = '';
     if (ev.target.value !== S.dono.mesa) ev.target.value = S.dono.mesa;
@@ -1036,6 +1255,13 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'donoFalta') { const i = document.querySelector('[data-a="donoMesa"]'); if (i) { i.focus(); i.classList.remove('wapide'); void i.offsetWidth; i.classList.add('wapide'); } return; }
   if (a === 'donoInvia') { inviaDono(); return; }
   if (a === 'donoMesa') return;
+  // PINSA · la cassa
+  if (a === 'ckCampo') return;
+  if (a === 'ckPropina' && !S.ck.stato) { S.ck.propina = Number(k) || 0; if (S.ck.errK === 'propina') { S.ck.err = ''; S.ck.errK = ''; } pinta(); return; }
+  if (a === 'ckPaga') { pagaOra(); return; }
+  if (a === 'ckVerifica') { verificaPago(); return; }
+  if (a === 'ckChiudiEsito') { S.ck.esito = null; S.pedido = Object.keys(S.cart).length > 0; pinta(); return; }
+  if (a === 'ckNuovo') { S.ck.esito = null; S.pedido = false; S.abierta = null; S.ck.uuid = ''; S.ck.firma = ''; S.ck.propina = null; pinta(); return; }
   if (a === 'fam') { const g = gruppi().find((x) => x.k === k); S.fam = k; S.cat = g.cats[0]; S.abierta = null; S.busca = null; }
   else if (a === 'cat') { S.cat = k; S.abierta = null; S.busca = null; }
   else if (a === 'abreBusca') { S.busca = ''; S.abierta = null; pinta(); const i = document.querySelector('.bin'); if (i) i.focus(); return; }
@@ -1099,8 +1325,10 @@ async function leggiTick() {
     const x = j && j.datos && j.datos.datos; if (x && x.ok !== false) S.tick = x; } catch (e) { /* resta il tick di prima */ }
 }
 // un giro ogni 60", come il vivo, e solo col telefono in mano (sostituisce il poll a Google, non se ne aggiunge uno)
-setInterval(async () => { if (!LOCAL || !S.prod.length || document.visibilityState !== 'visible') return; await leggiTick(); pinta(); }, 60000);
-document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && LOCAL && S.prod.length) { await leggiTick(); pinta(); } });
+// PINSA: mentre il cliente scrive nella cassa il tick si aggiorna ma non ridisegna (perderebbe il campo e la tastiera)
+const scrivendo = () => !!(document.activeElement && document.activeElement.closest && document.activeElement.closest('.ckf'));
+setInterval(async () => { if (!LOCAL || !S.prod.length || document.visibilityState !== 'visible') return; await leggiTick(); if (!scrivendo()) pinta(); }, 60000);
+document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && LOCAL && S.prod.length) { await leggiTick(); if (!scrivendo()) pinta(); } });
 /* LE NOSTRE FOTO (v0.5.3, Alberto 28-ott): vivono in questo repo, `fotos/<LOCAL>/<id>.webp`, elencate in `fotos/fotos.json`
    ({"BKS":{"BKS-BAR-002":"BKS-BAR-002.webp"}}), e vincono sulla `Imagen_URL` della carta. Mai su Google.
    ⏳ TAMPONE dichiarato: lo uccide il catalogo nativo in Postgres (AUT-0752, seme sab 31-ott), dove la foto è una colonna del prodotto.
@@ -1134,12 +1362,20 @@ async function vetrinaLocale() {
     S.prod.forEach((p) => { if (ff[p.id]) { p.img = ff[p.id].img; p.fy = ff[p.id].fy; } });
     await leggiTick();
     if (S.cfg.brand_name) document.title = S.cfg.brand_name;
+    if (String(S.cfg.tema || '').toLowerCase() === 'claro') document.documentElement.classList.add('claro');   // PINSA: il tema del local
     const g = gruppi()[0];
     if (!g) throw new Error('carta vacía');
     S.fam = g.k; S.cat = g.cats[0];
     // v0.7: il fondo del locale, l'inizio dallo show, «Otra vez» di questa mesa
     if (S.vet && PATH_VET.test(S.vet.fondo || '')) { const app = document.getElementById('app'); app.style.setProperty('--fondo', 'url("' + S.vet.fondo + '")'); app.classList.add('confondo'); }
     preparaSlides(); S.palco = SLIDES.length > 0; histLeggi(); envLeggi();
+    // PINSA: di ritorno da Fintoc (?ck=<uuid>) si ritrova il carrello e si legge com'è andato il pago
+    if (CHECKOUT && RITORNO_CK) {
+      let mem = null; try { mem = JSON.parse(sessionStorage.getItem(CK_K()) || 'null'); } catch (e) { mem = null; }
+      if (mem && mem.uuid === RITORNO_CK) { S.cart = mem.cart || {}; S.sel = mem.sel || {}; S.ck.uuid = mem.uuid; S.ck.firma = mem.firma || ''; S.ck.propina = mem.propina === undefined ? null : mem.propina;
+        ['nombre', 'tel', 'email'].forEach((n) => { S.ck[n] = String(mem[n] || ''); }); S.ck.promos = !!mem.promos; }
+      S.palco = false; verificaPago(); return;
+    }
     pinta();
   } catch (e) {
     // nessun ripiego su Google: si dice che cosa manca
