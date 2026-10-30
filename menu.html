@@ -365,7 +365,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.4</div>
+<div class="ver" id="ver">menu v0.9.5</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1051,7 +1051,13 @@ function nota(txt) { let n = document.getElementById('nota'); if (!n) { n = docu
    ⚠️ debito dichiarato: niente coda offline (localStorage) come il vivo — se la pagina muore a metà, il cliente rimanda. */
 const ATTESA_INVIO = 4000;
 let INV = null, INV_TICK = null;
-const _uuid = () => { try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) {} return 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); };
+/* v0.9.5 (giallo ⓑ di 💵 EL GIRO su e802a35857): il ripiego non è più «p-…» ma un uuid v4 vero (getRandomValues). Il ck del checkout è
+   l'uuid_pago della voce del cliente, e una colonna `uuid` rifiutava in silenzio la voce dei telefoni senza randomUUID. «p-…» resta
+   solo se manca anche getRandomValues (nessun telefono che apre questa pagina): lì l'invio del pedido va come prima. */
+const _uuid = () => { try { if (crypto && crypto.randomUUID) return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
+  const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join(''); return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
+} catch (e) {} return 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); };
 function payloadPedido(confirmado) {
   // contratto del vivo (_enviarPedidoDigitalInner): `nombre` composto per gli umani (piatto · modo · término), i CAMPI per le
   // macchine: `op` = il modo scelto (senza l'etichetta del prezzo), `termino`; `precio` porta DENTRO il sovrapprezzo
@@ -1439,8 +1445,7 @@ const OPI_TX = {
   fr: ['Comment était tout ?', 'Mal', 'Moyen', 'Bien', 'Que s’est-il passé ?', 'Le plat a tardé', 'Les boissons ont tardé', 'Un plat ou une boisson n’allait pas', 'Le service', 'Autre chose', 'Envoyer', 'Passer', 'Merci ! Ça nous aide', 'Choisis-en au moins une'],
   ja: ['いかがでしたか？', '悪い', '普通', '良い', '何がありましたか？', '料理が遅かった', 'ドリンクが遅かった', '料理かドリンクに問題があった', '接客', 'その他', '送信', 'スキップ', 'ありがとうございます！改善に役立てます', '1つ以上選んでください'] };
 const OPI_MOT = ['comida_tardo', 'tragos_tardaron', 'plato_mal', 'atencion', 'otra'];   // le chiavi viaggiano, il testo no (una per lingua)
-const uidV4 = () => { try { if (crypto.randomUUID) return crypto.randomUUID(); const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
-  const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join(''); return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20); } catch (e) { return ''; } };
+const uidV4 = _uuid;   // v0.9.5: un generatore solo (vedi _uuid)
 const opiOn = () => String((S.cfg && S.cfg.opinion_on) || '').trim() === '1';
 const OPI_K = () => 'pinsita_opi_' + LOCAL + '_' + giornoOp(Date.now());
 function opinionApri(dove, uuid) {
