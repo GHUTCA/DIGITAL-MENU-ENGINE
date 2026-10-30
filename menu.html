@@ -365,7 +365,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.3</div>
+<div class="ver" id="ver">menu v0.9.4</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1439,6 +1439,8 @@ const OPI_TX = {
   fr: ['Comment était tout ?', 'Mal', 'Moyen', 'Bien', 'Que s’est-il passé ?', 'Le plat a tardé', 'Les boissons ont tardé', 'Un plat ou une boisson n’allait pas', 'Le service', 'Autre chose', 'Envoyer', 'Passer', 'Merci ! Ça nous aide', 'Choisis-en au moins une'],
   ja: ['いかがでしたか？', '悪い', '普通', '良い', '何がありましたか？', '料理が遅かった', 'ドリンクが遅かった', '料理かドリンクに問題があった', '接客', 'その他', '送信', 'スキップ', 'ありがとうございます！改善に役立てます', '1つ以上選んでください'] };
 const OPI_MOT = ['comida_tardo', 'tragos_tardaron', 'plato_mal', 'atencion', 'otra'];   // le chiavi viaggiano, il testo no (una per lingua)
+const uidV4 = () => { try { if (crypto.randomUUID) return crypto.randomUUID(); const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
+  const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join(''); return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20); } catch (e) { return ''; } };
 const opiOn = () => String((S.cfg && S.cfg.opinion_on) || '').trim() === '1';
 const OPI_K = () => 'pinsita_opi_' + LOCAL + '_' + giornoOp(Date.now());
 function opinionApri(dove, uuid) {
@@ -1454,7 +1456,8 @@ function opinionApri(dove, uuid) {
   document.body.appendChild(o);
   const manda = () => { o.remove(); nota('✓ ' + X[12]);
     try { fetch(BORDO + '/opinion/' + LOCAL + '?t=' + TOKEN_LETTURA, { method: 'POST', keepalive: true, headers: { 'content-type': 'text/plain' },
-      body: JSON.stringify({ action: 'opinionCliente', local: LOCAL, canal: CANAL || 'mesa', destino: MESA || DEPTO || KIOSCO || '', donde: dove, uuid_pago: uuid || '',
+      // uid: uno per invio, coniato qui (il lato che ripete). La colonna di 🚚 è `uuid`: il ripiego di _uuid ('p-…') lì non entra, quindi v4 vero
+      body: JSON.stringify({ action: 'opinionCliente', uid: uidV4(), local: LOCAL, canal: CANAL || 'mesa', destino: MESA || DEPTO || KIOSCO || '', donde: dove, uuid_pago: uuid || '',
         voto: rv.v, motivos: rv.mot, idioma: S.lang, dispositivo_id: dispositivo(), ts: Date.now() }) }).catch(() => {}); } catch (e) {} };
   o.addEventListener('click', (ev) => {
     if (ev.target === o) { o.remove(); return; }
