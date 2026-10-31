@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.114.0</span>
+<span id="ver" hidden>menu2 · v2.114.1</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -13917,6 +13917,16 @@ async function _enviarPedidoDigitalInner(opts){
     const nC = repriceCart();
     if (!nC) { try { renderCart(); } catch(e){} }
     showToastMsg('💲 ' + (getLang('precios_cambiaron') || 'Los precios se actualizaron — revisa tu pedido') + ' · ' + (getLang('reenviar') || 'vuelve a enviar'));
+    if (btn) { btn.disabled = false; btn.textContent = getLang('cart_listo') || 'Enviar pedido 🛎'; }
+    return;
+  }
+
+  // v2.114.1 · MESA BLOQUEADA (AUT-EMERG-0787, mesa 85): el bordo no acepta pedidos del menú
+  // para esta mesa. No es un fallo de red: no se reintenta, no queda en cola, y el
+  // cliente sabe a quién pedirle. Carrito intacto (lo puede dictar al mesero).
+  if (resp && !resp.ok && resp.need === 'mesa_bloqueada') {
+    _colaRemove(uuid); _cartPendClear();
+    showToastMsg('🙋 Esta mesa no está recibiendo pedidos por el menú. Pídele al mesero.', 9000);
     if (btn) { btn.disabled = false; btn.textContent = getLang('cart_listo') || 'Enviar pedido 🛎'; }
     return;
   }
