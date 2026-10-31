@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.113.4</span>
+<span id="ver" hidden>menu2 · v2.114.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -7556,6 +7556,7 @@ let DJBOX_ON      = false;        // PARAMETROS.djbox_on (porta DJ-BOX nel mondo
    rete → si va al GAS come sempre; la cola offline (_colaFlush) resta
    puntata SOLO al GAS. L'interruttore è di Alberto. */
 let PEDIDO_BORDE  = false;
+let REGALO_BORDE  = false;        // v2.114.0 · T1 riga 4: il regalo fra mesas passa dal bordo (leva regalo_borde_on, riga assente = SPENTO)
 let ULTIMA_RONDA  = null;         // items dell'ultimo pedido inviato (🔁 otra ronda)
 const RONDA_KEY   = 'ultima_ronda_v1';
 let V2_DET        = null;         // {p, qty, preguntas[], resp{}} della scheda aperta
@@ -8396,6 +8397,8 @@ function aplicarConfigCliente(cfg){
   PEDIDO_BORDE = String(cfg.pedido_borde_on || 'FALSE').trim().toUpperCase() === 'TRUE';
   if (new URLSearchParams(location.search).get('borde') === '0') PEDIDO_BORDE = false;
   if (MODO_RESPALDO) PEDIDO_BORDE = false;
+  // v2.114.0 · il regalo segue il pedido: senza PEDIDO_BORDE (?borde=0, respaldo) resta al GAS
+  REGALO_BORDE = PEDIDO_BORDE && String(cfg.regalo_borde_on || 'FALSE').trim().toUpperCase() === 'TRUE';
 }
 
 /* v1.32 · CSV → ALL_PRODUCTS + ALL_CATEGORIES · corpo unico vivo/respaldo */
@@ -13604,7 +13607,9 @@ async function regaloEnviar(prodId){
     let resp = null;
     for (let i = 0; i < 2; i++) {
       if (i) await new Promise(r => setTimeout(r, 2000));
-      try { resp = await _postGAS(payload); if (resp) break; } catch(e){ resp = null; }
+      // v2.114.0 · T1 riga 4 (🎛 V33, 31-ott): a T8 il GAS non è più letto, il regalo entra dal bordo come il pedido.
+      // Stesso uuid nei due giri: il DO e il GAS deduplicano. La cintura di _postPedido resta (bordo muto → GAS).
+      try { resp = await (REGALO_BORDE ? _postPedido(payload) : _postGAS(payload)); if (resp) break; } catch(e){ resp = null; }
     }
     if (resp && resp.ok) {
       _pedidoRegistrarExito({ payload: payload, snapshot_items: [] }, resp);
