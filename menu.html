@@ -29,6 +29,7 @@
   /* v0.9 · i pezzi che avevano il colore scritto a mano: la testa, i veli sotto le strisce, la casetta, il segno di versione, il riquadro senza foto, la nota */
   --testa:linear-gradient(rgba(10,8,6,.92),rgba(10,8,6,.8));--velo:rgba(7,6,5,.55);--casa:rgba(243,237,228,.82);--sutil:rgba(243,237,228,.3);
   --tgbg:#1b140a;--notabg:#24201a;--fondo-op:.71;
+  --cdbordo:rgba(243,237,228,.08);--addbordo:rgba(169,190,104,.35);   /* v0.9.8 la scheda pastel (DESIGN V33): bordi spenti, la foto parla */
   color-scheme:dark;
 }
 /* ═══ v0.9 · IL GIORNO (Alberto 30-ott «fondo beige per il giorno … come oggi»): la sabbia del vestito di menu_digital (#EFE2CF, r.542-557),
@@ -40,6 +41,7 @@ body.dia{
   --ok-chiaro:#5E7030;--male:#C0392B;
   --testa:linear-gradient(rgba(248,241,230,.94),rgba(248,241,230,.84));--velo:rgba(248,241,230,.72);--casa:rgba(36,26,20,.75);--sutil:rgba(36,26,20,.3);
   --tgbg:#F3E6CF;--notabg:#FFFBF5;--fondo-op:.57;
+  --cdbordo:rgba(36,26,20,.10);--addbordo:rgba(94,112,48,.35);
   color-scheme:light;
 }
 *{box-sizing:border-box}
@@ -62,13 +64,13 @@ button{font-family:inherit}
 /* poche card: si appoggiano al fondo, nell'arco del pollice (mockup, Alberto 21-ott) */
 .z3.basso{display:flex;flex-direction:column}
 .z3.basso>*{margin-top:auto}   /* non justify-content:flex-end: se il contenuto cresce, l'eccedenza deve restare scorrevole */
-.cd{display:flex;flex-direction:column;gap:4px;background:var(--card);border:1px solid var(--linea);border-radius:12px;padding:6px;min-height:188px;cursor:pointer;text-align:left;color:var(--txt)}
+.cd{display:flex;flex-direction:column;gap:3px;background:var(--card);border:1px solid var(--cdbordo);border-radius:12px;padding:5px;min-height:176px;cursor:pointer;text-align:left;color:var(--txt)}
 .cd .th{width:100%;height:auto;aspect-ratio:4/3;border-radius:8px;object-fit:cover;object-position:center 60%;background:var(--sup)}
 .cd .tg{width:100%;height:76px;border-radius:8px;background:var(--tgbg);color:var(--oro);display:flex;align-items:center;justify-content:center;
   text-align:center;padding:4px;font-family:Fraunces,Georgia,serif;font-size:12px;line-height:1.15}
-.cd .nm{font-size:12px;font-weight:700;line-height:1.22;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px}
-.cd .pz{font-size:12.5px;font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
-.addb{margin-top:auto;width:100%;background:transparent;color:var(--ok-chiaro);border:1.5px solid rgba(139,158,79,.6);border-radius:8px;font-weight:800;font-size:11px;min-height:30px;cursor:pointer;
+.cd .nm{font-size:12.5px;font-weight:400;line-height:1.22;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px}
+.cd .pz{font-size:12.5px;font-weight:700;color:var(--oro);font-variant-numeric:tabular-nums}
+.addb{margin-top:auto;width:100%;background:transparent;color:var(--ok-chiaro);border:1px solid var(--addbordo);border-radius:8px;font-weight:600;font-size:11px;min-height:30px;cursor:pointer;
   /* v0.8.3 (Alberto: in francese «COMMANDER» sfonda il bottone): una riga sola, e se una lingua non ci sta si tronca, mai fuori dalla card */
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 3px}
 .cd.dentro{border-color:var(--ok)}
@@ -365,7 +367,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.7</div>
+<div class="ver" id="ver">menu v0.9.8</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
