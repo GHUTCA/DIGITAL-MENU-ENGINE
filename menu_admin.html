@@ -377,7 +377,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v3.4.0</div>
+    <div class="hub-footer-version" id="ver">menu_admin v3.4.1</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -639,8 +639,12 @@ async function gasGet(action, extraParams) {
    push qui scrivono SOLO al GAS (il foglio): dopo il seme non arriverebbero al cliente, e il pannello direbbe «hecho».
    ⇒ i bottoni si spengono e il tubo li rifiuta. Gli 86 restano: passano dal bordo (/admin86) e il tick li porta sopra la carta.
    · TAMPONE dichiarato: lo uccide il catalog admin che scrive su PG (dom 1-nov, 📖 MENU BKS); allora CATALOGO_CONGELADO torna false.
-   · ritorno: il blob di menu_admin v3.3.1 (origin/main 85f9619). */
-const CATALOGO_CONGELADO = true;
+   · ritorno: il blob di menu_admin v3.3.1 (origin/main 85f9619).
+   ═══ v3.4.1 · [AUT-0791 · 📖 MENU BKS · dom 1-nov] SCONGELATO: l'1.8 non parte oggi (🎛 V33, «L'1.8 NON SI ACCENDE OGGI»).
+   La premessa qui sopra era falsa: /carta del bordo è la COPIA del foglio spinta dal beat del GAS (index.js r.16334, sezione
+   carta_csv), non Postgres. Quindi prezzo, forzar e push via GAS arrivano al cliente e al mesero, come prima del 31.
+   · Si ricongela (true) solo quando parte l'1.8 con la porta PG di Activo + prezzo (mar 3). Ritorno: blob v3.4.0 c6c60a67. */
+const CATALOGO_CONGELADO = false;
 const CATALOGO_CONGELADO_MSG = 'Precio, forzar y push vuelven el domingo 1 · los 86 siguen funcionando';
 const ACCIONES_CONGELADAS = ['adminSetPrecio', 'adminForzar', 'adminClearForzar', 'adminPush', 'adminEndPush'];
 const ACCIONES_BS_CONGELADAS = ['push', 'change_price', 'apply_report', 'forzar', 'clear_forzar'];
