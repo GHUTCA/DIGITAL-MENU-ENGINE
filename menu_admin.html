@@ -377,7 +377,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v3.4.0</div>
+    <div class="hub-footer-version" id="ver">menu_admin v3.5.0</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -567,6 +567,12 @@
   <div id="bsConfirmContent" style="display:none">
     <div class="bs-question" id="bsQuestion">¿Confirmar?</div>
     <div class="bs-explainer" id="bsExplainer">—</div>
+    <div id="bsHorario" style="display:none">
+      <label class="bs-explainer" for="bsHoraIni">Desde (vacío = desde que abre)</label>
+      <input class="input-field" type="time" id="bsHoraIni">
+      <label class="bs-explainer" for="bsHoraFin">Hasta (vacío = cierra con su estación)</label>
+      <input class="input-field" type="time" id="bsHoraFin">
+    </div>
     <div class="bs-actions">
       <button class="bs-btn bs-btn-cancel" onclick="closeBs()">Cancelar</button>
       <button class="bs-btn bs-btn-confirm" id="bsConfirm" onclick="confirmCurrentAction()">Sí</button>
@@ -641,10 +647,78 @@ async function gasGet(action, extraParams) {
    · TAMPONE dichiarato: lo uccide il catalog admin che scrive su PG (dom 1-nov, 📖 MENU BKS); allora CATALOGO_CONGELADO torna false.
    · ritorno: il blob di menu_admin v3.3.1 (origin/main 85f9619). */
 const CATALOGO_CONGELADO = true;
-const CATALOGO_CONGELADO_MSG = 'Precio, forzar y push vuelven el domingo 1 · los 86 siguen funcionando';
 const ACCIONES_CONGELADAS = ['adminSetPrecio', 'adminForzar', 'adminClearForzar', 'adminPush', 'adminEndPush'];
 const ACCIONES_BS_CONGELADAS = ['push', 'change_price', 'apply_report', 'forzar', 'clear_forzar'];
-const accionCongelada = (id) => CATALOGO_CONGELADO && ACCIONES_BS_CONGELADAS.indexOf(id) >= 0;
+/* ═══ v3.5.0 · [📖 MENU BKS V32 · dom 1-nov] LA CARTA SI SCRIVE IN POSTGRES (/cartaAdmin del bordo) ═══
+   ✏️ Correzione della premessa di v3.4.0 qui sopra: il 31-ott la carta del cliente NON usciva da Postgres (`/carta/<local>` è la copia del
+   foglio portata dal battito del GAS). Il congelamento resta giusto per un'altra ragione: dal 3-nov il foglio è VISTA e ciò che vale è PG.
+   · All'ingresso il pannello chiede la carta a `GET /cartaAdmin/<local>`. Se il bordo risponde (leva CARTA_ADMIN_PG_ON "1"), prezzo,
+     forzar, Activo / En carta e horario passano da `POST /cartaAdmin` e scrivono in PG. Se non risponde (leva "0", rete), il pannello
+     resta congelato come v3.4.0: questo file si può spedire PRIMA della leva senza cambiare niente.
+   · I gesti vecchi verso il GAS restano tutti bloccati (`gasPost` qui sotto): una scrittura sul foglio non arriva più a nessuno.
+   · UNA chiave per gesto (`gesto_id`, uuid coniato qui): il retry riusa la stessa, il bordo non scrive due volte.
+   · `base_ts`: il ts della versione che il pannello ha visto. Se un altro l'ha cambiata nel frattempo il bordo risponde
+     `version_cambiata` e il pannello si rinfresca invece di scrivere sopra.
+   · Il push resta spento: diventa un gesto dello strumento (modello approvato dom 1, vivo lun 9-nov). */
+const CARTA_PG = { on: false, ts: 0 };
+const ACCIONES_BS_PG = ['change_price', 'apply_report', 'forzar', 'clear_forzar'];
+const congeladoMsg = () => CARTA_PG.on ? 'El push vuelve el lunes 9 con las promos' : 'Precio y forzar vuelven el martes 3 · los 86 siguen funcionando';
+const CATALOGO_CONGELADO_MSG = 'Precio y forzar vuelven el martes 3 · los 86 siguen funcionando';
+const accionCongelada = (id) => CATALOGO_CONGELADO && ACCIONES_BS_CONGELADAS.indexOf(id) >= 0 && !(CARTA_PG.on && ACCIONES_BS_PG.indexOf(id) >= 0);
+function gestoId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+  return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
+}
+async function cartaPgFetch(init, ms) {
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), ms || 5000);
+  try {
+    const r = await fetch(BORDE_86 + '/cartaAdmin/' + encodeURIComponent(CFG.LOCAL), Object.assign({ cache: 'no-store', signal: ctrl.signal }, init,
+      { headers: Object.assign({ 'X-Borde-Token': BORDE_TOKEN_86 }, init.headers || {}) }));
+    clearTimeout(tid);
+    return await r.json();
+  } catch (e) { clearTimeout(tid); throw new Error(e.name === 'AbortError' ? 'timeout' : 'red'); }
+}
+/* la carta da PG; null = il bordo non la dà (leva spenta, rete): il pannello resta congelato */
+async function cartaPgLeggi() {
+  let salta = false;
+  try { salta = new URLSearchParams(location.search).get('borde') === '0'; } catch (e) {}
+  if (salta) { CARTA_PG.on = false; return null; }
+  try {
+    const j = await cartaPgFetch({ method: 'GET' }, 5000);
+    CARTA_PG.on = !!(j && j.ok === true && Array.isArray(j.productos));
+    if (CARTA_PG.on) CARTA_PG.ts = Date.now();
+    return CARTA_PG.on ? j.productos : null;
+  } catch (e) { CARTA_PG.on = false; return null; }
+}
+/* UN gesto. `gid` lo conia chi chiama UNA volta per gesto: il retry passa lo stesso. */
+async function cartaPgGesto(gesto, p, gid, extra) {
+  const body = Object.assign({ pin: lastSavedPin, gesto: gesto, id_producto: p.id, gesto_id: gid }, extra || {});
+  return cartaPgFetch({ method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }, 8000);
+}
+const CARTA_PG_ERR = { version_cambiata: 'Otro cambió este producto · recargué la lista', firmante_no_autorizado: 'Tu PIN no puede cambiar la carta',
+  pin_jl_invalido: 'PIN incorrecto', pin_jl_bloqueado: 'PIN bloqueado · espera', producto_desconocido: 'Producto no está en la carta', pg_no_responde: 'La carta no responde · reintenta' };
+const cartaPgErr = (r) => (r && (CARTA_PG_ERR[r.error] || r.error)) || 'No se pudo guardar';
+/* lo stato di un prodotto dopo una lettura da PG (la verità della carta dal 3-nov) */
+function hhmmDeIso(iso) { const t = new Date(iso); return isNaN(t.getTime()) ? '' : String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0'); }
+function aplicaCartaPg(filas) {
+  const porId = {}; PRODUCTS.forEach((p) => { porId[p.id] = p; });
+  filas.forEach((f) => {
+    let p = porId[f.id_producto];
+    if (!p) {   // il GAS elenca solo gli attivi: gli spenti arrivano da PG, perché si possano riaccendere
+      const c = String(f.categoria || 'otros');
+      p = { id: f.id_producto, nombre: f.nombre, cat: c.charAt(0).toUpperCase() + c.slice(1), precio: 0, agotado: false, en_ritmo_actual: false };
+      PRODUCTS.push(p); porId[p.id] = p;
+    }
+    p.precio = Number(f.precio) || 0; p.sin_precio = f.sin_precio === true;
+    p.activo = f.activo !== false; p.menu_visible = f.menu_visible !== false; p.vendible = f.vendible === true;
+    p.hora_inicio = f.hora_inicio || ''; p.hora_fin = f.hora_fin || ''; p.pg_ts = f.ts;
+    if (f.forzado && f.forzado_hasta) p.forzado = { until: hhmmDeIso(f.forzado_hasta), until_iso: f.forzado_hasta, by: '' };
+    else delete p.forzado;
+  });
+}
 async function gasPost(action, body) {
   if (CATALOGO_CONGELADO && ACCIONES_CONGELADAS.indexOf(action) >= 0) return { ok: false, error: CATALOGO_CONGELADO_MSG };
   const ctrl = new AbortController();
@@ -874,6 +948,9 @@ async function loadProducts(){
     }
     PRODUCTS = (r.products || []).map(p => normalizeProduct(p));
     RITMO_ACTUAL_ID = r.ritmo_actual_id || null;
+    // v3.5.0 · prezzo, Activo / En carta, horario e forzado da Postgres (la verità della carta dal 3-nov); l'86 resta quello di sempre
+    const filasPg = await cartaPgLeggi();
+    if (filasPg) aplicaCartaPg(filasPg);
     STATE.lastListFetchTs = Date.now();
     STATE.loading = false;
     return true;
@@ -1127,7 +1204,14 @@ function openProductActions(prodId){
     }
   }
 
-  actions.forEach(a => { if (accionCongelada(a.id)) { a.off = true; a.meta = CATALOGO_CONGELADO_MSG; } });
+  // v3.5.0 · i gesti nuovi della carta in PG (solo col bordo che risponde): Activo, En carta, horario
+  if(STATE.role==='gerente' && CARTA_PG.on && p.pg_ts){
+    actions.push({ id:'activo_toggle', icon:iconNoSign(), title:p.activo===false?'Activar producto':'Desactivar producto', meta:p.activo===false?'Vuelve a venderse':'Deja de venderse en todas partes (no es un 86)' });
+    actions.push({ id:'visible_toggle', icon:iconCompass(), title:p.menu_visible===false?'Mostrar en la carta':'Ocultar de la carta', meta:p.menu_visible===false?'El cliente lo vuelve a ver':'El cliente no lo ve · el mesero sí' });
+    actions.push({ id:'horario', icon:iconFlame(), title:'Horario', meta:`Desde ${p.hora_inicio||'que abre'} · hasta ${p.hora_fin||'que cierra su estación'}` });
+  }
+
+  actions.forEach(a => { if (accionCongelada(a.id)) { a.off = true; a.meta = congeladoMsg(); } });
   document.getElementById('bsActionList').innerHTML = actions.map(a=>`<div class="bs-action-row${a.off?' off':''}" onclick="chooseAction('${a.id}')"><div class="bs-action-icon ${a.iconClass||''}">${a.icon}</div><div class="bs-action-body"><div class="bs-action-title">${a.title}</div><div class="bs-action-meta">${a.meta}</div></div><div class="bs-action-arrow">${iconArrow()}</div></div>`).join('');
   document.getElementById('bsConfirmContent').style.display = 'none';
   document.getElementById('bsActionList').style.display = '';
@@ -1139,8 +1223,28 @@ function closeBs(){ document.getElementById('bsBackdrop').classList.remove('show
 
 function chooseAction(id){
   const p = PRODUCTS.find(x=>x.id===STATE.pendingProdId); if(!p) return;
-  if (accionCongelada(id)) { showToast('warn', CATALOGO_CONGELADO_MSG); return; }
+  if (accionCongelada(id)) { showToast('warn', congeladoMsg()); return; }
   STATE.pendingAction = id;
+  STATE.pendingGid = gestoId();   // v3.5.0 · UNA chiave per gesto, coniata all'apertura della conferma: il retry la riusa
+  if(id==='activo_toggle'){
+    showConfirm({ question: p.activo===false?`¿Activar "${p.nombre}"?`:`¿Desactivar "${p.nombre}"?`,
+      explainer: p.activo===false?'Vuelve a la carta del cliente y del mesero.':'Sale de la carta del cliente y del mesero hasta que lo actives. Para hoy solamente, usa el 86.',
+      btnLabel: p.activo===false?'Sí, activar':'Sí, desactivar', btnClass: p.activo===false?'success':'warn' });
+    return;
+  }
+  if(id==='visible_toggle'){
+    showConfirm({ question: p.menu_visible===false?`¿Mostrar "${p.nombre}" en la carta?`:`¿Ocultar "${p.nombre}" de la carta?`,
+      explainer: p.menu_visible===false?'El cliente lo vuelve a ver en su teléfono.':'El cliente no lo ve en su teléfono. El mesero lo puede seguir vendiendo.',
+      btnLabel: p.menu_visible===false?'Sí, mostrar':'Sí, ocultar', btnClass: p.menu_visible===false?'success':'' });
+    return;
+  }
+  if(id==='horario'){
+    showConfirm({ question: `Horario de "${p.nombre}"`, explainer: 'Fuera de este horario no se vende. Vacío = el horario de su estación.', btnLabel: 'Guardar horario' });
+    document.getElementById('bsHoraIni').value = p.hora_inicio || '';
+    document.getElementById('bsHoraFin').value = p.hora_fin || '';
+    document.getElementById('bsHorario').style.display = '';
+    return;
+  }
   if(id==='86_toggle'){
     showConfirm({
       question: p.agotado?`¿Reactivar "${p.nombre}"?`:`¿Marcar "${p.nombre}" como AGOTADO hoy?`,
@@ -1174,6 +1278,7 @@ function showConfirm(o){
   document.getElementById('bsConfirmContent').style.display = '';
   document.getElementById('bsQuestion').textContent = o.question;
   document.getElementById('bsExplainer').textContent = o.explainer;
+  document.getElementById('bsHorario').style.display = 'none';
   const btn = document.getElementById('bsConfirm');
   btn.textContent = o.btnLabel;
   btn.classList.remove('success','warn');
@@ -1224,6 +1329,47 @@ async function confirmCurrentAction(){
       if (!snapshot.pushed && p.pushed) delete p.pushed;
       renderChips(); renderList(); renderHub();
       showToast('error', err.message==='timeout' ? 'Tiempo agotado · revisa conexión' : 'Sin conexión · cambio no guardado');
+    } finally {
+      if (confirmBtn) confirmBtn.disabled = false;
+    }
+    return;
+  }
+
+  /* v3.5.0 · i gesti che scrivono in PG: uno per chiamata, la chiave del gesto riusata dal retry. Niente ottimismo: la risposta
+     del bordo è il fatto, e dopo si rilegge la lista (così il ts nuovo è quello su cui si costruisce il gesto successivo). */
+  const PG_ACC = ['activo_toggle', 'visible_toggle', 'horario', 'forzar', 'clear_forzar'];
+  if(CARTA_PG.on && PG_ACC.indexOf(STATE.pendingAction) >= 0){
+    const acc = STATE.pendingAction, gid = STATE.pendingGid || gestoId();
+    const confirmBtn = document.getElementById('bsConfirm');
+    const ini = document.getElementById('bsHoraIni').value || '', fin = document.getElementById('bsHoraFin').value || '';
+    if (confirmBtn) confirmBtn.disabled = true;
+    try {
+      let r = { ok: true }, msg = '';
+      if(acc==='activo_toggle'){
+        r = await withRetry(() => cartaPgGesto('activo', p, gid, { valor: p.activo===false, base_ts: p.pg_ts }), 'cartaAdmin activo');
+        msg = `${p.nombre} · ${p.activo===false?'activo':'desactivado'}`;
+      } else if(acc==='visible_toggle'){
+        r = await withRetry(() => cartaPgGesto('menu_visible', p, gid, { valor: p.menu_visible===false, base_ts: p.pg_ts }), 'cartaAdmin visible');
+        msg = `${p.nombre} · ${p.menu_visible===false?'en la carta':'fuera de la carta'}`;
+      } else if(acc==='forzar'){
+        const min = Math.min(720, Math.max(1, Math.round((new Date(nextHourIso(6)).getTime() - Date.now()) / 60000)));
+        r = await withRetry(() => cartaPgGesto('forzar', p, gid, { valor: min }), 'cartaAdmin forzar');
+        msg = `🔥 ${p.nombre} · forzado hasta las 06:00`;
+      } else if(acc==='clear_forzar'){
+        r = await withRetry(() => cartaPgGesto('fin_forzar', p, gid), 'cartaAdmin fin_forzar');
+        msg = `Forzado de ${p.nombre} terminado`;
+      } else if(acc==='horario'){
+        // due campi, due gesti, due chiavi: ognuno solo se è cambiato. La seconda chiave deriva dalla prima (stessa per il retry).
+        if(ini !== (p.hora_inicio||'')) r = await withRetry(() => cartaPgGesto('hora_inicio', p, gid, { valor: ini, base_ts: p.pg_ts }), 'cartaAdmin hora_inicio');
+        if(r && r.ok && fin !== (p.hora_fin||'')) r = await withRetry(() => cartaPgGesto('hora_fin', p, gid.slice(0, -4) + 'f1f0', { valor: fin }), 'cartaAdmin hora_fin');
+        msg = `${p.nombre} · desde ${ini||'que abre'} hasta ${fin||'su estación'}`;
+      }
+      closeBs();
+      if (r && r.ok) showToast('success', msg);
+      else showToast('error', cartaPgErr(r));
+      await loadProducts(); renderChips(); renderList(); renderHub();
+    } catch (err) {
+      showToast('error', err.message==='timeout' ? 'Tiempo agotado · reintenta' : 'Sin conexión · cambio no guardado');
     } finally {
       if (confirmBtn) confirmBtn.disabled = false;
     }
@@ -1425,14 +1571,22 @@ async function confirmPriceChange(){
   if(getReports().length>0){ STATE.listMode='price'; enterList(); } else backToHub();
 
   try {
-    const r = await withRetry(() => gasPost('adminSetPrecio', { pin: lastSavedPin, prod_id: p.id, precio: num }), 'adminSetPrecio');
-    if (r && r.ok) {
+    // v3.5.0 · col bordo che risponde il prezzo va in PG (una chiave per gesto, base_ts = la versione vista); senza, il GAS rifiuta come v3.4.0
+    const gid = gestoId(), base = p.pg_ts;
+    const r = CARTA_PG.on
+      ? await withRetry(() => cartaPgGesto('precio', p, gid, { valor: num, base_ts: base }), 'cartaAdmin precio')
+      : await withRetry(() => gasPost('adminSetPrecio', { pin: lastSavedPin, prod_id: p.id, precio: num }), 'adminSetPrecio');
+    if (r && r.ok && CARTA_PG.on) {
+      showToast('success', `${p.nombre} · ${fmtPrice(num)}`);
+      await loadProducts(); renderChips(); renderList(); renderHub();
+    } else if (r && r.ok) {
       showToast('success', hadRep ? 'Precio actualizado · reporte resuelto' : `${p.nombre} · ${fmtPrice(num)}`);
     } else {
       p.precio = oldPrice; if(hadRep) p.reportado = repSnapshot;
       STATE.lastPriceChange = null;
+      if (CARTA_PG.on && r && r.error === 'version_cambiata') await loadProducts();
       renderChips(); renderList(); renderHub();
-      showToast('error', r && r.error ? 'Error: '+r.error : 'No se pudo cambiar el precio');
+      showToast('error', CARTA_PG.on ? cartaPgErr(r) : (r && r.error ? 'Error: '+r.error : 'No se pudo cambiar el precio'));
     }
   } catch (err) {
     p.precio = oldPrice; if(hadRep) p.reportado = repSnapshot;
@@ -1453,8 +1607,12 @@ async function undoLastPriceChange(){
   document.getElementById('priceUndoBar').classList.remove('show');
 
   try {
-    const r = await withRetry(() => gasPost('adminSetPrecio', { pin: lastSavedPin, prod_id: p.id, precio: change.old_price }), 'adminSetPrecio undo');
-    if (r && r.ok) showToast('success', `Deshecho · ${p.nombre} de vuelta a ${fmtPrice(p.precio)}`);
+    // v3.5.0 · deshacer è un gesto NUOVO (chiave nuova) sopra la versione che il cambio ha appena scritto
+    const gidU = gestoId();
+    const r = CARTA_PG.on
+      ? await withRetry(() => cartaPgGesto('precio', p, gidU, { valor: change.old_price, base_ts: p.pg_ts }), 'cartaAdmin precio undo')
+      : await withRetry(() => gasPost('adminSetPrecio', { pin: lastSavedPin, prod_id: p.id, precio: change.old_price }), 'adminSetPrecio undo');
+    if (r && r.ok) { showToast('success', `Deshecho · ${p.nombre} de vuelta a ${fmtPrice(p.precio)}`); if (CARTA_PG.on) { await loadProducts(); renderChips(); renderList(); renderHub(); } }
     else {
       p.precio = change.new_price; STATE.lastPriceChange = change;
       document.getElementById('priceCurrent').textContent = fmtPrice(p.precio);
