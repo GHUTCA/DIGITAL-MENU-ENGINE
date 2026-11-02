@@ -83,6 +83,11 @@ button{font-family:inherit}
 .cd.dentro{border-color:var(--ok)}
 .pz s{font-weight:600;opacity:.6;margin-right:2px}
 .pz .emd{display:block;font-size:10px;font-weight:700;color:var(--ok-chiaro);letter-spacing:.02em;margin-top:1px}
+.bdb{display:flex;align-items:center;justify-content:center;gap:10px;margin:2px 13px 8px;min-height:44px;border:0;border-radius:11px;background:var(--ok);color:var(--ok-txt);font-family:inherit;font-weight:800;font-size:15px;letter-spacing:.03em;cursor:pointer}
+.bdb.off{background:transparent;color:var(--suave);border:1px dashed var(--linea2);font-size:12.5px;font-weight:700;cursor:default}
+.bdb.st{justify-content:space-between;padding:0 5px;background:var(--card);color:var(--txt);border:1px solid var(--ok)}
+.bdb.st i{width:40px;height:34px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:20px;font-weight:800;border-radius:8px;background:var(--ok);color:var(--ok-txt);cursor:pointer}
+.bdb.st u{text-decoration:none;font-size:14px}
 .det .pz .emd{font-size:12px;margin-top:3px}
 .cd.agot{opacity:.55;filter:grayscale(1);pointer-events:none}
 .cd .agl{margin-top:auto;font-size:11px;font-weight:800;color:#ff8a7a}
@@ -403,7 +408,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.10</div>
+<div class="ver" id="ver">menu v0.9.11</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -725,6 +730,17 @@ function verCard(p) {
   if (!q) return '<div class="cd ora ver" data-a="mas" data-k="' + k + '">' + vnm + vsc + '<div class="vpd">＋ ' + T('PEDIR') + '</div><div class="vpz">' + clp(prezzoRiga(r)) + '</div></div>';
   return '<div class="cd ora ver dentro">' + vnm + vsc + '<div class="vst"><i data-a="meno" data-k="' + esc(ks) + '">−</i><u>' + q + '</u><i data-a="mas" data-k="' + k + '">＋</i></div></div>';
 }
+/* v0.9.11 (Alberto in prova: «ho cliccato lo shot, poi mi sposto e la card con lo shot non mi segue: per fare PEDIR devo tornare indietro»):
+   il PEDIR del piatto aperto sta ANCHE nella scheda grande, sotto le domande, sempre sotto il dito. La card VER nella striscia resta il segno
+   di dove sei; i due bottoni fanno lo stesso gesto sulla stessa chiave. */
+function pedGrande(p) {
+  if (!pide() || !ordinabile(p)) return '';
+  const dq = domande(p);
+  if (dq.length && !sceltaCompleta(p)) return '<div class="bdb off">' + T('Elige arriba') + ' ↑</div>';
+  const ks = chiaveSel(p), q = S.cart[ks] || 0, s = selDi(p), sc = sceltaDi(p, mSel(p)), r = { p, t: s.t, m: sc.m, d: sc.d }, k = esc(p.id);
+  if (!q) return '<button class="bdb" data-a="mas" data-k="' + k + '">＋ ' + T('PEDIR') + ' · ' + clp(prezzoRiga(r)) + '</button>';
+  return '<div class="bdb st"><i data-a="meno" data-k="' + esc(ks) + '">−</i><u>' + q + ' ' + T('en tu pedido') + '</u><i data-a="mas" data-k="' + k + '">＋</i></div>';
+}
 // le domande nella scheda grande: chip, una risposta per domanda; il sovrapprezzo SUL chip
 function domandeHTML(p) {
   if (!pide() || !ordinabile(p)) return '';
@@ -785,7 +801,7 @@ function z3() {
       '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(descP(p)) + '</div><div class="pz">' + pzHTML(p) + '</div>' +
       // v0.7: il regalo sta su ogni trago, dove nasce la voglia (solo coi tragos che si mettono senza domande: il regalo non chiede)
       (envioOn() && esTrago(p) && ordinabile(p) && !domande(p).length ? '<button class="dono-in" data-a="donoApri" data-k="' + esc(p.id) + '">🎁 Invítale este trago a otra mesa</button>' : '') + '</div>' +
-      domandeHTML(p) + '</div>' + pagine(daMostrare()) + '</div>';
+      domandeHTML(p) + pedGrande(p) + '</div>' + pagine(daMostrare()) + '</div>';
   }
   if (S.busca !== null && S.busca !== undefined && !cercando()) return '<div class="msg busca"><b>¿Qué se te antoja?</b>Escribe un plato, un trago o un ingrediente.</div>';
   const L = daMostrare();
@@ -1099,7 +1115,7 @@ function pinta() {
   const gv = gruppi();
   if (S.cat && !gv.some((g) => g.cats.indexOf(S.cat) >= 0)) { const g = gv.find((x) => x.k === S.fam) || gv[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; } }
   document.getElementById('z1').innerHTML = z1();
-  const z = document.getElementById('z3'), pal = inPalco(); z.classList.remove('basso'); z.classList.toggle('aperta', (!!S.abierta && !S.pedido) || pal);
+  const z = document.getElementById('z3'), pal = inPalco(), mVec = z.querySelector('.mini'), slVec = mVec ? mVec.scrollLeft : null; z.classList.remove('basso'); z.classList.toggle('aperta', (!!S.abierta && !S.pedido) || pal);
   // v0.7: sul palco si ridisegna SOLO la striscia dei destacados (un ＋, il tick dei 60"): rifare il palco ricomincerebbe il video
   if (pal && z.querySelector('.pal-split') && z.dataset.pk === palKey()) { const ds = z.querySelector('.destrip'); if (ds) { const sl = ds.scrollLeft; ds.innerHTML = destCards(); ds.scrollLeft = sl; } }
   else { z.innerHTML = z3(); z.dataset.pk = pal ? palKey() : ''; if (pal) palcoGira(); else palcoStop(); }
@@ -1107,7 +1123,7 @@ function pinta() {
   const m = z.querySelector('.mini');
   if (m) {
     const passo = m.children.length > 1 ? m.children[1].offsetLeft - m.children[0].offsetLeft : m.clientWidth;
-    m.scrollLeft = PAG * passo;
+    m.scrollLeft = (S.abierta && S.abierta === ULTIMA_VER && slVec !== null) ? slVec : PAG * passo;   // v0.9.11: si torna alla pagina del piatto solo quando il piatto CAMBIA
     const pu = z.querySelector('.punti'), fl = z.querySelector('.mfr.l'), fr = z.querySelector('.mfr.r');
     const lati = () => { if (fl) fl.hidden = m.scrollLeft < 8; if (fr) fr.hidden = m.scrollLeft + m.clientWidth > m.scrollWidth - 8; };
     m.onscroll = () => { if (pu) { const k = Math.round(m.scrollLeft / passo); [].forEach.call(pu.children, (d, j) => { d.className = j === k ? 'on' : ''; }); } lati(); };
