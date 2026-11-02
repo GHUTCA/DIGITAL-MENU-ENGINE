@@ -365,7 +365,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.5</div>
+<div class="ver" id="ver">menu v0.9.6</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -764,6 +764,13 @@ function pedidoHTML() {
   // ¡Listo!: la conferma dice UNA cosa (è partito) e propone UNA mossa (il passo dopo)
   if (!ks.length && S.listo) {
     const L = S.listo;
+    // v0.9.6 · D-431: il pedido aspetta il mesero (mesa libera), o il mesero ha detto no
+    if (L.pc || L.rech) return '<div class="ped"><div class="pedtit">' + (L.rech ? '🙋' : '⏳') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
+      '<div class="okv">' + (L.rech ? (L.rech === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa')
+        : 'Esperando que el mesero confirme tu mesa') + '<span>' + T('Mesa') + ' ' + esc(MESA) + ' · ' + (L.rech ? 'tu pedido no se preparó y no se cobra. Pídele al mesero'
+        : L.mot === 'conto_cerrado' ? 'tu cuenta de esta mesa ya se cerró: cuando el mesero confirme, entra en una cuenta nueva'
+        : 'tu pedido ya está guardado: cuando el mesero confirme, pasa a cocina y barra') + '</span></div>' +
+      L.righe.map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') + '</div>';
     return '<div class="ped"><div class="pedtit">' + T('¡Listo!') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
       '<div class="okv">✓ ' + T('Tu pedido va') + ' ' + T(L.dove) + '<span>' + T('Mesa') + ' ' + esc(MESA) + ' · ' + T('recién enviado') + '</span></div>' +
       L.righe.map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') + seguirCard(L.righe.map((r) => r.p)) + '</div>';
@@ -1080,6 +1087,40 @@ async function postBordo(ruta, body, ms, hdr) {
       headers: Object.assign({ 'Content-Type': 'text/plain;charset=utf-8' }, hdr || {}), body: JSON.stringify(body), signal: ctrl.signal });
     return await r.json(); } finally { clearTimeout(tid); }
 }
+/* ═══ v0.9.6 · D-431 · IL PEDIDO IN ATTESA DEL MESERO (contratto di 🎛 BKP, bacheca «IL CONTRATTO DI D-431») ═══════════════════════
+   Su una mesa libera il bordo risponde `por_confirmar`: il pedido non va in cucina finché un mesero non conferma che al tavolo c'è gente.
+   🔴 POLL NUOVO, DICHIARATO: GET /pedido-estado/<local>?uuid= ogni 10 s, SOLO mentre c'è un pedido in attesa e a schermo visibile; si ferma al
+   primo esito (confermato · `need:'mesa_rechazada'`) o dopo 30 min (il bordo scade a 20). Muore quando il bordo spingerà lo stato (N2).
+   Rotta spenta (`ruta_apagada`) ⇒ il telefono non può saperlo: lo dice e smette. Una risposta che non è un esito (404, 503, rete) ⇒ il prossimo giro.
+   L'attesa vive in sessionStorage (stessa vita del conto del telefono): una ricarica la riprende. */
+const ESPERA_K = () => 'pinsita_qrc_' + LOCAL + '_' + MESA;
+const ESPERA_MAX_MS = 30 * 60 * 1000;
+let ESPERA_POLL = null;
+function esperaSalva() { try { if (S.espera) sessionStorage.setItem(ESPERA_K(), JSON.stringify(S.espera)); else sessionStorage.removeItem(ESPERA_K()); } catch (e) { /* solo memoria */ } }
+function esperaInizia(e) { S.espera = e; esperaSalva(); if (!ESPERA_POLL) ESPERA_POLL = setInterval(esperaGiro, 10000); }
+function esperaLeggi() { try { const v = JSON.parse(sessionStorage.getItem(ESPERA_K()) || 'null'); if (v && v.uuid) esperaInizia(v); } catch (e) { /* niente */ } }
+function esperaFine(esito) {
+  const e = S.espera; S.espera = null; esperaSalva(); clearInterval(ESPERA_POLL); ESPERA_POLL = null;
+  const L = S.listo;
+  if (esito === 'ok') { envAggiungi(e.righe); if (L) L.pc = false; nota('✓ El mesero confirmó tu mesa — tu pedido ya va a cocina y barra'); }
+  else if (esito === 'ciego') { if (L) L.pc = false; nota('🙋 Pregúntale a tu mesero si confirmó tu mesa'); }
+  else { if (L) { L.pc = false; L.rech = esito; } nota('🙋 ' + (esito === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa') + ' — tu pedido no se preparó'); }
+  pinta();
+}
+async function esperaGiro() {
+  const e = S.espera;
+  if (!e) { clearInterval(ESPERA_POLL); ESPERA_POLL = null; return; }
+  if (Date.now() - (Number(e.ts) || 0) > ESPERA_MAX_MS) return esperaFine('sin_respuesta');
+  if (document.visibilityState !== 'visible') return;
+  const ctrl = new AbortController(); const tid = setTimeout(() => ctrl.abort(), 3000);
+  let r = null;
+  try { r = await (await fetch(BORDO + '/pedido-estado/' + encodeURIComponent(LOCAL) + '?uuid=' + encodeURIComponent(e.uuid),
+    { headers: { 'X-Borde-Token': TOKEN_LETTURA }, signal: ctrl.signal })).json(); } catch (x) { r = null; } finally { clearTimeout(tid); }
+  if (S.espera !== e) return;   // un altro giro ha già chiuso
+  if (r && r.need === 'mesa_rechazada') return esperaFine(r.motivo === 'sin_respuesta' ? 'sin_respuesta' : 'rechazada');
+  if (r && r.ok === true && r.estado && r.estado !== 'por_confirmar') return esperaFine('ok');
+  if (r && r.error === 'ruta_apagada') return esperaFine('ciego');
+}
 const DEFINITIVI = ['estacion_cerrada', 'regalo_misma_mesa', 'carrito_vacio', 'items_json_invalid', 'uuid_missing', 'mesa_missing'];
 async function inviaOra(confirmado) {
   if (!envioOn() || !Object.keys(S.cart).length || S.inviaStato) return;
@@ -1095,7 +1136,10 @@ async function inviaOra(confirmado) {
   if (r && r.ok === true) {
     S.listo = { righe: righe().map((r) => ({ nome: nomeRiga(r), q: r.q, p: r.p })), dove: adove(righe().map((r) => r.p)) };
     histAggiungi(Object.keys(S.cart));
-    envAggiungi(righe().map((x) => ({ id: x.p.id, nome: nomeRiga(x), q: x.q, pr: prezzoRiga(x) })));   // v0.8: il conto di questo telefono (il Pagar in alto)   // v0.7 «Otra vez»: ciò che è PARTITO, non ciò che è stato solo messo nel carrello
+    const rr = righe().map((x) => ({ id: x.p.id, nome: nomeRiga(x), q: x.q, pr: prezzoRiga(x) }));
+    // v0.9.6 · D-431: mesa libera ⇒ il bordo lo tiene finché il mesero conferma. Non entra nel conto del telefono finché non è confermato.
+    if (r.por_confirmar) { S.listo.pc = true; S.listo.mot = r.motivo || ''; esperaInizia({ uuid: pl.uuid, ts: Date.now(), mot: r.motivo || '', righe: rr }); }
+    else envAggiungi(rr);   // v0.8: il conto di questo telefono (il Pagar in alto)   // v0.7 «Otra vez»: ciò che è PARTITO, non ciò che è stato solo messo nel carrello
     S.cart = {}; S.uuid = ''; S.uuidFirma = '';
   } else if (r && r.need === 'mesa_confirmar') { S.need = 'mesa'; }
   else if (r && r.need === 'items_agotados') {
@@ -1498,7 +1542,7 @@ function opinionApri(dove, uuid) {
     S.fam = g.k; S.cat = g.cats[0];
     // v0.7: il fondo del locale, l'inizio dallo show, «Otra vez» di questa mesa
     vestiPelle();   // v0.9: il fondo e la pelle secondo l'ora (prima: un fondo solo)
-    preparaSlides(); S.palco = SLIDES.length > 0; histLeggi(); envLeggi();
+    preparaSlides(); S.palco = SLIDES.length > 0; histLeggi(); envLeggi(); esperaLeggi();
     // PINSA: di ritorno da Fintoc (?ck=<uuid>) si ritrova il carrello e si legge com'è andato il pago
     if (CHECKOUT && RITORNO_CK) {
       let mem = null; try { mem = JSON.parse(sessionStorage.getItem(CK_K()) || 'null'); } catch (e) { mem = null; }
