@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.115.0</span>
+<span id="ver" hidden>menu2 · v2.115.1</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -13611,7 +13611,17 @@ async function regaloEnviar(prodId){
       // Stesso uuid nei due giri: il DO e il GAS deduplicano. La cintura di _postPedido resta (bordo muto → GAS).
       try { resp = await (REGALO_BORDE ? _postPedido(payload) : _postGAS(payload)); if (resp) break; } catch(e){ resp = null; }
     }
-    if (resp && resp.ok) {
+    if (resp && resp.ok && resp.por_confirmar) {
+      // v2.115.0 · D-431 ⑥: da una mesa libera il regalo aspetta il mesero come ogni pedido (lo stato lo segue «Lo pedido esta noche»: por_confirmar → confermato o cancelado col suo perché)
+      _pedidoRegistrarExito({ payload: payload, snapshot_items: [] }, resp);
+      document.getElementById('sheetContent').innerHTML = `
+        <div class="sheet-body" style="text-align:center;padding-top:26px">
+          <div style="font-size:52px">⏳</div>
+          <div class="sheet-name">Esperando que el mesero confirme tu mesa</div>
+          <div class="sheet-desc">Cuando confirme, le llevamos tu regalo a la mesa ${escapeHtml(String(destino))} con tu mensaje.<br>Si no lo confirma, no se prepara y no se cobra.</div>
+          <button onclick="closeDetail()" style="margin-top:14px;padding:13px 26px;border-radius:12px;border:none;background:#f0c43f;color:#000;font-weight:800;font-size:15px;cursor:pointer">${_rg('reg_listo')}</button>
+        </div>`;
+    } else if (resp && resp.ok) {
       _pedidoRegistrarExito({ payload: payload, snapshot_items: [] }, resp);
       document.getElementById('sheetContent').innerHTML = `
         <div class="sheet-body" style="text-align:center;padding-top:26px">
