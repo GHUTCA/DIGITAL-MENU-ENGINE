@@ -58,6 +58,9 @@ button{font-family:inherit}
 .chi b{display:block;font-size:14px}
 .chi span{display:block;font-size:11px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .z3{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+/* v0.9.9 (Alberto in prova: «la barra di scroll a destra deve sparire»): si scorre col dito, la barra non serve. Vale per ogni pannello che scorre. */
+.z3,.det,.pal-dj,.ped{scrollbar-width:none}
+.z3::-webkit-scrollbar,.det::-webkit-scrollbar,.pal-dj::-webkit-scrollbar,.ped::-webkit-scrollbar{width:0;height:0}
 /* la griglia da 12, con foto (mockup: .sei.fotos) */
 /* minmax(0,1fr): tre colonne SEMPRE uguali. Con 1fr un nome lungo su una riga (la card VER) allargava la sua colonna e stringeva le altre */
 .sei{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px;align-content:start}
@@ -154,6 +157,23 @@ button{font-family:inherit}
 /* il pedido */
 /* il pedido, la conferma e la campanella partono dal BASSO, dove sta il pollice (mockup 21-ott) */
 .ped{padding:12px 14px;min-height:100%;display:flex;flex-direction:column;justify-content:flex-end}
+/* v0.9.9 · la precuenta di carta (cuentaHTML). La carta è chiara in tutte e due le pelli: colori propri, non i token del vetro. */
+.ped.cta{justify-content:center}
+.rcv{position:relative;background:#FFFDF7;color:#2A2118;margin:6px 4px 26px;padding:20px 18px 16px;border-radius:3px 3px 0 0;
+  box-shadow:0 8px 22px rgba(0,0,0,.22);font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;font-size:14px;line-height:1.5}
+.rcv::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:10px;
+  background:linear-gradient(-45deg,transparent 7px,#FFFDF7 0) 0 0/14px 10px repeat-x,linear-gradient(45deg,transparent 7px,#FFFDF7 0) 0 0/14px 10px repeat-x}
+.rcv-b{text-align:center;font-weight:800;font-size:18px;letter-spacing:.12em}
+.rcv-t{text-align:center;font-size:12px;letter-spacing:.3em;color:#7A6A5C;margin-top:2px}
+.rcv-m{text-align:center;font-size:12px;color:#7A6A5C;margin-top:6px}
+.rcv-s{border-top:1.5px dashed rgba(42,33,24,.35);margin:12px 0}
+.rcv-l{display:flex;align-items:baseline;gap:8px;padding:3px 0}
+.rcv-l .rq{min-width:20px;font-weight:700}
+.rcv-l .rn{min-width:0;overflow-wrap:anywhere}
+.rcv-l i{flex:1 1 auto;border-bottom:1.5px dotted rgba(42,33,24,.35);transform:translateY(-4px);min-width:12px}
+.rcv-l .rp{font-variant-numeric:tabular-nums;white-space:nowrap}
+.rcv-tot{display:flex;justify-content:space-between;font-weight:800;font-size:20px;font-variant-numeric:tabular-nums}
+.rcv-n{text-align:center;font-size:11px;color:#7A6A5C;margin-top:12px}
 .pedtit{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:19px;letter-spacing:-.2px;margin-bottom:9px}
 .pedx{background:transparent;border:0;color:var(--suave);font-size:18px;cursor:pointer}
 .lin{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--linea)}
@@ -367,7 +387,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.8</div>
+<div class="ver" id="ver">menu v0.9.9</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -965,13 +985,19 @@ function envAggiungi(rr) { S.enviados.push({ ts: Date.now(), righe: rr }); try {
 const giornoOp = (ts) => { const d = new Date(new Date(ts - 6 * 3600 * 1000).toLocaleString('en-US', { timeZone: 'America/Santiago' })); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); };
 const envOggi = () => S.enviados.filter((e) => giornoOp(Number(e.ts) || 0) === giornoOp(Date.now()));
 const consumoTel = () => envOggi().reduce((s, e) => s + (e.righe || []).reduce((t, r) => t + (Number(r.pr) || 0) * (Number(r.q) || 0), 0), 0);
+/* v0.9.9 (Alberto in prova, 2-nov: «perché non mettiamo una precuenta di carta in mezzo»): il conto è un FOGLIO, come la precuenta che il
+   mesero porta al tavolo: intestazione del locale, mesa e ora, le righe col puntino fino al prezzo, il totale grande, «no es boleta».
+   La carta è chiara di giorno e di notte (è carta). Al centro dello schermo, non schiacciata in fondo. ⏳ Il disegno lo conferma 🎨 DESIGN. */
 function cuentaHTML() {
   const L = []; envOggi().forEach((e) => (e.righe || []).forEach((r) => { const x = L.find((y) => y.nome === r.nome && y.pr === r.pr); if (x) x.q += r.q; else L.push(Object.assign({}, r)); }));
-  return '<div class="ped"><div class="pedtit">' + T('Tu cuenta') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' +
-    '<div class="okr" style="border-top:0;color:var(--suave)">' + T('Lo que pediste desde este teléfono') + ' · ' + T('Mesa') + ' ' + esc(MESA) + '</div>' +
-    L.map((r) => { const p = S.prod.find((x) => x.id === r.id);
-      return '<div class="lin">' + (p && p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<div class="lth"></div>') + '<div class="lnm">' + r.q + '× ' + esc(r.nome) + '</div><div class="lpz">' + clp(r.pr * r.q) + '</div></div>'; }).join('') +
-    '<div class="tot"><span>' + T('Consumo') + '</span><span>' + clp(consumoTel()) + '</span></div>' +
+  const d = oraSantiago(), ora = String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' · ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  const brand = (S.cfg && S.cfg.brand_name) || LOCAL;
+  return '<div class="ped cta"><div class="pedtit">' + T('Tu cuenta') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' +
+    '<div class="rcv"><div class="rcv-b">' + esc(brand) + '</div><div class="rcv-t">PRECUENTA</div>' +
+    '<div class="rcv-m">' + T('Mesa') + ' ' + esc(MESA) + ' · ' + ora + '</div><div class="rcv-s"></div>' +
+    L.map((r) => '<div class="rcv-l"><span class="rq">' + r.q + '</span><span class="rn">' + esc(r.nome) + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>').join('') +
+    '<div class="rcv-s"></div><div class="rcv-tot"><span>TOTAL</span><span>' + clp(consumoTel()) + '</span></div>' +
+    '<div class="rcv-n">' + T('Lo que pediste desde este teléfono') + ' · no es boleta</div></div>' +
     '<button class="envG" data-a="cuentaPos"><b>' + T('Pedir la cuenta') + '</b><span>' + T('te traemos la máquina a tu mesa') + '</span></button>' +
     '<button class="segui" data-a="cuentaChiudi">' + T('Seguir pidiendo') + '</button></div>';
 }
@@ -1139,7 +1165,10 @@ const DEFINITIVI = ['estacion_cerrada', 'regalo_misma_mesa', 'carrito_vacio', 'i
 async function inviaOra(confirmado) {
   if (!envioOn() || !Object.keys(S.cart).length || S.inviaStato) return;
   S.inviaStato = 'volando'; S.errore = ''; S.need = ''; pinta();
-  const pl = payloadPedido(confirmado);
+  /* v0.9.9 (Alberto in prova, 2-nov: «la conversione deve andare liscia, senza intoppi né domande: abbiamo già il cancelar di 4 secondi»):
+     il pedido parte SEMPRE confermato. La domanda «¿Sigues en la mesa?» del bordo era la guardia della mesa fantasma, che oggi fa D-431
+     (il QR ordina solo dentro un conto confermato dal mesero). Il ramo `need:'mesa_confirmar'` qui sotto resta come rete, non come domanda. */
+  const pl = payloadPedido(true);
   let r = null;
   for (let i = 0; i < 3; i++) {
     if (i) await new Promise((ok) => setTimeout(ok, i === 1 ? 2000 : 5000));
@@ -1155,7 +1184,17 @@ async function inviaOra(confirmado) {
     if (r.por_confirmar) { S.listo.pc = true; S.listo.mot = r.motivo || ''; esperaInizia({ uuid: pl.uuid, ts: Date.now(), mot: r.motivo || '', righe: rr }); }
     else envAggiungi(rr);   // v0.8: il conto di questo telefono (il Pagar in alto)   // v0.7 «Otra vez»: ciò che è PARTITO, non ciò che è stato solo messo nel carrello
     S.cart = {}; S.uuid = ''; S.uuidFirma = '';
-  } else if (r && r.need === 'mesa_confirmar') { S.need = 'mesa'; }
+    /* v0.9.9 (Alberto, 2-nov: «perché far vedere questa schermata, vai subito al postre o dove dice il bottone, perché fargli fare clic?»):
+       partito ⇒ si atterra SUBITO dove il passo dopo portava (dopoQuesto), e l'invio lo dice una nota che passa da sola, senza un pannello
+       da chiudere. Il pannello resta solo quando c'è qualcosa da aspettare (D-431: il mesero deve confermare la mesa).
+       ⏳ Dove atterrare dopo ogni famiglia è da definire con Alberto: oggi è la regola di dopoQuesto (dopo il cibo il resto, dopo il resto il cibo). */
+    if (!r.por_confirmar) {
+      const L = S.listo, d = dopoQuesto(L.righe.map((x) => x.p));
+      S.pedido = false; S.listo = null; S.abierta = null; S.busca = null; S.palco = false;
+      if (d) { S.fam = d.fam; S.cat = d.cat; }
+      nota('✓ ' + T('Tu pedido va') + ' ' + T(L.dove) + ' · ' + L.righe.map((x) => x.q + '× ' + x.nome).join(' · '));
+    }
+  } else if (r && r.need === 'mesa_confirmar') { S.need = ''; S.errore = 'No pudimos enviar tu pedido. Tu pedido sigue aquí: reintenta o avísale a tu mesero.'; }
   else if (r && r.need === 'items_agotados') {
     const fuera = Array.isArray(r.agotados) ? r.agotados : [];
     fuera.forEach((x) => { const p = x && S.prod.find((y) => y.id === x.id); if (p) { S.agotLoc.push(p.id); Object.keys(S.cart).forEach((k) => { if (k.split('§')[0] === p.id) delete S.cart[k]; }); } });
