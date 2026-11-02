@@ -365,7 +365,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.6</div>
+<div class="ver" id="ver">menu v0.9.7</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -901,6 +901,10 @@ function donoHTML() {
   const d = S.dono, p = S.prod.find((x) => x.id === d.id), X = '<button class="pedx" data-a="donoChiudi">✕</button>';
   if (!p) return '';
   const firma = d.firma === 'anon' ? 'Anónimo' : 'De la mesa ' + MESA;
+  // v0.9.7 · D-431 ⑥: da una mesa libera il regalo aspetta il mesero, come ogni pedido; o il mesero ha detto no
+  if (d.ok && (d.pc || d.rech)) return '<div class="ped"><div class="pedtit">' + (d.rech ? '🙋 Tu regalo no salió' : '⏳ Casi listo') + X + '</div>' + tessera(p, 'PARA LA MESA ' + d.mesa, d.msg, firma) +
+    '<div class="okr" style="text-align:center">' + (d.rech ? (d.rech === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa') + ': no se preparó y no se cobra'
+      : 'Esperando que el mesero confirme tu mesa: después se lo llevamos con tu mensaje') + '</div><button class="segui" data-a="donoChiudi">Seguir</button></div>';
   if (d.ok) return '<div class="ped"><div class="pedtit">¡Regalo en camino!' + X + '</div>' + tessera(p, 'VA A LA MESA ' + d.mesa, d.msg, firma) +
     '<div class="okr" style="text-align:center">Se lo llevamos con tu mensaje · va a tu cuenta</div><button class="segui" data-a="donoChiudi">Seguir</button></div>';
   const ok = donoMesaOk(d);
@@ -932,7 +936,7 @@ async function inviaDono() {
     if (r && (r.ok === true || r.need || DEFINITIVI.indexOf(r.error) >= 0)) break;
   }
   d.volo = false;
-  if (r && r.ok === true) d.ok = true;
+  if (r && r.ok === true) { d.ok = true; if (r.por_confirmar) { d.pc = true; esperaInizia({ uuid: d.uuid, ts: Date.now(), mot: r.motivo || '', righe: [], dono: true }); } }   // v0.9.7 · D-431 ⑥
   else if (r && r.error === 'regalo_misma_mesa') d.err = 'Esa es tu mesa: elige otra.';
   else if (r && r.need === 'items_agotados') d.err = 'Se acabó justo ahora: elige otro trago.';
   else if (r && r.need === 'carta_vieja') { if (S.tick && r.precios) { S.tick.precios = r.precios; S.tick.precios_epoch = r.precios_epoch || S.tick.precios_epoch; } d.uuid = ''; d.err = 'El precio cambió recién: revisa y envía de nuevo.'; }
@@ -1087,39 +1091,47 @@ async function postBordo(ruta, body, ms, hdr) {
       headers: Object.assign({ 'Content-Type': 'text/plain;charset=utf-8' }, hdr || {}), body: JSON.stringify(body), signal: ctrl.signal });
     return await r.json(); } finally { clearTimeout(tid); }
 }
-/* ═══ v0.9.6 · D-431 · IL PEDIDO IN ATTESA DEL MESERO (contratto di 🎛 BKP, bacheca «IL CONTRATTO DI D-431») ═══════════════════════
-   Su una mesa libera il bordo risponde `por_confirmar`: il pedido non va in cucina finché un mesero non conferma che al tavolo c'è gente.
-   🔴 POLL NUOVO, DICHIARATO: GET /pedido-estado/<local>?uuid= ogni 10 s, SOLO mentre c'è un pedido in attesa e a schermo visibile; si ferma al
-   primo esito (confermato · `need:'mesa_rechazada'`) o dopo 30 min (il bordo scade a 20). Muore quando il bordo spingerà lo stato (N2).
+/* ═══ v0.9.7 · D-431 · I PEDIDOS IN ATTESA DEL MESERO (contratto di 🎛 BKP, bacheca «IL CONTRATTO DI D-431», ⑥ il regalo compreso) ═════════
+   Su una mesa libera il bordo risponde `por_confirmar`: il pedido (o il regalo: ⑥, la regola guarda la mesa di chi regala) non va in cucina
+   finché un mesero non conferma che al tavolo c'è gente. Possono aspettare più cose insieme (un pedido e un regalo): è una LISTA.
+   🔴 POLL NUOVO, DICHIARATO: GET /pedido-estado/<local>?uuid= ogni 10 s, SOLO mentre qualcosa aspetta e a schermo visibile; ogni attesa si
+   chiude al primo esito (confermato · `need:'mesa_rechazada'`) o dopo 30 min (il bordo scade a 20). Muore quando il bordo spingerà lo stato (N2).
    Rotta spenta (`ruta_apagada`) ⇒ il telefono non può saperlo: lo dice e smette. Una risposta che non è un esito (404, 503, rete) ⇒ il prossimo giro.
-   L'attesa vive in sessionStorage (stessa vita del conto del telefono): una ricarica la riprende. */
+   Le attese vivono in sessionStorage (stessa vita del conto del telefono): una ricarica le riprende. */
 const ESPERA_K = () => 'pinsita_qrc_' + LOCAL + '_' + MESA;
 const ESPERA_MAX_MS = 30 * 60 * 1000;
 let ESPERA_POLL = null;
-function esperaSalva() { try { if (S.espera) sessionStorage.setItem(ESPERA_K(), JSON.stringify(S.espera)); else sessionStorage.removeItem(ESPERA_K()); } catch (e) { /* solo memoria */ } }
-function esperaInizia(e) { S.espera = e; esperaSalva(); if (!ESPERA_POLL) ESPERA_POLL = setInterval(esperaGiro, 10000); }
-function esperaLeggi() { try { const v = JSON.parse(sessionStorage.getItem(ESPERA_K()) || 'null'); if (v && v.uuid) esperaInizia(v); } catch (e) { /* niente */ } }
-function esperaFine(esito) {
-  const e = S.espera; S.espera = null; esperaSalva(); clearInterval(ESPERA_POLL); ESPERA_POLL = null;
-  const L = S.listo;
-  if (esito === 'ok') { envAggiungi(e.righe); if (L) L.pc = false; nota('✓ El mesero confirmó tu mesa — tu pedido ya va a cocina y barra'); }
+const espere = () => (Array.isArray(S.espere) ? S.espere : (S.espere = []));
+function esperaSalva() { try { if (espere().length) sessionStorage.setItem(ESPERA_K(), JSON.stringify(espere())); else sessionStorage.removeItem(ESPERA_K()); } catch (e) { /* solo memoria */ } }
+function esperaInizia(e) { if (!espere().some((x) => x.uuid === e.uuid)) espere().push(e); esperaSalva(); if (!ESPERA_POLL) ESPERA_POLL = setInterval(esperaGiro, 10000); }
+function esperaLeggi() { try { const v = JSON.parse(sessionStorage.getItem(ESPERA_K()) || '[]'); (Array.isArray(v) ? v : [v]).forEach((e) => { if (e && e.uuid) esperaInizia(e); }); } catch (e) { /* niente */ } }
+function esperaFine(e, esito) {
+  S.espere = espere().filter((x) => x !== e); esperaSalva();
+  if (!espere().length) { clearInterval(ESPERA_POLL); ESPERA_POLL = null; }
+  const cosa = e.dono ? 'tu regalo' : 'tu pedido';
+  const L = e.dono ? (S.dono && S.dono.uuid === e.uuid ? S.dono : null) : S.listo;
+  if (esito === 'ok') { if (!e.dono) envAggiungi(e.righe); if (L) L.pc = false; nota('✓ El mesero confirmó tu mesa — ' + cosa + (e.dono ? ' va en camino' : ' ya va a cocina y barra')); }
   else if (esito === 'ciego') { if (L) L.pc = false; nota('🙋 Pregúntale a tu mesero si confirmó tu mesa'); }
-  else { if (L) { L.pc = false; L.rech = esito; } nota('🙋 ' + (esito === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa') + ' — tu pedido no se preparó'); }
+  else { if (L) { L.pc = false; L.rech = esito; } nota('🙋 ' + (esito === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa') + ' — ' + cosa + ' no se preparó'); }
   pinta();
 }
-async function esperaGiro() {
-  const e = S.espera;
-  if (!e) { clearInterval(ESPERA_POLL); ESPERA_POLL = null; return; }
-  if (Date.now() - (Number(e.ts) || 0) > ESPERA_MAX_MS) return esperaFine('sin_respuesta');
-  if (document.visibilityState !== 'visible') return;
+async function esperaUno(e) {
+  if (Date.now() - (Number(e.ts) || 0) > ESPERA_MAX_MS) return esperaFine(e, 'sin_respuesta');
   const ctrl = new AbortController(); const tid = setTimeout(() => ctrl.abort(), 3000);
   let r = null;
   try { r = await (await fetch(BORDO + '/pedido-estado/' + encodeURIComponent(LOCAL) + '?uuid=' + encodeURIComponent(e.uuid),
     { headers: { 'X-Borde-Token': TOKEN_LETTURA }, signal: ctrl.signal })).json(); } catch (x) { r = null; } finally { clearTimeout(tid); }
-  if (S.espera !== e) return;   // un altro giro ha già chiuso
-  if (r && r.need === 'mesa_rechazada') return esperaFine(r.motivo === 'sin_respuesta' ? 'sin_respuesta' : 'rechazada');
-  if (r && r.ok === true && r.estado && r.estado !== 'por_confirmar') return esperaFine('ok');
-  if (r && r.error === 'ruta_apagada') return esperaFine('ciego');
+  if (espere().indexOf(e) < 0) return;   // un altro giro ha già chiuso
+  if (r && r.need === 'mesa_rechazada') return esperaFine(e, r.motivo === 'sin_respuesta' ? 'sin_respuesta' : 'rechazada');
+  if (r && r.ok === true && r.estado && r.estado !== 'por_confirmar') return esperaFine(e, 'ok');
+  if (r && r.error === 'ruta_apagada') return esperaFine(e, 'ciego');
+}
+async function esperaGiro() {
+  if (!espere().length) { clearInterval(ESPERA_POLL); ESPERA_POLL = null; return; }
+  const vecchie = espere().filter((e) => Date.now() - (Number(e.ts) || 0) > ESPERA_MAX_MS);
+  vecchie.forEach((e) => esperaFine(e, 'sin_respuesta'));
+  if (document.visibilityState !== 'visible') return;
+  for (const e of espere().slice()) await esperaUno(e);
 }
 const DEFINITIVI = ['estacion_cerrada', 'regalo_misma_mesa', 'carrito_vacio', 'items_json_invalid', 'uuid_missing', 'mesa_missing'];
 async function inviaOra(confirmado) {
