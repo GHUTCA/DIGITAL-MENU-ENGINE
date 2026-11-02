@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head>
-<meta name="robots" content="noindex,nofollow"><!-- SALA DEMO (Alberto 2-nov): copia del ramo menu-vero-qr-espera-02nov (menu v0.9.11), fuori dal vivo. Si cancella dopo la prova. --><meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow"><!-- SALA DEMO (Alberto 2-nov): copia del ramo menu-vero-qr-espera-02nov (menu v0.9.12), fuori dal vivo. Si cancella dopo la prova. --><meta charset="utf-8">
 <meta name="theme-color" id="tc" content="#0A0806">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>Menú</title>
@@ -74,7 +74,8 @@ button{font-family:inherit}
 .z3.basso>*{margin-top:auto}   /* non justify-content:flex-end: se il contenuto cresce, l'eccedenza deve restare scorrevole */
 .cd{display:flex;flex-direction:column;gap:3px;background:var(--card);border:1px solid var(--cdbordo);border-radius:12px;padding:5px;min-height:176px;cursor:pointer;text-align:left;color:var(--txt)}
 .cd .th{width:100%;height:auto;aspect-ratio:4/3;border-radius:8px;object-fit:cover;object-position:center 60%;background:var(--sup)}
-.cd .tg{width:100%;height:76px;border-radius:8px;background:var(--tgbg);color:var(--oro);display:flex;align-items:center;justify-content:center;
+.cd .tg{width:100%;height:auto;aspect-ratio:4/3;   /* v0.9.12 (Alberto: «le card della stessa misura anche senza foto»): come .th */
+  border-radius:8px;background:var(--tgbg);color:var(--oro);display:flex;align-items:center;justify-content:center;
   text-align:center;padding:4px;font-family:Fraunces,Georgia,serif;font-size:12px;line-height:1.15}
 .cd .nm{font-size:12.5px;font-weight:400;line-height:1.22;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px}
 .cd .pz{font-size:12.5px;font-weight:700;color:var(--oro);font-variant-numeric:tabular-nums}
@@ -85,6 +86,7 @@ button{font-family:inherit}
 .pz s{font-weight:600;opacity:.6;margin-right:2px}
 .pz .emd{display:block;font-size:10px;font-weight:700;color:var(--ok-chiaro);letter-spacing:.02em;margin-top:1px}
 .bdb{display:flex;align-items:center;justify-content:center;gap:10px;margin:2px 13px 8px;min-height:44px;border:0;border-radius:11px;background:var(--ok);color:var(--ok-txt);font-family:inherit;font-weight:800;font-size:15px;letter-spacing:.03em;cursor:pointer}
+.bdb[hidden]{display:none}
 .bdb.off{background:transparent;color:var(--suave);border:1px dashed var(--linea2);font-size:12.5px;font-weight:700;cursor:default}
 .bdb.st{justify-content:space-between;padding:0 5px;background:var(--card);color:var(--txt);border:1px solid var(--ok)}
 .bdb.st i{width:40px;height:34px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:20px;font-weight:800;border-radius:8px;background:var(--ok);color:var(--ok-txt);cursor:pointer}
@@ -409,7 +411,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.11 · DEMO 5</div>
+<div class="ver" id="ver">menu v0.9.12 · DEMO 6</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -732,15 +734,16 @@ function verCard(p) {
   return '<div class="cd ora ver dentro">' + vnm + vsc + '<div class="vst"><i data-a="meno" data-k="' + esc(ks) + '">−</i><u>' + q + '</u><i data-a="mas" data-k="' + k + '">＋</i></div></div>';
 }
 /* v0.9.11 (Alberto in prova: «ho cliccato lo shot, poi mi sposto e la card con lo shot non mi segue: per fare PEDIR devo tornare indietro»):
-   il PEDIR del piatto aperto sta ANCHE nella scheda grande, sotto le domande, sempre sotto il dito. La card VER nella striscia resta il segno
-   di dove sei; i due bottoni fanno lo stesso gesto sulla stessa chiave. */
+   il PEDIR del piatto aperto sta ANCHE nella scheda grande, sotto le domande. v0.9.12 (Alberto: «non mi piace che stia in due posti»):
+   UN posto alla volta. Finché la card VER si vede nella striscia, il PEDIR è lì; quando la striscia la porta fuori vista, compare nella
+   scheda grande (pinta → lati()). Stesso gesto, stessa chiave. */
 function pedGrande(p) {
   if (!pide() || !ordinabile(p)) return '';
   const dq = domande(p);
-  if (dq.length && !sceltaCompleta(p)) return '<div class="bdb off">' + T('Elige arriba') + ' ↑</div>';
+  if (dq.length && !sceltaCompleta(p)) return '<div class="bdb off" hidden>' + T('Elige arriba') + ' ↑</div>';
   const ks = chiaveSel(p), q = S.cart[ks] || 0, s = selDi(p), sc = sceltaDi(p, mSel(p)), r = { p, t: s.t, m: sc.m, d: sc.d }, k = esc(p.id);
-  if (!q) return '<button class="bdb" data-a="mas" data-k="' + k + '">＋ ' + T('PEDIR') + ' · ' + clp(prezzoRiga(r)) + '</button>';
-  return '<div class="bdb st"><i data-a="meno" data-k="' + esc(ks) + '">−</i><u>' + q + ' ' + T('en tu pedido') + '</u><i data-a="mas" data-k="' + k + '">＋</i></div>';
+  if (!q) return '<button class="bdb" hidden data-a="mas" data-k="' + k + '">＋ ' + T('PEDIR') + ' · ' + clp(prezzoRiga(r)) + '</button>';
+  return '<div class="bdb st" hidden><i data-a="meno" data-k="' + esc(ks) + '">−</i><u>' + q + ' ' + T('en tu pedido') + '</u><i data-a="mas" data-k="' + k + '">＋</i></div>';
 }
 // le domande nella scheda grande: chip, una risposta per domanda; il sovrapprezzo SUL chip
 function domandeHTML(p) {
@@ -957,7 +960,10 @@ function ripHTML() {
 }
 /* «Tus pedidos»: tutto ciò che è partito oggi da questo telefono, come card della carta (foto, prezzo, ＋), il più recente per primo */
 function tusHTML() {
-  const ids = tusIds().reverse(), P = ids.map((id) => S.prod.find((x) => x.id === id)).filter((p) => p && visibile(p));
+  /* v0.9.12 (Alberto: «mi piacevano più in basso, a portata di pollice, l'ultimo in basso e i primi verso l'alto»): ordine per l'ULTIMA volta
+     che il prodotto è partito, il più vecchio in cima; il blocco sta in fondo allo schermo (z3.basso), come le griglie corte. */
+  const ult = {}; envOggi().forEach((e, i) => (e.righe || []).forEach((r) => { if (r.id) ult[r.id] = i; }));
+  const ids = tusIds().sort((a, b) => ult[a] - ult[b]), P = ids.map((id) => S.prod.find((x) => x.id === id)).filter((p) => p && visibile(p));
   const q = {}; envOggi().forEach((e) => (e.righe || []).forEach((r) => { q[r.id] = (q[r.id] || 0) + (Number(r.q) || 0); }));
   return '<div class="tusw"><div class="pedtit">' + T('Tus pedidos') + '<button class="pedx" data-a="tusChiudi">✕</button></div>' +
     '<div class="okr" style="border-top:0;color:var(--suave)">' + T('Lo que pediste desde este teléfono') + ' · ' + T('toca ＋ para pedir otra vez') + '</div>' +
@@ -1126,7 +1132,9 @@ function pinta() {
     const passo = m.children.length > 1 ? m.children[1].offsetLeft - m.children[0].offsetLeft : m.clientWidth;
     m.scrollLeft = (S.abierta && S.abierta === ULTIMA_VER && slVec !== null) ? slVec : PAG * passo;   // v0.9.11: si torna alla pagina del piatto solo quando il piatto CAMBIA
     const pu = z.querySelector('.punti'), fl = z.querySelector('.mfr.l'), fr = z.querySelector('.mfr.r');
-    const lati = () => { if (fl) fl.hidden = m.scrollLeft < 8; if (fr) fr.hidden = m.scrollLeft + m.clientWidth > m.scrollWidth - 8; };
+    const vc = m.querySelector('.cd.ora'), bg = z.querySelector('.bdb');
+    const lati = () => { if (fl) fl.hidden = m.scrollLeft < 8; if (fr) fr.hidden = m.scrollLeft + m.clientWidth > m.scrollWidth - 8;
+      if (bg) { const a = m.getBoundingClientRect(), b = vc ? vc.getBoundingClientRect() : null; bg.hidden = !!(b && b.left >= a.left - 4 && b.right <= a.right + 4); } };
     m.onscroll = () => { if (pu) { const k = Math.round(m.scrollLeft / passo); [].forEach.call(pu.children, (d, j) => { d.className = j === k ? 'on' : ''; }); } lati(); };
     if (fl) fl.onclick = (e) => { e.stopPropagation(); m.scrollBy({ left: -passo, behavior: 'smooth' }); };
     if (fr) fr.onclick = (e) => { e.stopPropagation(); m.scrollBy({ left: passo, behavior: 'smooth' }); };
@@ -1136,7 +1144,7 @@ function pinta() {
   }
   ULTIMA_VER = S.abierta;
   // se la griglia sta in una schermata, va giù; se è più lunga, si comporta come sempre
-  const sg = z.querySelector('.sei'); if (sg && !S.abierta && !S.pedido && !S.tus && sg.scrollHeight <= z.clientHeight) z.classList.add('basso');   // «Tus pedidos» parte dall'alto
+  const sg = z.querySelector('.sei'); if (sg && !S.abierta && !S.pedido && sg.scrollHeight <= z.clientHeight) z.classList.add('basso');
   /* v0.9.10 (Alberto: «le schermate con tante card piccole devono invitare a scorrere in basso»): una freccia che respira in fondo, finché
      sotto c'è ancora qualcosa; sparisce a fine lista. Non si tocca: l'invito è il gesto del pollice, non un bottone. */
   let giu = document.getElementById('giu'); if (!giu) { giu = document.createElement('div'); giu.id = 'giu'; giu.className = 'giu'; giu.innerHTML = '<span>⌄</span>'; z.parentNode.appendChild(giu); }
@@ -1476,7 +1484,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'tusChiudi') { S.tus = false; pinta(); return; }
   if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; pinta(); return; }
   if (a === 'lingua' && LANGS.some((x) => x[0] === k)) { S.lang = k; S.lingue = false; document.documentElement.lang = k; try { localStorage.setItem('pinsita_lang', k); } catch (e) {} pinta(); return; }
-  if (a === 'cuentaPos' && envioOn()) { S.cuenta = false; llamaMesero('cuenta'); pinta(); setTimeout(() => opinionApri('cuenta', ''), 1800); return; }
+  if (a === 'cuentaPos' && envioOn()) { S.cuenta = false; llamaMesero('cuenta'); pinta(); opinionApri('cuenta', ''); return; }   // v0.9.12: subito, senza attesa (Alberto: «sotto i 20 ms»)
   // v0.7 · «Otra vez»: la stessa riga di prima (piatto + scelta), una in più
   if (a === 'ripeti' && S.hist.indexOf(k) >= 0 && !S.inviando && !S.inviaStato) { const pp = S.prod.find((x) => x.id === k.split('§')[0]);
     if (ordinabile(pp)) { S.cart[k] = (S.cart[k] || 0) + 1; S.listo = null; S.errore = ''; S.need = ''; nota('＋1 ' + pp.n); } pinta(); return; }
