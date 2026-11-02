@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.114.1</span>
+<span id="ver" hidden>menu2 · v2.115.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -13991,7 +13991,9 @@ function _pedidoRegistrarExito(entry, resp){
     n: items.reduce((s,i)=> s + (i.qty||1), 0),
     // v1.35 · il cliente DEVE poter ricontrollare cosa ha ordinato
     items: items.map(i=>({ nombre:i.nombre, precio:i.precio, qty:i.qty||1 })),
-    estado: (resp && resp.estado) || 'pendiente', mesero: '',
+    // v2.115.0 · D-431: mesa libera ⇒ il bordo lo tiene in attesa del garzón (`por_confirmar`, `motivo` es. conto_cerrado)
+    estado: (resp && resp.por_confirmar) ? 'por_confirmar' : ((resp && resp.estado) || 'pendiente'), mesero: '',
+    pc_mot: (resp && resp.por_confirmar && resp.motivo) || '',
     destino: (pl.destino || ''),   // v2.28.0 · per il post-invio dinamico
     // v2.12 · il N° d'ordine è l'ancora del «sí, lo recibieron»
     id: (resp && resp.id_pedido) || '',
@@ -14036,6 +14038,11 @@ function renderPedidoEstado(){
   // Vencida la ventana la línea desaparece sola en el siguiente render.
   const _enVen = PA.ven > 0 && (Date.now() - (PA.ven_ts || 0)) < PA.ven * 1000;
   const VISTAS = {
+    // v2.115.0 · D-431 · mesa libera: il pedido aspetta che il mesero confermi che al tavolo c'è gente (non va in cucina prima)
+    por_confirmar: { icon:'⏳', anim:true, t: 'Esperando que el mesero confirme tu mesa',
+                  s: PA.pc_mot === 'conto_cerrado'
+                       ? 'Tu cuenta de esta mesa ya se cerró. Cuando el mesero confirme, tu pedido entra en una cuenta nueva'
+                       : 'Tu pedido ya está guardado: cuando el mesero confirme, pasa a cocina y barra' },
     // round5 oss.7.3 · sappiamo CHI è il mesero: si chiama per nome
     pendiente:  { icon:'🛎', anim:true,  t: MESERO_MESA ? ('Avisando a ' + MESERO_MESA + '…') : (getLang('pedido_st_pendiente') || 'Llamando al mesero…'),
                   s: _enVen
@@ -14055,6 +14062,10 @@ function renderPedidoEstado(){
                   s: getLang('pedido_st_problema_sub') || 'No pudimos confirmarlo — llama al mesero o acércate a la barra' },
   };
   let v = VISTAS[PA.estado] || VISTAS.pendiente;
+  // v2.115.0 · D-431: rifiutato dal mesero o scaduto senza risposta = `cancelado` (terminale, fuori dal totale), col suo perché
+  if (PA.estado === 'cancelado' && PA.rech) v = { icon:'🙋', anim:false,
+    t: PA.rech === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa',
+    s: 'Tu pedido no se preparó y no se cobra. Pídele al mesero o acércate a la barra' };
   /* v2.65.0 · R5 (caso mesa 106: 65 min su «recibido ✓» col vino già al pass).
      La produzione non aspetta el MÍO — la card tampoco. `prod` viene dai
      fossili del GAS: si sovrascrive la vista SOLO negli stati non terminali,
@@ -14102,7 +14113,7 @@ function _nocheLoad(){
     if(raw){ const a = JSON.parse(raw); if(Array.isArray(a)) PEDIDOS_NOCHE = a; }
   } catch(e){}
 }
-const _NOCHE_ICON = { pendiente:'🛎', atendido:'✓', digitado:'⌨', entregado:'🍽', cerrado:'🍽', expirado:'🙋', cancelado:'🙋' };
+const _NOCHE_ICON = { por_confirmar:'⏳', pendiente:'🛎', atendido:'✓', digitado:'⌨', entregado:'🍽', cerrado:'🍽', expirado:'🙋', cancelado:'🙋' };
 function _nocheValidos(){ return PEDIDOS_NOCHE.filter(p => !['expirado','cancelado'].includes(p.estado)); }
 /* v2.113.4 · [AUT-0772] TAMPONE DICHIARATO (29-ott, mesa 89 di Alberto: il pranzo pagato alla 74 sommato
    alla cena). La lista è la memoria del TELEFONO, non il conto: un pedido `cerrado` è di un conto già
@@ -14150,8 +14161,8 @@ async function _nocheRefrescarEstados(){
   const pendenti = _nocheValidos().filter(p => !['entregado','cerrado'].includes(p.estado) && (!PEDIDO_ACTUAL || p.uuid !== PEDIDO_ACTUAL.uuid));
   for(const p of pendenti.slice(0, 6)){
     try {
-      const url = (BRAND.gas_url || GAS_URL) + '?action=getEstadoPedido&local=' + encodeURIComponent(LOCAL_ID) + '&uuid=' + encodeURIComponent(p.uuid) + '&t=' + Date.now();
-      const r = await fetchWithTimeout(url, 8000).then(x=>x.json());
+      const r = await _estadoPedidoFetch(p.uuid, p, 8000);   // v2.115.0 · prima il bordo, il GAS è il ripiego
+      if(_estadoRechazo(p, r)) continue;
       if(r && r.ok){ p.estado = r.estado || p.estado; p.mesero = r.mesero || p.mesero; }
     } catch(e){ /* il prossimo giro */ }
   }
@@ -14219,15 +14230,75 @@ function cerrarPedidoActual(){
   renderCart();
 }
 
+/* ═══ v2.115.0 · LO STATO DEL PEDIDO SI CHIEDE PRIMA AL BORDO (5.3 Atto 1, AUT-0670, mai spedito: rami di ottobre v2.114.0-v2.116.2 riportati qui) ═══
+   Il poll del cliente (ogni 10 s) e il refresh dello storico chiedevano lo stato SOLO al GAS (getEstadoPedido, Google legge il libro).
+   Ora GET /pedido-estado/<local>?uuid= sul bordo (leva PEDIDO_ESTADO_BORDE_ON), STESSA forma { ok, estado, mesero, id_pedido, prod }.
+   IL GAS RESTA IL RIPIEGO quando: il bordo non risponde ok (404 pedido_not_found, 503, 429, rete, timeout) · la rotta è spenta (404 ruta_apagada,
+   ricordato per la sessione: zero richieste sprecate) · il bordo è INDIETRO rispetto a ciò che il telefono sa già (niente «va en camino» ripetuto,
+   niente «listo» che sparisce) · il bordo non sa la cucina (`prod: null` su stato non terminale: il KDS di cucina non porta i marchi al bordo).
+   D-431 (QR su mesa libera, bordo di 🎛 BKP): `por_confirmar` è lo stato più basso; `need:'mesa_rechazada'` è una risposta DEFINITIVA del
+   bordo e non si chiede al GAS (non conosce il pedido in attesa). «Non so» non diventa mai uno stato. */
+let _ESTADO_BORDE_OFF = false;
+const _ESTADO_RANGO = { por_confirmar: 0, pendiente: 1, atendido: 2, digitado: 3, entregado: 4, cerrado: 5, expirado: 5, cancelado: 5 };
+const _PROD_RANGO = { '': 0, produciendo: 1, listo: 2, retirado: 3 };
+const _TERMINALI_PEDIDO = ['entregado', 'cerrado', 'expirado', 'cancelado'];
+function _bordoNonSaProd(r){ return r.prod === null && r.estado !== 'por_confirmar' && _TERMINALI_PEDIDO.indexOf(r.estado) < 0; }
+function _estadoIndietro(r, cur){
+  if (!cur) return false;
+  const re = _ESTADO_RANGO[r.estado], rc = _ESTADO_RANGO[cur.estado];
+  if (re === undefined) return true;                       // uno stato che non conosco: non mi fido
+  if (rc !== undefined && re < rc) return true;
+  if (rc !== undefined && re === rc && (_PROD_RANGO[r.prod || ''] || 0) < (_PROD_RANGO[cur.prod || ''] || 0)) return true;
+  return false;
+}
+async function _estadoPedidoFetch(uuid, cur, timeoutMs){
+  if (!_ESTADO_BORDE_OFF && PEDIDO_BORDE) {
+    const ctrl = new AbortController();
+    const tid = setTimeout(()=>ctrl.abort(), 3000);
+    try {
+      const resp = await fetch('https://pinsita-borde.alberto-agostini.workers.dev/pedido-estado/' + encodeURIComponent(LOCAL_ID) + '?uuid=' + encodeURIComponent(uuid), {
+        headers: { 'X-Borde-Token': '7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ' },
+        signal: ctrl.signal,
+      });
+      clearTimeout(tid);
+      const r = await resp.json();
+      if (r && r.need === 'mesa_rechazada') return r;
+      if (r && r.ok === true && r.estado && !_estadoIndietro(r, cur) && !_bordoNonSaProd(r)) return r;
+      if (r && r.error === 'ruta_apagada') _ESTADO_BORDE_OFF = true;
+    } catch(e){ clearTimeout(tid); /* rete, timeout, JSON rotto → il GAS */ }
+  }
+  const url = (BRAND.gas_url || GAS_URL) + '?action=getEstadoPedido&local=' + encodeURIComponent(LOCAL_ID) + '&uuid=' + encodeURIComponent(uuid) + '&t=' + Date.now();
+  return fetchWithTimeout(url, timeoutMs || 9000).then(x=>x.json());
+}
+/* D-431 · il mesero ha detto no, o nessuno ha risposto: il pedido diventa `cancelado` (terminale, fuori dal totale) col suo perché.
+   Cintura del telefono: un `por_confirmar` senza esito dopo 30 min (il bordo scade a 20) si chiude lo stesso, mai un'attesa senza fine. */
+const _POR_CONFIRMAR_MAX_MS = 30 * 60 * 1000;
+function _estadoRechazo(p, r){
+  if (!p) return false;
+  let mot = '';
+  if (r && r.need === 'mesa_rechazada') mot = r.motivo === 'sin_respuesta' ? 'sin_respuesta' : 'rechazada';
+  else if (p.estado === 'por_confirmar' && Date.now() - (p.ts || 0) > _POR_CONFIRMAR_MAX_MS) mot = 'sin_respuesta';
+  if (!mot) return false;
+  p.estado = 'cancelado'; p.rech = mot;
+  return true;
+}
+
 function iniciarPollPedido(){
   detenerPollPedido();
   PEDIDO_POLL = setInterval(async ()=>{
     if(!PEDIDO_ACTUAL){ detenerPollPedido(); return; }
     if(document.visibilityState !== 'visible') return;
     try {
-      const url = (BRAND.gas_url || GAS_URL) + '?action=getEstadoPedido&local=' + encodeURIComponent(LOCAL_ID) +
-        '&uuid=' + encodeURIComponent(PEDIDO_ACTUAL.uuid) + '&t=' + Date.now();
-      const r = await fetchWithTimeout(url, 9000).then(x=>x.json());
+      const r = await _estadoPedidoFetch(PEDIDO_ACTUAL.uuid, PEDIDO_ACTUAL, 9000);   // v2.115.0 · prima il bordo, il GAS è il ripiego
+      if(_estadoRechazo(PEDIDO_ACTUAL, r)){
+        try { mstSet(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
+        _nocheSave();
+        showToastMsg('🙋 ' + (PEDIDO_ACTUAL.rech === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa') + ' — tu pedido no se preparó', 9000);
+        const sheetOpen = document.getElementById('cartSheet')?.classList.contains('open');
+        if(sheetOpen && CART.items.length === 0) renderPedidoEstado();
+        detenerPollPedido();
+        return;
+      }
       if(!r || !r.ok) return;   // silenzioso: il prossimo giro riprova
       // v2.40.0 · FASE 2: se il pedido è entrato dal bordo, l'ID ufficiale
       // nasce col fossile — lo si raccoglie qui, al primo poll che lo vede
@@ -14235,6 +14306,7 @@ function iniciarPollPedido(){
       // v2.65.0 · R5: `prod` = la verità della PRODUZIONE (produciendo/listo/
       // retirado), dedotta dai fossili dal GAS. La card smette di dipendere
       // dal pollice del mesero: la cocina non aspetta il MÍO, la card nemmeno.
+      const eraPc = PEDIDO_ACTUAL.estado === 'por_confirmar';   // v2.115.0 · D-431
       const cambio = (r.estado !== PEDIDO_ACTUAL.estado) || ((r.mesero||'') !== PEDIDO_ACTUAL.mesero)
         || (!PEDIDO_ACTUAL.id && !!r.id_pedido) || ((r.prod||'') !== (PEDIDO_ACTUAL.prod||''));
       if (!PEDIDO_ACTUAL.id && r.id_pedido) PEDIDO_ACTUAL.id = r.id_pedido;
@@ -14246,6 +14318,8 @@ function iniciarPollPedido(){
       if(cambio && _sesionRevisar()) return;   // v2.99.2 · AUT-0036: il conto si è chiuso adesso
       if(cambio && PEDIDO_ACTUAL.estado === 'atendido'){
         showToastMsg('✓ ' + (PEDIDO_ACTUAL.mesero || (getLang('pedido_el_mesero')||'El mesero')) + ' ' + (getLang('pedido_camino_toast')||'va en camino'));
+      } else if(cambio && eraPc && PEDIDO_ACTUAL.estado !== 'por_confirmar'){
+        showToastMsg('✓ El mesero confirmó tu mesa — tu pedido ya va a cocina y barra');
       }
       // v2.37.0 · mientras la ventana de la mesa está viva (+15s de gracia) se
       // repinta igual aunque no cambie el estado: si no, la línea «esperamos un
