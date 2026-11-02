@@ -1,0 +1,1575 @@
+<!doctype html>
+<html lang="es"><head>
+<meta name="robots" content="noindex,nofollow"><!-- SALA DEMO (Alberto 2-nov): copia del ramo menu-vero-qr-espera-02nov @769aa0a, fuori dal vivo. Si cancella dopo la prova. --><meta charset="utf-8">
+<meta name="theme-color" id="tc" content="#0A0806">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<title>Menú</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap" rel="stylesheet">
+<!-- DEVICE-CLASS: 1 · cattura in movimento (il telefono del cliente al tavolo) -->
+<!--
+  ═══ IL MENÙ VERO · scheletro v0.1 · 📖 MENU BKS V32 · mer 28-ott-2026 ═══════════════════════════════════════════════════════════
+  Il disegno è il mockup v1.x (ATALAYA/4_CANTIERE_MENU/MOCKUP_MENU_QUATTRO_ZONE_V2_21OTT2026.html), il criterio di chiusura il §⑭ del
+  modello: il vero non può essere più povero del mockup. Il perimetro è il §⑮.
+  🏢 MULTIEMPRESA DAL PRIMO GIORNO (Alberto, 28-ott): nessun locale scritto qui. Il locale arriva dal QR (?l=), e marca, famiglie,
+  catalogo, lingue e pezzi accesi vengono dalla sua config sul bordo. Regola e banco: ARCHITETTURA_MENU_VERO_MULTIEMPRESA_28OTT2026.md.
+  🚫 NIENTE GOOGLE: legge solo dal bordo (/estado ?seccion=menu_config e /carta). Se il bordo non risponde lo dice, non ripiega su Google.
+  v0.1 = LEGGE E MOSTRA (famiglie, categorie, griglia, scheda grande, carrello) · v0.2 = la carta di adesso dal tick del bordo ·
+  v0.3 = la scheda aperta del mockup · v0.4 = L'INVIO e LA CAMPANELLA (AUT-0749), dietro la leva `menu_vero_envio_on` della config:
+  vuota = vista previa, nessun pedido parte da qui. I piatti che chiedono una scelta non partono finché non c'è la schermata delle scelte.
+  v0.7 = L'INIZIO E LA CONVERSIONE (Alberto 29-ott: «oggi l'inizio e la conversione, il conto domani; il cervello per ora sono io»):
+  il palco coi video (si avanza a fine video, la pagina di chiusura vende), i destacados sotto, il fondo con le strelitzie, «Otra vez»,
+  la pillola che chiama dopo 12 s, il regalo a otra mesa. Contenuti in vetrina/vetrina.json, per locale (tampone come fotos.json).
+-->
+<style>
+:root{
+  /* il tema del mockup è il default; una config di locale lo può cambiare con le chiavi tema_* (bozza per 🚚 MIGRA) */
+  --bg:#0A0806;--sup:#14100C;--card:#1A1510;--txt:#F3EDE4;--suave:rgba(243,237,228,.62);
+  --linea:rgba(255,140,80,.18);--linea2:rgba(255,140,80,.36);--acc:#FF6A1F;--oro:#FFC53D;
+  --ok:#8B9E4F;--ok-txt:#14180A;--ok-chiaro:#A9BE68;--male:#FF6B5E;
+  /* v0.9 · i pezzi che avevano il colore scritto a mano: la testa, i veli sotto le strisce, la casetta, il segno di versione, il riquadro senza foto, la nota */
+  --testa:linear-gradient(rgba(10,8,6,.92),rgba(10,8,6,.8));--velo:rgba(7,6,5,.55);--casa:rgba(243,237,228,.82);--sutil:rgba(243,237,228,.3);
+  --tgbg:#1b140a;--notabg:#24201a;--fondo-op:.71;
+  --cdbordo:rgba(243,237,228,.08);--addbordo:rgba(169,190,104,.35);   /* v0.9.8 la scheda pastel (DESIGN V33): bordi spenti, la foto parla */
+  color-scheme:dark;
+}
+/* ═══ v0.9 · IL GIORNO (Alberto 30-ott «fondo beige per il giorno … come oggi»): la sabbia del vestito di menu_digital (#EFE2CF, r.542-557),
+   le strelitzie chiare a opacità .57. Il blocco cambia SOLO token: nessuna regola sotto nomina il giorno. La notte è :root.
+   L'oro del giorno è più scuro di quello del vestito (#C98A2E): sui prezzi piccoli in crema #C98A2E non si legge. */
+body.dia{
+  --bg:#EFE2CF;--sup:#F8F1E6;--card:#FFFBF5;--txt:#241A14;--suave:#6B5A4F;
+  --linea:rgba(36,26,20,.10);--linea2:rgba(36,26,20,.18);--acc:#E0561A;--oro:#A8701F;
+  --ok-chiaro:#5E7030;--male:#C0392B;
+  --testa:linear-gradient(rgba(248,241,230,.94),rgba(248,241,230,.84));--velo:rgba(248,241,230,.72);--casa:rgba(36,26,20,.75);--sutil:rgba(36,26,20,.3);
+  --tgbg:#F3E6CF;--notabg:#FFFBF5;--fondo-op:.57;
+  --cdbordo:rgba(36,26,20,.10);--addbordo:rgba(94,112,48,.35);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:Outfit,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit}
+.app{height:var(--alto,100dvh);display:flex;flex-direction:column;max-width:560px;margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* la riga in alto: una famiglia sola, stessa altezza, un solo pieno (mockup v1.1) */
+.z1{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));
+  border-bottom:1px solid var(--linea);min-height:50px;background:var(--testa)}
+.casa{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:transparent;border:0;color:var(--casa);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.chi{flex:1;min-width:0;line-height:1.15}
+.chi b{display:block;font-size:14px}
+.chi span{display:block;font-size:11px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.z3{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+/* la griglia da 12, con foto (mockup: .sei.fotos) */
+/* minmax(0,1fr): tre colonne SEMPRE uguali. Con 1fr un nome lungo su una riga (la card VER) allargava la sua colonna e stringeva le altre */
+.sei{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px;align-content:start}
+/* poche card: si appoggiano al fondo, nell'arco del pollice (mockup, Alberto 21-ott) */
+.z3.basso{display:flex;flex-direction:column}
+.z3.basso>*{margin-top:auto}   /* non justify-content:flex-end: se il contenuto cresce, l'eccedenza deve restare scorrevole */
+.cd{display:flex;flex-direction:column;gap:3px;background:var(--card);border:1px solid var(--cdbordo);border-radius:12px;padding:5px;min-height:176px;cursor:pointer;text-align:left;color:var(--txt)}
+.cd .th{width:100%;height:auto;aspect-ratio:4/3;border-radius:8px;object-fit:cover;object-position:center 60%;background:var(--sup)}
+.cd .tg{width:100%;height:76px;border-radius:8px;background:var(--tgbg);color:var(--oro);display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:4px;font-family:Fraunces,Georgia,serif;font-size:12px;line-height:1.15}
+.cd .nm{font-size:12.5px;font-weight:400;line-height:1.22;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px}
+.cd .pz{font-size:12.5px;font-weight:700;color:var(--oro);font-variant-numeric:tabular-nums}
+.addb{margin-top:auto;width:100%;background:transparent;color:var(--ok-chiaro);border:1px solid var(--addbordo);border-radius:8px;font-weight:600;font-size:11px;min-height:30px;cursor:pointer;
+  /* v0.8.3 (Alberto: in francese «COMMANDER» sfonda il bottone): una riga sola, e se una lingua non ci sta si tronca, mai fuori dalla card */
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 3px}
+.cd.dentro{border-color:var(--ok)}
+.pz s{font-weight:600;opacity:.6;margin-right:2px}
+.pz .emd{display:block;font-size:10px;font-weight:700;color:var(--ok-chiaro);letter-spacing:.02em;margin-top:1px}
+.det .pz .emd{font-size:12px;margin-top:3px}
+.cd.agot{opacity:.55;filter:grayscale(1);pointer-events:none}
+.cd .agl{margin-top:auto;font-size:11px;font-weight:800;color:#ff8a7a}
+.cd.fh .agl{color:var(--oro)}
+.qn{display:flex;align-items:center;justify-content:space-between;margin-top:auto;background:var(--ok);color:var(--ok-txt);border-radius:8px;min-height:30px;font-weight:800}
+.qn i{font-style:normal;width:34px;text-align:center;font-size:17px;cursor:pointer}
+/* ═══ la scheda aperta (mockup V8-V9, 21/23-ott): META SOPRA vende, META SOTTO le sei per continuare a viaggiare ═══
+   La foto prende lo spazio che il testo non usa; nome e descrizione si fermano a due righe; sotto, pagine di SEI
+   che scattano DI LATO (il pollice fa un arco orizzontale). Il piatto aperto resta dove l'hai toccato: il legame
+   col pannello lo dice il segno «VER ▲» in oro, non la posizione. */
+.z3.aperta{overflow:hidden}
+.split{display:flex;flex-direction:column;height:100%}
+/* con le domande la foto cede spazio (fino a 60px) e, se ancora non basta, la metà alta scorre: le scelte stanno sempre nello schermo */
+.det{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow-y:auto}
+/* la foto grande prende TUTTA la larghezza (Alberto 28-ott: «sembra troncata»): riempie da bordo a bordo l'altezza che resta
+   fra la testa e la striscia sotto, e non supera mai il 4:3 della foto. Dove l'altezza manca, il taglio è sopra e sotto, mai ai lati. */
+.det .fo{flex:1 1 auto;width:100%;max-height:75vw;min-height:60px;background:#000;position:relative;overflow:hidden}
+.det .fo::before,.det .fo::after{content:'';position:absolute;inset:0;z-index:0;background-image:var(--f);background-position:center var(--fy,55%);background-repeat:no-repeat}
+/* v0.5.9 (Alberto 28-ott, Caipirisima tagliata sotto): dove l'altezza manca si taglia di più SOPRA che sotto. Il piatto e il
+   bicchiere stanno nella metà bassa della foto (il tavolo), il cielo della foto è il fondo del bar. Default 60%; una foto nostra
+   può dichiarare il suo punto in fotos.json ({"f":"x.webp","y":70}). */
+.det .fo::before{background-size:cover;filter:blur(16px) brightness(.45);transform:scale(1.1)}
+.det .fo::after{background-size:cover}
+.det .fo.tg::before,.det .fo.tg::after{content:none}
+.det .fo>*{position:relative;z-index:1}
+.det .fo.tg{display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;font-family:Fraunces,Georgia,serif;font-weight:300;font-size:25px;color:#fff;
+  background:radial-gradient(120% 80% at 50% 0%,rgba(255,197,61,.18),#0b0906 65%)}
+.det .x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.45);color:#fff;font-size:16px;cursor:pointer}
+/* v0.6.2: nome e prezzo sulla stessa riga, la descrizione sotto: ~40px restituiti alla foto */
+.det .bd{flex:0 0 auto;padding:6px 13px 7px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n p" "d d";column-gap:10px;align-items:baseline}
+.det .bd h2{grid-area:n}.det .bd .pz{grid-area:p;text-align:right}.det .bd .ds{grid-area:d}
+.det h2{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:20px;margin:0;letter-spacing:-.3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.det .ds{font-size:12px;color:var(--suave);line-height:1.4;margin:3px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.det .pz{font-size:19px;font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
+.mini{flex:0 0 auto;border-top:1px solid var(--linea2);background:var(--velo);padding:9px 8px 5px;display:flex;gap:8px;
+  overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-padding-inline:8px}
+.mini::-webkit-scrollbar{height:0}
+.mini .pag{flex:0 0 100%;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:7px 6px;scroll-snap-align:start}
+.mini .cd{min-height:0;height:96px;padding:7px;gap:3px;position:relative}
+/* v0.6.3 (Alberto: «la seconda riga viene tagliata»): il nome non si schiaccia mai, chi cede è il riquadro «Con opciones» */
+.mini .cd .nm{-webkit-line-clamp:2;font-size:12px;line-height:1.2;min-height:0;flex:0 0 auto}
+.mini .cd .pz{flex:0 0 auto}
+.mini .cd .opc{font-size:9.5px;line-height:1.15;padding:3px 3px;flex:0 1 auto;min-height:0;overflow:hidden}
+.mini .cd .pz{font-size:12.5px}
+.mini .cd .addb{min-height:30px;font-size:12px;margin-top:auto}
+.mini .cd .qn{min-height:30px;margin-top:auto}
+/* la card del piatto aperto: il tasto stesso, in oro, col segno VER a cavallo del bordo (la linea si interrompe) */
+.mini .cd.ora{overflow:visible;background:rgba(255,197,61,.20);border:2.5px solid var(--oro);box-shadow:0 0 0 3px rgba(255,197,61,.22),0 6px 18px rgba(0,0,0,.45);
+  justify-content:center;align-items:stretch;text-align:center;gap:3px;padding:9px 6px 4px}
+.mini .cd.ora::before{content:"VER ▲";position:absolute;top:-7px;left:50%;transform:translateX(-50%);padding:0 6px;background:var(--bg);line-height:12px;white-space:nowrap;
+  font-size:9.5px;font-weight:800;letter-spacing:.08em;color:var(--oro)}
+.ver .vnm{font-size:10.5px;font-weight:700;color:var(--suave);line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.ver .vpd{background:var(--ok);color:var(--ok-txt);border-radius:9px;font-weight:800;font-size:13px;letter-spacing:.03em;padding:6px 4px}
+.ver .vpz{font-size:13px;font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
+.ver .vst{display:flex;gap:6px;align-items:center}
+.ver .vst i{flex:1;height:34px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:22px;font-weight:800;background:var(--ok);color:var(--ok-txt);border-radius:9px;cursor:pointer}
+.ver .vst u{text-decoration:none;font-size:15px;font-weight:800;min-width:18px}
+@keyframes lampoVer{0%{box-shadow:0 0 0 0 rgba(255,197,61,.85);background:rgba(255,197,61,.28)}100%{box-shadow:0 0 0 10px rgba(255,197,61,0)}}
+.mini .cd.ora.lampo{animation:lampoVer .6s ease-out 1}
+.punti{flex:0 0 auto;display:flex;justify-content:center;gap:5px;padding:0 0 6px;background:var(--velo)}
+.punti i{width:6px;height:6px;border-radius:3px;background:var(--linea2);transition:width .15s}
+.punti i.on{width:16px;background:var(--oro)}
+.pedir{padding:4px 14px 14px}
+.envG{width:100%;background:var(--ok);color:var(--ok-txt);border:0;border-radius:13px;padding:13px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.envG b{font-size:15px;font-weight:800}
+.envG span{font-size:11.5px;font-weight:700;opacity:.8}
+.envG.spento{background:transparent;color:var(--suave);border:2px dashed rgba(139,158,79,.6);cursor:default}
+/* la barra in basso: famiglie + categorie + la porta del pedido */
+.z2{flex:0 0 auto;border-top:1px solid var(--linea);background:var(--sup);padding:6px 8px 8px}
+.r{display:flex;gap:6px;overflow-x:auto;padding:2px 0}
+.r::-webkit-scrollbar{height:0}
+.fam,.cat{flex:0 0 auto;border:1px solid var(--linea2);background:transparent;color:var(--txt);border-radius:99px;padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.fam.on{background:var(--card);border-color:var(--oro)}
+.cat.on{background:var(--oro);color:#1a1408;border-color:var(--oro)}
+.cartp{flex:0 0 auto;margin-left:auto;border:0;border-radius:99px;background:var(--ok);color:var(--ok-txt);padding:7px 12px;font-weight:800;font-size:12.5px;cursor:pointer;white-space:nowrap}
+/* il pedido */
+/* il pedido, la conferma e la campanella partono dal BASSO, dove sta il pollice (mockup 21-ott) */
+.ped{padding:12px 14px;min-height:100%;display:flex;flex-direction:column;justify-content:flex-end}
+.pedtit{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:19px;letter-spacing:-.2px;margin-bottom:9px}
+.pedx{background:transparent;border:0;color:var(--suave);font-size:18px;cursor:pointer}
+.lin{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--linea)}
+.lin img,.lin .lth{width:38px;height:38px;border-radius:8px;object-fit:cover;background:var(--sup);flex:0 0 auto}
+.lin .lnm{flex:1;min-width:0;font-size:13px;font-weight:700}
+.lin .lpz{font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
+.lin .lq{display:flex;align-items:center;gap:6px}
+.lin .lq i{font-style:normal;width:28px;height:28px;border-radius:8px;border:1px solid var(--linea2);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tot{display:flex;justify-content:space-between;font-weight:800;font-size:16px;margin:12px 0 4px}
+.vuoto{color:var(--suave);font-size:13px;padding:18px 0}
+/* l'invio, la conferma, la campanella (mockup 21/23-ott) */
+/* le domande nella scheda grande (mockup: «¿Cómo la quieres?» sotto il prezzo, chip; il sovrapprezzo sul chip) */
+.prep{flex:0 0 auto;margin:0 13px 10px;padding:9px 10px;border:1px solid var(--linea2);border-radius:12px;background:var(--card)}
+.prep .q{font-size:13px;font-weight:800;margin-bottom:7px}
+.prep .q .mreq{font-size:10.5px;font-weight:800;color:var(--oro);margin-left:4px}
+.prep .op{display:flex;flex-wrap:wrap;gap:6px}
+.prep .op button{border:1.5px solid var(--linea2);background:transparent;color:var(--txt);border-radius:99px;padding:8px 11px;font-size:12.5px;font-weight:700;cursor:pointer}
+.prep .op button b{color:var(--oro);font-weight:800}
+.prep .op button.on{background:var(--ok);border-color:var(--ok);color:var(--ok-txt)}
+.prep .op button.on b{color:var(--ok-txt)}
+.ver .vsc{font-size:11px;font-weight:800;color:var(--ok-chiaro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.addb.chiede{border-style:dashed}
+.lin .lsc{display:block;font-size:11px;font-weight:600;color:var(--ok-chiaro)}
+.opc{margin-top:auto;font-size:10.5px;font-weight:700;color:var(--suave);border:1px dashed var(--linea2);border-radius:8px;padding:6px 4px;text-align:center}
+.ver .vpd.off{background:transparent;color:var(--suave);border:1px dashed var(--linea2);font-size:9.5px;line-height:1.15;padding:3px 3px;flex:0 1 auto;min-height:0;overflow:hidden}
+/* v0.6.4 (EL GIRO su 0.6.3): anche nella card VER il nome non cede; cede il riquadro «Con opciones» */
+.ver .vnm,.ver .vpz{flex:0 0 auto}
+.envG{position:relative;overflow:hidden;margin-top:8px}
+.envG.hold{background:var(--sup);color:var(--txt);border:2px solid var(--ok)}
+.envG.hold span{opacity:.75}
+.envG .barra{position:absolute;left:0;bottom:0;height:4px;background:var(--ok);width:var(--da);animation:vacia linear forwards}
+@keyframes vacia{from{width:var(--da)}to{width:0}}
+.segui{display:block;width:100%;background:transparent;border:0;color:var(--suave);font-size:13px;font-weight:700;padding:10px;margin-top:2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.avv{margin-top:10px;font-size:13px;font-weight:700;color:var(--oro);line-height:1.35}
+.avvs{margin-top:6px;font-size:12px;color:var(--suave)}
+.okv{background:rgba(139,158,79,.14);border:1px solid var(--ok);color:var(--ok-chiaro);border-radius:12px;padding:12px;font-size:16px;font-weight:800;margin:4px 0 10px}
+.okv span{display:block;font-size:12px;font-weight:600;color:var(--suave);margin-top:3px}
+.okr{font-size:13px;padding:5px 0;border-top:1px solid var(--linea)}
+.okr b{color:var(--oro);font-variant-numeric:tabular-nums}
+.sigue2{display:flex;align-items:center;gap:10px;width:100%;margin-top:12px;padding:10px 10px 10px 8px;cursor:pointer;background:var(--card);border:1px solid var(--linea2);border-radius:14px;color:var(--txt);text-align:left}
+.sigue2 .s2f{display:flex;flex:0 0 auto}
+.sigue2 .s2f img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--bg);margin-left:-12px}
+.sigue2 .s2f img:first-child{margin-left:0}
+.sigue2 .s2t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sigue2 .s2t b{font-size:14.5px;line-height:1.2}
+.sigue2 .s2t small{font-size:11.5px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sigue2 .s2v{flex:0 0 auto;background:var(--oro);color:#1a1408;font-weight:800;font-size:13px;padding:8px 12px;border-radius:999px}
+/* Buscar: la lente resta ancorata a destra mentre le categorie scorrono; aperta, il campo nasce dentro la barra */
+.cat.lupa{position:sticky;right:0;z-index:2;background:var(--sup);border-color:var(--linea2);box-shadow:-8px 0 10px -6px var(--sup)}
+.rbusca{align-items:center;gap:7px;overflow:visible}
+.rbusca .lup{flex:0 0 auto;font-size:14px}
+.rbusca .bin{flex:1;min-width:0;background:var(--card);border:1px solid var(--linea2);color:var(--txt);border-radius:10px;padding:9px 11px;font:inherit;font-size:16px;min-height:38px}
+.rbusca .bin::placeholder{color:var(--suave)}
+.rbusca .bin::-webkit-search-cancel-button{display:none}
+.rbusca .bx{flex:0 0 auto;background:transparent;border:0;color:var(--suave);font-size:16px;padding:6px 6px;cursor:pointer;min-height:38px}
+.bell{flex:0 0 auto;width:36px;height:34px;border-radius:50%;border:0;background:var(--oro);font-size:16px;cursor:pointer}
+.cmp{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card);border:1px solid var(--linea);border-radius:12px;padding:11px 12px;margin-top:7px;color:var(--txt);cursor:pointer}
+.cmp .sn{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cmp .sn b{font-size:14px}
+.cmp .sn i{font-style:normal;font-size:11.5px;color:var(--suave)}
+.cmp .sp{color:var(--oro);font-size:18px;font-weight:800}
+.nota{position:fixed;left:50%;bottom:calc(120px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:88%;background:var(--notabg);color:var(--txt);border:1px solid var(--linea2);
+  border-radius:12px;padding:10px 14px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;z-index:9}
+.nota.vai{animation:notaV 4.5s ease forwards}
+@keyframes notaV{0%{opacity:0;transform:translate(-50%,8px)}8%{opacity:1;transform:translate(-50%,0)}85%{opacity:1}100%{opacity:0}}
+/* stati */
+.msg{padding:40px 22px;text-align:center;color:var(--suave);font-size:14px;line-height:1.45}
+.msg b{display:block;color:var(--txt);font-size:18px;margin-bottom:6px}
+#ver{position:fixed;right:6px;bottom:calc(4px + env(safe-area-inset-bottom,0px));font-size:9px;color:var(--sutil);pointer-events:none}
+/* ═══ v0.7 · IL FONDO DEL LOCALE (mockup 21-ott, Alberto 28-ott «il fondo con le strelitzie»): stesso blur, stessa maschera a chiazze
+   e stessa opacità del vestito (.71). Si vede negli spazi fra le card, non sotto il testo. Il disegno viene dalla vetrina del locale. */
+.app{position:relative}
+.app.confondo::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:var(--fondo-op);filter:blur(4px);background:var(--fondo) center center / cover no-repeat;
+  -webkit-mask-image:radial-gradient(62% 40% at 20% 24%,#000 0%,transparent 80%),radial-gradient(58% 44% at 80% 62%,#000 0%,transparent 82%),radial-gradient(50% 30% at 44% 96%,#000 0%,transparent 78%);
+  mask-image:radial-gradient(62% 40% at 20% 24%,#000 0%,transparent 80%),radial-gradient(58% 44% at 80% 62%,#000 0%,transparent 82%),radial-gradient(50% 30% at 44% 96%,#000 0%,transparent 78%)}
+.app>*{position:relative;z-index:1}
+.det .fo.tg::after{content:"";position:absolute;inset:0;opacity:.38;filter:blur(3px);background:var(--fondo) center center / cover no-repeat;pointer-events:none;
+  -webkit-mask-image:radial-gradient(62% 44% at 22% 26%,#000 0%,transparent 80%),radial-gradient(56% 46% at 80% 66%,#000 0%,transparent 82%);
+  mask-image:radial-gradient(62% 44% at 22% 26%,#000 0%,transparent 80%),radial-gradient(56% 46% at 80% 66%,#000 0%,transparent 82%)}
+/* ═══ v0.7 · IL PALCO (mockup §⑫ ①-③): ~⅔ esperienza sopra, la striscia dei destacados sotto. Ogni contenuto finisce in un gesto. ═══ */
+.pal-split .det{flex:1 1 auto;min-height:0}
+.pal{position:relative;flex:1 1 auto;min-height:0;background-size:cover;background-position:center;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;touch-action:pan-y;user-select:none;overflow:hidden}
+.pal::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(10,8,6,0) 35%,rgba(10,8,6,.92) 100%)}
+.pal-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.pal-tx,.pal-dots{z-index:2}
+.pal-tx{position:relative;padding:12px 14px 26px}
+.pal-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--oro);margin-bottom:4px}
+.pal-t{font-family:Fraunces,Georgia,serif;font-weight:400;font-size:22px;line-height:1.15;color:#fff;text-wrap:balance}
+.pal-s{font-size:12.5px;color:rgba(255,255,255,.8);margin-top:3px}
+.pal-cta{display:inline-block;margin-top:9px;background:var(--ok);color:var(--ok-txt);border:0;border-radius:99px;padding:7px 14px;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.pal-cta-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.pal-x{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:99px;padding:7px 12px;font-family:inherit;font-size:12.5px;font-weight:700;margin-top:9px;cursor:pointer}
+.pal-fin{cursor:default}
+.pal-fin::before{background:linear-gradient(180deg,rgba(10,8,6,.55) 0%,rgba(10,8,6,.93) 100%)}
+.pal-ss-w{background:#000}
+.pal-ss{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;opacity:0;animation:ssin 2.5s ease-out forwards}
+@keyframes ssin{0%{opacity:0;transform:scale(1.08)}20%{opacity:1}100%{opacity:1;transform:scale(1)}}
+.pal-dots{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center}
+.pal-dots i{position:relative;width:22px;height:26px;cursor:pointer;display:block}
+.pal-dots i::after{content:"";position:absolute;left:8px;top:12px;width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.45)}
+.pal-dots i.on::after{left:3px;width:16px;background:var(--oro)}
+.destit{flex:0 0 auto;display:flex;justify-content:space-between;align-items:baseline;padding:7px 10px 3px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--oro);border-top:1px solid var(--linea2);background:var(--velo)}
+.destit span{color:var(--suave);font-weight:700;letter-spacing:0;text-transform:none}
+.destrip{flex:0 0 auto;display:flex;gap:7px;overflow-x:auto;padding:6px 10px 9px;background:var(--velo);scroll-snap-type:x mandatory}
+.destrip::-webkit-scrollbar{height:0}
+.dsw{position:relative;flex:0 0 108px;scroll-snap-align:start}
+.destrip .cd{height:150px;min-height:0;padding:5px;gap:2px;border-radius:10px}
+.destrip .cd .th{aspect-ratio:auto;height:58px;border-radius:7px;flex:0 0 auto}
+.destrip .cd .tg{height:58px;flex:0 0 auto;font-size:11px}
+.destrip .cd .nm{font-size:11px;line-height:1.2;min-height:27px;flex:0 0 auto}
+.destrip .cd .pz{font-size:12px;flex:0 0 auto}
+.destrip .cd .addb,.destrip .cd .qn{min-height:28px;height:28px;font-size:11px}
+.destrip .cd .opc{font-size:9.5px;padding:3px}
+.dbadge{position:absolute;top:-5px;right:-3px;z-index:3;background:var(--oro);color:#1a1206;font-size:9px;font-weight:800;border-radius:99px;padding:2px 6px;white-space:nowrap;max-width:96px;overflow:hidden;text-overflow:ellipsis}
+/* ═══ v0.7 · «Otra vez» (mockup 23-ott): le ultime cose già chieste, uguali, a un tocco ═══ */
+.rip{padding:8px 10px 0}
+.z3.basso>.rip+.sei{margin-top:0}   /* con poche card «Otra vez» scende INSIEME alla griglia, attaccata sopra */
+.rip-t{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--oro);margin-bottom:5px}
+.rip-l{display:flex;gap:6px;overflow-x:auto}
+.rip-l::-webkit-scrollbar{height:0}
+.rip-c{flex:0 0 auto;display:flex;align-items:center;gap:7px;max-width:210px;padding:5px 8px 5px 5px;border-radius:12px;border:1.5px solid rgba(255,197,61,.45);background:rgba(255,197,61,.08);color:var(--txt);font-family:inherit;text-align:left;cursor:pointer}
+.rip-c img{width:34px;height:34px;border-radius:8px;object-fit:cover}
+.rip-c span{min-width:0;display:flex;flex-direction:column;line-height:1.15}
+.rip-c b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rip-c i{font-style:normal;font-size:10.5px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rip-c em{font-style:normal;font-weight:800;color:var(--oro);font-size:18px}
+/* ═══ v0.7 · la pillola che chiama (mockup 22-ott: «non ho saputo dove cliccare per enviar») ═══ */
+.cartp{position:relative}
+.cartp.llama{animation:llamaPulse 1.4s ease-out infinite}
+/* il fumetto non sta DENTRO la riga (che scorre di lato e lo taglierebbe): è una riga sua, sopra la barra, allineata a destra */
+.z2 .llamah{position:absolute;right:10px;bottom:calc(100% + 6px);white-space:nowrap;background:var(--oro);color:#1a1206;font-size:12px;font-weight:800;border-radius:9px;padding:6px 10px;box-shadow:0 4px 14px rgba(0,0,0,.5);pointer-events:none}
+.z2{position:relative}
+@keyframes llamaPulse{0%{box-shadow:0 0 0 0 rgba(139,158,79,.8)}70%{box-shadow:0 0 0 12px rgba(139,158,79,0)}100%{box-shadow:0 0 0 0 rgba(139,158,79,0)}}
+/* ═══ v0.7 · il regalo a otra mesa (mockup v1.4-v1.5) ═══ */
+.dono-in{display:block;grid-column:1/-1;width:100%;margin-top:8px;padding:9px 12px;border-radius:12px;cursor:pointer;text-align:left;background:rgba(255,197,61,.08);border:1.5px dashed rgba(255,197,61,.55);color:var(--oro);font-family:inherit;font-size:13px;font-weight:800}
+.prq{font-size:13px;font-weight:800;margin:10px 0 6px}
+.pchips{display:flex;gap:6px;flex-wrap:wrap}
+.pchip{flex:0 0 auto;background:var(--card);border:1.5px solid var(--linea2);color:var(--txt);border-radius:10px;padding:10px 10px;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
+.pchip.on{border-color:var(--ok);background:rgba(139,158,79,.16);color:var(--ok-chiaro)}
+/* v0.9.2 · la porta che porta a zero: disponibile, non nascosta, ma più stretta e più scura (Alberto 31-ago, pago.html 2.10) */
+.pchips.p210 .pchip{flex:1 1 calc(50% - 6px);display:flex;flex-direction:column;align-items:center;gap:2px}
+.pchips.p210 .pchip small{font-size:11px;font-weight:700;opacity:.8}
+.pchips.p210 .pnone{flex:0 0 58%;margin:0 auto;padding:8px;font-size:12px;background:var(--sup);color:var(--suave)}
+.ckf.potrof{margin-top:8px}
+.ckr[hidden]{display:none}
+/* ═══ v0.9.3 · la voce del cliente (il disegno di sala_nueva svqApri, girato verso il cliente) ═══ */
+.opq{position:fixed;inset:0;z-index:40;background:rgba(8,6,4,.62);display:flex;align-items:flex-end;justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.opb{width:100%;max-width:520px;background:var(--sup);color:var(--txt);border:1px solid var(--linea2);border-radius:22px;padding:18px 14px 8px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.opb .opt{font-size:17px;font-weight:800;margin-bottom:14px;text-wrap:balance}
+.opb .opf{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.opb .opf button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 0;border-radius:16px;border:1px solid var(--linea2);background:var(--card);color:var(--txt);font-family:inherit;font-size:30px;cursor:pointer}
+.opb .opf button i{font-style:normal;font-size:12.5px;font-weight:700;color:var(--suave)}
+.opb .opf button.on{border-color:var(--oro);background:rgba(255,197,61,.12)}
+.opb .opm{text-align:left}
+.opb .opm[hidden]{display:none}
+.opb .opq2{font-size:13px;color:var(--suave);margin:2px 2px 8px}
+.opb .opm button[data-om]{display:block;width:100%;text-align:left;margin-bottom:6px;padding:11px 12px;border-radius:12px;border:1px solid var(--linea2);background:var(--card);color:var(--txt);font-family:inherit;font-size:14px;cursor:pointer}
+.opb .opm button[data-om].on{border-color:var(--male);background:rgba(255,107,94,.1)}
+.opb .opok{width:100%;margin-top:6px;border:0;border-radius:14px;padding:14px;background:var(--oro);color:#1a1408;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer}
+.opb .opk{background:transparent;border:0;color:var(--suave);font-family:inherit;font-size:12.5px;padding:10px;cursor:pointer;text-decoration:underline}
+.potro{width:100%;max-width:160px;margin-top:2px;background:var(--card);border:1.5px solid var(--ok);color:var(--txt);border-radius:10px;padding:10px;font-family:inherit;font-size:20px;font-weight:800;text-align:center;letter-spacing:.1em}
+.potro.wapide{animation:wapide .5s}
+@keyframes wapide{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.envG.waspento{background:transparent;color:var(--suave);border:2px dashed rgba(139,158,79,.6)}
+.tess{position:relative;margin:4px 0 10px;padding:14px 14px 12px;border-radius:16px;text-align:center;background:radial-gradient(120% 80% at 50% 0%,rgba(255,197,61,.20),rgba(20,16,10,.95) 65%);border:1.5px solid var(--oro);box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.tess img{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--oro);margin:-2px auto 8px;display:block}
+.tess-ey{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--oro)}
+.tess-m{font-weight:800;font-size:24px;line-height:1.15;color:#fff;margin:6px 0 4px;text-wrap:balance}
+.tess-n{font-size:12.5px;color:var(--suave)}
+.tess-f{font-size:12.5px;font-weight:700;color:var(--oro);margin-top:8px}
+/* ═══ v0.8 · LA RIGA IN ALTO (mockup v1.1, Alberto 23-ott: «quei 4 bottoni non sono degni»): una famiglia sola, stessa altezza e stesso
+   raggio · casetta senza scatola · nome intero · 🌐 · LIVE piccolo · e l'unico PIENO è il Pagar, che porta l'importo ═══ */
+.glb{flex:0 0 auto;width:32px;height:32px;border-radius:50%;border:1px solid var(--linea2);background:transparent;font-size:15px;cursor:pointer;padding:0;color:var(--txt)}
+.live{flex:0 0 auto;display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,#5b2a86,#2a1240);color:#fff;border:1px solid rgba(180,106,224,.7);border-radius:99px;padding:6px 9px;font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer}
+.live i{width:8px;height:8px;border-radius:50%;background:#ff3b5c;animation:onair 1.6s ease-out infinite}
+@keyframes onair{0%{box-shadow:0 0 0 0 rgba(255,59,92,.7)}70%{box-shadow:0 0 0 7px rgba(255,59,92,0)}100%{box-shadow:0 0 0 0 rgba(255,59,92,0)}}
+.paga1{flex:0 0 auto;border:0;border-radius:99px;background:var(--oro);color:#1a1408;padding:7px 11px;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap}
+.paga1 b{font-variant-numeric:tabular-nums}
+.lng{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lng button{padding:12px 10px;border-radius:11px;border:1.5px solid var(--linea2);background:var(--card);color:var(--txt);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;text-align:left}
+.lng button.on{border-color:var(--oro);background:rgba(255,197,61,.16)}
+/* ═══ v0.8 · IL MONDO DEL DJ (mockup 22-ott: «EN VIVO deve portare a una schermata DJ: cartelera, chi suona») — schermo intero, niente prodotti sotto ═══ */
+.pal-dj{background:radial-gradient(circle at 30% 30%,#5b2a86,#1a0f24 70%);cursor:default;overflow-y:auto;justify-content:flex-start}
+.pal-dj::before{content:none}
+.pal-dj .pal-tx{padding:18px 16px 22px}
+.onair{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff3b5c;margin-right:4px;animation:onair 1.6s ease-out infinite}
+.lsec{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;color:rgba(255,255,255,.78)}
+.lsec b{display:block;color:#fff;font-size:14px;margin-bottom:4px}
+.carte{display:flex;gap:8px;align-items:baseline;padding:5px 0;font-size:13.5px;color:rgba(255,255,255,.88)}
+.carte span{width:34px;color:var(--oro);font-weight:800}
+.carte b{flex:1;display:inline;font-size:13.5px;margin:0}
+.carte i{font-style:normal;color:rgba(255,255,255,.6)}
+.sigue{display:block;color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.25)}
+.pal-close{position:absolute;top:10px;right:10px;z-index:30;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.45);color:#fff;font-size:15px;cursor:pointer}
+/* ═══ PINSA (30-ott) · il tema chiaro del local (config `tema`=claro) e la cassa dei canali depto/kiosco ═══ */
+:root.claro{--bg:#FFFFFF;--sup:#F6F3EE;--card:#FFFFFF;--txt:#1E1A16;--suave:rgba(30,26,22,.62);--linea:rgba(30,26,22,.12);--linea2:rgba(30,26,22,.24);
+  --acc:#E8590C;--oro:#B45309;--ok:#5F7A1F;--ok-txt:#FFFFFF;--ok-chiaro:#4D6418;--male:#C62828}
+:root.claro .z1{background:#FFFFFF}
+:root.claro .mini{background:#F6F3EE}
+.ckf{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.ckf label{font-size:12px;font-weight:800;color:var(--suave)}
+.ckf input[type=text],.ckf input[type=tel],.ckf input[type=email]{width:100%;box-sizing:border-box;background:var(--card);color:var(--txt);border:1.5px solid var(--linea2);border-radius:10px;padding:11px 10px;font:inherit;font-size:15px}
+.ckf input.male{border-color:var(--male)}
+.ckf .chk{display:flex;gap:8px;align-items:flex-start;font-size:12px;font-weight:600;color:var(--suave)}
+.ckr{display:flex;justify-content:space-between;font-size:13px;color:var(--suave);margin-top:4px}
+.ckr.dsc{color:var(--ok-chiaro);font-weight:700}
+</style></head>
+<body>
+<div class="app" id="app">
+  <div class="z1" id="z1"></div>
+  <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
+  <div class="z2" id="z2" hidden></div>
+</div>
+<div class="ver" id="ver">menu v0.9.8 · DEMO</div>
+<script>
+'use strict';
+/* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
+const qs = new URLSearchParams(location.search);
+/* PINSA · il banco: SOLO quando la pagina gira su questo PC (localhost) si può puntare un bordo finto (?borde=http://localhost:NNNN).
+   Su menu.pinsita.cl il parametro non esiste: nessun link può mandare il cliente a un altro bordo. */
+const SUL_PC = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+const BORDO = SUL_PC && /^http:\/\/(localhost|127\.0\.0\.1):\d{2,5}$/.test(qs.get('borde') || '') ? qs.get('borde') : 'https://pinsita-borde.alberto-agostini.workers.dev';
+const TOKEN_LETTURA = '7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ';
+const LOCAL = /^[A-Za-z]{2,6}$/.test(qs.get('l') || '') ? qs.get('l').toUpperCase() : '';
+const MESA = /^[0-9A-Za-z-]{1,6}$/.test(qs.get('mesa') || '') ? qs.get('mesa') : '';
+/* ═══ PINSA (Alberto 29-ott) · I TRE CANALI DELLO STESSO LOCAL: il canale lo dice il QR, non la config ═══
+   mesa (`?mesa=`) = il flusso di BKS, intatto · depto (`?d=`, QR nel frigo) e kiosco (`?k=`, il totem) = carrello → checkout:
+   un ordine = un pago, il pedido nasce già pagato. La config del local dice solo QUALI canali sono accesi (`canales_on`,
+   vuota = solo mesa: BKS non cambia). Un QR che porta mesa vince: è il canale che esisteva prima. */
+const DEPTO = !MESA && /^[0-9A-Za-z-]{1,8}$/.test(qs.get('d') || '') ? qs.get('d') : '';
+const KIOSCO = !MESA && !DEPTO && /^[0-9A-Za-z-]{1,12}$/.test(qs.get('k') || '') ? qs.get('k') : '';
+const CANAL = MESA ? 'mesa' : DEPTO ? 'depto' : KIOSCO ? 'kiosco' : '';
+const CHECKOUT = CANAL === 'depto' || CANAL === 'kiosco';
+const RITORNO_CK = /^[\w-]{8,64}$/.test(qs.get('ck') || '') ? qs.get('ck') : '';   // il ritorno dal pago (vedi checkout)
+// la lingua del TELEFONO (grezza, viaggia nel pedido come `idioma`); quella del MENÙ è S.lang, che il 🌐 cambia (v0.8)
+const LANG = ((navigator.language || 'es').slice(0, 2)).toLowerCase();
+/* v0.8 · LE LINGUE (mockup 23-ott, Alberto: «fondamentale: vedo cinesi e giapponesi»): nove, nell'ordine dei turisti veri. Il telefono
+   propone la SUA; il 🌐 la cambia e il telefono se la ricorda. Si traducono le parole del menù e le descrizioni della carta
+   (colonne Descripcion_XX); i nomi dei piatti restano i loro. ⚠️ il coreano non ha ancora descrizioni nella carta: si legge lo spagnolo. */
+const LANGS = [['es', 'Español'], ['pt', 'Português'], ['en', 'English'], ['it', 'Italiano'], ['zh', '中文'], ['ko', '한국어'], ['de', 'Deutsch'], ['fr', 'Français'], ['ja', '日本語']];
+const TR = {
+  en: { Comer: 'Food', Barra: 'Bar', Postres: 'Desserts', Destacados: 'Featured', 'desliza ›': 'swipe ›', PEDIR: 'ORDER', ENVIAR: 'SEND', Pagar: 'Pay', 'OTRA VEZ': 'AGAIN', Buscar: 'Search', 'Tu pedido': 'Your order', 'Tu cuenta': 'Your bill', 'Seguir pidiendo': 'Keep ordering', '¡Listo!': 'Done!', 'Con opciones · pronto': 'Options · soon', Mesa: 'Table', 'ENVIAR PEDIDO': 'SEND ORDER', 'Ver el plato': 'See the dish', '¿Se te antojó?': 'Craving it?', Total: 'Total' },
+  pt: { Comer: 'Comer', Barra: 'Bar', Postres: 'Sobremesas', Destacados: 'Destaques', 'desliza ›': 'deslize ›', PEDIR: 'PEDIR', ENVIAR: 'ENVIAR', Pagar: 'Pagar', 'OTRA VEZ': 'DE NOVO', Buscar: 'Buscar', 'Tu pedido': 'Seu pedido', 'Tu cuenta': 'Sua conta', 'Seguir pidiendo': 'Continuar pedindo', '¡Listo!': 'Pronto!', 'Con opciones · pronto': 'Com opções · em breve', Mesa: 'Mesa', 'ENVIAR PEDIDO': 'ENVIAR PEDIDO', 'Ver el plato': 'Ver o prato', '¿Se te antojó?': 'Deu vontade?', Total: 'Total' },
+  it: { Comer: 'Mangiare', Barra: 'Bar', Postres: 'Dolci', Destacados: 'In evidenza', 'desliza ›': 'scorri ›', PEDIR: 'ORDINA', ENVIAR: 'INVIA', Pagar: 'Paga', 'OTRA VEZ': 'DI NUOVO', Buscar: 'Cerca', 'Tu pedido': 'Il tuo ordine', 'Tu cuenta': 'Il tuo conto', 'Seguir pidiendo': 'Continua a ordinare', '¡Listo!': 'Fatto!', 'Con opciones · pronto': 'Con opzioni · presto', Mesa: 'Tavolo', 'ENVIAR PEDIDO': 'INVIA ORDINE', 'Ver el plato': 'Vedi il piatto', '¿Se te antojó?': 'Ti è venuta voglia?', Total: 'Totale' },
+  zh: { Comer: '食物', Barra: '酒吧', Postres: '甜点', Destacados: '推荐', 'desliza ›': '滑动 ›', PEDIR: '点餐', ENVIAR: '下单', Pagar: '付款', 'OTRA VEZ': '再来一份', Buscar: '搜索', 'Tu pedido': '你的订单', 'Tu cuenta': '你的账单', 'Seguir pidiendo': '继续点餐', '¡Listo!': '好了！', 'Con opciones · pronto': '有选项 · 即将推出', Mesa: '桌', 'ENVIAR PEDIDO': '提交订单', 'Ver el plato': '查看菜品', '¿Se te antojó?': '想吃吗？', Total: '合计' },
+  ko: { Comer: '음식', Barra: '바', Postres: '디저트', Destacados: '추천', 'desliza ›': '밀어보기 ›', PEDIR: '주문', ENVIAR: '보내기', Pagar: '결제', 'OTRA VEZ': '다시', Buscar: '검색', 'Tu pedido': '내 주문', 'Tu cuenta': '내 계산서', 'Seguir pidiendo': '계속 주문하기', '¡Listo!': '완료!', 'Con opciones · pronto': '옵션 있음 · 곧', Mesa: '테이블', 'ENVIAR PEDIDO': '주문 보내기', 'Ver el plato': '요리 보기', '¿Se te antojó?': '먹고 싶어요?', Total: '합계' },
+  de: { Comer: 'Essen', Barra: 'Bar', Postres: 'Desserts', Destacados: 'Empfohlen', 'desliza ›': 'wischen ›', PEDIR: 'HINZU', ENVIAR: 'SENDEN', Pagar: 'Zahlen', 'OTRA VEZ': 'NOCHMAL', Buscar: 'Suchen', 'Tu pedido': 'Deine Bestellung', 'Tu cuenta': 'Deine Rechnung', 'Seguir pidiendo': 'Weiter bestellen', '¡Listo!': 'Fertig!', 'Con opciones · pronto': 'Mit Optionen · bald', Mesa: 'Tisch', 'ENVIAR PEDIDO': 'BESTELLUNG SENDEN', 'Ver el plato': 'Gericht ansehen', '¿Se te antojó?': 'Lust bekommen?', Total: 'Summe' },
+  fr: { Comer: 'Manger', Barra: 'Bar', Postres: 'Desserts', Destacados: 'À la une', 'desliza ›': 'glisser ›', PEDIR: 'AJOUTER', ENVIAR: 'ENVOYER', Pagar: 'Payer', 'OTRA VEZ': 'ENCORE', Buscar: 'Chercher', 'Tu pedido': 'Ta commande', 'Tu cuenta': 'Ton addition', 'Seguir pidiendo': 'Continuer', '¡Listo!': "C'est parti !", 'Con opciones · pronto': 'Avec options · bientôt', Mesa: 'Table', 'ENVIAR PEDIDO': 'ENVOYER LA COMMANDE', 'Ver el plato': 'Voir le plat', '¿Se te antojó?': 'Envie ?', Total: 'Total' },
+  ja: { Comer: 'フード', Barra: 'バー', Postres: 'スイーツ', Destacados: 'おすすめ', 'desliza ›': 'スワイプ ›', PEDIR: '注文', ENVIAR: '送信', Pagar: '支払う', 'OTRA VEZ': 'もう一度', Buscar: '検索', 'Tu pedido': 'ご注文', 'Tu cuenta': 'お会計', 'Seguir pidiendo': '注文を続ける', '¡Listo!': '完了！', 'Con opciones · pronto': 'オプションあり · 近日', Mesa: 'テーブル', 'ENVIAR PEDIDO': '注文を送信', 'Ver el plato': '料理を見る', '¿Se te antojó?': '食べたくなった？', Total: '合計' } };
+/* v0.8.1 (giallo di 💵 EL GIRO su 491bde3: «la traduzione è parziale»): le FRASI del menù, nello stesso ordine della chiave K2 */
+const K2 = ['Todavía no has pedido nada.', 'Enviando…', 'producto', 'productos', 'Lo que pediste desde este teléfono', 'Pedir la cuenta', 'te traemos la máquina a tu mesa', 'Desde las', 'en tu pedido', 'Consumo', '¿En qué te ayudamos?', 'Tu mesero viene a tu mesa.', 'Tu pedido va', 'recién enviado', 'Se acabó por hoy', 'Tengo una duda sobre un plato', 'ingredientes, alergias, qué me recomiendas', 'Algo no está bien con mi pedido', 'falta algo, llegó frío, no es lo que pedí', 'Falta algo en la mesa', 'servilletas, cubiertos, hielo, salsas', 'Quiero pagar con la máquina', 'te traemos el POS', 'Celebramos algo 🎂', 'cumpleaños, aniversario: te ayudamos a sorprender', 'Otra cosa', 'toca para corregir · sale en', 'no cierres esta pantalla', 'a cocina', 'a barra', 'a cocina y barra'];
+const TR2 = {
+  en: ["You haven't ordered anything yet.", 'Sending…', 'item', 'items', 'What you ordered from this phone', 'Ask for the bill', 'we bring the card machine to your table', 'From', 'in your order', 'Total so far', 'How can we help?', 'Your waiter is coming to your table.', 'Your order goes', 'just sent', 'Sold out for today', 'I have a question about a dish', 'ingredients, allergies, what do you recommend', 'Something is wrong with my order', 'something missing, arrived cold, not what I ordered', 'Something missing at the table', 'napkins, cutlery, ice, sauces', 'I want to pay by card', 'we bring you the card machine', "We're celebrating 🎂", 'birthday, anniversary: we help you surprise', 'Something else', 'tap to fix · sends in', "don't close this screen", 'to the kitchen', 'to the bar', 'to the kitchen and bar'],
+  pt: ['Você ainda não pediu nada.', 'Enviando…', 'produto', 'produtos', 'O que você pediu deste celular', 'Pedir a conta', 'levamos a maquininha à sua mesa', 'A partir das', 'no seu pedido', 'Consumo', 'Como podemos ajudar?', 'Seu garçom está vindo à sua mesa.', 'Seu pedido vai', 'acabou de ser enviado', 'Esgotado por hoje', 'Tenho uma dúvida sobre um prato', 'ingredientes, alergias, o que você recomenda', 'Algo não está certo com meu pedido', 'falta algo, chegou frio, não é o que pedi', 'Falta algo na mesa', 'guardanapos, talheres, gelo, molhos', 'Quero pagar na maquininha', 'levamos a maquininha', 'Estamos comemorando 🎂', 'aniversário: ajudamos a surpreender', 'Outra coisa', 'toque para corrigir · sai em', 'não feche esta tela', 'para a cozinha', 'para o bar', 'para a cozinha e o bar'],
+  it: ['Non hai ancora ordinato nulla.', 'Invio…', 'prodotto', 'prodotti', 'Quello che hai ordinato da questo telefono', 'Chiedi il conto', 'ti portiamo il POS al tavolo', 'Dalle', 'nel tuo ordine', 'Consumo', 'Come possiamo aiutarti?', 'Il tuo cameriere arriva al tavolo.', 'Il tuo ordine va', 'appena inviato', 'Esaurito per oggi', 'Ho un dubbio su un piatto', 'ingredienti, allergie, cosa mi consigli', 'Qualcosa non va con il mio ordine', 'manca qualcosa, è arrivato freddo, non è quello che ho chiesto', 'Manca qualcosa al tavolo', 'tovaglioli, posate, ghiaccio, salse', 'Voglio pagare con il POS', 'ti portiamo il POS', 'Festeggiamo qualcosa 🎂', 'compleanno, anniversario: ti aiutiamo a sorprendere', 'Altro', 'tocca per correggere · parte tra', 'non chiudere questa schermata', 'in cucina', 'al bar', 'in cucina e al bar'],
+  zh: ['你还没有点任何东西。', '发送中…', '件', '件', '你用这部手机点的', '要账单', '我们把刷卡机送到你的桌上', '开始', '在你的订单中', '消费', '需要什么帮助？', '服务员正在过来。', '你的订单送往', '刚刚发送', '今日售罄', '我对一道菜有疑问', '配料、过敏、推荐什么', '我的订单有问题', '少了东西、送来是冷的、不是我点的', '桌上缺东西', '餐巾、餐具、冰块、酱料', '我想刷卡付款', '我们把刷卡机拿来', '我们在庆祝 🎂', '生日、纪念日：我们帮你制造惊喜', '其他', '点击修改 · 发送倒计时', '请不要关闭此页面', '厨房', '吧台', '厨房和吧台'],
+  ko: ['아직 주문한 것이 없어요.', '보내는 중…', '개', '개', '이 휴대폰으로 주문한 것', '계산서 요청', '카드 단말기를 테이블로 가져다 드려요', '시작', '주문에', '이용 금액', '무엇을 도와드릴까요?', '직원이 테이블로 가고 있어요.', '주문이 갑니다', '방금 보냄', '오늘 품절', '요리에 대해 궁금한 게 있어요', '재료, 알레르기, 추천 메뉴', '주문에 문제가 있어요', '빠진 것, 식었음, 주문과 다름', '테이블에 필요한 것이 있어요', '냅킨, 식기, 얼음, 소스', '카드로 결제하고 싶어요', '카드 단말기를 가져다 드려요', '축하할 일이 있어요 🎂', '생일, 기념일: 서프라이즈를 도와드려요', '기타', '눌러서 수정 · 전송까지', '이 화면을 닫지 마세요', '주방으로', '바로', '주방과 바로'],
+  de: ['Du hast noch nichts bestellt.', 'Wird gesendet…', 'Artikel', 'Artikel', 'Was du von diesem Handy bestellt hast', 'Rechnung anfordern', 'wir bringen das Kartengerät an deinen Tisch', 'Ab', 'in deiner Bestellung', 'Verzehr', 'Wie können wir helfen?', 'Dein Kellner kommt an deinen Tisch.', 'Deine Bestellung geht', 'gerade gesendet', 'Heute ausverkauft', 'Ich habe eine Frage zu einem Gericht', 'Zutaten, Allergien, was empfiehlst du', 'Mit meiner Bestellung stimmt etwas nicht', 'etwas fehlt, kam kalt, nicht was ich bestellt habe', 'Am Tisch fehlt etwas', 'Servietten, Besteck, Eis, Saucen', 'Ich möchte mit Karte zahlen', 'wir bringen das Kartengerät', 'Wir feiern etwas 🎂', 'Geburtstag, Jahrestag: wir helfen beim Überraschen', 'Etwas anderes', 'tippen zum Korrigieren · geht raus in', 'schließe diesen Bildschirm nicht', 'in die Küche', 'an die Bar', 'in Küche und Bar'],
+  fr: ["Tu n'as encore rien commandé.", 'Envoi…', 'article', 'articles', 'Ce que tu as commandé depuis ce téléphone', "Demander l'addition", "on t'apporte le terminal à ta table", 'À partir de', 'dans ta commande', 'Consommation', 'Comment pouvons-nous aider ?', 'Ton serveur arrive à ta table.', 'Ta commande part', "à l'instant", "Épuisé pour aujourd'hui", "J'ai une question sur un plat", 'ingrédients, allergies, que me conseilles-tu', 'Quelque chose ne va pas avec ma commande', "il manque quelque chose, c'est arrivé froid, ce n'est pas ce que j'ai commandé", 'Il manque quelque chose à table', 'serviettes, couverts, glaçons, sauces', 'Je veux payer par carte', "on t'apporte le terminal", 'On fête quelque chose 🎂', "anniversaire : on t'aide à surprendre", 'Autre chose', 'touche pour corriger · part dans', 'ne ferme pas cet écran', 'en cuisine', 'au bar', 'en cuisine et au bar'],
+  ja: ['まだ何も注文していません。', '送信中…', '品', '品', 'この携帯から注文したもの', 'お会計をお願いする', 'カード端末をお席にお持ちします', '開始', 'ご注文に', 'ご利用額', '何かお困りですか？', 'スタッフがお席に向かいます。', 'ご注文の行き先', '送信しました', '本日売り切れ', '料理について質問があります', '材料、アレルギー、おすすめ', '注文に問題があります', '足りない、冷めている、注文と違う', 'テーブルに足りないものがあります', 'ナプキン、カトラリー、氷、ソース', 'カードで支払いたい', 'カード端末をお持ちします', 'お祝いをしています 🎂', '誕生日、記念日：サプライズをお手伝い', 'その他', 'タップで修正 · 送信まで', 'この画面を閉じないでください', 'キッチンへ', 'バーへ', 'キッチンとバーへ'] };
+/* v0.8.2 (giallo di 💵 EL GIRO su 7608132): una lingua con le voci sfasate NON ferma il menù: quelle frasi restano in spagnolo e lo dice la console */
+function unisci(K, D, nome) { Object.keys(D).forEach((l) => { if (D[l].length !== K.length) { try { console.warn('[menu] ' + nome + ' ' + l + ': ' + D[l].length + ' voci invece di ' + K.length + ' — resta lo spagnolo'); } catch (e) {} return; } K.forEach((k, i) => { TR[l][k] = D[l][i]; }); }); }
+unisci(K2, TR2, 'TR2');
+/* v0.8.2 (Alberto 29-ott: «vedo alcune traduzioni, non tutto: el menu delle categorie»): i nomi delle categorie (quelli di default; un nome scritto
+   nella config del locale si traduce solo se è uno di questi) */
+const K3 = ['Para compartir', 'Platos', 'Pastas', 'Sushi', 'Acompañamientos', 'Pizzas', 'Burgers', 'Niños', 'Coctelería', 'Sour', 'Mojitos', 'Spritz', 'Cervezas', 'Vinos', 'Jarras', 'Destilados', 'Bebidas', 'Jugos', 'Cafés'];
+unisci(K3, {
+  en: ['To share', 'Mains', 'Pasta', 'Sushi', 'Sides', 'Pizzas', 'Burgers', 'Kids', 'Cocktails', 'Sour', 'Mojitos', 'Spritz', 'Beers', 'Wines', 'Pitchers', 'Spirits', 'Soft drinks', 'Juices', 'Coffee'],
+  pt: ['Para compartilhar', 'Pratos', 'Massas', 'Sushi', 'Acompanhamentos', 'Pizzas', 'Hambúrgueres', 'Crianças', 'Coquetéis', 'Sour', 'Mojitos', 'Spritz', 'Cervejas', 'Vinhos', 'Jarras', 'Destilados', 'Bebidas', 'Sucos', 'Cafés'],
+  it: ['Da condividere', 'Piatti', 'Pasta', 'Sushi', 'Contorni', 'Pizze', 'Burger', 'Bambini', 'Cocktail', 'Sour', 'Mojito', 'Spritz', 'Birre', 'Vini', 'Caraffe', 'Distillati', 'Bibite', 'Succhi', 'Caffè'],
+  zh: ['分享小食', '主菜', '意面', '寿司', '配菜', '披萨', '汉堡', '儿童', '鸡尾酒', '酸酒', '莫吉托', '斯普里茨', '啤酒', '葡萄酒', '扎壶', '烈酒', '饮料', '果汁', '咖啡'],
+  ko: ['나눠 먹는 메뉴', '메인', '파스타', '스시', '사이드', '피자', '버거', '어린이', '칵테일', '사워', '모히토', '스프리츠', '맥주', '와인', '피처', '증류주', '음료', '주스', '커피'],
+  de: ['Zum Teilen', 'Hauptgerichte', 'Pasta', 'Sushi', 'Beilagen', 'Pizzas', 'Burger', 'Kinder', 'Cocktails', 'Sour', 'Mojitos', 'Spritz', 'Biere', 'Weine', 'Krüge', 'Spirituosen', 'Getränke', 'Säfte', 'Kaffee'],
+  fr: ['À partager', 'Plats', 'Pâtes', 'Sushi', 'Accompagnements', 'Pizzas', 'Burgers', 'Enfants', 'Cocktails', 'Sour', 'Mojitos', 'Spritz', 'Bières', 'Vins', 'Carafes', 'Spiritueux', 'Boissons', 'Jus', 'Cafés'],
+  ja: ['シェアメニュー', 'メイン', 'パスタ', '寿司', 'サイド', 'ピザ', 'バーガー', 'キッズ', 'カクテル', 'サワー', 'モヒート', 'スプリッツ', 'ビール', 'ワイン', 'ピッチャー', 'スピリッツ', 'ドリンク', 'ジュース', 'コーヒー'] }, 'K3');
+/* v0.8.4 (Alberto 29-ott: «la cartelera DJ non è tradotta completa»): le parole della schermata del DJ e i giorni della cartelera
+   (la vetrina li scrive in spagnolo abbreviato: Lun…Dom; un giorno scritto in un altro modo resta com'è) */
+const K4 = ['En vivo · esta noche', 'Esta noche', 'La cartelera', 'Sigue a', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+unisci(K4, {
+  en: ['Live · tonight', 'Tonight', 'Line-up', 'Follow', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  pt: ['Ao vivo · hoje à noite', 'Hoje à noite', 'Programação', 'Siga', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+  it: ['Dal vivo · stasera', 'Stasera', 'Il programma', 'Segui', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'],
+  zh: ['现场 · 今晚', '今晚', '演出安排', '关注', '周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+  ko: ['라이브 · 오늘 밤', '오늘 밤', '라인업', '팔로우', '월', '화', '수', '목', '금', '토', '일'],
+  de: ['Live · heute Abend', 'Heute Abend', 'Programm', 'Folge', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+  fr: ['En direct · ce soir', 'Ce soir', 'Programme', 'Suivez', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+  ja: ['ライブ · 今夜', '今夜', 'ラインナップ', 'フォロー', '月', '火', '水', '木', '金', '土', '日'] }, 'K4');
+const CANC = { en: 'Cancel', pt: 'Cancelar', it: 'Annulla', zh: '取消', ko: '취소', de: 'Abbrechen', fr: 'Annuler', ja: 'キャンセル' };
+Object.keys(CANC).forEach((l) => { TR[l].Cancelar = CANC[l]; });
+function langIniziale() { let l = ''; try { l = localStorage.getItem('pinsita_lang') || ''; } catch (e) {} if (!LANGS.some((x) => x[0] === l)) l = LANG; return LANGS.some((x) => x[0] === l) ? l : 'es'; }
+const T = (w) => { const d = TR[S.lang]; return (d && d[w]) || w; };
+const S = { cfg: null, prod: [], tick: null, fam: null, cat: null, abierta: null, cart: {}, pedido: false,
+  inviando: null, inviaStato: '', uuid: '', uuidFirma: '', listo: null, need: '', errore: '', agotLoc: [], campana: false, sel: {},
+  // v0.7: l'inizio (palco + destacados) · la vetrina del locale · «Otra vez» · il regalo a otra mesa
+  palco: false, slide: 0, finVid: false, vet: null, hist: [], dono: null,
+  // v0.8: la lingua del menù · il conto di questo telefono · le schermate della riga in alto (lingue, DJ, cuenta)
+  lang: 'es', enviados: [], lingue: false, dj: false, cuenta: false,
+  // PINSA: la cassa di depto/kiosco (dati del cliente, propina, stato del pago)
+  ck: { nombre: '', tel: '', email: '', promos: false, propina: 10, propOtro: 0, stato: '', err: '', uuid: '', firma: '', esito: null } };
+
+const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+function clp(n) { const c = S.cfg || {}; return (c.currency_symbol || '$') + Math.round(n).toLocaleString('es-CL'); }
+
+/* ═══ i nomi: dalla config del locale; finché la config non li porta, un default GENERICO (non di un locale) ═══ */
+const NOMI_CAT_DEFAULT = { entradas: 'Para compartir', fondos: 'Platos', pastas: 'Pastas', sushi: 'Sushi', acompanamientos: 'Acompañamientos',
+  pizzas: 'Pizzas', pizzas_burger: 'Burgers', nino: 'Niños', bar: 'Coctelería', sour: 'Sour', mojitos: 'Mojitos', spritz: 'Spritz',
+  cervezas: 'Cervezas', vinos: 'Vinos', jarras: 'Jarras', destilados: 'Destilados', bebidas: 'Bebidas', jugos: 'Jugos', postres: 'Postres', cafes: 'Cafés' };
+const NOMI_GRUPPO_DEFAULT = { Comida: 'Comer', Barra: 'Barra', Dolci: 'Postres' };
+function nomeCat(k) { const m = (S.cfg && S.cfg.nombres_categorias) || {}; return T(m[k] || NOMI_CAT_DEFAULT[k] || (k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '))); }
+function nomeGruppo(k) { const m = (S.cfg && S.cfg.nombres_grupos) || {}; return T(m[k] || NOMI_GRUPPO_DEFAULT[k] || k); }
+const descP = (p) => (p.dl && p.dl[S.lang]) || p.d || '';   // v0.8: la descrizione nella lingua del menù, se la carta ce l'ha
+
+/* ═══ la carta: lo stesso CSV del menù vivo, servito dal bordo ═══ */
+function parseCSV(t) {
+  const rows = []; let r = [], c = '', q = false;
+  for (let i = 0; i < t.length; i++) {
+    const ch = t[i];
+    if (q) { if (ch === '"') { if (t[i + 1] === '"') { c += '"'; i++; } else q = false; } else c += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === ',') { r.push(c); c = ''; }
+    else if (ch === '\n') { r.push(c.replace(/\r$/, '')); rows.push(r); r = []; c = ''; }
+    else c += ch;
+  }
+  if (c || r.length) { r.push(c); rows.push(r); }
+  return rows;
+}
+const prezzo = (s) => Number(String(s || '').replace(/[^0-9]/g, '')) || 0;
+const oraDec = (s, def) => { const m = String(s || '').trim().match(/^(\d{1,2})\s*:?\s*(\d{1,2})?/); return m ? (+m[1]) + (m[2] ? (+m[2]) / 60 : 0) : def; };
+function prodotti(csv) {
+  const rows = parseCSV(csv); const h = rows[0] || []; const ix = (n) => h.indexOf(n);
+  // v0.8: tutte le descrizioni della carta restano nel telefono (`dl`), così il 🌐 cambia lingua senza rileggere la carta
+  const dCols = LANGS.map((x) => [x[0], ix('Descripcion_' + x[0].toUpperCase())]).filter((x) => x[0] !== 'es' && x[1] >= 0);
+  return rows.slice(1).filter((r) => r[ix('ID_Producto')]).map((r) => ({
+    id: r[ix('ID_Producto')], n: r[ix('Nombre')], c: String(r[ix('Categoria')] || '').toLowerCase(),
+    d: r[ix('Descripcion')], dl: dCols.reduce((o, x) => { if (r[x[1]]) o[x[0]] = r[x[1]]; return o; }, {}), p: prezzo(r[ix('Precio')]), img: r[ix('Imagen_URL')] || '',
+    activo: r[ix('Activo')] === 'TRUE', agotado: r[ix('Agotado')] === 'TRUE', visible: r[ix('Menu_Visible')] !== 'FALSE',
+    hi: oraDec(r[ix('Hora_Inicio')], 0), hf: oraDec(r[ix('Hora_Fin')], 24),
+    sm: String(r[ix('Solo_Member')] || '').trim(),
+    // le scelte che la carta porta già: il testo dei modificadores («Sola/Chelada +$1.500») e il badge della carne (→ término)
+    mt: String(r[ix('Modificadores')] || '').trim(), carne: /\bcarne\b/i.test(r[ix('Badges')] || ''),
+    // PINSA: lo sconto del canale depto non tocca chi porta `Sin_Descuento` (le Promociones) · le domande dai mod_* di Postgres
+    sinDesc: String(r[ix('Sin_Descuento')] || '').trim().toUpperCase() === 'TRUE', mods: modsJSON(r[ix('Modificadores_JSON')]),
+  // Solo_Member: il piatto non esiste per nessuno tranne chi porta quel tag (come il vivo). Rientra col member, passo dopo.
+  })).filter((p) => p.activo && p.visible && p.p > 0 && !p.sm);
+}
+
+/* ═══ il tick: la stessa foto che il menù vivo chiede a Google ogni 60", qui letta dal bordo (sec menu_tick) ═══
+   Porta: i prezzi di fascia (reglas), i nascosti (ocultos), gli agotados di adesso, le stazioni chiuse.
+   Senza tick (bordo che non risponde) la carta resta quella del CSV: prezzo base, nessun nascosto. */
+const tickP = () => (S.tick && S.tick.precios) || {};
+const tickA = () => (S.tick && S.tick.agotados) || {};
+// v0.5.2 (Alberto 28-ott): un prodotto in 86 NON si vede affatto, niente card grigia «Se acabó por hoy»
+function visibile(p) { return (tickP().ocultos || []).indexOf(p.id) < 0 && !esaurito(p); }
+/* MENÚ DEL DÍA (Alberto, 28-ott): il prezzo del menú NON è il prezzo del piatto. Il piatto ordinato da solo costa il suo
+   prezzo, a qualsiasi ora; a pranzo sotto il piatto c'è solo l'informazione «En Menú del día» (senza prezzo, senza clic).
+   Il menú si vende dal carosello e dalle promo, come prodotto a sé. ⇒ la regla `almuerzo` non riprezza il piatto. */
+const inMenuDia = (p) => ((tickP().reglas || {})[p.id] || {}).tipo === 'almuerzo';
+function prezzoOra(p) {
+  const r = inMenuDia(p) ? null : (tickP().reglas || {})[p.id];
+  // priorità del vivo: regla-fascia > base; il barrato solo se la regola ABBASSA
+  let z = { v: p.p, orig: 0 };
+  if (r && r.precio > 0 && r.precio !== p.p) z = { v: r.precio, orig: r.precio < p.p ? p.p : 0 };
+  // PINSA: lo sconto del canale depto si confronta col prezzo di adesso e vince solo se è più basso (mai due sconti sommati)
+  const dz = prezzoDepto(p);
+  return dz && dz < z.v ? { v: dz, orig: p.p } : z;
+}
+/* PINSA (Alberto 29-ott) · LO SCONTO È DEL CANALE DEPTO, e solo suo: `descuento_depto_pct` nella config del local (vuota/0 = niente).
+   Sul prezzo di carta del prodotto, arrotondato a $10; mai sui sovrapprezzi delle scelte, mai su chi porta Sin_Descuento.
+   ⚠️ Qui si MOSTRA: il conto vero lo rifà il bordo al checkout (il telefono non decide quanto si paga). */
+const R10 = (x) => Math.round(x / 10) * 10;
+function prezzoDepto(p) {
+  const pct = Number((S.cfg && S.cfg.descuento_depto_pct) || 0);
+  if (CANAL !== 'depto' || !(pct > 0 && pct < 100) || p.sinDesc) return 0;
+  return R10(p.p * (100 - pct) / 100);
+}
+function chiusa(p) {
+  const a = tickA(); const est = a.estaciones; if (!est) return '';
+  if ((a.salvo_ids || []).indexOf(p.id) >= 0) return '';
+  const e = (a.barra_cats || []).indexOf(p.c) >= 0 ? 'barra' : 'cocina';
+  return est[e] && est[e].abierta === false ? e : '';
+}
+const esaurito = (p) => p.agotado || (tickA().ids || []).indexOf(p.id) >= 0 || S.agotLoc.indexOf(p.id) >= 0;
+/* ═══ LE SCELTE (v0.5) · le stesse domande del menù vivo, dalla carta pubblica (nessuna lettura di Google) ═══
+   ① il término, se il piatto porta il badge «carne» e la config ha `termino_opciones` · ② «¿Cómo lo quieres?» dal testo
+   `Modificadores` della carta, opzioni separate da «/»; un'opzione sola ⇒ si antepone «Como viene», che non si scrive;
+   le opzioni che ripetono il término non si chiedono due volte (stessa regola del vivo, genere normalizzato).
+   💰 Il sovrapprezzo scritto nell'opzione («Chelada +$1.500») SI SOMMA al prezzo della riga (il vivo lo lascia etichetta
+   sui piatti fuori dal vocabolario: è un buco, non un contratto). ⚠️ Resta FUORI il menú-contenitore (3 Tiempos): le sue
+   domande vivono nel vocabolario dei modificatori, che il bordo serve solo allo staff (leva MODS2_BORDE_ON, di 🎛 BKP). */
+/* v0.5.1 (D-419 ③, Alberto 28-ott «vai»): LE SCELTE SONO SPENTE finché il bordo non serve al cliente i modificatori di Postgres
+   (lettura pubblica di 🎛 BKP). La colonna `Modificadores` della carta e `termino_opciones` nascono dal foglio: non si leggono.
+   Chi ha domande ⇒ «Con opciones · pronto», mai il ripiego su Google. Si riaccende cambiando la SORGENTE di domande(), non questa riga. */
+const SCELTE_ON = false;
+const chiedeScelta = (p) => p.c === 'menu_contenitore' || (!SCELTE_ON && !p.mods && !!(p.mt || p.carne));
+const normT = (s) => String(s || '').trim().toLowerCase().replace(/[oa]$/, '');
+function parseOp(s) { const m = String(s).match(/^(.*?)\s*\+\s*\$?\s*([\d.]+)\s*$/); return m ? { o: m[1].trim(), d: prezzo(m[2]) } : { o: String(s).trim(), d: 0 }; }
+/* PINSA (30-ott) · LE DOMANDE DA POSTGRES: la carta del bordo porta `Modificadores_JSON`, i gruppi di mod_* già applicati al prodotto,
+   in ordine: [{"tit":"Receta 1","ops":[{"o":"Margarita","d":0},{"o":"Pepperoni","d":1500}]}, …]. Non nasce da Google, quindi NON aspetta
+   SCELTE_ON. Più domande per prodotto (la Pinsa intera ne ha due), tutte obbligatorie, una risposta ciascuna.
+   Le opzioni non possono contenere «¦» né «§» (sono i separatori della chiave del carrello): chi le porta si scarta. */
+function modsJSON(s) {
+  if (!s || !String(s).trim()) return null;
+  let a; try { a = JSON.parse(s); } catch (e) { return null; }
+  if (!Array.isArray(a)) return null;
+  const out = a.map((g, i) => ({ k: 'q' + i, tit: String((g && g.tit) || '¿Cómo lo quieres?'),
+    ops: ((g && g.ops) || []).map((o) => ({ o: String((o && o.o) || '').trim(), d: Math.max(0, Math.round(Number(o && o.d) || 0)) }))
+      .filter((o) => o.o && !/[¦§|]/.test(o.o)) })).filter((g) => g.ops.length >= 1);
+  return out.length ? out : null;
+}
+function domande(p) {
+  if (p.mods) return p.mods;
+  if (!SCELTE_ON) return [];
+  const out = [], TO = String((S.cfg && S.cfg.termino_opciones) || '').split(',').map((s) => s.trim()).filter(Boolean);
+  if (p.carne && TO.length) out.push({ k: 't', tit: 'El término de tu carne', ops: TO.map((o) => ({ o, d: 0 })) });
+  if (p.mt) {
+    let ops = p.mt.split('/').map((s) => s.trim()).filter(Boolean).map(parseOp);
+    if (p.carne && TO.length) { const ts = TO.map(normT); ops = ops.filter((x) => ts.indexOf(normT(x.o)) < 0); }
+    if (ops.length === 1) ops = [{ o: 'Como viene', d: 0 }].concat(ops);
+    if (ops.length >= 2) out.push({ k: 'm', tit: '¿Cómo lo quieres?', ops });
+  }
+  return out;
+}
+/* il carrello: una riga = un piatto CON le sue scelte (chiave `id§término§modo`): due filetes a término diverso = due righe */
+const chiave = (p, t, m) => p.id + '§' + (t || '') + '§' + (m || '');
+// la scelta letta dalla chiave: il testo da mostrare (senza «Como viene») e il sovrapprezzo. Con le domande di Postgres
+// (p.mods) `m` porta tutte le risposte in ordine, separate da «¦», e il sovrapprezzo è la somma.
+function sceltaDi(p, m) {
+  const dq = p ? domande(p) : [];
+  if (p && p.mods) { const pz = String(m || '').split('¦'); let d = 0;
+    dq.forEach((q, i) => { d += ((q.ops.find((x) => x.o === pz[i]) || {}).d) || 0; });
+    return { m: pz.filter((x) => x && x !== 'Como viene').join(' · '), d }; }
+  const g = dq.find((x) => x.k === 'm');
+  return { m: m === 'Como viene' ? '' : m, d: (g && (g.ops.find((x) => x.o === m) || {}).d) || 0 };
+}
+function righe() { return Object.keys(S.cart).map((k) => { const [id, t, m] = k.split('§'); const p = S.prod.find((x) => x.id === id);
+  const sc = sceltaDi(p, m);
+  return { k, p, t, m: sc.m, q: S.cart[k], d: sc.d }; }).filter((r) => r.p); }
+const qtyDi = (p) => righe().filter((r) => r.p.id === p.id).reduce((s, r) => s + r.q, 0);
+const prezzoRiga = (r) => prezzoOra(r.p).v + r.d;
+const nomeRiga = (r) => r.p.n + (r.m ? ' · ' + r.m : '') + (r.t ? ' · ' + r.t : '');
+// la scelta in corso del piatto aperto: completa quando ogni domanda ha una risposta
+const selDi = (p) => (S.sel[p.id] = S.sel[p.id] || {});
+const sceltaCompleta = (p) => domande(p).every((q) => selDi(p)[q.k]);
+const mSel = (p) => (p.mods ? domande(p).map((q) => selDi(p)[q.k] || '').join('¦') : selDi(p).m);
+const chiaveSel = (p) => chiave(p, selDi(p).t, mSel(p));
+/* LA LEVA DELL'INVIO (AUT-0749): `menu_vero_envio_on` nella config del locale. Vuota = spento (vista previa).
+   "1" = tutte le mesas · altrimenti l'elenco delle mesas ammesse («998» per la prova). Spegne anche la campanella. */
+function envioOn() {
+  const v = String((S.cfg && S.cfg.menu_vero_envio_on) || '').trim().toLowerCase();
+  if (!v || !MESA) return false;
+  if (v === '1' || v === 'true') return true;
+  return v.split(/[\s,;]+/).indexOf(String(MESA).toLowerCase()) >= 0;
+}
+/* PINSA · chi può ORDINARE da questo QR: la mesa come sempre; depto e kiosco solo se il local li accende (`canales_on`,
+   es. «mesa,depto,kiosco»). Spento = si guarda la carta coi prezzi del canale, senza ＋. */
+function pide() {
+  if (CANAL === 'mesa') return true;
+  if (!CANAL) return false;
+  return String((S.cfg && S.cfg.canales_on) || '').toLowerCase().split(/[\s,;]+/).indexOf(CANAL) >= 0;
+}
+const POSTO = () => (CANAL === 'depto' ? 'Depto ' + DEPTO : CANAL === 'kiosco' ? 'Retiro en el local' : T('Mesa') + ' ' + MESA);
+/* l'orario del canale depto (`depto_horario` «09:00-20:00», Alberto 29-ott: 9-20, modificabile). Vuoto = sempre.
+   Fuori orario si guarda e si mette nel carrello, ma il pago non parte: la cucina non riceve un ordine che non può consegnare. */
+function depOrarioNo() {
+  if (CANAL !== 'depto') return '';
+  const m = String((S.cfg && S.cfg.depto_horario) || '').match(/^\s*(\d{1,2}(?::\d{2})?)\s*-\s*(\d{1,2}(?::\d{2})?)\s*$/);
+  if (!m) return '';
+  const a = oraDec(m[1], 0), b = oraDec(m[2], 24), d = oraSantiago(), h = d.getHours() + d.getMinutes() / 60;
+  const dentro = b > a ? (h >= a && h < b) : (h >= a || h < b);
+  return dentro ? '' : 'Pedidos al departamento de ' + hhmm(a) + ' a ' + hhmm(b);
+}
+const barraCats = () => tickA().barra_cats || String((S.cfg && S.cfg.kds_barra_cats) || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+function adove(prods) {
+  const bc = barraCats(); const d = new Set(prods.map((p) => (p && bc.indexOf(p.c) >= 0 ? 'barra' : 'cocina')));
+  return d.has('cocina') && d.has('barra') ? 'a cocina y barra' : d.has('barra') ? 'a barra' : 'a cocina';
+}
+/* la finestra oraria del prodotto, anche oltre la mezzanotte (la stessa regola del menù vivo, productInFaja) */
+function inOrario(p) {
+  if (p.hf === p.hi) return true;
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Santiago' })); const h = d.getHours() + d.getMinutes() / 60;
+  return p.hf > p.hi ? (h >= p.hi && h < p.hf) : (h >= p.hi || h < p.hf);
+}
+const hhmm = (x) => String(Math.floor(x)).padStart(2, '0') + ':' + String(Math.round((x % 1) * 60)).padStart(2, '0');
+
+/* ═══ i gruppi (famiglie) dalla config del locale ═══ */
+function gruppi() {
+  let g = {}; try { g = JSON.parse((S.cfg && S.cfg.category_groups) || '{}'); } catch (e) { g = {}; }
+  const conProd = new Set(S.prod.filter(visibile).map((p) => p.c));
+  return Object.keys(g).map((k) => ({ k, emoji: g[k].emoji || '', cats: (g[k].cats || []).filter((c) => conProd.has(c)) })).filter((x) => x.cats.length);
+}
+
+/* ═══ il disegno ═══ */
+function z1() {
+  const brand = (S.cfg && S.cfg.brand_name) || LOCAL;
+  const sotto = CANAL ? esc(POSTO()) : 'Para pedir, escanea el QR de tu mesa';
+  // la casetta compare FUORI dall'inizio (mockup 21-ott: «come ritorno all'inizio?»); all'inizio non serve
+  const casa = inPalco() ? '' : '<button class="casa" data-a="inicio" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>';
+  // v0.8 · la riga intera del mockup v1.1: 🌐 sempre · LIVE solo a show acceso · Pagar (l'unico pieno) dopo il primo invio, con l'importo
+  const cons = consumoTel();
+  return casa + '<div class="chi"><b>' + esc(brand) + '</b><span>' + sotto + '</span></div>' +
+    '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
+    (showAcceso() ? '<button class="live" data-a="djApri"><i></i>LIVE</button>' : '') +
+    (MESA && cons > 0 ? '<button class="paga1" data-a="cuentaApri">' + esc(T('Pagar')) + ' <b>' + clp(cons) + '</b></button>' : '');
+}
+// la card. `lista` = la griglia intera (con foto); senza = la riga sotto la scheda (niente foto: la foto sta sopra)
+function card(p, lista) {
+  const q = qtyDi(p), conDom = domande(p).length > 0;
+  if (!lista && p.id === S.abierta && !esaurito(p) && !chiusa(p) && inOrario(p)) return verCard(p);
+  const foto = !lista ? '' : p.img ? '<img class="th" loading="lazy" src="' + esc(p.img) + '" alt="">' : '<div class="tg">' + esc(p.n) + '</div>';
+  if (esaurito(p)) return '<div class="cd agot">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">' + T('Se acabó por hoy') + '</div></div>';
+  const ch = chiusa(p);
+  if (ch) return '<div class="cd agot">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">' + (ch === 'barra' ? 'La barra ya cerró' : 'La cocina ya cerró') + '</div></div>';
+  if (!inOrario(p)) return '<div class="cd agot fh">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="agl">' + T('Desde las') + ' ' + hhmm(p.hi) + '</div></div>';
+  return '<div class="cd' + (q ? ' dentro' : '') + '" data-a="abre" data-k="' + esc(p.id) + '">' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="pz">' + pzHTML(p) + '</div>' +
+    (!pide() ? '' : chiedeScelta(p) ? '<div class="opc">' + T('Con opciones · pronto') + '</div>'
+      // chi chiede una scelta non mette dalla griglia: apre la scheda, dove si sceglie (il ＋ promette che aggiunge)
+      : conDom ? '<button class="addb chiede" data-a="abre" data-k="' + esc(p.id) + '">' + (q ? q + ' ' + T('en tu pedido') + ' · ＋' : '＋ ' + T('PEDIR')) + '</button>'
+      : q ? '<div class="qn"><i data-a="meno" data-k="' + esc(chiave(p)) + '">−</i>' + q + '<i data-a="mas" data-k="' + esc(p.id) + '">+</i></div>'
+      : '<button class="addb" data-a="mas" data-k="' + esc(p.id) + '">＋ ' + T('PEDIR') + '</button>') + '</div>';
+}
+const ordinabile = (p) => !!(p && pide() && !chiedeScelta(p) && !esaurito(p) && !chiusa(p) && inOrario(p));
+// la card VER: il tasto stesso. Sopra c'è già tutto (foto, nome, prezzo, le domande): sotto il dito dice cosa succede se tocchi
+function verCard(p) {
+  const k = esc(p.id), vnm = '<div class="vnm">' + esc(p.n) + '</div>';
+  if (!pide()) return '<div class="cd ora ver">' + vnm + '<div class="vpd">' + (CANAL ? 'Pronto podrás pedir aquí' : 'Escanea tu mesa') + '</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
+  if (chiedeScelta(p)) return '<div class="cd ora ver">' + vnm + '<div class="vpd off">' + T('Con opciones · pronto') + '</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
+  const dq = domande(p);
+  if (dq.length && !sceltaCompleta(p)) return '<div class="cd ora ver">' + vnm + '<div class="vpd off">Elige arriba ↑</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
+  // la card conta la SCELTA fatta sopra, non il piatto: «1 A punto» e poi «Jugoso» sono due righe
+  const ks = chiaveSel(p), q = S.cart[ks] || 0, s = selDi(p);
+  const sc = sceltaDi(p, mSel(p)), r = { p, t: s.t, m: sc.m, d: sc.d };
+  const vsc = dq.length ? '<div class="vsc">' + esc([r.m, r.t].filter(Boolean).join(' · ') || 'Como viene') + '</div>' : '';
+  if (!q) return '<div class="cd ora ver" data-a="mas" data-k="' + k + '">' + vnm + vsc + '<div class="vpd">＋ ' + T('PEDIR') + '</div><div class="vpz">' + clp(prezzoRiga(r)) + '</div></div>';
+  return '<div class="cd ora ver dentro">' + vnm + vsc + '<div class="vst"><i data-a="meno" data-k="' + esc(ks) + '">−</i><u>' + q + '</u><i data-a="mas" data-k="' + k + '">＋</i></div></div>';
+}
+// le domande nella scheda grande: chip, una risposta per domanda; il sovrapprezzo SUL chip
+function domandeHTML(p) {
+  if (!pide() || !ordinabile(p)) return '';
+  return domande(p).map((q) => '<div class="prep"><div class="q">' + esc(q.tit) + (selDi(p)[q.k] ? '' : ' <span class="mreq">elige uno</span>') + '</div><div class="op">' +
+    q.ops.map((o) => '<button class="' + (selDi(p)[q.k] === o.o ? 'on' : '') + '" data-a="sceglie" data-k="' + esc(p.id + '|' + q.k + '|' + o.o) + '">' + esc(o.o) +
+      (o.d ? ' <b>+' + clp(o.d) + '</b>' : '') + '</button>').join('') + '</div></div>').join('');
+}
+/* BUSCAR (mockup 21-ott, Alberto: «il buscar non toglierlo, lo uso moltissimo»): la lente sta in fondo alla riga delle
+   categorie e si apre LÌ DENTRO come campo. Cerca su tutta la carta visibile (nome, descrizione, categoria), senza accenti
+   né maiuscole; prima chi COMINCIA con la parola. Nessuna rete: filtra ciò che il telefono ha già. */
+const normB = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const cercando = () => S.busca !== null && S.busca !== undefined && normB(S.busca).length > 0;
+function risultati() {
+  const q = normB(S.busca), parole = q.split(/\s+/).filter(Boolean);
+  const testo = (p) => normB(p.n + ' ' + (p.d || '') + ' ' + descP(p) + ' ' + nomeCat(p.c));
+  return S.prod.filter((p) => visibile(p) && parole.every((w) => testo(p).indexOf(w) >= 0))
+    .sort((a, b) => (normB(b.n).startsWith(q) - normB(a.n).startsWith(q)) || a.n.localeCompare(b.n)).slice(0, 36);
+}
+const daMostrare = () => cercando() ? risultati() : S.prod.filter((x) => x.c === S.cat && visibile(x));
+let PAG = 0;
+/* v0.6.1 (Alberto 28-ott, Coco Jengibre: «la foto non si vede intera»): una copa col gambo occupa l'85% dell'altezza della foto,
+   e nessun punto di taglio la salva. v0.6.2 (Alberto: «6 card trovano il prodotto il doppio più in fretta»): le 6 card restano,
+   ma più basse (96 px), e nome e prezzo della scheda stanno su una riga: lo spazio ripreso va alla foto. */
+const PER_PAG = 6;
+function pagine(L) {
+  const i = L.findIndex((x) => x.id === S.abierta); PAG = i >= 0 ? Math.floor(i / PER_PAG) : 0;
+  let h = ''; for (let k = 0; k < L.length; k += PER_PAG) h += '<div class="pag">' + L.slice(k, k + PER_PAG).map((p) => card(p, false)).join('') + '</div>';
+  const n = Math.ceil(L.length / PER_PAG);
+  let pu = ''; if (n > 1) { for (let j = 0; j < n; j++) pu += '<i' + (j === PAG ? ' class="on"' : '') + '></i>'; pu = '<div class="punti">' + pu + '</div>'; }
+  return '<div class="mini">' + h + '</div>' + pu;
+}
+function z3() {
+  if (S.lingue) return lingueHTML();
+  if (S.dj) return djHTML();
+  if (S.cuenta) return cuentaHTML();
+  if (S.campana) return campanaHTML();
+  if (S.dono) return donoHTML();
+  if (S.pedido) return pedidoHTML();
+  if (inPalco()) return palcoHTML();
+  if (S.abierta) {
+    const p = S.prod.find((x) => x.id === S.abierta);
+    // senza foto non un rettangolo grigio (si leggerebbe come un guasto): una targa col nome
+    const fo = p.img ? '<div class="fo" style="--f:url(\'' + esc(p.img) + '\')' + (p.fy != null ? ';--fy:' + p.fy + '%' : '') + '">' : '<div class="fo tg">' + esc(p.n);
+    return '<div class="split"><div class="det">' + fo + '<button class="x" data-a="cierra">✕</button></div>' +
+      '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(descP(p)) + '</div><div class="pz">' + pzHTML(p) + '</div>' +
+      // v0.7: il regalo sta su ogni trago, dove nasce la voglia (solo coi tragos che si mettono senza domande: il regalo non chiede)
+      (envioOn() && esTrago(p) && ordinabile(p) && !domande(p).length ? '<button class="dono-in" data-a="donoApri" data-k="' + esc(p.id) + '">🎁 Invítale este trago a otra mesa</button>' : '') + '</div>' +
+      domandeHTML(p) + '</div>' + pagine(daMostrare()) + '</div>';
+  }
+  if (S.busca !== null && S.busca !== undefined && !cercando()) return '<div class="msg busca"><b>¿Qué se te antoja?</b>Escribe un plato, un trago o un ingrediente.</div>';
+  const L = daMostrare();
+  if (cercando() && !L.length) return '<div class="msg busca"><b>Nada con «' + esc(S.busca.trim()) + '»</b>Prueba con otra palabra.</div>';
+  return (cercando() ? '' : ripHTML()) + '<div class="sei">' + L.map((p) => card(p, true)).join('') + '</div>';
+}
+function pzHTML(p) { const z = prezzoOra(p); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : ''); }
+/* ═══ il passo dopo (mockup 23-ott): chi ha chiesto dalla prima famiglia (il cibo) atterra sull'ultima (il dolce);
+   chi ha chiesto altro atterra sulla prima. Le famiglie e il loro ordine vengono dalla config del locale. ═══ */
+function dopoQuesto(prods) {
+  const G = gruppi(); if (!G.length) return null;
+  const fams = new Set(prods.map((p) => { const g = p && G.find((x) => x.cats.indexOf(p.c) >= 0); return g ? g.k : ''; }));
+  const d = fams.has(G[0].k) && G.length > 1 ? G[G.length - 1] : G[0];
+  return { fam: d.k, cat: d.cats[0], txt: 'Sigue con ' + nomeGruppo(d.k).toLowerCase() };
+}
+function seguirCard(prods) {
+  const d = dopoQuesto(prods); if (!d) return '';
+  const pr = S.prod.filter((p) => p.c === d.cat && p.img && visibile(p) && ordinabile(p));
+  if (!pr.length) return '<button class="segui" data-a="seguir">' + esc(d.txt) + ' ›</button>';
+  const desde = Math.min.apply(null, pr.map((p) => prezzoOra(p).v));
+  return '<button class="sigue2" data-a="seguir"><span class="s2f">' + pr.slice(0, 3).map((p) => '<img src="' + esc(p.img) + '" alt="">').join('') + '</span>' +
+    '<span class="s2t"><b>' + esc(d.txt) + '</b><small>' + esc(pr.slice(0, 3).map((p) => p.n).join(', ')) + (pr.length > 3 ? ' y más' : '') + ' · desde ' + clp(desde) + '</small></span><span class="s2v">Ver ›</span></button>';
+}
+function pedidoHTML() {
+  const ks = Object.keys(S.cart);
+  if (CHECKOUT && S.ck.esito) return esitoHTML();
+  // ¡Listo!: la conferma dice UNA cosa (è partito) e propone UNA mossa (il passo dopo)
+  if (!ks.length && S.listo) {
+    const L = S.listo;
+    // v0.9.6 · D-431: il pedido aspetta il mesero (mesa libera), o il mesero ha detto no
+    if (L.pc || L.rech) return '<div class="ped"><div class="pedtit">' + (L.rech ? '🙋' : '⏳') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
+      '<div class="okv">' + (L.rech ? (L.rech === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa')
+        : 'Esperando que el mesero confirme tu mesa') + '<span>' + T('Mesa') + ' ' + esc(MESA) + ' · ' + (L.rech ? 'tu pedido no se preparó y no se cobra. Pídele al mesero'
+        : L.mot === 'conto_cerrado' ? 'tu cuenta de esta mesa ya se cerró: cuando el mesero confirme, entra en una cuenta nueva'
+        : 'tu pedido ya está guardado: cuando el mesero confirme, pasa a cocina y barra') + '</span></div>' +
+      L.righe.map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') + '</div>';
+    return '<div class="ped"><div class="pedtit">' + T('¡Listo!') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
+      '<div class="okv">✓ ' + T('Tu pedido va') + ' ' + T(L.dove) + '<span>' + T('Mesa') + ' ' + esc(MESA) + ' · ' + T('recién enviado') + '</span></div>' +
+      L.righe.map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') + seguirCard(L.righe.map((r) => r.p)) + '</div>';
+  }
+  // ogni riga col suo ＋/− sulla SUA chiave: il ＋ della riga «Filete · A punto» aggiunge un altro a punto, non un filete qualsiasi
+  const lineeH = righe().map((r) => '<div class="lin">' + (r.p.img ? '<img src="' + esc(r.p.img) + '" alt="">' : '<div class="lth"></div>') +
+    '<div class="lnm">' + esc(r.p.n) + ((r.m || r.t) ? '<span class="lsc">' + esc([r.m, r.t].filter(Boolean).join(' · ')) + (r.d ? ' · +' + clp(r.d) : '') + '</span>' : '') + '</div>' +
+    '<div class="lq"><i data-a="meno" data-k="' + esc(r.k) + '">−</i>' + r.q + '<i data-a="masK" data-k="' + esc(r.k) + '">+</i></div><div class="lpz">' + clp(prezzoRiga(r) * r.q) + '</div></div>').join('');
+  const t = totale();
+  let bot;
+  if (CHECKOUT) bot = cassaHTML(t);
+  else if (!envioOn()) bot = '<button class="envG spento"><b>ENVIAR PEDIDO · ' + clp(t.s) + '</b><span>vista previa: el envío todavía no está activo</span></button>';
+  else if (S.need === 'mesa') bot = '<div class="avv">🪑 ¿Sigues en la mesa ' + esc(MESA) + '?</div><button class="envG" data-a="mesaSi"><b>Sí — enviar</b></button>' +
+    '<div class="avvs">Si te cambiaste de mesa, escanea el QR de tu mesa nueva.</div>';
+  else if (S.inviando) { const rem = Math.max(0, S.inviando.fine - Date.now());
+    bot = '<button class="envG hold" data-a="annulla"><b>' + T('Enviando…') + ' ⟲ ' + T('Cancelar') + '</b><span>' + T('toca para corregir · sale en') + ' ' + Math.max(1, Math.ceil(rem / 1000)) + ' s</span>' +
+      '<i class="barra" style="--da:' + (rem / ATTESA_INVIO * 100).toFixed(1) + '%;animation-duration:' + rem + 'ms"></i></button>'; }
+  else if (S.inviaStato === 'volando') bot = '<button class="envG hold"><b>' + T('Enviando…') + '</b><span>' + T('no cierres esta pantalla') + '</span></button>';
+  else bot = (S.errore ? '<div class="avv">' + esc(S.errore) + '</div>' : '') +
+    '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : T('ENVIAR PEDIDO') + ' 🛎') + '</b><span>' + t.n + ' ' + T(t.n > 1 ? 'productos' : 'producto') + ' · ' + clp(t.s) + ' · ' + T(adove(righe().map((r) => r.p))) + '</span></button>';
+  return '<div class="ped"><div class="pedtit">' + T('Tu pedido') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
+    (ks.length ? lineeH + '<div class="tot"><span>' + T('Total') + '</span><span>' + clp(t.s) + '</span></div>' + bot +
+      (S.inviando || S.inviaStato || S.ck.stato ? '' : '<button class="segui" data-a="chiudiPed">' + T('Seguir pidiendo') + '</button>')
+      : '<div class="vuoto">' + T('Todavía no has pedido nada.') + '</div>') + '</div>';
+}
+/* ═══ v0.7 · L'INIZIO: IL PALCO (mockup §⑫ ①-③, Alberto 21-22 ott) ═══════════════════════════════════════════════════════════════════
+   Sopra ~⅔ l'esperienza (show, «cómo lo hacemos»), sotto i destacados col loro PEDIR. Il palco gira finché il cliente non sceglie; al primo
+   tocco su famiglia, categoria, piatto o Buscar lascia il posto alla carta, e la casetta ⌂ lo riporta.
+   REGOLE DEL MOCKUP, nel codice e non nella memoria di chi carica: ① sul palco SOLO chi ha un video o uno slideshow (≥2 immagini) ·
+   ② la slide col video avanza quando il video FINISCE (niente timer che tronca), poi una pagina di chiusura che vende e resta 8 s;
+   se il video non carica si passa oltre dopo 5 s · ③ lo show resta primo, gli altri si mescolano a ogni visita · ④ ogni contenuto finisce
+   in un gesto: se il gesto non esiste nel menù vero, la slide non sale (oggi niente reservas né DJ-box: vivono ancora su Google).
+   I contenuti li sceglie il CERVELLO; finché non c'è, Alberto (29-ott), in vetrina/vetrina.json. */
+const PATH_VET = /^vetrina\/[\w./-]+\.(svg|webp|png|jpe?g|mp4|webm)$/i;
+let SLIDES = [], PALCO_T = null, SWX = null, SWIPED = 0;
+function preparaSlides() {
+  const L = ((S.vet && S.vet.palco) || []).filter((s) => {
+    if (s.vid && !(PATH_VET.test(s.vid) && PATH_VET.test(s.poster || ''))) return false;
+    if (s.t === 'plato') { const p = S.prod.find((x) => x.id === s.id); if (!p || !visibile(p)) return false; }
+    if (s.t === 'show' && !s.fin_fam) return false;   // ④ lo show chiude su un gesto (la famiglia da aprire)
+    if (s.solo_show && !giornoShow()) return false;    // v0.8: «esta noche · DJ en vivo» sale solo le sere dello show
+    return !!s.vid || (Array.isArray(s.ss) && s.ss.filter((id) => (S.prod.find((x) => x.id === id) || {}).img).length > 1);
+  });
+  const primo = L.findIndex((s) => s.t === 'show'), testa = primo >= 0 ? L.splice(primo, 1) : [];
+  L.sort(() => Math.random() - 0.5);
+  SLIDES = testa.concat(L);
+}
+const slideP = (s) => (s && s.id ? S.prod.find((x) => x.id === s.id) : null);
+function destacados() { return ((S.vet && S.vet.destacados) || []).map((d) => ({ d, p: S.prod.find((x) => x.id === d.id) })).filter((x) => x.p && visibile(x.p)); }
+const inPalco = () => S.palco && SLIDES.length > 0 && !S.pedido && !S.campana && !S.abierta && !S.dono && !S.lingue && !S.dj && !S.cuenta && (S.busca === null || S.busca === undefined);
+const palKey = () => (S.slide % SLIDES.length) + '|' + (S.finVid ? 1 : 0);
+function puntiPalco() { return '<div class="pal-dots">' + SLIDES.map((x, i) => '<i class="' + (i === S.slide % SLIDES.length ? 'on' : '') + '" data-a="palcoVai" data-k="' + i + '"></i>').join('') + '</div>'; }
+function slideHTML() {
+  const s = SLIDES[S.slide % SLIDES.length], p = slideP(s);
+  if (s.vid && S.finVid && s.t === 'plato' && p) {
+    // la pagina di chiusura dopo il video: la voglia è al massimo, qui va il gesto (＋ Pedir mette nel carrello senza uscire)
+    const q = qtyDi(p), diretto = ordinabile(p) && !domande(p).length;
+    return '<div class="pal pal-fin" style="background-image:url(\'' + esc(s.poster) + '\')"><div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div>' +
+      '<div class="pal-t">' + T('¿Se te antojó?') + '</div><div class="pal-s">' + esc(p.n.replace(/`/g, '')) + ' · ' + clp(prezzoOra(p).v) + '</div><div class="pal-cta-row">' +
+      (diretto ? '<button class="pal-cta" data-a="mas" data-k="' + esc(p.id) + '">' + (q ? '✓ ' + q + ' ' + T('en tu pedido') + ' · ＋' : '＋ Pedir · ' + clp(prezzoOra(p).v)) + '</button>' : '') +
+      '<button class="pal-x" data-a="palcoPlato">' + T('Ver el plato') + '</button><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button></div></div>' + puntiPalco() + '</div>';
+  }
+  if (s.vid && S.finVid) return '<div class="pal pal-fin" style="background-image:url(\'' + esc(s.poster) + '\')"><div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div>' +
+    '<div class="pal-t">' + esc(s.fin_tit || s.tit || '') + '</div><div class="pal-s">' + esc(s.fin_sub || '') + '</div><div class="pal-cta-row">' +
+    '<button class="pal-cta" data-a="palcoFam" data-k="' + esc(s.fin_fam) + '">' + esc(s.fin_cta || 'Ver') + ' ›</button><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button></div></div>' + puntiPalco() + '</div>';
+  if (s.ss) {
+    const fr = s.ss.map((id) => S.prod.find((x) => x.id === id)).filter((x) => x && x.img);
+    return '<div class="pal pal-ss-w" data-a="palcoTap">' + fr.map((x, i) => '<div class="pal-ss" style="background-image:url(\'' + esc(x.img) + '\');animation-delay:' + (i * 2.5) + 's;z-index:' + i + '"></div>').join('') +
+      '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || '') + '</div><div class="pal-s">' + esc(s.sub || '') + '</div></div>' + puntiPalco() + '</div>';
+  }
+  // la clip: prima l'anteprima (sfondo), poi il video muto sopra; mai una schermata che aspetta
+  return '<div class="pal" style="background-image:url(\'' + esc(s.poster) + '\')" data-a="palcoTap"><video class="pal-vid" src="' + esc(s.vid) + '" poster="' + esc(s.poster) + '" autoplay muted playsinline preload="auto"></video>' +
+    '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || (p ? p.n : '')) + '</div>' +
+    '<div class="pal-s">' + esc(s.sub || '') + (p ? ' · ' + clp(prezzoOra(p).v) : '') + '</div>' + (s.t === 'plato' ? '<span class="pal-cta">' + T('Ver el plato') + ' ›</span>' : '') + '</div>' + puntiPalco() + '</div>';
+}
+function destCards() { return destacados().map((x) => '<div class="dsw">' + (x.d.b ? '<span class="dbadge">' + esc(x.d.b) + '</span>' : '') + card(x.p, true) + '</div>').join(''); }
+function palcoHTML() {
+  const dc = destCards();
+  return '<div class="split pal-split"><div class="det">' + slideHTML() + '</div>' +
+    (dc ? '<div class="destit">' + T('Destacados') + ' <span>' + T('desliza ›') + '</span></div><div class="destrip">' + dc + '</div>' : '') + '</div>';
+}
+function palcoStop() { if (PALCO_T) { clearTimeout(PALCO_T); PALCO_T = null; } }
+function palcoAvanti() { S.finVid = false; S.slide = (S.slide + 1) % SLIDES.length; palcoRidisegna(); }
+function palcoRidisegna() { const z = document.getElementById('z3'), d = z.querySelector('.pal-split > .det'); if (!d || !inPalco()) return; d.innerHTML = slideHTML(); z.dataset.pk = palKey(); palcoGira(); }
+function palcoGira() {
+  palcoStop(); if (!inPalco() || document.visibilityState !== 'visible') return;
+  const s = SLIDES[S.slide % SLIDES.length], v = document.querySelector('#z3 .pal-vid');
+  if (s.vid && v && !S.finVid) {
+    if (v.paused && !v.ended) { const pr = v.play(); if (pr && pr.catch) pr.catch(() => {}); }   // tornato in mano: riprende da dov'era
+    v.onended = () => { S.finVid = true; palcoRidisegna(); };
+    v.onerror = () => { PALCO_T = setTimeout(palcoAvanti, 5000); };
+    PALCO_T = setTimeout(palcoAvanti, 90000);   // paracadute: un video che non finisce mai non blocca il palco
+    return;
+  }
+  PALCO_T = setTimeout(palcoAvanti, S.finVid ? 8000 : (s.ss ? s.ss.length * 2500 + 1500 : 5000));
+}
+/* ═══ v0.7 · «OTRA VEZ» (mockup 23-ott, Alberto: «se ho chiesto un mojito frambuesa e ne voglio un altro devo rifare tutto il giro»):
+   in cima alla griglia, le ultime cose già INVIATE da questo telefono, uguali (con la loro scelta), a un tocco. Al massimo 4: una scorciatoia,
+   non una seconda carta. Vive nella sessione del telefono per locale e mesa: chi cambia mesa riparte pulito. */
+const HIST_K = () => 'pinsita_otra_' + LOCAL + '_' + MESA;
+function histLeggi() { try { const v = JSON.parse(sessionStorage.getItem(HIST_K()) || '[]'); S.hist = Array.isArray(v) ? v.filter((k) => typeof k === 'string').slice(0, 4) : []; } catch (e) { S.hist = []; } }
+function histAggiungi(keys) { keys.forEach((k) => { S.hist = [k].concat(S.hist.filter((x) => x !== k)); }); S.hist = S.hist.slice(0, 4); try { sessionStorage.setItem(HIST_K(), JSON.stringify(S.hist)); } catch (e) { /* solo memoria */ } }
+function ripHTML() {
+  if (!MESA || !envioOn()) return '';
+  const L = S.hist.map((k) => { const [id, t, m] = k.split('§'); const p = S.prod.find((x) => x.id === id); return p && visibile(p) && ordinabile(p) ? { k, p, lab: [m === 'Como viene' ? '' : m, t].filter(Boolean).join(' · ') } : null; }).filter(Boolean);
+  if (!L.length) return '';
+  return '<div class="rip"><div class="rip-t">⟲ ' + T('OTRA VEZ') + '</div><div class="rip-l">' + L.map((x) => '<button class="rip-c" data-a="ripeti" data-k="' + esc(x.k) + '">' +
+    (x.p.img ? '<img src="' + esc(x.p.img) + '" alt="">' : '') + '<span><b>' + esc(x.p.n.replace(/ *[(][^)]*[)]/, '').replace(/`/g, '')) + '</b>' + (x.lab ? '<i>' + esc(x.lab) + '</i>' : '') + '</span><em>＋</em></button>').join('') + '</div></div>';
+}
+/* ═══ v0.7 · IL REGALO A OTRA MESA (mockup v1.4-v1.5, Alberto 23-ott: «esiste ed è mal usato perché nessuno lo sa: al cliente glielo dobbiamo
+   far vedere»). Sta su ogni trago (barra, niente bottiglie né jarras), dove nasce la voglia. Contratto GIÀ VIVO sul bordo, lo stesso di
+   menu_digital: il pedido porta `regalo_para` · `regalo_nota` · `regalo_firma`; la propria mesa il bordo la rifiuta (`regalo_misma_mesa`).
+   La chiave d'idempotenza nasce qui, una per gesto: un ritentativo non regala due volte; cambiare mesa o messaggio è un gesto nuovo.
+   ⚠️ Dichiarato: il lato di CHI RICEVE (il biglietto sul suo telefono, il grazie) non c'è ancora, vuole un canale dal bordo al telefono. */
+/* v0.7.1 · 🔴 SPENTO (💵 EL GIRO, `EL GIRO 31051A1 VERDE SUL MENU, GIALLO SUL CAMMINO DEL REGALO`): nel vivo il regalo va DRITTO al GAS;
+   dal bordo `regalo_para` oggi è letto solo dalla guardia della propria mesa. Il chit uscirebbe «Mesa 998 · 🎁 …» senza dire a che mesa
+   portarlo, e né il record della sala né la riga PG porterebbero il destino. Si riaccende (true) quando il bordo porta `regalo_para`
+   nel chit, nel record e in `destino_regalo` di PG (🎛 BKP): la schermata e il payload sono pronti e bancati (32/0). */
+const REGALO_ON = false;
+const DONO_MSG = ['¡Salud! 🥂', 'Bienvenidos 👋', 'De parte de un admirador', 'Por la buena onda'];
+const esTrago = (p) => REGALO_ON && !!p && barraCats().indexOf(p.c) >= 0 && !/botella|jarra/i.test(p.n);
+const donoMesaOk = (d) => /^[0-9]{1,3}$/.test(d.mesa || '') && String(Number(d.mesa)) !== String(Number(MESA));
+function tessera(p, ey, msg, firma) {
+  return '<div class="tess">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '') + '<div class="tess-ey">🎁 ' + esc(ey) + '</div>' +
+    '<div class="tess-m">' + esc(msg || '') + '</div><div class="tess-n">' + esc(p.n) + '</div><div class="tess-f">— ' + esc(firma) + '</div></div>';
+}
+function donoHTML() {
+  const d = S.dono, p = S.prod.find((x) => x.id === d.id), X = '<button class="pedx" data-a="donoChiudi">✕</button>';
+  if (!p) return '';
+  const firma = d.firma === 'anon' ? 'Anónimo' : 'De la mesa ' + MESA;
+  // v0.9.7 · D-431 ⑥: da una mesa libera il regalo aspetta il mesero, come ogni pedido; o il mesero ha detto no
+  if (d.ok && (d.pc || d.rech)) return '<div class="ped"><div class="pedtit">' + (d.rech ? '🙋 Tu regalo no salió' : '⏳ Casi listo') + X + '</div>' + tessera(p, 'PARA LA MESA ' + d.mesa, d.msg, firma) +
+    '<div class="okr" style="text-align:center">' + (d.rech ? (d.rech === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa') + ': no se preparó y no se cobra'
+      : 'Esperando que el mesero confirme tu mesa: después se lo llevamos con tu mensaje') + '</div><button class="segui" data-a="donoChiudi">Seguir</button></div>';
+  if (d.ok) return '<div class="ped"><div class="pedtit">¡Regalo en camino!' + X + '</div>' + tessera(p, 'VA A LA MESA ' + d.mesa, d.msg, firma) +
+    '<div class="okr" style="text-align:center">Se lo llevamos con tu mensaje · va a tu cuenta</div><button class="segui" data-a="donoChiudi">Seguir</button></div>';
+  const ok = donoMesaOk(d);
+  return '<div class="ped"><div class="pedtit">Invitar un trago' + X + '</div>' +
+    '<div class="lin">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<div class="lth"></div>') + '<div class="lnm">1× ' + esc(p.n) + '</div><div class="lpz">' + clp(prezzoOra(p).v) + '</div></div>' +
+    '<div class="prq">¿A qué mesa?</div><input class="potro" type="tel" inputmode="numeric" maxlength="3" placeholder="N° de mesa" value="' + esc(d.mesa || '') + '" data-a="donoMesa">' +
+    '<div class="prq">Tu mensaje</div><div class="pchips">' + DONO_MSG.map((m) => '<button class="pchip' + (d.msg === m ? ' on' : '') + '" data-a="donoMsg" data-k="' + esc(m) + '">' + esc(m) + '</button>').join('') + '</div>' +
+    '<div class="prq">Firma</div><div class="pchips"><button class="pchip' + (d.firma !== 'anon' ? ' on' : '') + '" data-a="donoFirma" data-k="mesa">De la mesa ' + esc(MESA) + '</button>' +
+    '<button class="pchip' + (d.firma === 'anon' ? ' on' : '') + '" data-a="donoFirma" data-k="anon">Anónimo 🤫</button></div>' +
+    (d.err ? '<div class="avv">' + esc(d.err) + '</div>' : '') +
+    (d.volo ? '<button class="envG hold"><b>' + T('Enviando…') + '</b><span>' + T('no cierres esta pantalla') + '</span></button>'
+      : '<button class="envG' + (ok ? '' : ' waspento') + '" data-a="' + (ok ? 'donoInvia' : 'donoFalta') + '" data-dono-btn="1"><b>Enviar regalo 🎁 · ' + clp(prezzoOra(p).v) + '</b><span>va a tu cuenta · si no lo aceptan, no se cobra</span></button>') + '</div>';
+}
+async function inviaDono() {
+  const d = S.dono, p = d && S.prod.find((x) => x.id === d.id);
+  if (!REGALO_ON || !d || !p || d.volo || d.ok || !envioOn() || !donoMesaOk(d)) return;
+  d.volo = true; d.err = ''; if (!d.uuid) d.uuid = _uuid(); pinta();
+  const pr = prezzoOra(p).v;
+  const pl = { action: 'enviarPedido', local: LOCAL, uuid: d.uuid, mesa: MESA, total: pr,
+    idioma: ((navigator.language || '') + '').slice(0, 8), idioma_menu: S.lang, plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
+    precios_epoch: (S.tick && S.tick.precios_epoch) || '', ritmo_activo: '', member: '',
+    items_json: JSON.stringify([{ id: p.id, nombre: '🎁 ' + p.n, precio: pr, qty: 1, llevar: 1, op: '', termino: '', es_menu: false, promo: '', cat: p.c }]),
+    regalo_para: d.mesa, regalo_nota: d.msg, regalo_firma: d.firma === 'anon' ? '' : 'de la mesa ' + MESA,
+    confirmado: true, mesa_origen: 'qr', dispositivo_id: dispositivo(), ts: Date.now() };   // gesto deliberato: niente prompt fantasma (come il vivo)
+  let r = null;
+  for (let i = 0; i < 3; i++) {
+    if (i) await new Promise((ok) => setTimeout(ok, i === 1 ? 2000 : 5000));
+    try { r = await postBordo('/pedido/', pl, 6000); } catch (e) { r = null; }
+    if (r && (r.ok === true || r.need || DEFINITIVI.indexOf(r.error) >= 0)) break;
+  }
+  d.volo = false;
+  if (r && r.ok === true) { d.ok = true; if (r.por_confirmar) { d.pc = true; esperaInizia({ uuid: d.uuid, ts: Date.now(), mot: r.motivo || '', righe: [], dono: true }); } }   // v0.9.7 · D-431 ⑥
+  else if (r && r.error === 'regalo_misma_mesa') d.err = 'Esa es tu mesa: elige otra.';
+  else if (r && r.need === 'items_agotados') d.err = 'Se acabó justo ahora: elige otro trago.';
+  else if (r && r.need === 'carta_vieja') { if (S.tick && r.precios) { S.tick.precios = r.precios; S.tick.precios_epoch = r.precios_epoch || S.tick.precios_epoch; } d.uuid = ''; d.err = 'El precio cambió recién: revisa y envía de nuevo.'; }
+  else d.err = 'No pudimos enviar el regalo. Reintenta o avísale a tu mesero.';
+  pinta();
+}
+/* ═══ v0.8 · LO SHOW (mockup §⑫ ②: «lo show è il gancio»): le sere e le ore vengono dalla vetrina del locale (`show`).
+   Il giorno è quello OPERATIVO (taglio 06:00, ora di Santiago): l'1 di notte del sabato è ancora il venerdì. ═══ */
+function oraSantiago() { const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Santiago' })); return d; }
+function giornoShow() { const sh = S.vet && S.vet.show; if (!sh || !Array.isArray(sh.dias)) return false; const d = oraSantiago(); d.setHours(d.getHours() - 6); return sh.dias.indexOf(d.getDay()) >= 0; }
+function showAcceso() {
+  const sh = S.vet && S.vet.show; if (!sh || !giornoShow()) return false;
+  const d = oraSantiago(), h = d.getHours() + d.getMinutes() / 60, de = oraDec(sh.desde, 23), a = oraDec(sh.hasta, 4);
+  return a > de ? (h >= de && h < a) : (h >= de || h < a);
+}
+/* ═══ v0.8 · IL CONTO DI QUESTO TELEFONO (mockup: «Tu cuenta» in alto dopo il primo invio, l'unico bottone pieno, con l'importo).
+   Il menù sa ciò che è PARTITO da questo telefono (i pedidos confermati dal bordo): l'importo è quello, e la schermata lo dice.
+   Il conto intero della mesa e il pago dal telefono (Fintoc) sono il pezzo di domani (Alberto 29-ott); oggi da qui si chiede la máquina. ═══ */
+const ENV_K = () => 'pinsita_env_' + LOCAL + '_' + MESA;
+function envLeggi() { try { const v = JSON.parse(sessionStorage.getItem(ENV_K()) || '[]'); S.enviados = Array.isArray(v) ? v : []; } catch (e) { S.enviados = []; } }
+function envAggiungi(rr) { S.enviados.push({ ts: Date.now(), righe: rr }); try { sessionStorage.setItem(ENV_K(), JSON.stringify(S.enviados)); } catch (e) { /* solo memoria */ } }
+/* v0.8.1 (giallo di 💵 EL GIRO: «il conto del telefono non ha un giorno»): conta solo gli invii del giorno OPERATIVO di oggi (taglio 06:00,
+   Santiago). Chi lascia la scheda aperta e torna il giorno dopo alla stessa mesa non vede il Pagar di ieri. Muore col conto vero della mesa. */
+const giornoOp = (ts) => { const d = new Date(new Date(ts - 6 * 3600 * 1000).toLocaleString('en-US', { timeZone: 'America/Santiago' })); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); };
+const envOggi = () => S.enviados.filter((e) => giornoOp(Number(e.ts) || 0) === giornoOp(Date.now()));
+const consumoTel = () => envOggi().reduce((s, e) => s + (e.righe || []).reduce((t, r) => t + (Number(r.pr) || 0) * (Number(r.q) || 0), 0), 0);
+function cuentaHTML() {
+  const L = []; envOggi().forEach((e) => (e.righe || []).forEach((r) => { const x = L.find((y) => y.nome === r.nome && y.pr === r.pr); if (x) x.q += r.q; else L.push(Object.assign({}, r)); }));
+  return '<div class="ped"><div class="pedtit">' + T('Tu cuenta') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' +
+    '<div class="okr" style="border-top:0;color:var(--suave)">' + T('Lo que pediste desde este teléfono') + ' · ' + T('Mesa') + ' ' + esc(MESA) + '</div>' +
+    L.map((r) => { const p = S.prod.find((x) => x.id === r.id);
+      return '<div class="lin">' + (p && p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<div class="lth"></div>') + '<div class="lnm">' + r.q + '× ' + esc(r.nome) + '</div><div class="lpz">' + clp(r.pr * r.q) + '</div></div>'; }).join('') +
+    '<div class="tot"><span>' + T('Consumo') + '</span><span>' + clp(consumoTel()) + '</span></div>' +
+    '<button class="envG" data-a="cuentaPos"><b>' + T('Pedir la cuenta') + '</b><span>' + T('te traemos la máquina a tu mesa') + '</span></button>' +
+    '<button class="segui" data-a="cuentaChiudi">' + T('Seguir pidiendo') + '</button></div>';
+}
+function lingueHTML() {
+  return '<div class="ped"><div class="pedtit">Idioma · Language<button class="pedx" data-a="lingueChiudi">✕</button></div><div class="lng">' +
+    LANGS.map((l) => '<button class="' + (S.lang === l[0] ? 'on' : '') + '" data-a="lingua" data-k="' + l[0] + '">' + l[1] + '</button>').join('') + '</div>' +
+    '<div class="okr" style="margin-top:10px;border-top:0;color:var(--suave)">Los nombres de los platos se quedan en su idioma.</div></div>';
+}
+/* ═══ v0.8 · IL MONDO DEL DJ (mockup 22-ott: «EN VIVO porta a una schermata DJ: cartelera, chi suona»), a schermo intero, senza prodotti
+   sotto («mele con pere»). Si apre da LIVE e dalla slide dello show. Dati dalla vetrina del locale (`dj`).
+   ⚠️ Dichiarato, NON c'è: «Pídele tu canción» e le playlist. Nel vivo la canzone va al GAS (`pedirCancion`): nel menù vero nasce
+   solo con una rotta del bordo E uno schermo del DJ che la legga (voce 6 dell'ecosistema, senza proprietario). ═══ */
+// la famiglia dove porta lo show (la stessa della pagina di chiusura del video): niente nome di famiglia scritto nel codice
+const famDj = () => { const s = ((S.vet && S.vet.palco) || []).find((x) => x.t === 'show'); return s && gruppi().some((g) => g.k === s.fin_fam) ? s.fin_fam : ''; };
+function djHTML() {
+  const dj = (S.vet && S.vet.dj) || {}, vivo = showAcceso(), ig = /^[\w.]{1,30}$/.test(dj.instagram || '') ? dj.instagram : '';
+  return '<div class="split"><div class="det"><div class="pal pal-dj"><button class="pal-close" data-a="djChiudi" aria-label="Cerrar">✕</button><div class="pal-tx">' +
+    '<div class="pal-tag">' + (vivo ? '<i class="onair"></i> ' + T('En vivo · esta noche') : (giornoShow() ? '🎧 ' + T('Esta noche') : '🎧 ' + T('La cartelera'))) + '</div>' +
+    '<div class="pal-t">' + esc(dj.nombre || 'DJ') + '</div>' + (dj.desde ? '<div class="pal-s">' + T('Desde las') + ' ' + esc(dj.desde) + '</div>' : '') +
+    (Array.isArray(dj.cartelera) && dj.cartelera.length ? '<div class="lsec"><b>📅 ' + T('La cartelera') + '</b>' + dj.cartelera.map((c) => '<div class="carte"><span>' + esc(T(c.d)) + '</span><b>' + esc(c.n) + '</b><i>' + esc(c.h) + '</i></div>').join('') + '</div>' : '') +
+    (ig ? '<div class="lsec"><a class="sigue" href="https://www.instagram.com/' + ig + '" target="_blank" rel="noopener">📸 ' + T('Sigue a') + ' <b style="display:inline">@' + esc(ig) + '</b></a></div>' : '') +
+    (famDj() ? '<div class="pal-cta-row" style="margin-top:14px"><button class="pal-cta" data-a="palcoFam" data-k="' + esc(famDj()) + '">' + esc(nomeGruppo(famDj())) + ' ›</button></div>' : '') +
+    '</div></div></div></div>';
+}
+/* ═══ la campanella (mockup 23-ott): i motivi; la sala oggi sa dire «la cuenta» e «una duda», gli altri arrivano come «te busca» ═══ */
+const CAMPANA = [
+  { k: 'duda', t: 'Tengo una duda sobre un plato', s: 'ingredientes, alergias, qué me recomiendas' },
+  { k: 'mal', t: 'Algo no está bien con mi pedido', s: 'falta algo, llegó frío, no es lo que pedí' },
+  { k: 'mesa', t: 'Falta algo en la mesa', s: 'servilletas, cubiertos, hielo, salsas' },
+  { k: 'cuenta', t: 'Quiero pagar con la máquina', s: 'te traemos el POS' },
+  { k: 'fiesta', t: 'Celebramos algo 🎂', s: 'cumpleaños, aniversario: te ayudamos a sorprender' },
+  { k: 'otra', t: 'Otra cosa', s: '' }];
+function campanaHTML() {
+  return '<div class="ped"><div class="pedtit">' + T('¿En qué te ayudamos?') + '<button class="pedx" data-a="campanaChiudi">✕</button></div>' +
+    '<div class="okr" style="margin-bottom:8px">' + T('Tu mesero viene a tu mesa.') + '</div>' +
+    CAMPANA.map((c) => '<button class="cmp" data-a="campanaMotivo" data-k="' + c.k + '"><span class="sn"><b>' + esc(T(c.t)) + '</b>' + (c.s ? '<i>' + esc(T(c.s)) + '</i>' : '') + '</span><span class="sp">›</span></button>').join('') + '</div>';
+}
+function totale() { let n = 0, s = 0; for (const r of righe()) { n += r.q; s += r.q * prezzoRiga(r); } return { n, s }; }
+function z2() {
+  const G = gruppi(); const f = G.find((x) => x.k === S.fam) || G[0]; const t = totale();
+  // con qualcosa nel carrello le famiglie restano solo emoji: la porta del pedido deve stare intera nella riga (mockup v1.x)
+  return '<div class="r">' + G.map((x) => '<button class="fam' + (x.k === f.k ? ' on' : '') + '" data-a="fam" data-k="' + esc(x.k) + '" title="' + esc(nomeGruppo(x.k)) + '">' + x.emoji + (t.n ? '' : ' ' + esc(nomeGruppo(x.k))) + '</button>').join('') +
+    (t.n ? '<button class="cartp' + (S.llama ? ' llama' : '') + '" data-a="verPed">' + t.n + ' · ' + T(CHECKOUT ? 'Pagar' : 'ENVIAR') + ' · ' + clp(t.s) + ' ›</button>' : '') + '</div>' +
+    (t.n && S.llama ? '<div class="llamah">¿Listo? Toca para enviar tu pedido</div>' : '') +
+    (S.busca !== null && S.busca !== undefined
+      ? '<div class="r rbusca"><span class="lup">🔍</span><input class="bin" type="search" enterkeyhint="search" autocomplete="off" placeholder="escribe lo que buscas…" value="' + esc(S.busca) + '" data-a="binput"><button class="bx" data-a="cierraBusca" aria-label="Cerrar búsqueda">✕</button></div>'
+      : '<div class="r">' + (envioOn() ? '<button class="bell" data-a="campana" aria-label="Llamar al mesero">🔔</button>' : '') + f.cats.map((c) => '<button class="cat' + (c === S.cat ? ' on' : '') + '" data-a="cat" data-k="' + esc(c) + '">' + esc(nomeCat(c)) + '</button>').join('') +
+        '<button class="cat lupa" data-a="abreBusca">🔍 ' + T('Buscar') + '</button></div>');
+}
+let ULTIMA_VER = null;
+function pinta() {
+  // v0.5.4 (EL GIRO A5 · B3): l'86 che arriva MENTRE il cliente guarda. La scheda di un prodotto sparito si chiude;
+  // una categoria rimasta senza prodotti cede il posto al primo chip della sua famiglia (o della prima famiglia viva).
+  if (S.abierta) { const pa = S.prod.find((x) => x.id === S.abierta); if (!pa || !visibile(pa)) S.abierta = null; }
+  const gv = gruppi();
+  if (S.cat && !gv.some((g) => g.cats.indexOf(S.cat) >= 0)) { const g = gv.find((x) => x.k === S.fam) || gv[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; } }
+  document.getElementById('z1').innerHTML = z1();
+  const z = document.getElementById('z3'), pal = inPalco(); z.classList.remove('basso'); z.classList.toggle('aperta', (!!S.abierta && !S.pedido) || pal);
+  // v0.7: sul palco si ridisegna SOLO la striscia dei destacados (un ＋, il tick dei 60"): rifare il palco ricomincerebbe il video
+  if (pal && z.querySelector('.pal-split') && z.dataset.pk === palKey()) { const ds = z.querySelector('.destrip'); if (ds) { const sl = ds.scrollLeft; ds.innerHTML = destCards(); ds.scrollLeft = sl; } }
+  else { z.innerHTML = z3(); z.dataset.pk = pal ? palKey() : ''; if (pal) palcoGira(); else palcoStop(); }
+  // la striscia resta sulla pagina del piatto aperto; il passo è pagina + spazio, non la larghezza della striscia
+  const m = z.querySelector('.mini');
+  if (m) {
+    const passo = m.children.length > 1 ? m.children[1].offsetLeft - m.children[0].offsetLeft : m.clientWidth;
+    m.scrollLeft = PAG * passo;
+    const pu = z.querySelector('.punti');
+    if (pu) m.onscroll = () => { const k = Math.round(m.scrollLeft / passo); [].forEach.call(pu.children, (d, j) => { d.className = j === k ? 'on' : ''; }); };
+    // il lampo d'oro solo quando la card VER CAMBIA, così l'occhio la ritrova
+    if (S.abierta !== ULTIMA_VER) { const v = m.querySelector('.cd.ora'); if (v) v.classList.add('lampo'); }
+  }
+  ULTIMA_VER = S.abierta;
+  // se la griglia sta in una schermata, va giù; se è più lunga, si comporta come sempre
+  const sg = z.querySelector('.sei'); if (sg && !S.abierta && !S.pedido && sg.scrollHeight <= z.clientHeight) z.classList.add('basso');
+  const pieno = S.pedido || S.campana || !!S.dono || S.lingue || S.dj || S.cuenta;
+  // mentre si scrive nel campo di Buscar la barra non si ridisegna: perderebbe il cursore e la tastiera
+  const b = document.getElementById('z2'); b.hidden = pieno; if (!pieno && !(document.activeElement && document.activeElement.classList.contains('bin'))) b.innerHTML = z2();
+  // v0.7 · la pillola che chiama (mockup 22-ott): qualcosa nel carrello e nessun tocco per 12 s ⇒ pulsa e dice cosa fare
+  if (NUDGE) clearTimeout(NUDGE);
+  if (Object.keys(S.cart).length && !pieno && !S.llama && envioOn()) NUDGE = setTimeout(() => { if (Object.keys(S.cart).length && !S.pedido && !S.campana && !S.dono) { S.llama = true; pinta(); } }, 12000);
+}
+let NUDGE = null;
+function nota(txt) { let n = document.getElementById('nota'); if (!n) { n = document.createElement('div'); n.id = 'nota'; n.className = 'nota'; document.body.appendChild(n); }
+  n.textContent = txt; n.classList.remove('vai'); void n.offsetWidth; n.classList.add('vai'); }
+
+/* ═══ L'INVIO (AUT-0749) · stesso contratto di menu_digital.html verso POST /pedido/<local> del bordo ═══
+   ⓐ ENVIAR si può ANNULLARE per 4 s (niente «¿seguro?»: si clicca per abitudine) · ⓑ la chiave d'idempotenza nasce
+   QUI, dal lato che ripete: stesso carrello = stesso uuid, così un Reintentar non fa mai un doppione · ⓒ 3 tentativi
+   (2 s / 5 s) · ⓓ 🚫 NESSUN ripiego su Google: se il bordo non risponde si dice, il carrello resta e si riprova.
+   ⚠️ debito dichiarato: niente coda offline (localStorage) come il vivo — se la pagina muore a metà, il cliente rimanda. */
+const ATTESA_INVIO = 4000;
+let INV = null, INV_TICK = null;
+/* v0.9.5 (giallo ⓑ di 💵 EL GIRO su e802a35857): il ripiego non è più «p-…» ma un uuid v4 vero (getRandomValues). Il ck del checkout è
+   l'uuid_pago della voce del cliente, e una colonna `uuid` rifiutava in silenzio la voce dei telefoni senza randomUUID. «p-…» resta
+   solo se manca anche getRandomValues (nessun telefono che apre questa pagina): lì l'invio del pedido va come prima. */
+const _uuid = () => { try { if (crypto && crypto.randomUUID) return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
+  const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join(''); return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
+} catch (e) {} return 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); };
+function payloadPedido(confirmado) {
+  // contratto del vivo (_enviarPedidoDigitalInner): `nombre` composto per gli umani (piatto · modo · término), i CAMPI per le
+  // macchine: `op` = il modo scelto (senza l'etichetta del prezzo), `termino`; `precio` porta DENTRO il sovrapprezzo
+  // (Σ precio×qty resta vero ovunque) e `precio_base` dice il listino nudo quando c'è un sovrapprezzo.
+  const items = righe().map((r) => ({ id: r.p.id, nombre: nomeRiga(r), precio: prezzoRiga(r), qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '',
+    es_menu: false, promo: '', cat: r.p.c, precio_base: r.d ? prezzoOra(r.p).v : undefined }));
+  const itemsJson = JSON.stringify(items);
+  if (S.uuidFirma !== itemsJson) { S.uuid = _uuid(); S.uuidFirma = itemsJson; }
+  return { action: 'enviarPedido', local: LOCAL, uuid: S.uuid, mesa: MESA, total: totale().s,
+    idioma: ((navigator.language || '') + '').slice(0, 8), idioma_menu: S.lang,
+    plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
+    precios_epoch: (S.tick && S.tick.precios_epoch) || '', ritmo_activo: '', member: '',
+    items_json: itemsJson, envio_directo: false, destino: '', via: 'unica', confirmado: !!confirmado,
+    mesa_origen: 'qr', dispositivo_id: dispositivo(), ts: Date.now() };   // la mesa viene sempre dal QR (?mesa=): menu.html non ha memoria di sessione
+  // v0.6.5: dispositivo_id = l'apparecchio (stessa chiave pinsita_dev della campanella); il conto con ID ne fa la nascita «origen qr»
+}
+async function postBordo(ruta, body, ms, hdr) {
+  const ctrl = new AbortController(); const tid = setTimeout(() => ctrl.abort(), ms);
+  try { const r = await fetch(BORDO + ruta + encodeURIComponent(LOCAL) + '?t=' + TOKEN_LETTURA, { method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'text/plain;charset=utf-8' }, hdr || {}), body: JSON.stringify(body), signal: ctrl.signal });
+    return await r.json(); } finally { clearTimeout(tid); }
+}
+/* ═══ v0.9.7 · D-431 · I PEDIDOS IN ATTESA DEL MESERO (contratto di 🎛 BKP, bacheca «IL CONTRATTO DI D-431», ⑥ il regalo compreso) ═════════
+   Su una mesa libera il bordo risponde `por_confirmar`: il pedido (o il regalo: ⑥, la regola guarda la mesa di chi regala) non va in cucina
+   finché un mesero non conferma che al tavolo c'è gente. Possono aspettare più cose insieme (un pedido e un regalo): è una LISTA.
+   🔴 POLL NUOVO, DICHIARATO: GET /pedido-estado/<local>?uuid= ogni 10 s, SOLO mentre qualcosa aspetta e a schermo visibile; ogni attesa si
+   chiude al primo esito (confermato · `need:'mesa_rechazada'`) o dopo 30 min (il bordo scade a 20). Muore quando il bordo spingerà lo stato (N2).
+   Rotta spenta (`ruta_apagada`) ⇒ il telefono non può saperlo: lo dice e smette. Una risposta che non è un esito (404, 503, rete) ⇒ il prossimo giro.
+   Le attese vivono in sessionStorage (stessa vita del conto del telefono): una ricarica le riprende. */
+const ESPERA_K = () => 'pinsita_qrc_' + LOCAL + '_' + MESA;
+const ESPERA_MAX_MS = 30 * 60 * 1000;
+let ESPERA_POLL = null;
+const espere = () => (Array.isArray(S.espere) ? S.espere : (S.espere = []));
+function esperaSalva() { try { if (espere().length) sessionStorage.setItem(ESPERA_K(), JSON.stringify(espere())); else sessionStorage.removeItem(ESPERA_K()); } catch (e) { /* solo memoria */ } }
+function esperaInizia(e) { if (!espere().some((x) => x.uuid === e.uuid)) espere().push(e); esperaSalva(); if (!ESPERA_POLL) ESPERA_POLL = setInterval(esperaGiro, 10000); }
+function esperaLeggi() { try { const v = JSON.parse(sessionStorage.getItem(ESPERA_K()) || '[]'); (Array.isArray(v) ? v : [v]).forEach((e) => { if (e && e.uuid) esperaInizia(e); }); } catch (e) { /* niente */ } }
+function esperaFine(e, esito) {
+  S.espere = espere().filter((x) => x !== e); esperaSalva();
+  if (!espere().length) { clearInterval(ESPERA_POLL); ESPERA_POLL = null; }
+  const cosa = e.dono ? 'tu regalo' : 'tu pedido';
+  const L = e.dono ? (S.dono && S.dono.uuid === e.uuid ? S.dono : null) : S.listo;
+  if (esito === 'ok') { if (!e.dono) envAggiungi(e.righe); if (L) L.pc = false; nota('✓ El mesero confirmó tu mesa — ' + cosa + (e.dono ? ' va en camino' : ' ya va a cocina y barra')); }
+  else if (esito === 'ciego') { if (L) L.pc = false; nota('🙋 Pregúntale a tu mesero si confirmó tu mesa'); }
+  else { if (L) { L.pc = false; L.rech = esito; } nota('🙋 ' + (esito === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa') + ' — ' + cosa + ' no se preparó'); }
+  pinta();
+}
+async function esperaUno(e) {
+  if (Date.now() - (Number(e.ts) || 0) > ESPERA_MAX_MS) return esperaFine(e, 'sin_respuesta');
+  const ctrl = new AbortController(); const tid = setTimeout(() => ctrl.abort(), 3000);
+  let r = null;
+  try { r = await (await fetch(BORDO + '/pedido-estado/' + encodeURIComponent(LOCAL) + '?uuid=' + encodeURIComponent(e.uuid),
+    { headers: { 'X-Borde-Token': TOKEN_LETTURA }, signal: ctrl.signal })).json(); } catch (x) { r = null; } finally { clearTimeout(tid); }
+  if (espere().indexOf(e) < 0) return;   // un altro giro ha già chiuso
+  if (r && r.need === 'mesa_rechazada') return esperaFine(e, r.motivo === 'sin_respuesta' ? 'sin_respuesta' : 'rechazada');
+  if (r && r.ok === true && r.estado && r.estado !== 'por_confirmar') return esperaFine(e, 'ok');
+  if (r && r.error === 'ruta_apagada') return esperaFine(e, 'ciego');
+}
+async function esperaGiro() {
+  if (!espere().length) { clearInterval(ESPERA_POLL); ESPERA_POLL = null; return; }
+  const vecchie = espere().filter((e) => Date.now() - (Number(e.ts) || 0) > ESPERA_MAX_MS);
+  vecchie.forEach((e) => esperaFine(e, 'sin_respuesta'));
+  if (document.visibilityState !== 'visible') return;
+  for (const e of espere().slice()) await esperaUno(e);
+}
+const DEFINITIVI = ['estacion_cerrada', 'regalo_misma_mesa', 'carrito_vacio', 'items_json_invalid', 'uuid_missing', 'mesa_missing'];
+async function inviaOra(confirmado) {
+  if (!envioOn() || !Object.keys(S.cart).length || S.inviaStato) return;
+  S.inviaStato = 'volando'; S.errore = ''; S.need = ''; pinta();
+  const pl = payloadPedido(confirmado);
+  let r = null;
+  for (let i = 0; i < 3; i++) {
+    if (i) await new Promise((ok) => setTimeout(ok, i === 1 ? 2000 : 5000));
+    try { r = await postBordo('/pedido/', pl, 6000); } catch (e) { r = null; }
+    if (r && (r.ok === true || r.need || DEFINITIVI.indexOf(r.error) >= 0)) break;
+  }
+  S.inviaStato = '';
+  if (r && r.ok === true) {
+    S.listo = { righe: righe().map((r) => ({ nome: nomeRiga(r), q: r.q, p: r.p })), dove: adove(righe().map((r) => r.p)) };
+    histAggiungi(Object.keys(S.cart));
+    const rr = righe().map((x) => ({ id: x.p.id, nome: nomeRiga(x), q: x.q, pr: prezzoRiga(x) }));
+    // v0.9.6 · D-431: mesa libera ⇒ il bordo lo tiene finché il mesero conferma. Non entra nel conto del telefono finché non è confermato.
+    if (r.por_confirmar) { S.listo.pc = true; S.listo.mot = r.motivo || ''; esperaInizia({ uuid: pl.uuid, ts: Date.now(), mot: r.motivo || '', righe: rr }); }
+    else envAggiungi(rr);   // v0.8: il conto di questo telefono (il Pagar in alto)   // v0.7 «Otra vez»: ciò che è PARTITO, non ciò che è stato solo messo nel carrello
+    S.cart = {}; S.uuid = ''; S.uuidFirma = '';
+  } else if (r && r.need === 'mesa_confirmar') { S.need = 'mesa'; }
+  else if (r && r.need === 'items_agotados') {
+    const fuera = Array.isArray(r.agotados) ? r.agotados : [];
+    fuera.forEach((x) => { const p = x && S.prod.find((y) => y.id === x.id); if (p) { S.agotLoc.push(p.id); Object.keys(S.cart).forEach((k) => { if (k.split('§')[0] === p.id) delete S.cart[k]; }); } });
+    nota('😕 Se acabó justo ahora: ' + fuera.map((x) => (x && x.nombre) || '').filter(Boolean).join(' · ') + ' — lo sacamos de tu pedido');
+  } else if (r && r.need === 'carta_vieja') {
+    if (S.tick && r.precios) { S.tick.precios = r.precios; S.tick.precios_epoch = r.precios_epoch || S.tick.precios_epoch; }
+    S.errore = 'Los precios cambiaron recién: revisa el total y envía de nuevo.';
+  } else if (r && r.need) { S.errore = 'No pudimos enviar (' + r.need + '). Avísale a tu mesero.'; }
+  else if (r && r.error === 'estacion_cerrada') { S.errore = (r.producto ? r.producto + ': ' : '') + 'esa estación ya cerró. Sácalo para enviar el resto.'; }
+  else { S.errore = 'No pudimos enviar tu pedido. Tu pedido sigue aquí: reintenta o avísale a tu mesero.'; }
+  pinta();
+}
+async function llamaMesero(motivo) {
+  let r = null;
+  try { r = await postBordo('/llama/', { action: 'notifyWaiter', local: LOCAL, mesa: MESA, ritmo_attivo: '', tipo_llamada: 'generica', motivo: motivo,
+    prod_id_intent: '', dev: dispositivo(), ts: Date.now() }, 3000, { 'X-Borde-Token': TOKEN_LETTURA }); } catch (e) { r = null; }
+  if (r && r.ok === true) nota(r.ya_avisado ? '🔔 Tu mesero ya fue avisado · va en camino' : '🔔 Le avisamos a tu mesero · viene en un momento');
+  else if (r && r.definitivo) nota(r.error === 'mesa_desconocida' ? 'No reconocemos esta mesa — avísale al mesero en persona' : '🔔 Tu mesero ya fue avisado · va en camino');
+  else nota('No pudimos avisar al mesero — inténtalo de nuevo o avísale en persona');
+}
+/* ═══ PINSA (Alberto 29-ott) · LA CASSA DI DEPTO E KIOSCO: carrello → dati → propina → Fintoc → il pedido nasce GIÀ PAGATO ═══
+   Contratto col bordo (di ⚙️ ARQ, `4_CANTIERE_MENU/PINSA_CONTRATTO_CHECKOUT_30OTT2026.md`):
+   POST /checkout/<L>  {action:'checkoutPedido', canal, destino, uuid, items_json, subtotal, propina, total, cliente, vuelta, …}
+        ⇒ {ok:true, url}  (la pagina di Fintoc) · {need:'carta_vieja'|'items_agotados'|'fuera_de_horario'} · {ok:false, error}
+   GET  /checkout/<L>?uuid=  ⇒ {ok:true, estado:'pagado'|'pendiente'|'rechazado', numero?}
+   ⓐ la chiave d'idempotenza nasce QUI (stesso carrello + stessa propina = stesso uuid: un Reintentar non apre due pagos) ·
+   ⓑ il bordo RIFÀ il conto dai suoi prezzi: il totale del telefono è una proposta, mai l'importo · ⓒ il pedido entra in cucina
+   solo quando Fintoc conferma al bordo (webhook), MAI dal ritorno del telefono: il ritorno legge lo stato, non lo scrive.
+   LEVA: `checkout_on` nella config del local. Vuota = spento (vista previa) · "1" = acceso · un elenco = solo quei canali/destini
+   («1204» per la prova su un appartamento, come la mesa 998). */
+function checkoutOn() {
+  const v = String((S.cfg && S.cfg.checkout_on) || '').trim().toLowerCase();
+  if (!v || !CHECKOUT || !pide()) return false;
+  if (v === '1' || v === 'true') return true;
+  const l = v.split(/[\s,;]+/);
+  return l.indexOf(CANAL) >= 0 || l.indexOf(String(DEPTO || KIOSCO).toLowerCase()) >= 0;
+}
+/* v0.9.2 · LA PROPINA COME IL 2.10 DI BKS (Alberto 29-ott «propina come in BKS 2.10»): S.ck.propina = 10 (preselezionato) · 'otro' (importo in propOtro) · 0 */
+const propinaDi = (s) => (S.ck.propina === 'otro' ? Math.max(0, Math.round(S.ck.propOtro || 0)) : S.ck.propina > 0 ? Math.round(s * S.ck.propina / 100) : 0);
+const CK_K = () => 'pinsita_ck_' + LOCAL + '_' + CANAL + '_' + (DEPTO || KIOSCO);
+function risparmio() { return righe().reduce((s, r) => { const z = prezzoOra(r.p); return s + (z.orig ? (z.orig - z.v) * r.q : 0); }, 0); }
+function cassaHTML(t) {
+  const c = S.ck, pr = propinaDi(t.s), off = !checkoutOn(), ora = depOrarioNo(), aho = risparmio();
+  const dove = CANAL === 'depto' ? 'Te lo llevamos a la recepción del edificio · Depto ' + esc(DEPTO) : 'Te llamamos por tu nombre para retirar en el mesón';
+  if (c.stato === 'volando') return '<button class="envG hold"><b>Abriendo el pago…</b><span>' + T('no cierres esta pantalla') + '</span></button>';
+  if (c.stato === 'verificando') return '<button class="envG hold"><b>Revisando tu pago…</b><span>' + T('no cierres esta pantalla') + '</span></button>';
+  const err = (k) => (c.err && c.errK === k ? ' male' : '');
+  return (aho ? '<div class="ckr dsc"><span>Ahorras con el descuento</span><span>−' + clp(aho) + '</span></div>' : '') +
+    '<div class="prq">Propina para el equipo</div><div class="pchips p210">' +
+      '<button class="pchip' + (c.propina === 10 ? ' on' : '') + '" data-a="ckPropina" data-k="10">10%<small>' + clp(Math.round(t.s * 0.10)) + '</small></button>' +
+      '<button class="pchip' + (c.propina === 'otro' ? ' on' : '') + '" data-a="ckPropina" data-k="otro">Otro<small>tú eliges el monto</small></button>' +
+      '<button class="pchip pnone' + (c.propina === 0 ? ' on' : '') + '" data-a="ckPropina" data-k="0">Sin propina</button></div>' +
+    (c.propina === 'otro' ? '<div class="ckf potrof"><label>Monto de la propina</label><input type="text" inputmode="numeric" name="propOtro" maxlength="7" placeholder="$" value="' + (c.propOtro || '') + '" data-a="ckCampo"></div>' : '') +
+    '<div class="ckf">' +
+    '<label>Tu nombre</label><input type="text" name="nombre" autocomplete="name" maxlength="60" class="' + err('nombre') + '" value="' + esc(c.nombre) + '" data-a="ckCampo">' +
+    '<label>Tu teléfono (te llamamos si hace falta)</label><input type="tel" name="tel" autocomplete="tel" maxlength="16" placeholder="+56 9 …" class="' + err('tel') + '" value="' + esc(c.tel) + '" data-a="ckCampo">' +
+    '<label>Tu correo (opcional)</label><input type="email" name="email" autocomplete="email" maxlength="80" class="' + err('email') + '" value="' + esc(c.email) + '" data-a="ckCampo">' +
+    '<label class="chk"><input type="checkbox" name="promos" data-a="ckCampo"' + (c.promos ? ' checked' : '') + '> Quiero recibir novedades y promociones de ' + esc((S.cfg && S.cfg.brand_name) || LOCAL) + '</label></div>' +
+    '<div class="ckr" id="ckPr"' + (pr ? '' : ' hidden') + '><span>Propina' + (c.propina === 'otro' ? '' : ' ' + c.propina + '%') + '</span><span>' + clp(pr) + '</span></div>' +
+    '<div class="tot"><span>A pagar</span><span id="ckTot">' + clp(t.s + pr) + '</span></div>' +
+    (c.err ? '<div class="avv">' + esc(c.err) + '</div>' : '') +
+    (off ? '<button class="envG spento"><b>PAGAR · ' + clp(t.s + pr) + '</b><span>vista previa: el pago todavía no está activo</span></button>'
+      : ora ? '<button class="envG spento"><b>PAGAR · ' + clp(t.s + pr) + '</b><span>' + esc(ora) + '</span></button>'
+      : '<button class="envG" data-a="ckPaga"><b id="ckPagB">PAGAR · ' + clp(t.s + pr) + '</b><span>' + esc(dove) + '</span></button>');
+}
+function esitoHTML() {
+  const e = S.ck.esito;
+  if (e.ok) return '<div class="ped"><div class="pedtit">¡Pagado!' + (CANAL === 'kiosco' ? '' : '<button class="pedx" data-a="ckNuovo">✕</button>') + '</div>' +
+    '<div class="okv">✓ Tu pedido va a cocina' + (e.numero ? ' · N° ' + esc(e.numero) : '') + '<span>' + esc(POSTO()) + ' · ' +
+      (CANAL === 'depto' ? 'te lo llevamos a la recepción' : 'te llamamos para retirar') + '</span></div>' +
+    (e.righe || []).map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') +
+    (CANAL === 'kiosco' ? '<div class="avvs">Esta pantalla vuelve al inicio en unos segundos.</div>' : '<button class="segui" data-a="ckNuovo">Hacer otro pedido</button>') + '</div>';
+  // il pago non è confermato: il carrello resta, e si dice cosa NON fare (pagare due volte)
+  return '<div class="ped"><div class="pedtit">' + T('Tu pedido') + '<button class="pedx" data-a="ckChiudiEsito">✕</button></div>' +
+    '<div class="avv">' + esc(e.txt) + '</div>' + (e.riprova ? '<button class="envG" data-a="ckVerifica"><b>Revisar de nuevo</b><span>no pagues dos veces</span></button>' : '') +
+    '<button class="segui" data-a="ckChiudiEsito">Volver a mi pedido</button></div>';
+}
+function ckValida() {
+  const c = S.ck; c.err = ''; c.errK = '';
+  const tel = c.tel.replace(/[\s().-]/g, '');
+  if (c.nombre.trim().length < 2) { c.err = 'Escribe tu nombre.'; c.errK = 'nombre'; }
+  else if (!/^\+?[0-9]{8,12}$/.test(tel)) { c.err = 'Escribe un teléfono válido.'; c.errK = 'tel'; }
+  else if (c.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email.trim())) { c.err = 'Revisa tu correo.'; c.errK = 'email'; }
+  return !c.err;
+}
+function payloadCheckout() {
+  const items = righe().map((r) => ({ id: r.p.id, nombre: nomeRiga(r), precio: prezzoRiga(r), qty: r.q, op: r.m || '', termino: r.t || '',
+    cat: r.p.c, precio_carta: r.p.p, precio_base: r.d ? prezzoOra(r.p).v : undefined,
+    // per le macchine: le risposte una per domanda, in ordine (il bordo ne rifà il sovrapprezzo, `op` è solo per gli umani)
+    resp: r.p.mods ? String(r.k.split('§')[2] || '').split('¦') : [] }));
+  const itemsJson = JSON.stringify(items), t = totale(), pr = propinaDi(t.s), firma = itemsJson + '|' + S.ck.propina + '|' + pr;
+  if (S.ck.firma !== firma) { S.ck.uuid = _uuid(); S.ck.firma = firma; }
+  const v = new URL(location.href); v.searchParams.set('ck', S.ck.uuid);
+  return { action: 'checkoutPedido', local: LOCAL, canal: CANAL, destino: DEPTO || KIOSCO, uuid: S.ck.uuid, items_json: itemsJson,
+    subtotal: t.s, descuento_pct: CANAL === 'depto' ? Number((S.cfg && S.cfg.descuento_depto_pct) || 0) : 0, propina_pct: S.ck.propina === 'otro' ? 0 : S.ck.propina, propina: pr, total: t.s + pr,
+    precios_epoch: (S.tick && S.tick.precios_epoch) || '', idioma_menu: S.lang,
+    cliente: { nombre: S.ck.nombre.trim(), telefono: S.ck.tel.replace(/[\s().-]/g, ''), email: S.ck.email.trim(), acepta_promos: !!S.ck.promos },
+    vuelta: v.toString(), dispositivo_id: dispositivo(), ts: Date.now() };
+}
+// la pagina del pago: https sempre; sul PC del banco anche il Fintoc finto in http://localhost
+const urlPagoOk = (u) => /^https:\/\/[\w.-]+\//.test(u || '') || (SUL_PC && /^http:\/\/(localhost|127\.0\.0\.1):\d{2,5}\//.test(u || ''));
+async function pagaOra() {
+  if (!checkoutOn() || S.ck.stato || !Object.keys(S.cart).length || depOrarioNo()) return;
+  if (!ckValida()) { pinta(); return; }
+  const pl = payloadCheckout();
+  S.ck.stato = 'volando'; pinta();
+  // il carrello sopravvive al giro da Fintoc: torna con ?ck=<uuid> e si ritrova qui
+  // (anche propina e firma: un pago rifiutato si ripaga con lo STESSO uuid, mai due pedidos per lo stesso carrello)
+  try { sessionStorage.setItem(CK_K(), JSON.stringify({ uuid: pl.uuid, firma: S.ck.firma, propina: S.ck.propina, propOtro: S.ck.propOtro, cart: S.cart, sel: S.sel,
+    nombre: S.ck.nombre, tel: S.ck.tel, email: S.ck.email, promos: S.ck.promos, righe: righe().map((r) => ({ nome: nomeRiga(r), q: r.q })), ts: Date.now() })); } catch (e) { /* senza memoria il ritorno mostra solo l'esito */ }
+  let r = null;
+  for (let i = 0; i < 3; i++) {
+    if (i) await new Promise((ok) => setTimeout(ok, i === 1 ? 2000 : 5000));
+    try { r = await postBordo('/checkout/', pl, 8000); } catch (e) { r = null; }
+    if (r && (r.ok === true || r.need || r.error)) break;
+  }
+  if (r && r.ok === true && urlPagoOk(r.url)) { location.href = r.url; return; }
+  S.ck.stato = '';
+  if (r && r.need === 'items_agotados') {
+    const fuera = Array.isArray(r.agotados) ? r.agotados : [];
+    fuera.forEach((x) => { const p = x && S.prod.find((y) => y.id === x.id); if (p) { S.agotLoc.push(p.id); Object.keys(S.cart).forEach((k) => { if (k.split('§')[0] === p.id) delete S.cart[k]; }); } });
+    S.ck.err = 'Se acabó justo ahora: ' + fuera.map((x) => (x && x.nombre) || '').filter(Boolean).join(' · ') + '. Lo sacamos de tu pedido: revisa el total.';
+  } else if (r && r.need === 'carta_vieja') {
+    if (S.tick && r.precios) { S.tick.precios = r.precios; S.tick.precios_epoch = r.precios_epoch || S.tick.precios_epoch; }
+    S.ck.err = 'Los precios cambiaron recién: revisa el total y paga de nuevo.';
+  } else if (r && r.need === 'fuera_de_horario') { S.ck.err = 'Ahora no estamos tomando pedidos al departamento.'; }
+  else { S.ck.err = 'No pudimos abrir el pago. Tu pedido sigue aquí: reintenta en un momento.'; }
+  pinta();
+}
+/* il ritorno da Fintoc: si LEGGE lo stato del pago (il bordo lo sa dal webhook). Al massimo 8 letture in ~16 s, solo qui:
+   non è un poll che resta acceso. Se non è ancora confermato si dice, e c'è «Revisar de nuevo». */
+async function verificaPago() {
+  S.ck.stato = 'verificando'; S.ck.esito = null; S.pedido = true; pinta();
+  let r = null;
+  for (let i = 0; i < 8; i++) {
+    if (i) await new Promise((ok) => setTimeout(ok, 2000));
+    try { r = await (await leggi(BORDO + '/checkout/' + encodeURIComponent(LOCAL) + '?uuid=' + encodeURIComponent(RITORNO_CK) + '&t=' + TOKEN_LETTURA)).json(); } catch (e) { r = null; }
+    if (r && r.ok === true && r.estado !== 'pendiente') break;
+  }
+  S.ck.stato = '';
+  let mem = null; try { mem = JSON.parse(sessionStorage.getItem(CK_K()) || 'null'); } catch (e) { mem = null; }
+  if (r && r.ok === true && r.estado === 'pagado') {
+    S.ck.esito = { ok: true, numero: r.numero || '', righe: mem && mem.uuid === RITORNO_CK ? mem.righe : [] };
+    setTimeout(() => opinionApri('pagado', RITORNO_CK || ''), 2500);   // v0.9.3: dopo aver letto «¡Pagado!», non sopra
+    S.cart = {}; S.sel = {}; try { sessionStorage.removeItem(CK_K()); } catch (e) {}
+    try { const u = new URL(location.href); u.searchParams.delete('ck'); history.replaceState(null, '', u.toString()); } catch (e) {}
+    if (CANAL === 'kiosco') setTimeout(() => { location.replace(location.href); }, 20000);
+  } else if (r && r.ok === true && r.estado === 'rechazado') {
+    S.ck.esito = { ok: false, txt: 'El pago no se completó. Tu pedido sigue aquí: puedes pagar de nuevo.' };
+  } else {
+    S.ck.esito = { ok: false, riprova: true, txt: 'Todavía no vemos tu pago confirmado. Si ya pagaste, tu pedido entra solo apenas llegue la confirmación.' };
+  }
+  pinta();
+}
+// l'apparecchio: il bordo limita le chiamate per telefono, non solo per mesa (stessa chiave del menù vivo)
+function dispositivo() { let d = ''; try { d = localStorage.getItem('pinsita_dev') || ''; } catch (e) {}
+  if (!d) { d = 'd' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); try { localStorage.setItem('pinsita_dev', d); } catch (e) {} } return d; }
+
+/* v0.5.8 (Alberto 28-ott, Buscar con la tastiera aperta: «non riesco a scrollare in basso»). La tastiera copriva il fondo
+   della griglia: l'app era alta quanto lo schermo, non quanto lo spazio sopra la tastiera. Ora l'altezza segue la parte VISIBILE
+   (visualViewport, che su iPhone e su Android tiene conto della tastiera) e la pagina torna in cima: si scorre fino all'ultima card. */
+if (window.visualViewport) {
+  const alto = () => { document.documentElement.style.setProperty('--alto', Math.round(visualViewport.height) + 'px'); if (window.scrollY) window.scrollTo(0, 0); };
+  visualViewport.addEventListener('resize', alto); alto();
+}
+/* ═══ i gesti ═══ */
+// Buscar: ogni lettera ridisegna solo la griglia (la barra col campo resta, vedi pinta)
+document.getElementById('app').addEventListener('input', (ev) => {
+  if (ev.target.classList.contains('bin')) { S.busca = ev.target.value; S.abierta = null; pinta(); return; }
+  // PINSA: i campi della cassa si ricordano senza ridisegnare (perderebbe la tastiera)
+  if (ev.target.dataset.a === 'ckCampo' && ev.target.name === 'propOtro') {
+    const n = parseInt(String(ev.target.value || '').replace(/\D/g, ''), 10) || 0; S.ck.propOtro = Math.min(n, 9999999);
+    const s = totale().s, pr = propinaDi(s), q = (id) => document.getElementById(id);
+    if (q('ckPr')) { q('ckPr').hidden = !pr; q('ckPr').lastElementChild.textContent = clp(pr); }
+    if (q('ckTot')) q('ckTot').textContent = clp(s + pr);
+    if (q('ckPagB')) q('ckPagB').textContent = 'PAGAR · ' + clp(s + pr);
+    return; }
+  if (ev.target.dataset.a === 'ckCampo') { const n = ev.target.name; if (n === 'promos') S.ck.promos = ev.target.checked; else if (n in S.ck) S.ck[n] = String(ev.target.value || '').slice(0, 80);
+    if (S.ck.errK === n) { S.ck.errK = ''; S.ck.err = ''; ev.target.classList.remove('male'); const av = document.querySelector('.ped .avv'); if (av) av.remove(); } return; }
+  // il numero della mesa del regalo: niente ridisegno (perderebbe la tastiera), si accende solo il bottone
+  if (ev.target.dataset.a === 'donoMesa' && S.dono) { S.dono.mesa = ev.target.value.replace(/[^0-9]/g, '').slice(0, 3); S.dono.uuid = ''; S.dono.err = '';
+    if (ev.target.value !== S.dono.mesa) ev.target.value = S.dono.mesa;
+    const ok = donoMesaOk(S.dono); document.querySelectorAll('[data-dono-btn]').forEach((b) => { b.classList.toggle('waspento', !ok); b.dataset.a = ok ? 'donoInvia' : 'donoFalta'; }); }
+});
+// il palco si sposta col dito (a sinistra = avanti, a destra = indietro); un tocco che era uno scorrimento non apre niente
+document.getElementById('app').addEventListener('pointerdown', (ev) => { SWX = ev.target.closest('.pal') && inPalco() ? ev.clientX : null; });
+document.getElementById('app').addEventListener('pointerup', (ev) => { if (SWX === null) return; const dx = ev.clientX - SWX; SWX = null;
+  if (Math.abs(dx) > 40) { SWIPED = Date.now(); S.finVid = false; S.slide = (S.slide + (dx < 0 ? 1 : SLIDES.length - 1)) % SLIDES.length; palcoRidisegna(); } });
+document.getElementById('app').addEventListener('keydown', (ev) => { if (ev.target.classList.contains('bin') && ev.key === 'Enter') ev.target.blur(); });
+document.getElementById('app').addEventListener('click', (ev) => {
+  if (Date.now() - SWIPED < 450) return;
+  const el = ev.target.closest('[data-a]'); if (!el) return; ev.stopPropagation();
+  const a = el.dataset.a, k = el.dataset.k; const p = k ? S.prod.find((x) => x.id === k) : null;
+  S.llama = false;   // ogni tocco spegne la pillola che chiama: il timer riparte da qui
+  // v0.7 · IL PALCO: famiglia, categoria, piatto e Buscar lo lasciano; la casetta lo riporta
+  if (a === 'fam' || a === 'cat' || a === 'abre' || a === 'abreBusca') S.palco = false;
+  if (a === 'palcoVai') { S.slide = Number(k) || 0; S.finVid = false; palcoRidisegna(); return; }
+  if (a === 'palcoRe') { S.finVid = false; palcoRidisegna(); return; }
+  if (a === 'palcoTap' || a === 'palcoPlato') {
+    const s = SLIDES[S.slide % SLIDES.length], sp = slideP(s);
+    if (s && s.t === 'show') { S.dj = true; }   // v0.8: lo show apre il mondo del DJ (mockup)
+    else if (sp) { const g = gruppi().find((x) => x.cats.indexOf(sp.c) >= 0); S.palco = false; if (g) { S.fam = g.k; S.cat = sp.c; } S.abierta = sp.id; }
+    pinta(); return;
+  }
+  if (a === 'palcoFam') { const g = gruppi().find((x) => x.k === k); if (g) { S.palco = false; S.dj = false; S.fam = g.k; S.cat = g.cats[0]; S.abierta = null; } pinta(); return; }
+  // v0.8 · la riga in alto: ognuna di queste schermate chiude le altre (una sola metà grande alla volta)
+  if (a === 'lingueApri' || a === 'djApri' || a === 'cuentaApri') { if (S.inviando || S.inviaStato) return; S.lingue = a === 'lingueApri'; S.dj = a === 'djApri'; S.cuenta = a === 'cuentaApri'; S.pedido = false; S.campana = false; S.dono = null; pinta(); return; }
+  if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; pinta(); return; }
+  if (a === 'lingua' && LANGS.some((x) => x[0] === k)) { S.lang = k; S.lingue = false; document.documentElement.lang = k; try { localStorage.setItem('pinsita_lang', k); } catch (e) {} pinta(); return; }
+  if (a === 'cuentaPos' && envioOn()) { S.cuenta = false; llamaMesero('cuenta'); pinta(); setTimeout(() => opinionApri('cuenta', ''), 1800); return; }
+  // v0.7 · «Otra vez»: la stessa riga di prima (piatto + scelta), una in più
+  if (a === 'ripeti' && S.hist.indexOf(k) >= 0 && !S.inviando && !S.inviaStato) { const pp = S.prod.find((x) => x.id === k.split('§')[0]);
+    if (ordinabile(pp)) { S.cart[k] = (S.cart[k] || 0) + 1; S.listo = null; S.errore = ''; S.need = ''; nota('＋1 ' + pp.n); } pinta(); return; }
+  // v0.7 · il regalo a otra mesa
+  if (a === 'donoApri' && p && envioOn() && esTrago(p) && ordinabile(p)) { S.dono = { id: p.id, mesa: '', msg: DONO_MSG[0], firma: 'mesa', uuid: '' }; pinta(); return; }
+  if (a === 'donoChiudi') { if (S.dono && S.dono.volo) return; S.dono = null; pinta(); return; }
+  if (a === 'donoMsg' && S.dono && !S.dono.volo) { S.dono.msg = k; S.dono.uuid = ''; pinta(); return; }
+  if (a === 'donoFirma' && S.dono && !S.dono.volo) { S.dono.firma = k; S.dono.uuid = ''; pinta(); return; }
+  if (a === 'donoFalta') { const i = document.querySelector('[data-a="donoMesa"]'); if (i) { i.focus(); i.classList.remove('wapide'); void i.offsetWidth; i.classList.add('wapide'); } return; }
+  if (a === 'donoInvia') { inviaDono(); return; }
+  if (a === 'donoMesa') return;
+  // PINSA · la cassa
+  if (a === 'ckCampo') return;
+  if (a === 'ckPropina' && !S.ck.stato) { S.ck.propina = k === 'otro' ? 'otro' : (Number(k) || 0); if (S.ck.errK === 'propina') { S.ck.err = ''; S.ck.errK = ''; } pinta(); return; }
+  if (a === 'ckPaga') { pagaOra(); return; }
+  if (a === 'ckVerifica') { verificaPago(); return; }
+  if (a === 'ckChiudiEsito') { S.ck.esito = null; S.pedido = Object.keys(S.cart).length > 0; pinta(); return; }
+  if (a === 'ckNuovo') { S.ck.esito = null; S.pedido = false; S.abierta = null; S.ck.uuid = ''; S.ck.firma = ''; S.ck.propina = 10; S.ck.propOtro = 0; pinta(); return; }
+  if (a === 'fam') { const g = gruppi().find((x) => x.k === k); S.fam = k; S.cat = g.cats[0]; S.abierta = null; S.busca = null; }
+  else if (a === 'cat') { S.cat = k; S.abierta = null; S.busca = null; }
+  else if (a === 'abreBusca') { S.busca = ''; S.abierta = null; pinta(); const i = document.querySelector('.bin'); if (i) i.focus(); return; }
+  else if (a === 'cierraBusca') { S.busca = null; S.abierta = null; }
+  else if (a === 'binput') { return; }
+  else if (a === 'abre') {
+    // v0.6.0 (Alberto 28-ott): trovato e toccato il prodotto, Buscar si chiude da solo e la barra torna famiglia + categoria,
+    // già su quella del prodotto (la striscia sotto la scheda sono i suoi vicini di carta, non i risultati)
+    if (S.busca !== null && S.busca !== undefined && p) { S.busca = null; const g = gruppi().find((x) => x.cats.indexOf(p.c) >= 0); if (g) { S.fam = g.k; S.cat = p.c; } if (document.activeElement) document.activeElement.blur(); }
+    S.abierta = k; document.getElementById('z3').scrollTop = 0; }
+  else if (a === 'cierra') { S.abierta = null; }
+  // durante i 4 s dell'annullo e il volo il carrello non si tocca: si invia ciò che si vede
+  // ＋ su un piatto: con domande aggiunge la SCELTA fatta nella scheda (e solo se completa); senza domande, la riga nuda
+  else if (a === 'mas' && ordinabile(p) && !S.inviando && !S.inviaStato) {
+    if (domande(p).length && !sceltaCompleta(p)) { S.abierta = p.id; }
+    else { const kk = domande(p).length ? chiaveSel(p) : chiave(p); S.cart[kk] = (S.cart[kk] || 0) + 1; S.listo = null; S.errore = ''; S.need = ''; }
+  }
+  // ＋ e − su una RIGA del carrello (la chiave intera): stessa scelta, una in più o una in meno
+  else if (a === 'masK' && S.cart[k] && !S.inviando && !S.inviaStato) { const pp = S.prod.find((x) => x.id === k.split('§')[0]); if (ordinabile(pp)) { S.cart[k]++; S.errore = ''; S.need = ''; } }
+  else if (a === 'meno' && S.cart[k] && !S.inviando && !S.inviaStato) { S.cart[k]--; if (!S.cart[k]) delete S.cart[k]; S.errore = ''; S.need = ''; if (!Object.keys(S.cart).length) S.pedido = false; }
+  else if (a === 'sceglie') { const [pid, qk, ...ov] = k.split('|'); const pp = S.prod.find((x) => x.id === pid); if (pp) selDi(pp)[qk] = ov.join('|'); }
+  else if (a === 'verPed') { S.pedido = true; S.campana = false; }
+  else if (a === 'chiudiPed') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.listo = null; }
+  else if (a === 'inicio') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.campana = false; S.listo = null; S.abierta = null; S.busca = null; const g = gruppi()[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; }
+    S.palco = true; S.slide = 0; S.finVid = false; }   // v0.7: la casetta riporta all'inizio, dallo show
+  else if (a === 'env' && envioOn() && !S.inviando && !S.inviaStato && Object.keys(S.cart).length) {
+    S.inviando = { fine: Date.now() + ATTESA_INVIO }; S.errore = '';
+    INV = setTimeout(() => { S.inviando = null; clearInterval(INV_TICK); inviaOra(false); }, ATTESA_INVIO);
+    // il numero scende da solo (solo il testo: la barra corre già in CSS)
+    INV_TICK = setInterval(() => { const sp = document.querySelector('.envG.hold span'); if (!S.inviando || !sp) { clearInterval(INV_TICK); return; }
+      sp.textContent = T('toca para corregir · sale en') + ' ' + Math.max(1, Math.ceil((S.inviando.fine - Date.now()) / 1000)) + ' s'; }, 250);
+  }
+  else if (a === 'annulla') { clearTimeout(INV); clearInterval(INV_TICK); S.inviando = null; }
+  else if (a === 'mesaSi') { S.need = ''; inviaOra(true); return; }
+  else if (a === 'seguir') { const d = dopoQuesto(((S.listo || {}).righe || []).map((r) => r.p)); S.pedido = false; S.listo = null; S.abierta = null; S.palco = false; if (d) { S.fam = d.fam; S.cat = d.cat; } }
+  else if (a === 'campana' && envioOn()) { S.campana = true; S.pedido = false; }
+  else if (a === 'campanaChiudi') { S.campana = false; }
+  else if (a === 'campanaMotivo' && envioOn()) { S.campana = false; llamaMesero(k); }
+  pinta();
+  // il ＋ della pagina di chiusura del video cambia la sua scritta («✓ 1 en tu pedido · ＋ otra»): quella pagina si rifà da sola
+  if (a === 'mas' && inPalco() && S.finVid) palcoRidisegna();
+});
+// il palco si ferma col telefono in tasca e riparte quando torna in mano
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') palcoGira(); else palcoStop(); });
+
+/* ═══ l'avvio ═══ */
+/* v0.5.7 · TAMPONE dichiarato (28-ott 20:39 UTC): il bordo risponde a tratti 500 «error code: 1101» su /carta (≈1 su 20), senza
+   CORS, e il cliente vedeva «No pudimos abrir la carta». Tre tentativi (subito, 0,6 s, 1,5 s) prima di arrendersi. Lo uccide la causa
+   dell'eccezione nella Worker, che è di 🎛 BKP / ⚙️ ARQ (bacheca «IL BORDO RISPONDE «ERROR 1101»»). */
+async function leggi(url) {
+  let err;
+  for (const att of [0, 600, 1500]) {
+    if (att) await new Promise((r) => setTimeout(r, att));
+    try { const r = await fetch(url, { cache: 'no-store' }); if (r.ok) return r; err = new Error('http ' + r.status); } catch (e) { err = e; }
+  }
+  throw err;
+}
+// il tick non rompe mai la carta: se non risponde resta quello di prima (o nessuno)
+async function leggiTick() {
+  try { const j = await (await leggi(BORDO + '/estado/' + LOCAL + '?seccion=menu_tick&t=' + TOKEN_LETTURA)).json();
+    const x = j && j.datos && j.datos.datos; if (x && x.ok !== false) S.tick = x; } catch (e) { /* resta il tick di prima */ }
+}
+// un giro ogni 60", come il vivo, e solo col telefono in mano (sostituisce il poll a Google, non se ne aggiunge uno)
+// PINSA: mentre il cliente scrive nella cassa il tick si aggiorna ma non ridisegna (perderebbe il campo e la tastiera)
+const scrivendo = () => !!(document.activeElement && document.activeElement.closest && document.activeElement.closest('.ckf'));
+setInterval(async () => { if (!LOCAL || !S.prod.length || document.visibilityState !== 'visible') return; vestiPelle(); await leggiTick(); if (!scrivendo()) pinta(); }, 60000);
+document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && LOCAL && S.prod.length) { await leggiTick(); if (!scrivendo()) pinta(); } });
+/* LE NOSTRE FOTO (v0.5.3, Alberto 28-ott): vivono in questo repo, `fotos/<LOCAL>/<id>.webp`, elencate in `fotos/fotos.json`
+   ({"BKS":{"BKS-BAR-002":"BKS-BAR-002.webp"}}), e vincono sulla `Imagen_URL` della carta. Mai su Google.
+   ⏳ TAMPONE dichiarato: lo uccide il catalogo nativo in Postgres (AUT-0752, seme sab 31-ott), dove la foto è una colonna del prodotto.
+   Senza manifesto o con un errore: la foto della carta, come prima. */
+async function fotoNostre() {
+  try { const r = await fetch('fotos/fotos.json', { cache: 'no-cache' }); if (!r.ok) return {};
+    const m = (await r.json())[LOCAL] || {}, out = {};
+    Object.keys(m).forEach((id) => { const v = m[id], f = typeof v === 'string' ? v : (v && v.f), y = v && typeof v === 'object' ? Number(v.y) : NaN;
+      if (/^[\w.-]+\.(webp|jpe?g|png)$/i.test(f || '')) out[id] = { img: 'fotos/' + LOCAL + '/' + f, fy: (y >= 0 && y <= 100) ? y : null }; });
+    return out; } catch (e) { return {}; }
+}
+/* v0.7 · LA VETRINA DEL LOCALE: `vetrina/vetrina.json` ({"BKS":{"fondo","palco":[…],"destacados":[…]}}), stessa forma di fotos.json.
+   ⏳ TAMPONE dichiarato: lo uccide la config del locale in Postgres (menu_config_local di 🚚 MIGRA). Senza vetrina: si entra in carta, come prima. */
+async function vetrinaLocale() {
+  try { const r = await fetch('vetrina/vetrina.json', { cache: 'no-cache' }); if (!r.ok) return null; const v = (await r.json())[LOCAL]; return v && typeof v === 'object' ? v : null; } catch (e) { return null; }
+}
+/* ═══ v0.9 · IL GIORNO E LA NOTTE, da soli (Alberto 30-ott: «deve cambiare automaticamente come oggi») ═══
+   Come menu_digital (getFasciaMenu, r.14464-14483): giorno 06:00→20:00 all'ora del locale, notte il resto. Le due ore sono della
+   config del locale (tema_dia_desde · tema_noche_desde, «HH:MM»); senza, valgono quelle di oggi. È SOLO PELLE: nessun prezzo,
+   promo o orario la legge. I due fondi sono della vetrina (fondo_dia · fondo_noche, e il vecchio «fondo» vale come notte).
+   Prova a vista: ?_fascia=dia | ?_fascia=noche. */
+function minuti(s, def) { const x = /^(\d{1,2}):(\d{2})$/.exec(String(s || '').trim()); return x ? (+x[1]) * 60 + (+x[2]) : def; }
+function fasciaPelle() {
+  const f = qs.get('_fascia'); if (f === 'dia' || f === 'noche') return f;
+  const d = oraSantiago(), m = d.getHours() * 60 + d.getMinutes(), c = S.cfg || {};
+  return (m >= minuti(c.tema_dia_desde, 360) && m < minuti(c.tema_noche_desde, 1200)) ? 'dia' : 'noche';
+}
+function vestiPelle() {
+  // un local col tema suo (config `tema`=claro, PINSA) non cambia pelle con l'ora: body.dia coprirebbe i suoi token di :root.claro
+  const dia = !document.documentElement.classList.contains('claro') && fasciaPelle() === 'dia', v = S.vet || {}, app = document.getElementById('app');
+  document.body.classList.toggle('dia', dia);
+  const fo = dia ? v.fondo_dia : (v.fondo_noche || v.fondo);
+  if (PATH_VET.test(fo || '')) { app.style.setProperty('--fondo', 'url("' + fo + '")'); app.classList.add('confondo'); } else app.classList.remove('confondo');
+  const tc = document.getElementById('tc'); if (tc) tc.setAttribute('content', dia ? '#EFE2CF' : '#0A0806');
+}
+/* ═══ v0.9.3 · LA VOCE DEL CLIENTE (Alberto 30-ott: «una cosa simile alla fine del pago sul menu qr, per avere l'info direttamente dal cliente») ═══
+   Il disegno è quello di sala_nueva (svqApri: Mal · Regular · Bien, e con Mal/Regular «¿Qué pasó?» a scelta multipla), girato verso il cliente.
+   Esce UNA volta per telefono e giorno operativo, in due punti: quando il cliente chiede il conto dalla mesa, e al «¡Pagado!» di depto/kiosco.
+   🚫 Niente Google: la risposta va al bordo, POST /opinion/<L>. 🔴 Quella rotta NON esiste ancora (contratto in bacheca per ⚙️ ARQ, la tabella per
+   🚚 MIGRA): per questo nasce dietro la leva della config `opinion_on` — vuota = non si mostra, e nessun dato si perde in silenzio.
+   Il voto non porta dati personali: mesa/destino, canale, voto, motivi, lingua, dispositivo (lo stesso id anonimo del pedido) e l'uuid del pago se c'è. */
+const OPI_TX = {
+  es: ['¿Cómo estuvo todo?', 'Mal', 'Regular', 'Bien', '¿Qué pasó?', 'La comida tardó', 'Los tragos tardaron', 'Un plato o trago no estaba bien', 'La atención', 'Otra cosa', 'Enviar', 'Saltar', '¡Gracias! Nos ayuda a mejorar', 'Elige al menos una'],
+  en: ['How was everything?', 'Bad', 'Okay', 'Good', 'What happened?', 'The food took long', 'The drinks took long', 'A dish or drink wasn’t right', 'The service', 'Something else', 'Send', 'Skip', 'Thanks! It helps us improve', 'Pick at least one'],
+  pt: ['Como foi tudo?', 'Ruim', 'Regular', 'Bom', 'O que aconteceu?', 'A comida demorou', 'Os drinks demoraram', 'Um prato ou drink não estava bom', 'O atendimento', 'Outra coisa', 'Enviar', 'Pular', 'Obrigado! Isso nos ajuda a melhorar', 'Escolha pelo menos uma'],
+  it: ['Com’è andata?', 'Male', 'Così così', 'Bene', 'Cos’è successo?', 'Il cibo ha tardato', 'I drink hanno tardato', 'Un piatto o un drink non andava', 'Il servizio', 'Altro', 'Invia', 'Salta', 'Grazie! Ci aiuta a migliorare', 'Scegline almeno una'],
+  zh: ['一切还好吗？', '不好', '一般', '很好', '发生了什么？', '上菜慢', '饮品慢', '有菜品或饮品不对', '服务', '其他', '提交', '跳过', '谢谢！这能帮助我们改进', '请至少选一项'],
+  ko: ['모두 어떠셨나요?', '별로', '보통', '좋음', '무슨 일이 있었나요?', '음식이 늦었어요', '음료가 늦었어요', '요리나 음료가 이상했어요', '서비스', '기타', '보내기', '건너뛰기', '감사합니다! 개선에 도움이 돼요', '하나 이상 골라 주세요'],
+  de: ['Wie war alles?', 'Schlecht', 'Okay', 'Gut', 'Was war los?', 'Das Essen dauerte', 'Die Drinks dauerten', 'Ein Gericht oder Drink war nicht gut', 'Der Service', 'Etwas anderes', 'Senden', 'Überspringen', 'Danke! Das hilft uns', 'Wähle mindestens eins'],
+  fr: ['Comment était tout ?', 'Mal', 'Moyen', 'Bien', 'Que s’est-il passé ?', 'Le plat a tardé', 'Les boissons ont tardé', 'Un plat ou une boisson n’allait pas', 'Le service', 'Autre chose', 'Envoyer', 'Passer', 'Merci ! Ça nous aide', 'Choisis-en au moins une'],
+  ja: ['いかがでしたか？', '悪い', '普通', '良い', '何がありましたか？', '料理が遅かった', 'ドリンクが遅かった', '料理かドリンクに問題があった', '接客', 'その他', '送信', 'スキップ', 'ありがとうございます！改善に役立てます', '1つ以上選んでください'] };
+const OPI_MOT = ['comida_tardo', 'tragos_tardaron', 'plato_mal', 'atencion', 'otra'];   // le chiavi viaggiano, il testo no (una per lingua)
+const uidV4 = _uuid;   // v0.9.5: un generatore solo (vedi _uuid)
+const opiOn = () => String((S.cfg && S.cfg.opinion_on) || '').trim() === '1';
+const OPI_K = () => 'pinsita_opi_' + LOCAL + '_' + giornoOp(Date.now());
+function opinionApri(dove, uuid) {
+  if (!opiOn() || document.querySelector('.opq')) return;
+  try { if (localStorage.getItem(OPI_K())) return; localStorage.setItem(OPI_K(), '1'); } catch (e) { /* senza memoria si chiede lo stesso, una volta per pagina */ }
+  const X = OPI_TX[S.lang] || OPI_TX.es, o = document.createElement('div'), rv = { v: null, mot: [] };
+  o.className = 'opq';
+  o.innerHTML = '<div class="opb" role="dialog" aria-label="' + esc(X[0]) + '"><div class="opt">' + esc(X[0]) + '</div>' +
+    '<div class="opf"><button type="button" data-ov="mal">😞<i>' + esc(X[1]) + '</i></button><button type="button" data-ov="regular">😐<i>' + esc(X[2]) + '</i></button><button type="button" data-ov="bien">🙂<i>' + esc(X[3]) + '</i></button></div>' +
+    '<div class="opm" hidden><div class="opq2">' + esc(X[4]) + '</div>' + OPI_MOT.map((k, i) => '<button type="button" data-om="' + k + '">' + esc(X[5 + i]) + '</button>').join('') +
+    '<button type="button" class="opok" data-ov="ok">' + esc(X[10]) + '</button></div>' +
+    '<button type="button" class="opk" data-ov="salta">' + esc(X[11]) + '</button></div>';
+  document.body.appendChild(o);
+  const manda = () => { o.remove(); nota('✓ ' + X[12]);
+    try { fetch(BORDO + '/opinion/' + LOCAL + '?t=' + TOKEN_LETTURA, { method: 'POST', keepalive: true, headers: { 'content-type': 'text/plain' },
+      // uid: uno per invio, coniato qui (il lato che ripete). La colonna di 🚚 è `uuid`: il ripiego di _uuid ('p-…') lì non entra, quindi v4 vero
+      body: JSON.stringify({ action: 'opinionCliente', uid: uidV4(), local: LOCAL, canal: CANAL || 'mesa', destino: MESA || DEPTO || KIOSCO || '', donde: dove, uuid_pago: uuid || '',
+        voto: rv.v, motivos: rv.mot, idioma: S.lang, dispositivo_id: dispositivo(), ts: Date.now() }) }).catch(() => {}); } catch (e) {} };
+  o.addEventListener('click', (ev) => {
+    if (ev.target === o) { o.remove(); return; }
+    const b = ev.target.closest('[data-ov],[data-om]'); if (!b) return;
+    if (b.dataset.om) { b.classList.toggle('on'); const i = rv.mot.indexOf(b.dataset.om); if (i < 0) rv.mot.push(b.dataset.om); else rv.mot.splice(i, 1); return; }
+    const v = b.dataset.ov;
+    if (v === 'salta') { o.remove(); return; }
+    if (v === 'bien') { rv.v = 'bien'; manda(); return; }
+    if (v === 'mal' || v === 'regular') { rv.v = v; o.querySelectorAll('.opf button').forEach((x) => x.classList.toggle('on', x === b)); o.querySelector('.opm').hidden = false; return; }
+    if (v === 'ok') { if (!rv.mot.length) { nota(X[13]); return; } manda(); }
+  });
+}
+(async function avvio() {
+  S.lang = langIniziale(); document.documentElement.lang = S.lang;   // v0.8: la lingua del telefono, o quella scelta col 🌐 l'ultima volta
+  if (!LOCAL) { document.getElementById('z3').innerHTML = '<div class="msg"><b>Escanea el QR de tu mesa</b>Así sabemos dónde estás y qué carta mostrarte.</div>'; return; }
+  try {
+    const [rc, rk, ff, vv] = await Promise.all([
+      leggi(BORDO + '/estado/' + LOCAL + '?seccion=menu_config&t=' + TOKEN_LETTURA),
+      leggi(BORDO + '/carta/' + LOCAL + '?t=' + TOKEN_LETTURA),
+      fotoNostre(),
+      vetrinaLocale(),
+    ]);
+    S.vet = vv;
+    const jc = await rc.json();
+    S.cfg = (jc && jc.datos && jc.datos.datos && jc.datos.datos.config) || {};
+    S.prod = prodotti(await rk.text());
+    S.prod.forEach((p) => { if (ff[p.id]) { p.img = ff[p.id].img; p.fy = ff[p.id].fy; } });
+    await leggiTick();
+    if (S.cfg.brand_name) document.title = S.cfg.brand_name;
+    if (String(S.cfg.tema || '').toLowerCase() === 'claro') document.documentElement.classList.add('claro');   // PINSA: il tema del local
+    const g = gruppi()[0];
+    if (!g) throw new Error('carta vacía');
+    S.fam = g.k; S.cat = g.cats[0];
+    // v0.7: il fondo del locale, l'inizio dallo show, «Otra vez» di questa mesa
+    vestiPelle();   // v0.9: il fondo e la pelle secondo l'ora (prima: un fondo solo)
+    preparaSlides(); S.palco = SLIDES.length > 0; histLeggi(); envLeggi(); esperaLeggi();
+    // PINSA: di ritorno da Fintoc (?ck=<uuid>) si ritrova il carrello e si legge com'è andato il pago
+    if (CHECKOUT && RITORNO_CK) {
+      let mem = null; try { mem = JSON.parse(sessionStorage.getItem(CK_K()) || 'null'); } catch (e) { mem = null; }
+      if (mem && mem.uuid === RITORNO_CK) { S.cart = mem.cart || {}; S.sel = mem.sel || {}; S.ck.uuid = mem.uuid; S.ck.firma = mem.firma || ''; S.ck.propina = mem.propina === undefined || mem.propina === null ? 10 : mem.propina; S.ck.propOtro = mem.propOtro || 0;
+        ['nombre', 'tel', 'email'].forEach((n) => { S.ck[n] = String(mem[n] || ''); }); S.ck.promos = !!mem.promos; }
+      S.palco = false; verificaPago(); return;
+    }
+    pinta();
+  } catch (e) {
+    // nessun ripiego su Google: si dice che cosa manca
+    document.getElementById('z3').innerHTML = '<div class="msg"><b>No pudimos abrir la carta</b>Revisa tu conexión y vuelve a intentar.<br><small>(' + esc(LOCAL) + ' · ' + esc(e.message) + ')</small></div>';
+  }
+})();
+</script>
+</body></html>
