@@ -447,7 +447,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.18</div>
+<div class="ver" id="ver">menu v0.9.19</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1580,7 +1580,11 @@ document.getElementById('app').addEventListener('click', (ev) => {
     // v0.6.0 (Alberto 28-ott): trovato e toccato il prodotto, Buscar si chiude da solo e la barra torna famiglia + categoria,
     // già su quella del prodotto (la striscia sotto la scheda sono i suoi vicini di carta, non i risultati)
     if (S.busca !== null && S.busca !== undefined && p) { S.busca = null; const g = gruppi().find((x) => x.cats.indexOf(p.c) >= 0); if (g) { S.fam = g.k; S.cat = p.c; } if (document.activeElement) document.activeElement.blur(); }
-    S.abierta = k; document.getElementById('z3').scrollTop = 0; }
+    /* v0.9.19 (Alberto in prova: «ho cliccato lo spritz nei destacados e sotto ci sono i para compartir, c'è una logica?»): non c'era.
+       La regola del 28-ott vale da OVUNQUE si apra un prodotto (destacados, Otra vez, Tus pedidos, buscar): la striscia sotto sono i suoi
+       vicini di carta, quindi famiglia e categoria passano alle sue. */
+    if (p && p.c !== S.cat) { const g = gruppi().find((x) => x.cats.indexOf(p.c) >= 0); if (g) { S.fam = g.k; S.cat = p.c; } }
+    S.tus = false; S.abierta = k; document.getElementById('z3').scrollTop = 0; }
   else if (a === 'cierra') { S.abierta = null; }
   // durante i 4 s dell'annullo e il volo il carrello non si tocca: si invia ciò che si vede
   // ＋ su un piatto: con domande aggiunge la SCELTA fatta nella scheda (e solo se completa); senza domande, la riga nuda
