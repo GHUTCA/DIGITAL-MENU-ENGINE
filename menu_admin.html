@@ -881,6 +881,7 @@ async function enterHub(){
   renderHub();
   // Turno in background · aggiorna la card quando arriva
   loadTurno().then(()=>{ if(document.getElementById('viewHub').classList.contains('active')) renderHub(); });
+  turnoAbreAlBordo().then(t=>{ STATE.turnoDelBordo = !!t.chiusa; if(document.getElementById('viewHub').classList.contains('active')) renderHub(); });   // [v3.5.0]
 }
 
 /* Carica lista prodotti dal GAS · gestisce cold start con feedback */
@@ -963,7 +964,7 @@ function renderHub(){
   let html = `<div class="hub-section-label">Hoy en operación</div>`;
   html += card({ icon:iconCompass(), iconClass:'gold', title:'Turno & Plazas',
     meta: STATE.turnoLoaded && !STATE.turno ? 'Abrir turno · código para el equipo' : (STATE.turnoLoaded ? '' : 'Código · plazas · QR de entrada'),
-    metaActive: STATE.turno ? `Código ${STATE.turno.codigo} · turno abierto` : null,
+    metaActive: STATE.turno ? (STATE.turnoDelBordo === false ? `Código ${STATE.turno.codigo} · turno abierto` : 'El turno de hoy está en la app JL') : null,   // [v3.5.0] il codice del GAS solo se il bordo NON ha il turno
     onclick:'openTurnoView()', active:true, hasActive:!!STATE.turno });
   html += card({ icon:iconNoSign(), title:'86 productos', meta:`${c86} activos · tap para abrir`, counter:c86, counterClass:c86>0?'':'zero', onclick:'open86View()', active:true });
   html += card({ icon:iconStar(), title:'Push & Promos', meta:pushed?'':'Gancho 🎣 · destacar producto', metaActive:pushed?`${pushed.nombre} · hasta ${pushed.pushed.until}`:null, counter:pushed?1:0, counterClass:pushed?'':'zero', onclick:'openPushList()', active:true, hasActive:!!pushed });
@@ -1781,7 +1782,7 @@ async function doCerrarTurno(){
 
 /* QR del turno · contiene già il código · il QR stampato non ruota mai, questo sì */
 function showQr(){
-  if(!STATE.turno) return;
+  if(!STATE.turno || STATE.turnoDelBordo !== false) return;   // [v3.5.0] niente QR di un turno del GAS col turno del bordo
   const url = CFG.MESERO_URL + '?c=' + encodeURIComponent(STATE.turno.codigo) + '&l=' + encodeURIComponent(CFG.LOCAL);
   try {
     const qr = qrcode(0, 'M');
