@@ -187,6 +187,28 @@ button{font-family:inherit}
 .rcv-n{text-align:center;font-size:11px;color:#7A6A5C;margin-top:12px}
 .pedtit{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:19px;letter-spacing:-.2px;margin-bottom:9px}
 .pedx{background:transparent;border:0;color:var(--suave);font-size:18px;cursor:pointer}
+.pedov{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:flex-end}
+.pedov[hidden]{display:none}
+.pedbg{flex:1 1 auto;background:rgba(8,6,4,.58);cursor:pointer}
+.pedov .ped{flex:0 0 auto;min-height:0;max-height:86%;overflow-y:auto;background:var(--sup);border-top:1px solid var(--linea2);border-radius:22px 22px 0 0;
+  padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -14px 40px rgba(0,0,0,.45)}
+.pedov .lin{gap:12px;padding:10px 0}
+.pedov .lin img,.pedov .lin .lth{width:68px;height:68px;border-radius:12px}
+.pedov .lin .lnm{font-size:15.5px}
+.pedov .lin .lsc{font-size:12px}
+.pedov .lin .lq{gap:9px;font-size:16px;font-weight:800}
+.pedov .lin .lq i{width:36px;height:36px;border-radius:10px;font-size:18px}
+.pedov .lin .lpz{font-size:16px}
+.vab{padding:10px 0 4px}
+.vab-t{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--oro);margin-bottom:7px}
+.vab-l{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.vab-l::-webkit-scrollbar{height:0}
+.vab-c{flex:0 0 auto;display:flex;align-items:center;gap:8px;max-width:220px;padding:5px 9px 5px 5px;border-radius:12px;border:1px solid var(--linea2);background:var(--card);color:var(--txt);font-family:inherit;text-align:left;cursor:pointer}
+.vab-c img{width:42px;height:42px;border-radius:9px;object-fit:cover}
+.vab-c span{min-width:0;display:flex;flex-direction:column;line-height:1.15}
+.vab-c b{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vab-c i{font-style:normal;font-size:12px;font-weight:800;color:var(--oro)}
+.vab-c em{font-style:normal;font-weight:800;color:var(--ok-chiaro);font-size:20px}
 .lin{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--linea)}
 .lin img,.lin .lth{width:38px;height:38px;border-radius:8px;object-fit:cover;background:var(--sup);flex:0 0 auto}
 .lin .lnm{flex:1;min-width:0;font-size:13px;font-weight:700}
@@ -410,7 +432,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.12</div>
+<div class="ver" id="ver">menu v0.9.13</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -794,7 +816,6 @@ function z3() {
   if (S.tus) return tusHTML();
   if (S.campana) return campanaHTML();
   if (S.dono) return donoHTML();
-  if (S.pedido) return pedidoHTML();
   if (inPalco()) return palcoHTML();
   if (S.abierta) {
     const p = S.prod.find((x) => x.id === S.abierta);
@@ -827,6 +848,19 @@ function seguirCard(prods) {
   const desde = Math.min.apply(null, pr.map((p) => prezzoOra(p).v));
   return '<button class="sigue2" data-a="seguir"><span class="s2f">' + pr.slice(0, 3).map((p) => '<img src="' + esc(p.img) + '" alt="">').join('') + '</span>' +
     '<span class="s2t"><b>' + esc(d.txt) + '</b><small>' + esc(pr.slice(0, 3).map((p) => p.n).join(', ')) + (pr.length > 3 ? ' y más' : '') + ' · desde ' + clp(desde) + '</small></span><span class="s2v">Ver ›</span></button>';
+}
+/* v0.9.13 (Alberto in prova: «questa scheda è l'unica che non mi convince»). Misura del 2-nov (forense del bordo, 30 pedidos, 1-nov 22:08 →
+   2-nov 20:47): un pedido del QR ha 1,1 righe in media (12 su 14 con UNA riga), uno del mesero 1,75. Il carrello è quasi sempre una riga sola:
+   ⇒ un pannello basso sopra la carta (che resta visibile, oscurata; un tocco fuori chiude), la riga grande, e sotto «Va bien con…»: 2-3
+   prodotti da aggiungere con un tocco, finché il carrello ha al massimo 2 righe. Gli abbinamenti per ora sono la regola di dopoQuesto
+   (l'altra famiglia); quelli veri li sceglierà il cervello. */
+function vaBienHTML() {
+  const R = righe(); if (!R.length || R.length > 2 || S.inviando || S.inviaStato) return '';
+  const d = dopoQuesto(R.map((r) => r.p)); if (!d) return '';
+  const pr = S.prod.filter((p) => p.c === d.cat && p.img && visibile(p) && ordinabile(p) && !domande(p).length && !S.cart[chiave(p)]).slice(0, 3);
+  if (!pr.length) return '';
+  return '<div class="vab"><div class="vab-t">' + T('Va bien con') + '…</div><div class="vab-l">' + pr.map((p) => '<button class="vab-c" data-a="mas" data-k="' + esc(p.id) + '">' +
+    '<img src="' + esc(p.img) + '" alt=""><span><b>' + esc(p.n) + '</b><i>' + clp(prezzoOra(p).v) + '</i></span><em>＋</em></button>').join('') + '</div></div>';
 }
 function pedidoHTML() {
   const ks = Object.keys(S.cart);
@@ -862,7 +896,7 @@ function pedidoHTML() {
   else bot = (S.errore ? '<div class="avv">' + esc(S.errore) + '</div>' : '') +
     '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : T('ENVIAR PEDIDO') + ' 🛎') + '</b><span>' + t.n + ' ' + T(t.n > 1 ? 'productos' : 'producto') + ' · ' + clp(t.s) + ' · ' + T(adove(righe().map((r) => r.p))) + '</span></button>';
   return '<div class="ped"><div class="pedtit">' + T('Tu pedido') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
-    (ks.length ? lineeH + '<div class="tot"><span>' + T('Total') + '</span><span>' + clp(t.s) + '</span></div>' + bot +
+    (ks.length ? lineeH + vaBienHTML() + '<div class="tot"><span>' + T('Total') + '</span><span>' + clp(t.s) + '</span></div>' + bot +
       (S.inviando || S.inviaStato || S.ck.stato ? '' : '<button class="segui" data-a="chiudiPed">' + T('Seguir pidiendo') + '</button>')
       : '<div class="vuoto">' + T('Todavía no has pedido nada.') + '</div>') + '</div>';
 }
@@ -1121,7 +1155,7 @@ function pinta() {
   const gv = gruppi();
   if (S.cat && !gv.some((g) => g.cats.indexOf(S.cat) >= 0)) { const g = gv.find((x) => x.k === S.fam) || gv[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; } }
   document.getElementById('z1').innerHTML = z1();
-  const z = document.getElementById('z3'), pal = inPalco(), mVec = z.querySelector('.mini'), slVec = mVec ? mVec.scrollLeft : null; z.classList.remove('basso'); z.classList.toggle('aperta', (!!S.abierta && !S.pedido) || pal);
+  const z = document.getElementById('z3'), pal = inPalco(), mVec = z.querySelector('.mini'), slVec = mVec ? mVec.scrollLeft : null; z.classList.remove('basso'); z.classList.toggle('aperta', !!S.abierta || pal);   // v0.9.13: col carrello sopra, la scheda aperta resta disegnata sotto
   // v0.7: sul palco si ridisegna SOLO la striscia dei destacados (un ＋, il tick dei 60"): rifare il palco ricomincerebbe il video
   if (pal && z.querySelector('.pal-split') && z.dataset.pk === palKey()) { const ds = z.querySelector('.destrip'); if (ds) { const sl = ds.scrollLeft; ds.innerHTML = destCards(); ds.scrollLeft = sl; } }
   else { z.innerHTML = z3(); z.dataset.pk = pal ? palKey() : ''; if (pal) palcoGira(); else palcoStop(); }
@@ -1149,6 +1183,12 @@ function pinta() {
   let giu = document.getElementById('giu'); if (!giu) { giu = document.createElement('div'); giu.id = 'giu'; giu.className = 'giu'; giu.innerHTML = '<span>⌄</span>'; z.parentNode.appendChild(giu); }
   const giuOk = () => { giu.hidden = !(sg && !S.abierta && !S.pedido && !pal && z.scrollHeight - z.scrollTop - z.clientHeight > 40); };
   z.onscroll = giuOk; giuOk();
+  // v0.9.13 · il carrello come pannello sopra la carta (vedi vaBienHTML): lo sfondo è un elemento a parte, così un tocco DENTRO il pannello
+  // non risale fino al «chiudi» dello sfondo
+  let ov = document.getElementById('pedov');
+  if (S.pedido) { if (!ov) { ov = document.createElement('div'); ov.id = 'pedov'; ov.className = 'pedov'; document.getElementById('app').appendChild(ov); }
+    ov.innerHTML = '<div class="pedbg" data-a="chiudiPed"></div>' + pedidoHTML(); ov.hidden = false; }
+  else if (ov) { ov.hidden = true; ov.innerHTML = ''; }
   const pieno = S.pedido || S.campana || !!S.dono || S.lingue || S.dj || S.cuenta;
   // mentre si scrive nel campo di Buscar la barra non si ridisegna: perderebbe il cursore e la tastiera
   const b = document.getElementById('z2'); b.hidden = pieno; if (!pieno && !(document.activeElement && document.activeElement.classList.contains('bin'))) b.innerHTML = z2();
