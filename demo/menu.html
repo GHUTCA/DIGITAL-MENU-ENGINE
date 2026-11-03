@@ -204,6 +204,7 @@ button{font-family:inherit}
 .pedov .envG b{font-size:19px}
 .pedov .envG span{font-size:13px;opacity:.85;margin-top:2px}
 .pedov .segui{margin:0;padding:10px 0 2px}
+.envinfo{margin-top:8px;text-align:center;font-size:12px;line-height:1.35;color:var(--suave);text-wrap:balance}
 .pedov .lin img,.pedov .lin .lth{width:68px;height:68px;border-radius:12px}
 .pedov .lin .lnm{font-size:15.5px}
 .pedov .lin .lsc{font-size:12px}
@@ -444,7 +445,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.16 · DEMO 10</div>
+<div class="ver" id="ver">menu v0.9.17 · DEMO 11</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -907,7 +908,9 @@ function pedidoHTML() {
       '<i class="barra" style="--da:' + (rem / ATTESA_INVIO * 100).toFixed(1) + '%;animation-duration:' + rem + 'ms"></i></button>'; }
   else if (S.inviaStato === 'volando') bot = '<button class="envG hold"><b>' + T('Enviando…') + '</b><span>' + T('no cierres esta pantalla') + '</span></button>';
   else bot = (S.errore ? '<div class="avv">' + esc(S.errore) + '</div>' : '') +
-    '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : T('ENVIAR PEDIDO') + ' · ' + clp(t.s)) + '</b><span>' + t.n + ' ' + T(t.n > 1 ? 'productos' : 'producto') + ' · ' + T(adove(righe().map((r) => r.p))) + '</span></button>';
+    '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : T('ENVIAR PEDIDO') + ' · ' + clp(t.s)) + '</b><span>' + t.n + ' ' + T(t.n > 1 ? 'productos' : 'producto') + ' · ' + T(adove(righe().map((r) => r.p))) + '</span></button>' +
+    /* v0.9.17 (Alberto: «una frase che chiarisca che se clicco non posso poi cambiare idea»): sotto ENVIAR, sempre, prima del tocco */
+    (S.errore ? '' : '<div class="envinfo">🔒 ' + esc((ENVINFO[S.lang] || ENVINFO.es).replace('{n}', Math.round(ATTESA_INVIO / 1000))) + '</div>');
   return '<div class="ped"><div class="pedtit">' + T('Tu pedido') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
     (ks.length ? lineeH + '<div class="tot"><span>' + T('Total') + '</span><span>' + clp(t.s) + '</span></div>' + bot +
       (S.inviando || S.inviaStato || S.ck.stato ? '' : '<button class="segui" data-a="chiudiPed">' + T('Seguir pidiendo') + '</button>')
@@ -1223,6 +1226,11 @@ function nota(txt) { let n = document.getElementById('nota'); if (!n) { n = docu
    (2 s / 5 s) · ⓓ 🚫 NESSUN ripiego su Google: se il bordo non risponde si dice, il carrello resta e si riprova.
    ⚠️ debito dichiarato: niente coda offline (localStorage) come il vivo — se la pagina muore a metà, il cliente rimanda. */
 const ATTESA_INVIO = 4000;
+// v0.9.17 · la frase sotto ENVIAR, intera per lingua (le parole tradotte una per una davano «pasa to the kitchen»)
+const ENVINFO = { es: 'Una vez enviado ya no se puede cambiar · tienes {n} segundos para cancelar', pt: 'Depois de enviado não dá para mudar · você tem {n} segundos para cancelar',
+  en: 'Once sent it can’t be changed · you have {n} seconds to cancel', it: 'Una volta inviato non si può cambiare · hai {n} secondi per annullare',
+  zh: '发送后无法更改 · 你有 {n} 秒可以取消', ko: '보낸 후에는 변경할 수 없어요 · {n}초 안에 취소할 수 있어요', de: 'Nach dem Senden nicht mehr änderbar · du hast {n} Sekunden zum Abbrechen',
+  fr: 'Une fois envoyé, impossible de modifier · tu as {n} secondes pour annuler', ja: '送信後は変更できません · {n}秒以内ならキャンセルできます' };
 let INV = null, INV_TICK = null;
 /* v0.9.5 (giallo ⓑ di 💵 EL GIRO su e802a35857): il ripiego non è più «p-…» ma un uuid v4 vero (getRandomValues). Il ck del checkout è
    l'uuid_pago della voce del cliente, e una colonna `uuid` rifiutava in silenzio la voce dei telefoni senza randomUUID. «p-…» resta
