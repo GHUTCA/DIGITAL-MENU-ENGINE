@@ -377,7 +377,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v3.4.0</div>
+    <div class="hub-footer-version" id="ver">menu_admin v3.5.0</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -712,6 +712,29 @@ async function turnoPortaGasChiusa() {
     const pg = /"turno_pg_on"\s*:\s*"([^"]*)"/.exec(s);
     return { chiusa: turnoEscribeCopre(esc ? esc[1] : '0') && !!pg && pg[1] === '1' };
   } catch (e) { clearTimeout(tid); return { chiusa: true, sinSalud: true }; }
+}
+/* ═══ v3.5.0 · [03-nov · ⚙️ ARQ V32 · 🎛 V33 «DUE MESEROS HANNO UN CODICE CHE IL BORDO NON CONOSCE»] IL TURNO SI APRE SOLO DALL'APP DEL JL ═══
+   Alle 11:03 di mar 3 il JL ha aperto il turno da QUI (dritto al GAS, codice 3180) mentre il turno del giorno era già del bordo (2365):
+   i meseros entrati col 3180 hanno avuto i pedidos fermi nel telefono (il bordo rifiuta `gate_no_match`). Stessa porta di v3.3.1 per le
+   plazas, letta da `/salud` `turno_abre_borde_on` (la leva del bordo che apre il turno, elenco di locali, stessa semantica di `turnoEscribeCopre`):
+   · quando copre il locale il pannello NON chiama `abrirTurno` del GAS e porta all'app del JL;
+   · e non mostra il codice né il QR di un turno del GAS: un codice mostrato è un codice che qualcuno detta a voce. «Cerrar turno» resta (serve a chiudere il vecchio);
+   · 🔴 senza `/salud` la porta resta CHIUSA, come per le plazas: la strada giusta (l'app del JL) esiste sempre. `?borde=0` non la riapre.
+   · ritorno: il blob di menu_admin v3.4.0 (origin/main a598842). */
+async function turnoAbreAlBordo() {
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), 3000);
+  try {
+    const r = await fetch(BORDE_86 + '/salud', { signal: ctrl.signal, cache: 'no-store' });
+    clearTimeout(tid);
+    const s = JSON.stringify((await r.json()) || {});
+    const ab = /"turno_abre_borde_on"\s*:\s*"([^"]*)"/.exec(s);
+    return { chiusa: turnoEscribeCopre(ab ? ab[1] : '0') };
+  } catch (e) { clearTimeout(tid); return { chiusa: true, sinSalud: true }; }
+}
+function avisoTurnoEnAppJl(t) {
+  const msg = (t && t.sinSalud ? 'No pude verificar el sistema. ' : '') + 'El turno se abre en la app JL: ahí está el código de hoy.\n\n¿Abrirla ahora?';
+  if (window.confirm(msg)) location.href = APP_JL_URL;
 }
 function avisoPlazasEnAppJl(t) {
   const msg = (t && t.sinSalud ? 'No pude verificar el sistema. ' : '') + 'Las plazas se asignan en la app JL.\n\n¿Abrirla ahora?';
@@ -1525,6 +1548,7 @@ function openTurnoView(){
   showView('viewTurno');
   renderTurno();
   loadTurno().then(ok=>{ if(document.getElementById('viewTurno').classList.contains('active')) renderTurno(!ok); });
+  turnoAbreAlBordo().then(t=>{ STATE.turnoDelBordo = !!t.chiusa; if(document.getElementById('viewTurno').classList.contains('active')) renderTurno(); });   // [v3.5.0]
 }
 function backToTurno(){ showView('viewTurno'); renderTurno(); }
 
@@ -1540,7 +1564,15 @@ function renderTurno(loadFailed){
   let html = '';
 
   // Turno
-  if(STATE.turno){
+  if(STATE.turno && STATE.turnoDelBordo !== false){
+    /* [v3.5.0] il turno del giorno è del bordo (o non lo so ancora): il codice del GAS NON si mostra. Resta «Cerrar turno» per il vecchio. */
+    html += `<div class="turno-card abierto">
+      <div><div class="turno-cod-label">El turno de hoy está en la app JL</div><div class="turno-card-info">El código de este panel ya no vale: da a los meseros solo el de la app JL.</div></div>
+      <div class="turno-actions">
+        <button class="turno-btn-sm qr" onclick="location.href=APP_JL_URL">Abrir app JL</button>
+        <button class="turno-btn-sm" id="btnCerrarTurno" onclick="doCerrarTurno()">Cerrar turno</button>
+      </div></div>`;
+  } else if(STATE.turno){
     html += `<div class="turno-card abierto">
       <div><div class="turno-cod-label">Código del turno</div><div class="turno-cod">${esc(STATE.turno.codigo.split('').join(' '))}</div></div>
       <div class="turno-card-info">meseros entran con este código<br>vence al cierre (o 06:00)</div>
@@ -1696,6 +1728,8 @@ async function doAbrirTurno(){
   const btn = document.getElementById('btnAbrirTurno');
   if(btn){ btn.disabled = true; btn.textContent = 'Abriendo…'; }
   try {
+    const tA = await turnoAbreAlBordo();   // [v3.5.0] il turno del bordo: niente abrirTurno sul GAS
+    if (tA.chiusa) { if(btn){ btn.disabled = false; btn.textContent = 'Abrir turno · generar código'; } avisoTurnoEnAppJl(tA); return; }
     const r = await withRetry(() => gasPost('abrirTurno', { pin: lastSavedPin }), 'abrirTurno');
     if (r && r.ok) {
       STATE.turno = { codigo: r.codigo, abierto_by: r.abierto_by, desde_iso: r.desde_iso };
