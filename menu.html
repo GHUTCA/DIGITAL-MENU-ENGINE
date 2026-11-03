@@ -59,6 +59,8 @@ button{font-family:inherit}
 /* v0.9.9 (Alberto in prova: «il numero di mesa è insignificante, e il BKS anche»): il locale come marca (Fraunces, spaziato, come la .lg del mockup)
    e il posto come una pillola leggibile. Senza posto (solo vetrina) la riga resta la frase piccola di prima. */
 .chi b.mrc{font-family:Fraunces,Georgia,serif;font-weight:400;font-size:20px;letter-spacing:3px;line-height:1.05}
+.chi em.ati{display:inline-block;margin-left:7px;font-style:normal;font-size:11.5px;color:var(--suave);white-space:nowrap}
+.chi em.ati b{color:var(--txt)}
 .chi span.pst{display:inline-block;margin-top:4px;font-size:12px;font-weight:800;color:var(--txt);border:1px solid var(--linea2);border-radius:99px;padding:1px 9px;letter-spacing:.05em;text-transform:uppercase;max-width:100%}
 .chi span{display:block;font-size:11px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .z3{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
@@ -368,6 +370,7 @@ button{font-family:inherit}
 .opq{position:fixed;inset:0;z-index:40;background:rgba(8,6,4,.62);display:flex;align-items:flex-end;justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px))}
 .opb{width:100%;max-width:520px;background:var(--sup);color:var(--txt);border:1px solid var(--linea2);border-radius:22px;padding:18px 14px 8px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.45)}
 .opb .opt{font-size:17px;font-weight:800;margin-bottom:14px;text-wrap:balance}
+.opb .opt2{font-size:15px;margin:14px 0 10px}
 .opb .opf{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .opb .opf button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 0;border-radius:16px;border:1px solid var(--linea2);background:var(--card);color:var(--txt);font-family:inherit;font-size:30px;cursor:pointer}
 .opb .opf button i{font-style:normal;font-size:12.5px;font-weight:700;color:var(--suave)}
@@ -432,7 +435,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.13</div>
+<div class="ver" id="ver">menu v0.9.14</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -718,7 +721,8 @@ function z1() {
   const casa = inPalco() ? '' : '<button class="casa" data-a="inicio" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>';
   // v0.8 · la riga intera del mockup v1.1: 🌐 sempre · LIVE solo a show acceso · Pagar (l'unico pieno) dopo il primo invio, con l'importo
   const cons = consumoTel();
-  return casa + '<div class="chi"><b class="mrc">' + esc(brand) + '</b><span' + (CANAL ? ' class="pst"' : '') + '>' + sotto + '</span></div>' +
+  const ati = CANAL === '' || !MESA || !S.atiende ? '' : '<em class="ati">' + T('te atiende') + ' <b>' + esc(S.atiende) + '</b></em>';
+  return casa + '<div class="chi"><b class="mrc">' + esc(brand) + '</b><span' + (CANAL ? ' class="pst"' : '') + '>' + sotto + '</span>' + ati + '</div>' +
     '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
     (showAcceso() ? '<button class="live" data-a="djApri"><i></i>LIVE</button>' : '') +
     (MESA && cons > 0 ? '<button class="paga1" data-a="cuentaApri">' + esc(T('Pagar')) + ' <b>' + clp(cons) + '</b></button>' : '');
@@ -1078,6 +1082,10 @@ function showAcceso() {
    Il menù sa ciò che è PARTITO da questo telefono (i pedidos confermati dal bordo): l'importo è quello, e la schermata lo dice.
    Il conto intero della mesa e il pago dal telefono (Fintoc) sono il pezzo di domani (Alberto 29-ott); oggi da qui si chiede la máquina. ═══ */
 const ENV_K = () => 'pinsita_env_' + LOCAL + '_' + MESA;
+const ATI_K = () => 'pinsita_atiende_' + LOCAL + '_' + MESA;
+function atiendeSalva(r) { const n = r && typeof r.atiende === 'string' ? r.atiende.trim().split(/\s+/)[0].slice(0, 24) : ''; if (!n || n === S.atiende) return;
+  S.atiende = n; try { sessionStorage.setItem(ATI_K(), JSON.stringify({ n, g: giornoOp(Date.now()) })); } catch (e) { /* solo memoria */ } }
+function atiendeLeggi() { try { const v = JSON.parse(sessionStorage.getItem(ATI_K()) || 'null'); S.atiende = v && v.g === giornoOp(Date.now()) ? String(v.n || '') : ''; } catch (e) { S.atiende = ''; } }
 function envLeggi() { try { const v = JSON.parse(sessionStorage.getItem(ENV_K()) || '[]'); S.enviados = Array.isArray(v) ? v : []; } catch (e) { S.enviados = []; } }
 function envAggiungi(rr) { S.enviados.push({ ts: Date.now(), righe: rr }); try { sessionStorage.setItem(ENV_K(), JSON.stringify(S.enviados)); } catch (e) { /* solo memoria */ } }
 /* v0.8.1 (giallo di 💵 EL GIRO: «il conto del telefono non ha un giorno»): conta solo gli invii del giorno OPERATIVO di oggi (taglio 06:00,
@@ -1268,7 +1276,7 @@ async function esperaUno(e) {
     { headers: { 'X-Borde-Token': TOKEN_LETTURA }, signal: ctrl.signal })).json(); } catch (x) { r = null; } finally { clearTimeout(tid); }
   if (espere().indexOf(e) < 0) return;   // un altro giro ha già chiuso
   if (r && r.need === 'mesa_rechazada') return esperaFine(e, r.motivo === 'sin_respuesta' ? 'sin_respuesta' : 'rechazada');
-  if (r && r.ok === true && r.estado && r.estado !== 'por_confirmar') return esperaFine(e, 'ok');
+  if (r && r.ok === true && r.estado && r.estado !== 'por_confirmar') { atiendeSalva(r); return esperaFine(e, 'ok'); }   // v0.9.14: chi ha confermato la mesa
   if (r && r.error === 'ruta_apagada') return esperaFine(e, 'ciego');
 }
 async function esperaGiro() {
@@ -1294,6 +1302,7 @@ async function inviaOra(confirmado) {
   }
   S.inviaStato = '';
   if (r && r.ok === true) {
+    atiendeSalva(r);
     S.listo = { righe: righe().map((r) => ({ nome: nomeRiga(r), q: r.q, p: r.p })), dove: adove(righe().map((r) => r.p)) };
     histAggiungi(Object.keys(S.cart));
     const rr = righe().map((x) => ({ id: x.p.id, nome: nomeRiga(x), q: x.q, pr: prezzoRiga(x) }));
@@ -1673,20 +1682,22 @@ function opinionApri(dove, uuid) {
     '<div class="opf"><button type="button" data-ov="mal">😞<i>' + esc(X[1]) + '</i></button><button type="button" data-ov="regular">😐<i>' + esc(X[2]) + '</i></button><button type="button" data-ov="bien">🙂<i>' + esc(X[3]) + '</i></button></div>' +
     '<div class="opm" hidden><div class="opq2">' + esc(X[4]) + '</div>' + OPI_MOT.map((k, i) => '<button type="button" data-om="' + k + '">' + esc(X[5 + i]) + '</button>').join('') +
     '<button type="button" class="opok" data-ov="ok">' + esc(X[10]) + '</button></div>' +
+    (S.atiende ? '<div class="opt opt2">' + esc(T('¿Y cómo te atendió')) + ' ' + esc(S.atiende) + '?</div><div class="opf opf2"><button type="button" data-ovm="mal">😞<i>' + esc(X[1]) + '</i></button><button type="button" data-ovm="regular">😐<i>' + esc(X[2]) + '</i></button><button type="button" data-ovm="bien">🙂<i>' + esc(X[3]) + '</i></button></div>' : '') +
     '<button type="button" class="opk" data-ov="salta">' + esc(X[11]) + '</button></div>';
   document.body.appendChild(o);
   const manda = () => { o.remove(); nota('✓ ' + X[12]);
     try { fetch(BORDO + '/opinion/' + LOCAL + '?t=' + TOKEN_LETTURA, { method: 'POST', keepalive: true, headers: { 'content-type': 'text/plain' },
       // uid: uno per invio, coniato qui (il lato che ripete). La colonna di 🚚 è `uuid`: il ripiego di _uuid ('p-…') lì non entra, quindi v4 vero
       body: JSON.stringify({ action: 'opinionCliente', uid: uidV4(), local: LOCAL, canal: CANAL || 'mesa', destino: MESA || DEPTO || KIOSCO || '', donde: dove, uuid_pago: uuid || '',
-        voto: rv.v, motivos: rv.mot, idioma: S.lang, dispositivo_id: dispositivo(), ts: Date.now() }) }).catch(() => {}); } catch (e) {} };
+        voto: rv.v, motivos: rv.mot, mesero: S.atiende || '', voto_mesero: rv.vm || null, idioma: S.lang, dispositivo_id: dispositivo(), ts: Date.now() }) }).catch(() => {}); } catch (e) {} };
   o.addEventListener('click', (ev) => {
     if (ev.target === o) { o.remove(); return; }
-    const b = ev.target.closest('[data-ov],[data-om]'); if (!b) return;
+    const b = ev.target.closest('[data-ov],[data-om],[data-ovm]'); if (!b) return;
+    if (b.dataset.ovm) { rv.vm = b.dataset.ovm; o.querySelectorAll('.opf2 button').forEach((x) => x.classList.toggle('on', x === b)); if (rv.v === 'bien') manda(); return; }
     if (b.dataset.om) { b.classList.toggle('on'); const i = rv.mot.indexOf(b.dataset.om); if (i < 0) rv.mot.push(b.dataset.om); else rv.mot.splice(i, 1); return; }
     const v = b.dataset.ov;
     if (v === 'salta') { o.remove(); return; }
-    if (v === 'bien') { rv.v = 'bien'; manda(); return; }
+    if (v === 'bien') { rv.v = 'bien'; if (S.atiende && !rv.vm) { o.querySelectorAll('.opf:not(.opf2) button').forEach((x) => x.classList.toggle('on', x === b)); return; } manda(); return; }
     if (v === 'mal' || v === 'regular') { rv.v = v; o.querySelectorAll('.opf button').forEach((x) => x.classList.toggle('on', x === b)); o.querySelector('.opm').hidden = false; return; }
     if (v === 'ok') { if (!rv.mot.length) { nota(X[13]); return; } manda(); }
   });
@@ -1714,7 +1725,7 @@ function opinionApri(dove, uuid) {
     S.fam = g.k; S.cat = g.cats[0];
     // v0.7: il fondo del locale, l'inizio dallo show, «Otra vez» di questa mesa
     vestiPelle();   // v0.9: il fondo e la pelle secondo l'ora (prima: un fondo solo)
-    preparaSlides(); S.palco = SLIDES.length > 0; histLeggi(); envLeggi(); esperaLeggi();
+    preparaSlides(); S.palco = SLIDES.length > 0; histLeggi(); envLeggi(); esperaLeggi(); atiendeLeggi();
     // PINSA: di ritorno da Fintoc (?ck=<uuid>) si ritrova il carrello e si legge com'è andato il pago
     if (CHECKOUT && RITORNO_CK) {
       let mem = null; try { mem = JSON.parse(sessionStorage.getItem(CK_K()) || 'null'); } catch (e) { mem = null; }
