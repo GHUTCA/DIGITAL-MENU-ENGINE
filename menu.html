@@ -365,6 +365,10 @@ button{font-family:inherit}
 /* ═══ v0.7 · la pillola che chiama (mockup 22-ott: «non ho saputo dove cliccare per enviar») ═══ */
 .cartp{position:relative}
 .cartp.llama{animation:llamaPulse 1.4s ease-out infinite}
+.cartbar{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:46px;margin:0 0 7px;padding:0 14px;border:0;border-radius:14px;background:var(--ok);color:var(--ok-txt);font-family:inherit;cursor:pointer}
+.cartbar span{font-size:12.5px;font-weight:700;opacity:.85;white-space:nowrap}
+.cartbar b{font-size:14.5px;font-weight:800;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cartbar.llama{animation:llamaPulse 1.4s ease-out infinite}
 /* il fumetto non sta DENTRO la riga (che scorre di lato e lo taglierebbe): è una riga sua, sopra la barra, allineata a destra */
 .z2 .llamah{position:absolute;right:10px;bottom:calc(100% + 6px);white-space:nowrap;background:var(--oro);color:#1a1206;font-size:12px;font-weight:800;border-radius:9px;padding:6px 10px;box-shadow:0 4px 14px rgba(0,0,0,.5);pointer-events:none}
 .z2{position:relative}
@@ -450,7 +454,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.20</div>
+<div class="ver" id="ver">menu v0.9.21</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1164,10 +1168,9 @@ function campanaHTML() {
 function totale() { let n = 0, s = 0; for (const r of righe()) { n += r.q; s += r.q * prezzoRiga(r); } return { n, s }; }
 function z2() {
   const G = gruppi(); const f = G.find((x) => x.k === S.fam) || G[0]; const t = totale();
-  // con qualcosa nel carrello le famiglie restano solo emoji: la porta del pedido deve stare intera nella riga (mockup v1.x)
-  return '<div class="r">' + G.map((x) => '<button class="fam' + (x.k === f.k ? ' on' : '') + '" data-a="fam" data-k="' + esc(x.k) + '" title="' + esc(nomeGruppo(x.k)) + '">' + x.emoji + (t.n ? '' : ' ' + esc(nomeGruppo(x.k))) + '</button>').join('') +
-    (t.n ? '<button class="cartp' + (S.llama ? ' llama' : '') + '" data-a="verPed">' + t.n + ' · ' + T(CHECKOUT ? 'Pagar' : 'ENVIAR') + ' · ' + clp(t.s) + ' ›</button>' : '') + '</div>' +
-    (t.n && S.llama ? '<div class="llamah">¿Listo? Toca para enviar tu pedido</div>' : '') +
+  const barra = !t.n ? '' : '<button class="cartbar' + (S.llama ? ' llama' : '') + '" data-a="verPed"><span>' + t.n + ' ' + T(t.n > 1 ? 'productos' : 'producto') + '</span>' +
+    '<b>' + (S.llama ? T('¿Listo? Toca para enviar') : T(CHECKOUT ? 'Pagar' : 'VER Y ENVIAR')) + ' · ' + clp(t.s) + ' ›</b></button>';
+  return barra + '<div class="r">' + G.map((x) => '<button class="fam' + (x.k === f.k ? ' on' : '') + '" data-a="fam" data-k="' + esc(x.k) + '" title="' + esc(nomeGruppo(x.k)) + '">' + x.emoji + ' ' + esc(nomeGruppo(x.k)) + '</button>').join('') + '</div>' +
     (S.busca !== null && S.busca !== undefined
       ? '<div class="r rbusca"><span class="lup">🔍</span><input class="bin" type="search" enterkeyhint="search" autocomplete="off" placeholder="escribe lo que buscas…" value="' + esc(S.busca) + '" data-a="binput"><button class="bx" data-a="cierraBusca" aria-label="Cerrar búsqueda">✕</button></div>'
       : '<div class="r">' + (envioOn() ? '<button class="bell" data-a="campana" aria-label="Llamar al mesero">🔔</button>' : '') + f.cats.map((c) => '<button class="cat' + (c === S.cat ? ' on' : '') + '" data-a="cat" data-k="' + esc(c) + '">' + esc(nomeCat(c)) + '</button>').join('') +
