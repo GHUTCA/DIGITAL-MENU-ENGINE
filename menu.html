@@ -203,7 +203,10 @@ button{font-family:inherit}
 .pedov .envG b{font-size:19px}
 .pedov .envG span{font-size:13px;opacity:.85;margin-top:2px}
 .pedov .segui{margin:0;padding:10px 0 2px}
-.envinfo{margin-top:8px;text-align:center;font-size:12px;line-height:1.35;color:var(--suave);text-wrap:balance}
+.envinfo{margin-top:12px;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;border:1px solid var(--oro);background:var(--card);color:var(--txt);line-height:1.3}
+.envinfo i{font-style:normal;font-size:18px}
+.envinfo b{display:block;font-size:14px;font-weight:700}
+.envinfo small{display:block;font-size:13px;color:var(--oro);font-weight:700;margin-top:1px}
 .pedov .lin img,.pedov .lin .lth{width:68px;height:68px;border-radius:12px}
 .pedov .lin .lnm{font-size:15.5px}
 .pedov .lin .lsc{font-size:12px}
@@ -444,7 +447,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.17</div>
+<div class="ver" id="ver">menu v0.9.18</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -909,7 +912,8 @@ function pedidoHTML() {
   else bot = (S.errore ? '<div class="avv">' + esc(S.errore) + '</div>' : '') +
     '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : T('ENVIAR PEDIDO') + ' · ' + clp(t.s)) + '</b><span>' + t.n + ' ' + T(t.n > 1 ? 'productos' : 'producto') + ' · ' + T(adove(righe().map((r) => r.p))) + '</span></button>' +
     /* v0.9.17 (Alberto: «una frase che chiarisca che se clicco non posso poi cambiare idea»): sotto ENVIAR, sempre, prima del tocco */
-    (S.errore ? '' : '<div class="envinfo">🔒 ' + esc((ENVINFO[S.lang] || ENVINFO.es).replace('{n}', Math.round(ATTESA_INVIO / 1000))) + '</div>');
+    (S.errore ? '' : (() => { const p = (ENVINFO[S.lang] || ENVINFO.es).replace('{n}', Math.round(ATTESA_INVIO / 1000)).split(' · ');
+      return '<div class="envinfo"><i>🔒</i><span><b>' + esc(p[0]) + '</b>' + (p[1] ? '<small>' + esc(p[1]) + '</small>' : '') + '</span></div>'; })());   // v0.9.18: leggibile (Alberto), sotto ENVIAR e più piccolo di lui
   return '<div class="ped"><div class="pedtit">' + T('Tu pedido') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
     (ks.length ? lineeH + '<div class="tot"><span>' + T('Total') + '</span><span>' + clp(t.s) + '</span></div>' + bot +
       (S.inviando || S.inviaStato || S.ck.stato ? '' : '<button class="segui" data-a="chiudiPed">' + T('Seguir pidiendo') + '</button>')
