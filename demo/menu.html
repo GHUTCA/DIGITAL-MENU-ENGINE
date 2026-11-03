@@ -190,13 +190,16 @@ button{font-family:inherit}
 .rcv-n{text-align:center;font-size:11px;color:#7A6A5C;margin-top:12px}
 .pedtit{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:19px;letter-spacing:-.2px;margin-bottom:9px}
 .pedx{background:transparent;border:0;color:var(--suave);font-size:18px;cursor:pointer}
-.pedov{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:flex-end}
+.app>.pedov{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:flex-end}   /* v0.9.20: «.app>*{position:relative}» lo rimetteva nel flusso, sotto la carta: con la stessa forma del selettore vince questa */
 .pedov[hidden]{display:none}
 .pedbg{flex:1 1 auto;background:rgba(8,6,4,.58);cursor:pointer}
-.pedov .ped{flex:0 0 auto;min-height:0;max-height:86%;overflow-y:auto;justify-content:flex-start;   /* v0.9.15: in fondo il contenuto usciva dal bordo alto quando lo spazio è poco */
+.pedov .ped{flex:0 0 auto;min-height:0;max-height:88%;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-start;   /* v0.9.15: in fondo il contenuto usciva dal bordo alto quando lo spazio è poco */
   background:var(--sup);border-top:1px solid var(--linea2);border-radius:22px 22px 0 0;
-  padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -14px 40px rgba(0,0,0,.45)}
-.pedov .lin{gap:12px;padding:10px 0}
+  padding:14px 16px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -14px 40px rgba(0,0,0,.45)}
+.pedov .pedls{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:none}
+.pedov .pedls::-webkit-scrollbar{width:0}
+.pedov .pedpie{flex:0 0 auto}
+.pedov .lin{gap:12px;padding:8px 0}
 .pedov .tot{display:none}   /* il totale sta nel bottone */
 .pedov .envG{min-height:68px;border-radius:18px;font-size:19px;letter-spacing:.04em;margin-top:18px;   /* v0.9.16 (Alberto: «troppo attaccato al bottone»): niente sticky, che lo faceva salire sopra la riga; uno spazio fisso */
   
@@ -208,7 +211,7 @@ button{font-family:inherit}
 .envinfo i{font-style:normal;font-size:18px}
 .envinfo b{display:block;font-size:14px;font-weight:700}
 .envinfo small{display:block;font-size:13px;color:var(--oro);font-weight:700;margin-top:1px}
-.pedov .lin img,.pedov .lin .lth{width:68px;height:68px;border-radius:12px}
+.pedov .lin img,.pedov .lin .lth{width:58px;height:58px;border-radius:12px}
 .pedov .lin .lnm{font-size:15.5px}
 .pedov .lin .lsc{font-size:12px}
 .pedov .lin .lq{gap:9px;font-size:16px;font-weight:800}
@@ -355,7 +358,7 @@ button{font-family:inherit}
 .mfr{position:absolute;top:50%;transform:translateY(-50%);z-index:4;width:30px;height:52px;border:0;border-radius:10px;background:rgba(10,8,6,.62);color:#FFC53D;font-size:26px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .mfr[hidden]{display:none}
 .mfr.l{left:2px}.mfr.r{right:2px}
-.giu{position:absolute;left:50%;bottom:76px;transform:translateX(-50%);z-index:6;pointer-events:none;width:38px;height:38px;border-radius:50%;background:rgba(10,8,6,.62);color:#FFC53D;display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;animation:giuRespira 1.6s ease-in-out infinite}
+.app>.giu,.giu{position:absolute;left:50%;bottom:76px;transform:translateX(-50%);z-index:6;pointer-events:none;width:38px;height:38px;border-radius:50%;background:rgba(10,8,6,.62);color:#FFC53D;display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;animation:giuRespira 1.6s ease-in-out infinite}
 .giu[hidden]{display:none}
 .giu span{transform:translateY(-3px)}
 @keyframes giuRespira{0%,100%{transform:translate(-50%,0);opacity:.85}50%{transform:translate(-50%,5px);opacity:1}}
@@ -448,7 +451,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.19 · DEMO 13</div>
+<div class="ver" id="ver">menu v0.9.20 · DEMO 14</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -916,8 +919,8 @@ function pedidoHTML() {
     (S.errore ? '' : (() => { const p = (ENVINFO[S.lang] || ENVINFO.es).replace('{n}', Math.round(ATTESA_INVIO / 1000)).split(' · ');
       return '<div class="envinfo"><i>🔒</i><span><b>' + esc(p[0]) + '</b>' + (p[1] ? '<small>' + esc(p[1]) + '</small>' : '') + '</span></div>'; })());   // v0.9.18: leggibile (Alberto), sotto ENVIAR e più piccolo di lui
   return '<div class="ped"><div class="pedtit">' + T('Tu pedido') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
-    (ks.length ? lineeH + '<div class="tot"><span>' + T('Total') + '</span><span>' + clp(t.s) + '</span></div>' + bot +
-      (S.inviando || S.inviaStato || S.ck.stato ? '' : '<button class="segui" data-a="chiudiPed">' + T('Seguir pidiendo') + '</button>')
+    (ks.length ? '<div class="pedls">' + lineeH + '<div class="tot"><span>' + T('Total') + '</span><span>' + clp(t.s) + '</span></div></div><div class="pedpie">' + bot +
+      (S.inviando || S.inviaStato || S.ck.stato ? '' : '<button class="segui" data-a="chiudiPed">' + T('Seguir pidiendo') + '</button>') + '</div>'
       : '<div class="vuoto">' + T('Todavía no has pedido nada.') + '</div>') + '</div>';
 }
 /* ═══ v0.7 · L'INIZIO: IL PALCO (mockup §⑫ ①-③, Alberto 21-22 ott) ═══════════════════════════════════════════════════════════════════
