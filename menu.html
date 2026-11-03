@@ -192,9 +192,16 @@ button{font-family:inherit}
 .pedov{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:flex-end}
 .pedov[hidden]{display:none}
 .pedbg{flex:1 1 auto;background:rgba(8,6,4,.58);cursor:pointer}
-.pedov .ped{flex:0 0 auto;min-height:0;max-height:86%;overflow-y:auto;background:var(--sup);border-top:1px solid var(--linea2);border-radius:22px 22px 0 0;
+.pedov .ped{flex:0 0 auto;min-height:0;max-height:86%;overflow-y:auto;justify-content:flex-start;   /* v0.9.15: in fondo il contenuto usciva dal bordo alto quando lo spazio è poco */
+  background:var(--sup);border-top:1px solid var(--linea2);border-radius:22px 22px 0 0;
   padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -14px 40px rgba(0,0,0,.45)}
 .pedov .lin{gap:12px;padding:10px 0}
+.pedov .tot{display:none}   /* il totale sta nel bottone */
+.pedov .envG{position:sticky;bottom:34px;z-index:2;min-height:68px;border-radius:18px;font-size:19px;letter-spacing:.04em;margin-top:12px;
+  box-shadow:0 0 0 4px var(--sup),0 10px 26px rgba(139,158,79,.38)}
+.pedov .envG b{font-size:19px}
+.pedov .envG span{font-size:13px;opacity:.85;margin-top:2px}
+.pedov .segui{position:sticky;bottom:0;z-index:2;background:var(--sup);margin:0;padding:8px 0 2px}
 .pedov .lin img,.pedov .lin .lth{width:68px;height:68px;border-radius:12px}
 .pedov .lin .lnm{font-size:15.5px}
 .pedov .lin .lsc{font-size:12px}
@@ -435,7 +442,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.14</div>
+<div class="ver" id="ver">menu v0.9.15</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -898,9 +905,9 @@ function pedidoHTML() {
       '<i class="barra" style="--da:' + (rem / ATTESA_INVIO * 100).toFixed(1) + '%;animation-duration:' + rem + 'ms"></i></button>'; }
   else if (S.inviaStato === 'volando') bot = '<button class="envG hold"><b>' + T('Enviando…') + '</b><span>' + T('no cierres esta pantalla') + '</span></button>';
   else bot = (S.errore ? '<div class="avv">' + esc(S.errore) + '</div>' : '') +
-    '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : T('ENVIAR PEDIDO') + ' 🛎') + '</b><span>' + t.n + ' ' + T(t.n > 1 ? 'productos' : 'producto') + ' · ' + clp(t.s) + ' · ' + T(adove(righe().map((r) => r.p))) + '</span></button>';
+    '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : T('ENVIAR PEDIDO') + ' · ' + clp(t.s)) + '</b><span>' + t.n + ' ' + T(t.n > 1 ? 'productos' : 'producto') + ' · ' + T(adove(righe().map((r) => r.p))) + '</span></button>';
   return '<div class="ped"><div class="pedtit">' + T('Tu pedido') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
-    (ks.length ? lineeH + vaBienHTML() + '<div class="tot"><span>' + T('Total') + '</span><span>' + clp(t.s) + '</span></div>' + bot +
+    (ks.length ? lineeH + '<div class="tot"><span>' + T('Total') + '</span><span>' + clp(t.s) + '</span></div>' + bot +
       (S.inviando || S.inviaStato || S.ck.stato ? '' : '<button class="segui" data-a="chiudiPed">' + T('Seguir pidiendo') + '</button>')
       : '<div class="vuoto">' + T('Todavía no has pedido nada.') + '</div>') + '</div>';
 }
@@ -1194,7 +1201,7 @@ function pinta() {
   // v0.9.13 · il carrello come pannello sopra la carta (vedi vaBienHTML): lo sfondo è un elemento a parte, così un tocco DENTRO il pannello
   // non risale fino al «chiudi» dello sfondo
   let ov = document.getElementById('pedov');
-  if (S.pedido) { if (!ov) { ov = document.createElement('div'); ov.id = 'pedov'; ov.className = 'pedov'; document.getElementById('app').appendChild(ov); }
+  if (S.pedido) { z.innerHTML = ''; if (!ov) { ov = document.createElement('div'); ov.id = 'pedov'; ov.className = 'pedov'; document.getElementById('app').appendChild(ov); }
     ov.innerHTML = '<div class="pedbg" data-a="chiudiPed"></div>' + pedidoHTML(); ov.hidden = false; }
   else if (ov) { ov.hidden = true; ov.innerHTML = ''; }
   const pieno = S.pedido || S.campana || !!S.dono || S.lingue || S.dj || S.cuenta;
