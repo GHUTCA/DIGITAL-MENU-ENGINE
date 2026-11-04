@@ -377,7 +377,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v3.5.0</div>
+    <div class="hub-footer-version" id="ver">menu_admin v3.5.1</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -759,6 +759,37 @@ async function adminToggle86Via(pin, prodId, value, uid) {
   }
   return gasPost('adminToggle86', { pin: pin, prod_id: prodId, value: value });
 }
+/* ═══ v3.5.1 · [📖 MENU BKS V32 · mar 3-nov 21:4x · 🎛 V33 «DUE VERITÀ SUGLI 86»] L'86 SI LEGGE DA DOVE SI SCRIVE ═══
+   Dal 21-ott questo pannello SCRIVE l'86 al bordo (`adminToggle86Via` → /admin86), ma lo LEGGEVA ancora dal foglio
+   (`adminListProducts` → colonna Agotado). Il foglio non riceve più gli 86 del bordo ⇒ mar 3 sera il pannello diceva «0 en 86»
+   mentre il bordo ne aveva 15 (messi dal JL2 dall'app JL) e li toglieva al mesero. È la N9: la porta della scrittura è traslocata,
+   la lettura no. ⇒ la lista resta quella di `adminListProducts`, ma QUALI sono agotados lo dice /ago86/<local>, come in app_jl.
+   · il bordo è la verità in entrambi i versi: in /ago86 ⇒ agotado; fuori da /ago86 ⇒ disponibile, anche se il foglio dice Agotado.
+   · nel dubbio (rete, 404 `ruta_apagada`, `apagado`, `seeded:false`, ids non array) ⇒ null: resta il foglio, come ieri.
+   · freno: `?borde=0` (lo stesso di adminToggle86Via) ⇒ non chiede al bordo. Ritorno: il blob di v3.5.0 (cea3767). */
+async function ago86DalBordo() {
+  try { if (new URLSearchParams(location.search).get('borde') === '0') return null; } catch (e) {}
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), 4000);
+  try {
+    const r = await fetch(BORDE_86 + '/ago86/' + encodeURIComponent(CFG.LOCAL), { headers: { 'X-Borde-Token': BORDE_TOKEN_86 }, cache: 'no-store', signal: ctrl.signal });
+    const j = await r.json().catch(() => null);
+    if (!j || r.status !== 200 || j.ok !== true || j.apagado || !j.seeded || !Array.isArray(j.ids)) return null;
+    const ago = {}; j.ids.forEach((id) => { ago[String(id)] = true; });
+    return ago;
+  } catch (e) { return null; } finally { clearTimeout(tid); }
+}
+async function sovrapponiAgo86(prods) {
+  const ago = await ago86DalBordo();
+  if (!ago) return prods;
+  return prods.map((p) => {
+    const sul = !!ago[String(p.id)];
+    if (sul === !!p.agotado) return p;
+    const o = Object.assign({}, p, { agotado: sul });
+    if (sul) { o.marcado_por = 'app JL'; o.marcado_hace = 'hoy'; } else { delete o.marcado_por; delete o.marcado_hace; }
+    return o;
+  });
+}
 async function withRetry(fn, label) {
   try { return await fn(); }
   catch (e1) {
@@ -896,7 +927,7 @@ async function loadProducts(){
       STATE.loading = false;
       return false;
     }
-    PRODUCTS = (r.products || []).map(p => normalizeProduct(p));
+    PRODUCTS = await sovrapponiAgo86((r.products || []).map(p => normalizeProduct(p)));   // v3.5.1 · l'86 dal bordo
     RITMO_ACTUAL_ID = r.ritmo_actual_id || null;
     STATE.lastListFetchTs = Date.now();
     STATE.loading = false;
@@ -2080,7 +2111,7 @@ setInterval(async function(){
   try {
     const r = await gasGet('adminListProducts', { pin: lastSavedPin });
     if (r && r.ok) {
-      PRODUCTS = (r.products || []).map(p => normalizeProduct(p));
+      PRODUCTS = await sovrapponiAgo86((r.products || []).map(p => normalizeProduct(p)));   // v3.5.1 · l'86 dal bordo
       RITMO_ACTUAL_ID = r.ritmo_actual_id || null;
       STATE.lastListFetchTs = Date.now();
       if (id === 'viewHub') renderHub();
