@@ -454,6 +454,19 @@ button{font-family:inherit}
 .fspin{width:34px;height:34px;border-radius:50%;border:4px solid var(--linea2);border-top-color:var(--ok);animation:fgira .9s linear infinite}
 @keyframes fgira{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.xpr .envG.xgo,.fspin{animation:none}}
+/* v0.9.32 · niente trasparente nei bottoni del pago: i link diventano bottoni pieni, niente veli né opacità */
+.pgx .segui{background:var(--card);border:1.5px solid var(--linea2);color:var(--txt);text-decoration:none;border-radius:12px;padding:13px 10px;margin-top:10px;font-size:14px;font-weight:800;opacity:1}
+.pgx .segui.xno{background:var(--sup);font-size:12.5px;padding:10px;margin-top:10px}
+.pgx .segui:disabled{background:var(--sup);color:var(--suave)}
+.pgx .okv{background:var(--card);color:var(--txt)}
+.pgx .okv span{color:var(--suave)}
+.pgx .fpm.dim{opacity:1;background:var(--sup)}
+.pgx .rqq button,.pgx .rstp .rdiv{background:#EFE5D2;border:1.5px solid #CDBFA8;border-radius:5px;padding:4px 8px;text-decoration:none;color:#2A2118;font-size:12px}
+.pgx .rprop button{background:#FFFDF7}
+.pgx .rprop button.on{background:#2A2118}
+.pgx .rstp button:not(.rdiv){background:#FFFDF7}
+.pgx .rstp button:disabled{opacity:1;color:#CDBFA8;border-color:#CDBFA8}
+.pgx .xwak button{background:var(--sup);border:1.5px solid var(--linea2);border-radius:6px;padding:3px 8px;text-decoration:none}
 .fbk{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .fbk .sg{min-height:46px}
 .pgx .envG:disabled,.pgx .segui:disabled{opacity:.4;cursor:default}
@@ -535,7 +548,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.31 · DEMO 25</div>
+<div class="ver" id="ver">menu v0.9.32 · DEMO 26</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
