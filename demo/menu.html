@@ -401,6 +401,8 @@ button{font-family:inherit}
 .pgsum>.t span{font-weight:800}
 .pgx .rcv-n{font-size:14px;font-weight:800;color:#2A2118;background:#F1E7D3;border-radius:6px;padding:7px 8px}   /* «pagas 1 de 4: $7.083» si legge */
 .pgx .envG em{font-style:normal}
+.fbk{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fbk .sg{min-height:46px}
 .pgx .envG:disabled,.pgx .segui:disabled{opacity:.4;cursor:default}
 /* v0.9.2 · la porta che porta a zero: disponibile, non nascosta, ma più stretta e più scura (Alberto 31-ago, pago.html 2.10) */
 .pchips.p210 .pchip{flex:1 1 calc(50% - 6px);display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -480,7 +482,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.28 · DEMO 22</div>
+<div class="ver" id="ver">menu v0.9.29 · DEMO 23</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1217,13 +1219,25 @@ function cuentaHTML() {
       '<button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b><span>' + (resta > 0 ? T('los demás pueden seguir pidiendo y pagar lo suyo') : T('gracias por venir')) + '</span></button></div>';
   }
   const tit = '<div class="pedtit">' + T('Tu cuenta') + ' · ' + T('Mesa') + ' ' + esc(MESA) + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>';
+  if (S.pagoPaso === 'fintoc') {
+    const bk = S.fintocBanco || '';
+    const BANCOS = ['Banco de Chile', 'BancoEstado', 'Santander', 'BCI', 'Itaú', 'Scotiabank', 'Banco Falabella', 'Banco Security'];
+    return '<div class="ped cta pgx"><div class="pedtit"><button class="pedx" style="position:static;margin-right:6px" data-a="fintocVolver" aria-label="Volver">‹</button>' + T('Pagar con transferencia') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' + sim() +
+      '<div class="pgsum" style="margin:4px 2px 10px"><div class="t"><span>' + T('Total a pagar') + '</span><b>' + clp(c.totale) + '</b></div></div>' +
+      (!bk ? '<div class="prq">' + T('Elige tu banco') + ' <small style="font-weight:600;color:var(--suave)">· Fintoc</small></div><div class="fbk">' +
+          BANCOS.map((n) => '<button class="sg" data-a="fintocBanco" data-k="' + esc(n) + '">' + esc(n) + '</button>').join('') + '</div>'
+        : '<div class="okv" style="text-align:center">🏦 ' + esc(bk) + '<span>' + T('Abre la app de tu banco y aprueba la transferencia de') + ' <b>' + clp(c.totale) + '</b> ' + T('a') + ' ' + esc((S.cfg && S.cfg.brand_name) || LOCAL) + '</span></div>' +
+          '<button class="envG" data-a="fintocOk"><b>' + T('YA APROBÉ') + '</b><span>' + T('en la simulación, este botón hace de tu banco') + '</span></button>' +
+          '<button class="segui" data-a="fintocBanco" data-k="">' + T('Elegir otro banco') + '</button>') +
+      '</div>';
+  }
   if (c.resta <= 0 && c.mesa > 0) {
     return '<div class="ped cta pgx">' + tit + precuentaHTML(righeMesa(), 'PRECUENTA', '', 'no es boleta') +
       '<div class="okv">✓ ' + T('Cuenta pagada') + '<span>' + T('gracias por venir') + '</span></div>' +
       '<button class="segui" data-a="cuentaChiudi">' + T('Volver al menú') + '</button></div>';
   }
   const sg = (a, k, on, t, sub) => '<button class="sg' + (on ? ' on' : '') + '" data-a="' + a + '" data-k="' + k + '"' + (on ? ' aria-pressed="true"' : '') + '>' + t + (sub ? '<small>' + sub + '</small>' : '') + '</button>';
-  const p = S.pagoProp || '10';
+  const p = S.pagoProp || '10', met = S.pagoMet === 'tarjeta' ? 'tarjeta' : 'transferencia';
   const nota = c.modo === 'partes' ? 'pagas 1 de ' + c.partes + ': ' + clp(c.base) : c.modo === 'mio' ? 'pagas lo tuyo: ' + clp(c.base) : 'pagas toda la mesa: ' + clp(c.base);
   return '<div class="ped cta pgx">' + tit +
     precuentaHTML(righeMesa(), 'PRECUENTA', c.modo === 'mio' ? 'mio' : '', nota) +
@@ -1236,12 +1250,15 @@ function cuentaHTML() {
     '<div class="prq">' + T('Propina para el equipo') + '</div>' +
     '<div class="sgs">' + sg('pagoProp', '10', p === '10', '10%', clp(Math.round(c.base * 0.10))) + sg('pagoProp', 'otro', p === 'otro', T('Otro'), '') + sg('pagoProp', 'sin', p === 'sin', T('Sin propina'), '') + '</div>' +
     (p === 'otro' ? '<div class="ckf potrof"><input type="text" inputmode="numeric" name="pagoPropOtro" maxlength="7" placeholder="' + T('Monto de la propina') + ' $" value="' + (S.pagoPropOtro || '') + '" data-a="pagoPropCampo" aria-label="' + T('Monto de la propina') + '"></div>' : '') +
+    '<div class="prq">' + T('¿Cómo pagas?') + '</div>' +
+    '<div class="sgs">' + sg('pagoMet', 'transferencia', met === 'transferencia', '🏦 ' + T('Transferencia'), T('con Fintoc, desde tu banco')) +
+      sg('pagoMet', 'tarjeta', met === 'tarjeta', '💳 ' + T('Tarjeta'), T('te traemos la máquina')) + '</div>' +
     '<div class="pgpie">' + sim() +
       '<div class="pgsum"><div><span>' + (c.modo === 'mio' ? T('Lo tuyo') : c.modo === 'todo' ? T('Toda la mesa') : T('Tu parte') + ' · 1 ' + T('de') + ' ' + c.partes) + '</span><b>' + clp(c.base) + '</b></div>' +
         '<div><span>' + T('Propina') + (p === '10' ? ' 10%' : '') + '</span><b id="pgPr">' + clp(c.propina) + '</b></div>' +
         '<div class="t"><span>' + T('Total a pagar') + '</span><b id="pgTotS">' + clp(c.totale) + '</b></div></div>' +
-      '<button class="envG" data-a="pagoMetodo" data-k="transferencia"' + (c.base > 0 ? '' : ' disabled') + '><b>' + T('PAGAR') + ' <em id="pgTot">' + clp(c.totale) + '</em></b><span>🏦 ' + T('transferencia desde tu banco · sin tarjeta') + '</span></button>' +
-      '<button class="segui" data-a="pagoMetodo" data-k="tarjeta"' + (c.base > 0 ? '' : ' disabled') + '>💳 ' + T('Prefiero tarjeta: te traemos la máquina') + '</button>' +
+      '<button class="envG" data-a="pagoMetodo" data-k="' + met + '"' + (c.base > 0 ? '' : ' disabled') + '><b>' + T(met === 'tarjeta' ? 'PEDIR LA MÁQUINA' : 'PAGAR') + ' <em id="pgTot">' + clp(c.totale) + '</em></b><span>' +
+        (met === 'tarjeta' ? '💳 ' + T('tu mesero viene con el POS a tu mesa') : '🏦 ' + T('se abre Fintoc: eliges tu banco y apruebas')) + '</span></button>' +
     '</div></div>';
 }
 function lingueHTML() {
@@ -1713,7 +1730,12 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'pagoPartes' && /^([2-9]|1[0-2])$/.test(k)) { S.pagoPartes = Number(k); pinta(); return; }
   if (a === 'pagoProp' && (k === '10' || k === 'otro' || k === 'sin')) { S.pagoProp = k; pinta(); return; }
   if (a === 'pagoPropCampo') return;
-  if (a === 'pagoMetodo' && (k === 'transferencia' || k === 'tarjeta')) {
+  if (a === 'pagoMet' && (k === 'transferencia' || k === 'tarjeta')) { S.pagoMet = k; pinta(); return; }   // v0.9.29
+  if (a === 'pagoMetodo' && k === 'transferencia' && S.pagoPaso !== 'fintoc') { S.pagoPaso = 'fintoc'; S.fintocBanco = ''; pinta(); return; }
+  if (a === 'fintocBanco') { S.fintocBanco = k || ''; pinta(); return; }
+  if (a === 'fintocVolver') { S.pagoPaso = 'cuenta'; pinta(); return; }
+  if ((a === 'pagoMetodo' && (k === 'transferencia' || k === 'tarjeta')) || a === 'fintocOk') {
+    const k = a === 'fintocOk' ? 'transferencia' : el.dataset.k;
     const c = pagoConti();
     const quali = righePagate(c);
     (S.pagati = S.pagati || []).push({ base: c.base, propina: c.propina, metodo: k, modo: c.modo, righe: quali, ts: Date.now() });
