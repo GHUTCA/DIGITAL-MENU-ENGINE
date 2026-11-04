@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.115.1</span>
+<span id="ver" hidden>menu2 · v2.116.0</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -13093,7 +13093,7 @@ function renderCart(){
     ${(PEDIDO_DIGITAL && _nocheValidos().length > 0)
       ? `<div class="pedido-hint" style="margin-top:6px">🧾 ${getLang('pedido_ya_noche') || 'Ya pedido esta noche'}: ${_nocheDelConto().length} · ${formatPriceWithSymbol(_nocheDelConto().reduce((s,p)=>s+(p.total||0),0))}</div>`
       : ''}
-    ${v2ViasHTML()}`;
+    ${_cuentaAviso()}${v2ViasHTML()}`;
 }
 
 /* ═══ v2.0 · DUE VIE col destino DISCRIMINATO (gesto ⑦, mockup v3.3) ═══
@@ -13611,7 +13611,7 @@ async function regaloEnviar(prodId){
       // Stesso uuid nei due giri: il DO e il GAS deduplicano. La cintura di _postPedido resta (bordo muto → GAS).
       try { resp = await (REGALO_BORDE ? _postPedido(payload) : _postGAS(payload)); if (resp) break; } catch(e){ resp = null; }
     }
-    if (resp && resp.ok && resp.por_confirmar) {
+    if (resp && resp.ok && resp.por_confirmar) { _cuentaSegnaConfirma();   // v2.116.0 · D-444
       // v2.115.0 · D-431 ⑥: da una mesa libera il regalo aspetta il mesero come ogni pedido (lo stato lo segue «Lo pedido esta noche»: por_confirmar → confermato o cancelado col suo perché)
       _pedidoRegistrarExito({ payload: payload, snapshot_items: [] }, resp);
       document.getElementById('sheetContent').innerHTML = `
@@ -13832,6 +13832,8 @@ async function _enviarPedidoDigitalInner(opts){
     precios_epoch: PRECIOS_EPOCH || '',   // v2.80.0 · il cancello dell'epoch
     ritmo_activo: (RITMO_ACTUAL && RITMO_ACTUAL.id) ? RITMO_ACTUAL.id : '',
     dispositivo_id: _llamadaDev(),   // v2.113.2 · l'apparecchio (chiave pinsita_dev della campanella): il conto con ID ne fa la nascita «origen qr»
+    conto_id: (_cuentaLeer() || {}).id || '',        // v2.116.0 · D-444: la chiave del conto di QUESTO telefono (vuota = chiede conferma)
+    conto_llave: (_cuentaLeer() || {}).llave || '',
     member: (typeof MEMBER_ID !== 'undefined' && MEMBER_ID) ? MEMBER_ID : '',
     items_json: itemsJson,
     // v2.0 · via A (gated envio_directo_activo): il GAS di oggi ignora i campi
@@ -13934,6 +13936,23 @@ async function _enviarPedidoDigitalInner(opts){
   // v2.114.1 · MESA BLOQUEADA (AUT-EMERG-0787, mesa 85): el bordo no acepta pedidos del menú
   // para esta mesa. No es un fallo de red: no se reintenta, no queda en cola, y el
   // cliente sabe a quién pedirle. Carrito intacto (lo puede dictar al mesero).
+  /* v2.116.0 · D-444 · LA CHIAVE È MORTA (conto pagato o chiuso dal JL): il bordo non ha scritto niente. Il telefono la dimentica e il
+     prossimo invio torna a chiedere al mesero. Carrito intatto, nessun reinvio automatico: il cliente decide. */
+  if (resp && !resp.ok && resp.need === 'llave_muerta') {
+    _colaRemove(uuid); _cartPendClear(); _cuentaOlvidar(); _cuentaSegnaConfirma();
+    showToastMsg('🙋 ' + (getLang('qr_llave_muerta') || 'Tu cuenta de esta mesa se cerró. Para pedir de nuevo, el mesero tiene que confirmar.'), 9000);
+    if (btn) { btn.disabled = false; btn.textContent = getLang('cart_listo') || 'Enviar pedido 🛎'; }
+    try { renderCart(); } catch(e){}
+    return;
+  }
+  /* v2.116.0 · D-445 ① · questo telefono è stato rifiutato due volte oggi: non manda più richieste fino a domani (definitivo, non si
+     riprova). Carrito intatto: lo può dettare al mesero. */
+  if (resp && !resp.ok && resp.need === 'telefono_bloqueado') {
+    _colaRemove(uuid); _cartPendClear();
+    showToastMsg('🙋 ' + (getLang('qr_telefono_bloqueado') || 'Este teléfono no puede pedir por el menú hoy. Pídele al mesero.'), 9000);
+    if (btn) { btn.disabled = false; btn.textContent = getLang('cart_listo') || 'Enviar pedido 🛎'; }
+    return;
+  }
   if (resp && !resp.ok && resp.need === 'mesa_bloqueada') {
     _colaRemove(uuid); _cartPendClear();
     showToastMsg('🙋 Esta mesa no está recibiendo pedidos por el menú. Pídele al mesero.', 9000);
@@ -14273,6 +14292,7 @@ async function _estadoPedidoFetch(uuid, cur, timeoutMs){
       clearTimeout(tid);
       const r = await resp.json();
       if (r && r.need === 'mesa_rechazada') return r;
+      if (r && r.ok === true && r.conto_id && r.conto_llave) _cuentaGuardar(r.conto_id, r.conto_llave);   // v2.116.0 · D-444: solo da qui
       if (r && r.ok === true && r.estado && !_estadoIndietro(r, cur) && !_bordoNonSaProd(r)) return r;
       if (r && r.error === 'ruta_apagada') _ESTADO_BORDE_OFF = true;
     } catch(e){ clearTimeout(tid); /* rete, timeout, JSON rotto → il GAS */ }
@@ -15258,6 +15278,29 @@ function onCallWaiterGeneric(){
    con 3 tentativi: se anche quello fallisce non lo sa il telefono, lo sa il forense (`LLAMA_ALARMA`).
    Un timeout dopo che il bordo ha già accettato fa dire «no pudimos» anche se la chiamata è partita: se il
    cliente riprova, il bordo risponde «ya avisado» (una riga sola aperta). Meglio una in più che zero. */
+/* ═══ v2.116.0 · [📖 MENU BKS V32 · mer 4-nov · D-444, AUT-0844] LA CHIAVE DEL CONTO STA NEL TELEFONO ═══
+   Il QR del tavolo da solo non apre niente: il primo pedido di un telefono aspetta il garzón (`por_confirmar`). Dopo l'Aceptar il bordo
+   dà a QUESTO telefono `conto_id` + `conto_llave` (HMAC legato al `dispositivo_id` = `pinsita_dev`, che non cambia), e li dà SOLO da
+   `/pedido-estado`. Il menù li tiene in localStorage per locale e mesa, mai nei log, e li rimanda a ogni pedido: con la chiave giusta il
+   pedido entra nel conto senza conferma. `llave_muerta` (conto pagato o chiuso) ⇒ si dimentica e si torna a chiedere.
+   La guardia vera è sul bordo: qui c'è solo la memoria del telefono e le parole per il cliente. A leva del bordo spenta niente cambia:
+   nessuna risposta porta la chiave, e un `conto_id` vuoto il bordo lo ignora. */
+function _cuentaKey(){ return 'pinsita_cuenta_' + String(LOCAL_ID || '') + '_' + String(MESA_ID || ''); }
+function _cuentaLeer(){
+  try { const c = JSON.parse(localStorage.getItem(_cuentaKey()) || 'null'); return (c && c.id && c.llave) ? c : null; } catch(e){ return null; }
+}
+function _cuentaGuardar(id, llave){
+  if (!id || !llave) return;
+  try { localStorage.setItem(_cuentaKey(), JSON.stringify({ id: String(id), llave: String(llave), ts: Date.now() })); } catch(e){}
+}
+function _cuentaOlvidar(){ try { localStorage.removeItem(_cuentaKey()); } catch(e){} }
+/* il telefono sa che QUI il primo pedido si conferma solo dopo averlo visto: prima di allora il carrello non dice niente di nuovo */
+function _cuentaPideConfirma(){ try { return sessionStorage.getItem('pinsita_qr_confirma') === '1'; } catch(e){ return false; } }
+function _cuentaSegnaConfirma(){ try { sessionStorage.setItem('pinsita_qr_confirma', '1'); } catch(e){} }
+function _cuentaAviso(){
+  if (_cuentaLeer() || !_cuentaPideConfirma()) return '';
+  return '<div class="v2-seguro-q" style="font-size:13px;margin:0 0 8px">🙋 ' + escapeHtml(getLang('qr_confirma_aviso') || 'Tu pedido lo confirma el mesero antes de ir a cocina.') + '</div>';
+}
 function _llamadaDev(){
   let d = '';
   try { d = localStorage.getItem('pinsita_dev') || ''; } catch(e){}
