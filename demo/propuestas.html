@@ -95,6 +95,7 @@ input[type=time]{width:110px}
 .add{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .add input{flex:1 1 220px}
 .ok{color:var(--ok);font-weight:800}
+a.bt{text-decoration:none;display:inline-flex;align-items:center}
 .nuovi{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
 .nv{display:flex;flex-direction:column;gap:4px;text-align:left;background:var(--sup);border:1.5px solid var(--linea2);border-radius:12px;padding:12px;color:var(--txt)}
 .nv:hover{border-color:var(--ok)}
@@ -246,13 +247,18 @@ function dettaglioHTML(R) {
     '<h2 style="margin-top:14px">Historial</h2><div class="hist">' + (storia.length ? storia.map((h) => '<div><time>' + esc(h.ora) + '</time><span>' + esc(h.cosa) + '</span></div>').join('') : '<div><span class="nota">Viene del seme (las hojas de hoy). Cada «Guardar versión» deja aquí quién, cuándo y qué.</span></div>') + '</div>' +
   '</div>';
 }
+const LS = 'pinsita_demo_propuestas_BKS';
+function salvaLocale() { try { const cc = {}; for (const id in S.carta) if (S.carta[id].da_creare) cc[id] = S.carta[id];
+  localStorage.setItem(LS, JSON.stringify({ strumenti: S.strumenti, parti: S.parti, carta: cc, hist: S.hist, ts: Date.now() })); } catch (e) { /* solo memoria */ } }
 function pinta() {
+  salvaLocale();
   const R = risposta();
   if (!R.ok) { document.getElementById('app').innerHTML = '<div class="box err">La regla no respondió: ' + esc(R.perche) + '</div>'; return; }
   const live = !S.dia && !S.hora;
   document.getElementById('app').innerHTML =
     '<div class="top"><div><div class="tp">BKS · menu_admin</div><h1>Propuestas</h1></div>' +
-      '<div class="demo">🧪 DEMO · los cambios viven solo en esta pantalla: no se guarda nada y nadie más los ve</div></div>' +
+      '<div class="row"><a class="bt pri" href="menu.html?l=BKS&mesa=998" target="_blank" rel="noopener">Ver en el menú · mesa 998 ↗</a><button class="bt" data-a="reset">Volver a los datos de hoy</button></div></div>' +
+    '<div class="demo">🧪 DEMO · lo que cambias queda en este navegador y lo ve el menú de prueba (mesa 998) abierto aquí mismo. No llega a la sala ni a nadie más.</div>' +
     '<div class="box reloj"><b>' + (live ? '🕒 Ahora: ' : '🕒 Simulando: ') + esc(DIA_N[R.ahora.dia] || R.ahora.dia) + ' ' + esc(R.ahora.hhmm) + '</b>' +
       '<span class="dsel">' + DIAS.map((d) => '<button class="d' + (S.dia === d ? ' on' : '') + '" data-a="sdia" data-k="' + d + '">' + d + '</button>').join('') + '</span>' +
       '<input type="time" id="s_hora" value="' + esc(S.hora || R.ahora.hhmm) + '">' +
@@ -347,6 +353,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
     S.parti.push({ uid_gesto: uid(), local: 'BKS', id_strumento: S.sel, id_producto: id, desde: null, hasta: null, precio: ['botellas', 'precio_fijo'].includes(r.tipo) ? S.carta[id].precio : null,
       rol: r.tipo === 'menu' ? 'fondo' : null, orden: partiVigenti().filter((x) => x.id_strumento === S.sel).length + 1, borrado: false, quien: 'demo', fuente: 'menu_admin', ts_registro: new Date().toISOString() });
     storia(S.sel, 'Agregado: ' + nomeP(id)); pinta(); return; }
+  if (a === 'reset') { try { localStorage.removeItem(LS); } catch (e) {} location.reload(); return; }
   if (a === 'nuovo') { S.scegli = !S.scegli; pinta(); return; }
   if (a === 'crea' && NUOVI[k]) {
     /* v2 (Alberto: «come creo un evento, una promo?»): si sceglie il TIPO, e lo strumento nasce spento coi campi giusti già compilati */
@@ -367,7 +374,9 @@ document.getElementById('app').addEventListener('keydown', (ev) => { if ((ev.key
 
 try {
   const j = await (await fetch('./propuestas/seme_BKS.json', { cache: 'no-store' })).json();
-  S.strumenti = j.strumenti; S.parti = j.parti; S.carta = j.carta; pinta();
+  S.strumenti = j.strumenti; S.parti = j.parti; S.carta = j.carta;
+  try { const m = JSON.parse(localStorage.getItem(LS) || 'null'); if (m && Array.isArray(m.strumenti)) { S.strumenti = m.strumenti; S.parti = m.parti || S.parti; S.hist = m.hist || []; } } catch (e) { /* il seme */ }
+  pinta();
   setInterval(() => { if (!S.dia && !S.hora && !document.activeElement.closest('#det')) pinta(); }, 60000);
 } catch (e) { document.getElementById('app').innerHTML = '<div class="box err">No se pudo leer el seme: ' + esc(e.message) + '</div>'; }
 </script>

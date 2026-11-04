@@ -558,7 +558,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.34 · DEMO 28</div>
+<div class="ver" id="ver">menu v0.9.34 · DEMO 29 · propuestas</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -719,6 +719,8 @@ function prezzoOra(p) {
   let z = { v: p.p, orig: 0 };
   if (r && r.precio > 0 && r.precio !== p.p) z = { v: r.precio, orig: r.precio < p.p ? p.p : 0 };
   // PINSA: lo sconto del canale depto si confronta col prezzo di adesso e vince solo se è più basso (mai due sconti sommati)
+  const sx = strumP(p.id);   // SALA DEMO: il prezzo dello strumento (precio fijo, botellas, recargo), solo mostrato
+  if (sx && (sx.strumento || sx.recargo) && sx.precio > 0 && sx.precio !== z.v) z = { v: sx.precio, orig: sx.precio < p.p ? p.p : 0 };
   const dz = prezzoDepto(p);
   return dz && dz < z.v ? { v: dz, orig: p.p } : z;
 }
@@ -970,7 +972,7 @@ function z3() {
   if (cercando() && !L.length) return '<div class="msg busca"><b>Nada con «' + esc(S.busca.trim()) + '»</b>Prueba con otra palabra.</div>';
   return (cercando() ? '' : ripHTML()) + '<div class="sei">' + L.map((p) => card(p, true)).join('') + '</div>';
 }
-function pzHTML(p) { const z = prezzoOra(p); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : ''); }
+function pzHTML(p) { const z = prezzoOra(p), sx = strumP(p.id); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : sx && sx.badge ? '<span class="emd">' + esc(sx.badge) + '</span>' : ''); }
 /* ═══ il passo dopo (mockup 23-ott): chi ha chiesto dalla prima famiglia (il cibo) atterra sull'ultima (il dolce);
    chi ha chiesto altro atterra sulla prima. Le famiglie e il loro ordine vengono dalla config del locale. ═══ */
 function dopoQuesto(prods) {
@@ -1053,6 +1055,7 @@ function pedidoHTML() {
 const PATH_VET = /^vetrina\/[\w./-]+\.(svg|webp|png|jpe?g|mp4|webm)$/i;
 let SLIDES = [], PALCO_T = null, SWX = null, SWIPED = 0;
 function preparaSlides() {
+  const sst = slidesStrum(); if (sst) { SLIDES = sst.filter((x) => x.vid || x.img || x.t === 'plato'); return; }   // SALA DEMO: gli strumenti
   const L = ((S.vet && S.vet.palco) || []).filter((s) => {
     if (s.vid && !(PATH_VET.test(s.vid) && PATH_VET.test(s.poster || ''))) return false;
     if (s.t === 'plato') { const p = S.prod.find((x) => x.id === s.id); if (!p || !visibile(p)) return false; }
@@ -1065,7 +1068,7 @@ function preparaSlides() {
   SLIDES = testa.concat(L);
 }
 const slideP = (s) => (s && s.id ? S.prod.find((x) => x.id === s.id) : null);
-function destacados() { return ((S.vet && S.vet.destacados) || []).map((d) => ({ d, p: S.prod.find((x) => x.id === d.id) })).filter((x) => x.p && visibile(x.p)); }
+function destacados() { const ds = destacadosStrum(); if (ds) return ds; return ((S.vet && S.vet.destacados) || []).map((d) => ({ d, p: S.prod.find((x) => x.id === d.id) })).filter((x) => x.p && visibile(x.p)); }
 const inPalco = () => S.palco && SLIDES.length > 0 && !S.pedido && !S.campana && !S.abierta && !S.dono && !S.lingue && !S.dj && !S.cuenta && !S.tus && (S.busca === null || S.busca === undefined);
 const palKey = () => (S.slide % SLIDES.length) + '|' + (S.finVid ? 1 : 0);
 function puntiPalco() { return '<div class="pal-dots">' + SLIDES.map((x, i) => '<i class="' + (i === S.slide % SLIDES.length ? 'on' : '') + '" data-a="palcoVai" data-k="' + i + '"></i>').join('') + '</div>'; }
@@ -1082,6 +1085,8 @@ function slideHTML() {
   if (s.vid && S.finVid) return '<div class="pal pal-fin" style="background-image:url(\'' + esc(s.poster) + '\')"><div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div>' +
     '<div class="pal-t">' + esc(s.fin_tit || s.tit || '') + '</div><div class="pal-s">' + esc(s.fin_sub || '') + '</div><div class="pal-cta-row">' +
     '<button class="pal-cta" data-a="palcoFam" data-k="' + esc(s.fin_fam) + '">' + esc(s.fin_cta || 'Ver') + ' ›</button><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button></div></div>' + puntiPalco() + '</div>';
+  if (!s.vid && s.img !== undefined) return '<div class="pal" style="background-color:#2a1d14' + (s.img ? ';background-image:url(\'' + esc(s.img) + '\')' : '') + '"' + (s.t === 'plato' || s.t === 'show' ? ' data-a="palcoTap"' : '') + '>' +
+    '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || '') + '</div><div class="pal-s">' + esc(s.sub || '') + '</div></div>' + puntiPalco() + '</div>';   // SALA DEMO: evento con foto
   if (s.ss) {
     const fr = s.ss.map((id) => S.prod.find((x) => x.id === id)).filter((x) => x && x.img);
     return '<div class="pal pal-ss-w" data-a="palcoTap">' + fr.map((x, i) => '<div class="pal-ss" style="background-image:url(\'' + esc(x.img) + '\');animation-delay:' + (i * 2.5) + 's;z-index:' + i + '"></div>').join('') +
@@ -1960,6 +1965,55 @@ async function fotoNostre() {
       if (/^[\w.-]+\.(webp|jpe?g|png)$/i.test(f || '')) out[id] = { img: 'fotos/' + LOCAL + '/' + f, fy: (y >= 0 && y <= 100) ? y : null }; });
     return out; } catch (e) { return {}; }
 }
+/* ═══ SALA DEMO (4-nov) · GLI STRUMENTI DEL 5.2-PE NEL MENÙ (Alberto: «fallo, poi lo proviamo e vediamo cosa succede») ═══
+   Solo in questa copia. Il carosello, i destacados, l'etichetta della promo e il prezzo della promo li decide LA REGOLA DEL BORDO
+   (propuestas/regla.js, copia esatta di src/strumenti.js) sugli strumenti del pannello demo/propuestas.html: quello che accendi lì lo vedi
+   qui, nello stesso browser (localStorage), senza ricaricare. Senza pannello aperto valgono i dati del seme (le tab BKS di oggi).
+   ⚠️ Il prezzo della promo qui si MOSTRA soltanto: il conto vero lo fa il bordo, che gli strumenti ancora non li applica (leva spenta). */
+let STRUM = null, STRUM_FN = null;
+const STRUM_LS = () => 'pinsita_demo_propuestas_' + LOCAL;
+async function strumCarica() {
+  try { STRUM_FN = await import('./propuestas/regla.js'); } catch (e) { STRUM_FN = null; return; }
+  let d = null; try { d = JSON.parse(localStorage.getItem(STRUM_LS()) || 'null'); } catch (e) { d = null; }
+  if (!d) { try { d = await (await fetch('propuestas/seme_BKS.json', { cache: 'no-cache' })).json(); } catch (e) { d = null; } }
+  STRUM = d && Array.isArray(d.strumenti) ? d : null; S._sr = null;
+}
+const strumVig = (rows, key) => { const m = {}; for (const r of rows || []) m[key(r)] = r; return Object.values(m).filter((r) => !r.borrado); };
+function strumR() {
+  if (!STRUM || !STRUM_FN || !S.prod) return null;
+  const k = Math.floor(Date.now() / 60000); if (S._sr && S._srk === k) return S._sr;
+  const carta = {}; for (const id in (STRUM.carta || {})) carta[id] = STRUM.carta[id];   // i contenitori che la carta ancora non ha (Menú del día)
+  for (const p of S.prod) carta[p.id] = { precio: p.p, nombre: p.n, vende: visibile(p) && inOrario(p) && !chiusa(p) };
+  S._sr = STRUM_FN.strumentiAdesso({ strumenti: strumVig(STRUM.strumenti, (r) => r.id_strumento), parti: strumVig(STRUM.parti, (r) => r.id_strumento + '|' + r.id_producto),
+    gesti: [], carta: carta, ago86: [], local: LOCAL, now: Date.now() });
+  S._srk = k; return S._sr;
+}
+const strumP = (id) => { const r = strumR(); return r && r.ok ? (r.prodotti || {})[id] || null : null; };
+/* il palco dagli strumenti: eventi e scene visibili adesso, chi vince il posto per primo (finestra più stretta, prioridad, più recente) */
+function slidesStrum() {
+  const r = strumR(); if (!r || !r.ok) return null;
+  const vig = {}; for (const x of strumVig(STRUM.strumenti, (q) => q.id_strumento)) vig[x.id_strumento] = x;
+  const w = STRUM_FN.slotAdesso(r, ['evento', 'escena'], Date.now(), Object.values(vig));
+  const vis = r.strumenti.filter((x) => x.visible && (x.tipo === 'evento' || x.tipo === 'escena')).sort((a, b) => (w && a.id === w.id ? -1 : w && b.id === w.id ? 1 : 0));
+  const rel = (u) => String(u || '').replace(/^https:\/\/menu\.pinsita\.cl\//, '');
+  return vis.map((x) => {
+    const g = vig[x.id] || {}, t = (g.textos && g.textos.es) || {}, m = g.media || {}, cta = g.cta || {};
+    const vid = rel(m.video), pos = rel(m.poster || m.imagen), o = { strum: x.id, tag: t.eyebrow || '', tit: t.titulo || g.nombre_visible || '', sub: t.sub || '' };
+    if (vid && PATH_VET.test(vid) && PATH_VET.test(pos)) { o.vid = vid; o.poster = pos; }
+    else o.img = PATH_VET.test(pos) ? pos : (/^https:\/\/[\w.-]+\/[^'"()\s]+$/.test(m.poster || m.imagen || '') ? (m.poster || m.imagen) : '');
+    if (cta.tipo === 'producto' && cta.destino) { o.t = 'plato'; o.id = cta.destino; }
+    else if (cta.tipo === 'familia' && cta.destino) { o.t = 'show'; o.fin_fam = cta.destino; o.fin_tit = o.tit; o.fin_sub = o.sub; o.fin_cta = 'Ver ' + cta.destino; }
+    else o.t = 'evento';
+    return o;
+  });
+}
+function destacadosStrum() {
+  const r = strumR(); if (!r || !r.ok) return null;
+  const vb = {}; for (const d of ((S.vet && S.vet.destacados) || [])) if (d.b) vb[d.id] = d.b;
+  const ids = []; r.strumenti.filter((x) => x.visible && x.tipo === 'destacados').forEach((x) => x.parti.forEach((p) => { if (p.vende && ids.indexOf(p.id_producto) < 0) ids.push(p.id_producto); }));
+  return ids.map((id) => ({ d: { id, b: vb[id] || '' }, p: S.prod.find((q) => q.id === id) })).filter((q) => q.p && visibile(q.p));
+}
+window.addEventListener('storage', (e) => { if (e.key !== STRUM_LS()) return; try { STRUM = JSON.parse(e.newValue || 'null'); } catch (x) { STRUM = null; } S._sr = null; S.slide = 0; preparaSlides(); if (!SLIDES.length) S.palco = false; pinta(); });
 /* v0.7 · LA VETRINA DEL LOCALE: `vetrina/vetrina.json` ({"BKS":{"fondo","palco":[…],"destacados":[…]}}), stessa forma di fotos.json.
    ⏳ TAMPONE dichiarato: lo uccide la config del locale in Postgres (menu_config_local di 🚚 MIGRA). Senza vetrina: si entra in carta, come prima. */
 async function vetrinaLocale() {
@@ -2063,6 +2117,7 @@ function opinionApri(dove, uuid) {
     S.fam = g.k; S.cat = g.cats[0];
     // v0.7: il fondo del locale, l'inizio dallo show, «Otra vez» di questa mesa
     vestiPelle();   // v0.9: il fondo e la pelle secondo l'ora (prima: un fondo solo)
+    await strumCarica();   // SALA DEMO: gli strumenti
     preparaSlides(); S.palco = SLIDES.length > 0; histLeggi(); envLeggi(); esperaLeggi(); atiendeLeggi();
     // PINSA: di ritorno da Fintoc (?ck=<uuid>) si ritrova il carrello e si legge com'è andato il pago
     if (CHECKOUT && RITORNO_CK) {
