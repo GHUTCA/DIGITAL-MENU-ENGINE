@@ -163,7 +163,7 @@ function anteprimaHTML(R) {
     : '<div class="vuoto">Sin destacados visibles.</div>';
   const cam = Object.entries(R.prodotti || {}).filter(([, v]) => v.strumento || v.multiplo || v.recargo || v.badge);
   const camH = cam.length ? '<div class="lst">' + cam.map(([id, v]) => '<div class="lr"><span>' + esc(nomeP(id)) + ' <i>' + esc(v.badge || '') + '</i></span><span>' +
-      (v.multiplo ? v.multiplo.paga + 'x' + v.multiplo.lleva : v.precio !== v.listino ? '<s>' + clp(v.listino) + '</s> ' + clp(v.precio) : clp(v.precio)) + '</span></div>').join('') + '</div>'
+      (v.multiplo ? v.multiplo.lleva + 'x' + v.multiplo.paga : v.precio !== v.listino ? '<s>' + clp(v.listino) + '</s> ' + clp(v.precio) : clp(v.precio)) + '</span></div>').join('') + '</div>'
     : '<div class="vuoto">Ningún producto cambia de precio ni lleva promo ahora.</div>';
   return '<div class="prev"><div class="box"><h2>Ahora el carrusel muestra</h2>' + carH + '</div><div class="box"><h2>Ahora en destacados</h2>' + destH + '</div><div class="box"><h2>Productos con promo ahora (' + cam.length + ')</h2>' + camH + '</div></div>';
 }
@@ -261,7 +261,8 @@ function salva() {
   if (document.getElementById('f_fd')) { n.fecha_desde = v('f_fd') || null; n.fecha_hasta = v('f_fh') || null; }
   n.prioridad = v('f_prio') ? Number(v('f_prio')) : null; n.badge = v('f_badge') || null;
   n.textos = { es: { eyebrow: v('f_eyebrow') || '', titulo: v('f_titulo') || '', sub: v('f_sub') || '' } };
-  const img = v('f_img'), vid = v('f_vid'); n.media = img || vid ? Object.assign({}, r.media || {}, { poster: img || null, imagen: img || null, video: vid || null }) : null;
+  const img = v('f_img'), vid = v('f_vid'), m0 = r.media || {};
+  if (img !== (m0.poster || m0.imagen || '') || vid !== (m0.video || '')) n.media = img || vid ? Object.assign({}, m0, { poster: img || null, imagen: img || null, video: vid || null }) : null;
   if (r.tipo === 'menu') { n.precios = (r.precios || []).map((p, i) => ({ id: (document.querySelector('[data-pi="' + i + '"][data-pf=id]') || {}).value || p.id, precio: Number((document.querySelector('[data-pi="' + i + '"][data-pf=precio]') || {}).value || p.precio), etiqueta: (document.querySelector('[data-pi="' + i + '"][data-pf=etiqueta]') || {}).value || '' }));
     const d = document.querySelector('input[name=pdef]:checked'); n.precio_default = d ? d.value : (n.precios[0] || {}).id || null; }
   if (r.tipo === 'multiplo') n.multiplo = { paga: Number(v('f_paga')), lleva: Number(v('f_lleva')) };
