@@ -445,7 +445,10 @@ button{font-family:inherit}
 .xinfo{margin-top:6px;background:var(--card);border:1.5px solid var(--linea2);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--txt);text-align:left;line-height:1.4}
 .xinfo b{display:block;font-size:13.5px;margin-bottom:4px}
 .xinfo p{margin:4px 0 0}
-.xwa{margin-top:10px}
+.xwa{margin-top:8px}
+.xbol{background:var(--card);border:1.5px solid var(--linea2);border-radius:14px;padding:11px 12px;margin:0 0 10px}   /* v0.9.34: il WhatsApp sopra i due canali */
+.xbol .xbt{font-size:14px;font-weight:800;color:var(--txt)}
+.xbol .xwak{text-align:left;margin-top:6px;font-size:13px;color:var(--txt)}
 .xwak{font-size:12.5px;color:var(--suave);text-align:center;margin-top:9px}
 .xwak button{font:inherit;border:0;background:none;color:var(--txt);font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:0}
 .segui.xno{font-size:11.5px;padding:6px 0 0;opacity:.75}
@@ -555,7 +558,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.33 · DEMO 27</div>
+<div class="ver" id="ver">menu v0.9.34 · DEMO 28</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1341,7 +1344,7 @@ function cuentaHTML() {
         '<div class="rcv-tot"><span>TOTAL</span><span>' + clp(u.base + u.propina) + '</span></div>' +
         '<div style="text-align:center;margin-top:14px"><span class="stamp' + (pos ? ' ink' : '') + '">' + (pos ? T('EN CAMINO') : T('PAGADO')) + '</span></div>' +
         '<div class="rcv-f">' + (pos ? T('tu mesero viene con la máquina a tu mesa') : metNome(u.metodo) + ' · Fintoc') + '</div></div>' +
-      (!pos ? '<div class="okv">' + (waOk(S.payWa) ? '📲 ' + T('Tu boleta va a tu WhatsApp') + '<span>' + esc(S.payWa) + '</span>' : '🧾 ' + T('Pide tu boleta al mesero')) + '</div>' : '') +
+      ('<div class="okv">' + (waOk(S.payWa) ? '📲 ' + T('Tu boleta va a tu WhatsApp') + '<span>' + esc(S.payWa) + '</span>' : '🧾 ' + T('Pide tu boleta al mesero')) + '</div>') +
       '<div class="okv" style="background:transparent">' + (resta > 0 ? T('En la mesa quedan') + ' ' + clp(resta) + ' ' + T('por pagar') + '<span>' + T('los demás pagan lo suyo desde su teléfono') + '</span>' : '🎉 ' + T('¡La mesa quedó pagada!') + '<span>' + T('gracias por venir') + '</span>') + '</div>' +
       (pos ? '<button class="segui" data-a="fintocVolver">⚡ ' + T('Mejor pago yo con PAGO EXPRESS') + '</button>' : '') +
       '<button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b></button></div>';
@@ -1356,19 +1359,20 @@ function cuentaHTML() {
   if (c.mesa > 0 && c.resta <= 0) {
     return '<div class="ped cta pgx"><div class="pedtit">' + T('Tu cuenta') + X + '</div>' + foglioHTML(c) + '<div class="okv">🎉 ' + T('¡La mesa quedó pagada!') + '<span>' + T('gracias por venir') + '</span></div><button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b></button></div>';
   }
-  const wa = S.payWa || '', waPronto = waOk(wa) || S.noWa, okBtn = c.base > 0 && waPronto;
+  const wa = S.payWa || '', waPronto = waOk(wa) || S.noWa;
   return '<div class="ped cta pgx"><div class="pedtit">' + T('Tu cuenta') + ' · ' + T('Mesa') + ' ' + esc(MESA) + X + '</div>' +
     foglioHTML(c) +
+    '<div class="xbol"><div class="xbt">🧾 ' + T('Tu boleta, por WhatsApp') + '</div>' +
+      (S.waNoto && waOk(wa) ? '<div class="xwak">📲 ' + esc(wa) + ' · <button data-a="waCambia">' + T('cambiar') + '</button></div>'
+        : S.noWa ? '<div class="xwak">' + T('sin boleta por WhatsApp: pídela al mesero') + ' · <button data-a="waCambia">' + T('poner mi WhatsApp') + '</button></div>'
+        : '<div class="ckf xwa"><input type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="+56 9 …" value="' + esc(wa) + '" data-a="payWa" aria-label="' + T('Tu WhatsApp para la boleta') + '"></div>' +
+          '<button class="segui xno" data-a="waNo">' + T('no quiero boleta por WhatsApp') + '</button>') + '</div>' +
     '<div class="xpr"><div class="xt">⚡ ' + T('No pierdas tiempo: usa el PAGO EXPRESS') + '</div>' +
       '<div class="xb"><span>✓ ' + T('rápido') + '</span><span>✓ ' + T('seguro') + '</span><span>✓ ' + T('boleta a tu WhatsApp') + '</span></div>' +
-      (S.waNoto && waOk(wa) ? '<div class="xwak">📲 ' + T('boleta a') + ' ' + esc(wa) + ' · <button data-a="waCambia">' + T('cambiar') + '</button></div>'
-        : S.noWa ? '<div class="xwak">' + T('sin boleta por WhatsApp') + ' · <button data-a="waCambia">' + T('poner mi WhatsApp') + '</button></div>'
-        : '<div class="ckf xwa"><input type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="' + T('Tu WhatsApp para la boleta') + ' · +56 9 …" value="' + esc(wa) + '" data-a="payWa" aria-label="WhatsApp"></div>') +
-      '<button class="envG xgo' + (okBtn ? '' : ' waspento') + '" data-xgo="1" data-a="' + (c.base <= 0 ? 'nada' : waPronto ? 'pagoExpress' : 'waFalta') + '"><b>⚡ PAGO EXPRESS · <em id="pgTotS">' + clp(c.totale) + '</em></b><span>' +
+      '<button class="envG xgo" data-xgo="1" data-a="' + (c.base <= 0 ? 'nada' : waPronto ? 'pagoExpress' : 'waFalta') + '"><b>⚡ PAGO EXPRESS · <em id="pgTotS">' + clp(c.totale) + '</em></b><span>' +
         (c.chiude ? '🎉 ' + T('con esto cierras la mesa') : T('tarjeta · Apple Pay · Google Pay · transferencia')) + '</span></button>' +
-      fiduciaHTML() + '' +
-      (!waOk(wa) && !S.noWa ? '<button class="segui xno" data-a="waNo">' + T('pagar sin boleta por WhatsApp') + '</button>' : '') + '</div>' +
-    '<button class="segui" data-a="pagoPos"' + (c.base > 0 ? '' : ' disabled') + '>' + T('Prefiero esperar la máquina (POS)') + '</button></div>';
+      fiduciaHTML() + '</div>' +
+    '<button class="segui" data-xpos="1" data-a="' + (c.base <= 0 ? 'nada' : waPronto ? 'pagoPos' : 'waFalta') + '"' + (c.base > 0 ? '' : ' disabled') + '>' + T('Prefiero esperar la máquina (POS)') + '</button></div>';
 }
 function lingueHTML() {
   return '<div class="ped"><div class="pedtit">Idioma · Language<button class="pedx" data-a="lingueChiudi">✕</button></div><div class="lng">' +
@@ -1788,7 +1792,8 @@ document.getElementById('app').addEventListener('input', (ev) => {
   if (ev.target.dataset.a === 'payWa') {   // v0.9.30
     S.payWa = String(ev.target.value || '').slice(0, 20); ev.target.classList.remove('male');
     const ok = waOk(S.payWa), bt = document.querySelector('[data-xgo]');
-    if (bt && bt.dataset.a !== 'nada') { bt.classList.toggle('waspento', !ok); bt.dataset.a = ok ? 'pagoExpress' : 'waFalta'; }
+    if (bt && bt.dataset.a !== 'nada') bt.dataset.a = ok ? 'pagoExpress' : 'waFalta';
+    const bp = document.querySelector('[data-xpos]'); if (bp && bp.dataset.a !== 'nada') bp.dataset.a = ok ? 'pagoPos' : 'waFalta';
     return; }
   if (ev.target.dataset.a === 'pagoPropCampo') {   // v0.9.25 · la propina «Otro» della cuenta
     S.pagoPropOtro = Math.min(parseInt(String(ev.target.value || '').replace(/\D/g, ''), 10) || 0, 9999999);
@@ -1852,7 +1857,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'fintocMet' && !S.fintocProc && /^(tarjeta|apple|google|transf)$/.test(k)) { S.fintocProc = k; pinta(); setTimeout(() => { pagoRegistra(k); pinta(); }, 1400); return; }
   if (a === 'fintocInfo') { S.fintocInfo = !S.fintocInfo; pinta(); return; }   // v0.9.33
   if (a === 'fintocVolver') { S.pagoPaso = 'cuenta'; S.fintocProc = ''; pinta(); return; }
-  if (a === 'pagoPos') { S.pagoPaso = 'pos'; if (pagoMesaOn() && envioOn()) llamaMesero('cuenta'); pinta(); return; }   // simulato: nessun mesero chiamato
+  if (a === 'pagoPos') { if (waOk(S.payWa)) { S.waNoto = true; try { localStorage.setItem(WA_K, S.payWa); } catch (e) { /* solo memoria */ } } S.pagoPaso = 'pos'; if (pagoMesaOn() && envioOn()) llamaMesero('cuenta'); pinta(); return; }   // simulato: nessun mesero chiamato
   if (a === 'esperaCancela') { esperaCancela(); return; }   // v0.9.24 · ③
   if (a === 'cuentaPos' && envioOn()) { S.cuenta = false; llamaMesero('cuenta'); pinta(); opinionApri('cuenta', ''); return; }   // v0.9.12: subito, senza attesa (Alberto: «sotto i 20 ms»)
   // v0.7 · «Otra vez»: la stessa riga di prima (piatto + scelta), una in più
