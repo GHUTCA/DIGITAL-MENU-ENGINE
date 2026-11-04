@@ -95,6 +95,11 @@ input[type=time]{width:110px}
 .add{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .add input{flex:1 1 220px}
 .ok{color:var(--ok);font-weight:800}
+.nuovi{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.nv{display:flex;flex-direction:column;gap:4px;text-align:left;background:var(--sup);border:1.5px solid var(--linea2);border-radius:12px;padding:12px;color:var(--txt)}
+.nv:hover{border-color:var(--ok)}
+.nv b{font-size:15px;font-weight:800}
+.nv span{font-size:12.5px;color:var(--suave);line-height:1.35}
 </style>
 </head>
 <body>
@@ -113,7 +118,19 @@ const clp = (n) => (n == null || isNaN(n) ? '—' : '$' + Math.round(n).toLocale
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const uid = () => 'demo-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);   // la chiave nasce dal client
 
-const S = { strumenti: [], parti: [], carta: {}, hist: [], filtro: 'todo', sel: null, dia: null, hora: null, err: '', aggiungi: '' };
+const S = { strumenti: [], parti: [], carta: {}, hist: [], filtro: 'todo', sel: null, dia: null, hora: null, err: '', aggiungi: '', scegli: false };
+const oggiISO = () => { const p = oraSantiago(Date.now()); return p.year + '-' + p.month + '-' + p.day; };
+/* i tipi che si creano dal pannello, coi campi con cui nascono (spenti) */
+const NUOVI = {
+  evento: { ico: '🎉', nome: 'Nuevo evento', desc: 'Una noche, un DJ, una fecha. Sale en el carrusel con su foto o video.', campi: () => ({ desde: '20:00', hasta: '23:59', fecha_desde: oggiISO(), fecha_hasta: oggiISO(), prioridad: 1, textos: { es: { eyebrow: '🎉 Esta noche', titulo: '', sub: '' } } }) },
+  multiplo: { ico: '🍸', nome: '2x1 nuevo', desc: 'Paga 1, lleva 2 en los productos que elijas, en su horario.', campi: () => ({ desde: '16:00', hasta: '20:00', multiplo: { paga: 1, lleva: 2 }, badge: 'En 2x1 ahora' }) },
+  precio_fijo: { ico: '🏷', nome: 'Precio especial', desc: 'Productos a un precio fijo en su horario (como el martes a $2.000).', campi: () => ({ desde: '12:00', hasta: '23:00', badge: 'Precio especial' }) },
+  menu: { ico: '🍽', nome: 'Menú nuevo', desc: 'Un precio por un menú compuesto: fondo, bebida, postre…', campi: () => ({ desde: '12:00', hasta: '15:30', precios: [{ id: 'A', precio: 9990, etiqueta: 'Menú' }], precio_default: 'A', badge: 'En el menú' }) },
+  escena: { ico: '🎬', nome: 'Nueva escena', desc: 'Un video o una foto en el carrusel: un plato, cómo lo hacemos.', campi: () => ({ prioridad: 5 }) },
+  destacados: { ico: '★', nome: 'Destacados', desc: 'Una lista de productos que se muestran arriba en la carta.', campi: () => ({ badge: '★ destacado' }) },
+  botellas: { ico: '🍾', nome: 'Botellas', desc: 'Botellas con su precio de noche, cada una con su hora.', campi: () => ({ desde: '22:00', hasta: '03:00', badge: 'Botella' }) },
+  recargo: { ico: '↗', nome: 'Recargo', desc: 'Sube los precios en un horario (ej. ×1,10 de noche).', campi: () => ({ desde: '23:00', hasta: '03:00', factor: 1.1 }) },
+};
 
 /* l'orologio: «adesso» vero, o il giorno e l'ora che scegli (Santiago) */
 function oraSantiago(ms) { const f = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Santiago', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', weekday: 'short' });
@@ -243,7 +260,11 @@ function pinta() {
       '<span class="nota">Elige un día y una hora para ver qué vería el cliente.</span></div>' +
     anteprimaHTML(R) +
     '<div class="top"><div class="fil">' + FILTRI.map(([k, t]) => '<button class="fc' + (S.filtro === k ? ' on' : '') + '" data-a="filtro" data-k="' + k + '">' + t + '</button>').join('') + '</div>' +
-      '<button class="bt" data-a="nuovo">+ Nueva propuesta</button></div>' +
+      '<button class="bt pri" data-a="nuovo">' + (S.scegli ? 'Cancelar' : '+ Nueva propuesta') + '</button></div>' +
+    (S.scegli ? '<div class="box"><h2>¿Qué quieres crear?</h2>' +
+      '<div class="fld" style="max-width:420px"><label>Nombre que verá el cliente</label><input id="n_nombre" placeholder="ej. Noche de Jazz · 2x1 Pisco Sour"></div>' +
+      '<div class="nuovi">' + Object.entries(NUOVI).map(([k, n]) => '<button class="nv" data-a="crea" data-k="' + k + '"><b>' + n.ico + ' ' + esc(TIPO[k]) + '</b><span>' + esc(n.desc) + '</span></button>').join('') + '</div>' +
+      '<div class="nota" style="margin-top:8px">Nace <b>apagada</b>: la completas (horario, productos, foto) y la enciendes cuando está lista.</div></div>' : '') +
     (S.sel ? dettaglioHTML(R) : '') +
     cardsHTML(R) +
     '<datalist id="carta_l">' + Object.entries(S.carta).map(([id, c]) => '<option value="' + esc(id) + '">' + esc(c.nombre) + '</option>').join('') + '</datalist>' +
@@ -318,12 +339,17 @@ document.getElementById('app').addEventListener('click', (ev) => {
     S.parti.push({ uid_gesto: uid(), local: 'BKS', id_strumento: S.sel, id_producto: id, desde: null, hasta: null, precio: ['botellas', 'precio_fijo'].includes(r.tipo) ? S.carta[id].precio : null,
       rol: r.tipo === 'menu' ? 'fondo' : null, orden: partiVigenti().filter((x) => x.id_strumento === S.sel).length + 1, borrado: false, quien: 'demo', fuente: 'menu_admin', ts_registro: new Date().toISOString() });
     storia(S.sel, 'Agregado: ' + nomeP(id)); pinta(); return; }
-  if (a === 'nuovo') {
-    const tipo = 'evento', base = 'NUEVO-' + (vigenti().filter((x) => /^NUEVO-/.test(x.id_strumento)).length + 1);
-    S.strumenti.push({ uid_gesto: uid(), local: 'BKS', id_strumento: base, tipo, nombre_visible: 'Nueva propuesta', activo: false, grupo: null, dias: [], desde: '20:00', hasta: '23:00', hasta_tope: null,
+  if (a === 'nuovo') { S.scegli = !S.scegli; pinta(); return; }
+  if (a === 'crea' && NUOVI[k]) {
+    /* v2 (Alberto: «come creo un evento, una promo?»): si sceglie il TIPO, e lo strumento nasce spento coi campi giusti già compilati */
+    const N = NUOVI[k], nome = ((document.getElementById('n_nombre') || {}).value || '').trim() || N.nome;
+    let base = nome.toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 36) || 'NUEVO';
+    while (riga(base)) base = base.replace(/-\d+$/, '') + '-' + (Math.floor(Math.random() * 90) + 10);
+    S.strumenti.push(Object.assign({ uid_gesto: uid(), local: 'BKS', id_strumento: base, tipo: k, nombre_visible: nome, activo: false, grupo: null, dias: [], desde: null, hasta: null, hasta_tope: null,
       fecha_desde: null, fecha_hasta: null, prioridad: null, orden: 99, id_contenitore: null, precios: [], precio_default: null, multiplo: null, factor: null, badge: null, media: null,
-      textos: { es: { eyebrow: '', titulo: '', sub: '' } }, cta: null, borrado: false, quien: 'demo', fuente: 'menu_admin', ts_registro: new Date().toISOString() });
-    storia(base, 'Creada (apagada): evento'); S.sel = base; S.filtro = 'todo'; pinta(); return; }
+      textos: { es: { eyebrow: '', titulo: nome, sub: '' } }, cta: null, borrado: false, quien: 'demo', fuente: 'menu_admin', ts_registro: new Date().toISOString() }, N.campi()));
+    storia(base, 'Creada apagada: ' + TIPO[k]); S.sel = base; S.scegli = false; S.filtro = 'todo'; pinta();
+    const d = document.getElementById('det'); if (d) d.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
 });
 document.getElementById('app').addEventListener('change', (ev) => {
   if (ev.target.id === 's_hora') { S.hora = ev.target.value || null; if (!S.dia) { const R = risposta(); S.dia = R.ahora.dia; } pinta(); }
