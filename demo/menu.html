@@ -379,7 +379,23 @@ button{font-family:inherit}
 .prq{font-size:13px;font-weight:800;margin:10px 0 6px}
 .pchips{display:flex;gap:6px;flex-wrap:wrap}
 .pchip{flex:0 0 auto;background:var(--card);border:1.5px solid var(--linea2);color:var(--txt);border-radius:10px;padding:10px 10px;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
-.pchip.on{border-color:var(--ok);background:rgba(139,158,79,.16);color:var(--ok-chiaro)}
+.pchip.on{border-color:var(--ok);background:var(--ok);color:var(--ok-txt)}   /* v0.9.27: pieno, non velato — il velo si confondeva col fondo */
+/* v0.9.27 · il pago express */
+.ped.pgx{justify-content:flex-start}
+.pgx .rcv{margin-bottom:16px}
+.sgs{display:flex;gap:6px}
+.sg{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:52px;background:var(--card);border:1.5px solid var(--linea2);color:var(--txt);border-radius:11px;padding:8px 4px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer}
+.sg small{font-size:11.5px;font-weight:700;color:var(--suave);font-variant-numeric:tabular-nums}
+.sg.on{background:var(--ok);border-color:var(--ok);color:var(--ok-txt)}
+.sg.on small{color:var(--ok-txt);opacity:.85}
+.stp{display:flex;align-items:center;justify-content:space-between;margin-top:6px;background:var(--card);border:1.5px solid var(--linea2);border-radius:11px;padding:4px}
+.stp button{width:46px;height:40px;border:0;border-radius:8px;background:var(--ok);color:var(--ok-txt);font-size:22px;font-weight:800;cursor:pointer}
+.stp button:disabled{opacity:.3;cursor:default}
+.stp span{font-size:14px}
+.pgpie{position:sticky;bottom:0;z-index:2;margin:14px -14px -12px;padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));background:var(--sup);border-top:1px solid var(--linea2);box-shadow:0 -10px 24px rgba(0,0,0,.18)}
+.pgpie .ckr{justify-content:center;margin:0 0 2px}
+.pgx .envG em{font-style:normal}
+.pgx .envG:disabled,.pgx .segui:disabled{opacity:.4;cursor:default}
 /* v0.9.2 · la porta che porta a zero: disponibile, non nascosta, ma più stretta e più scura (Alberto 31-ago, pago.html 2.10) */
 .pchips.p210 .pchip{flex:1 1 calc(50% - 6px);display:flex;flex-direction:column;align-items:center;gap:2px}
 .pchips.p210 .pchip small{font-size:11px;font-weight:700;opacity:.8}
@@ -458,7 +474,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.26 · DEMO 20</div>
+<div class="ver" id="ver">menu v0.9.27 · DEMO 21</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1175,57 +1191,50 @@ function righePagate(c) {
   return c.modo === 'mio' ? righeMie() : c.modo === 'todo' ? righeMesa() : [{ nome: T('1 de') + ' ' + c.partes + ' ' + T('partes de la mesa'), q: 1, pr: c.base }];
 }
 const pagandoHTML = (c) => precuentaHTML(righePagate(c), c.modo === 'mio' ? 'LO QUE PAGAS' : c.modo === 'todo' ? 'TODA LA MESA' : 'TU PARTE', '', 'estás pagando ' + clp(c.base) + ' + propina', true);
+/* v0.9.27 · ⑤ IL PAGO EXPRESS — UNA SCHERMATA (Alberto, mer 4-nov, sulla DEMO 20: «troppi passi, è un pago express, vai a vedere i top
+   mondiali come lo fanno»). Il modello è Sunday (sundayapp.com, benchmark 23-ago): il conto si apre già pagabile, e nella STESSA schermata
+   si sceglie cosa si paga e la propina; il bottone in fondo porta l'importo e paga. Due tocchi nel caso normale (apri → Pagar).
+     · la precuenta della mesa intera sempre davanti; con «Lo mío» le righe degli altri si spengono
+     · ¿Qué pagas?  Lo mío · Toda la mesa · Dividir (− N +, 2-12 personas)
+     · Propina 10% già scelta (D-450) · Otro · Sin
+     · in fondo, fermo: il totale e PAGAR (transferencia) · «prefiero tarjeta» (te traemos la máquina)
+   Finché `pago_mesa_on` è vuota il pago SI SIMULA e lo dice. Poi la ricevuta (¡Pagado!). */
 function cuentaHTML() {
-  const passo = S.pagoPaso || 'cuenta', c = pagoConti(), tab = S.cuentaTab || 'mio';
-  if (passo === 'cuenta') {
-    const L = tab === 'mesa' ? righeMesa() : righeMie();
-    return '<div class="ped cta">' + passoTit('Tu cuenta') +
-      '<div class="pchips" style="margin:2px 0 10px"><button class="pchip' + (tab === 'mio' ? ' on' : '') + '" data-a="cuentaTab" data-k="mio">' + T('Lo mío') + '</button>' +
-      '<button class="pchip' + (tab === 'mesa' ? ' on' : '') + '" data-a="cuentaTab" data-k="mesa">' + T('Toda la mesa') + '</button></div>' +
-      precuentaHTML(L, 'PRECUENTA', '', tab === 'mesa' ? (S.cuentaMesa ? 'toda la mesa · no es boleta' : 'simulación: «Ana» es otro teléfono de prueba en la mesa · no es boleta') : 'lo que pediste desde este teléfono · no es boleta') +
-      (c.resta > 0 ? '<button class="envG" data-a="pagoPasso" data-k="que"><b>' + T('PAGAR') + '</b><span>' + T('eliges qué pagas: lo tuyo, toda la mesa o en partes') + '</span></button>'
-        : '<div class="okv">✓ ' + T('Cuenta pagada') + '<span>' + T('gracias por venir') + '</span></div>') +
-      '<button class="segui" data-a="cuentaPos">' + T('Pedir la cuenta al mesero') + ' · ' + T('te traemos la máquina') + '</button>' +
-      '<button class="segui" data-a="cuentaChiudi">' + T('Seguir pidiendo') + '</button></div>';
+  const c = pagoConti();
+  if (S.pagoPaso === 'ok') {
+    const u = (S.pagati || [])[(S.pagati || []).length - 1] || { base: 0, propina: 0, metodo: '' };
+    const resta = Math.max(0, sommaRighe(righeMesa()) - pagatoGia());
+    return '<div class="ped cta pgx">' + '<div class="pedtit">' + T(u.metodo === 'tarjeta' ? 'Te llevamos la máquina' : '¡Pagado!') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' + sim() +
+      '<div class="okv">' + (u.metodo === 'tarjeta' ? '💳 ' + T('Tu mesero viene con la máquina') : '✓ ' + T('Pago recibido')) +
+        '<span>' + clp(u.base) + (u.propina ? ' + ' + T('propina') + ' ' + clp(u.propina) : '') + ' = <b>' + clp(u.base + u.propina) + '</b></span></div>' +
+      precuentaHTML(u.righe || [], 'LO QUE PAGASTE', '', resta > 0 ? 'en la mesa queda ' + clp(resta) + ' por pagar' : 'la cuenta de la mesa quedó pagada', true) +
+      '<button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b><span>' + (resta > 0 ? T('los demás pueden seguir pidiendo y pagar lo suyo') : T('gracias por venir')) + '</span></button></div>';
   }
-  if (passo === 'que') {
-    const L = c.modo === 'mio' ? righeMie() : righeMesa();
-    const opt = (k, t, sub) => '<button class="pchip' + (c.modo === k ? ' on' : '') + '" data-a="pagoModo" data-k="' + k + '">' + t + '<small>' + sub + '</small></button>';
-    return '<div class="ped cta">' + passoTit('¿Qué pagas?', 'cuenta') +
-      '<div class="pchips p210">' + opt('mio', T('Lo mío'), clp(Math.min(c.mio, c.resta))) + opt('todo', T('Toda la mesa'), clp(c.resta)) +
-      opt('partes', T('En partes iguales'), c.modo === 'partes' ? c.partes + ' × ' + clp(c.base) : '2 · 3 · 4 · 5') + '</div>' +
-      (c.modo === 'partes' ? '<div class="pchips" style="margin-top:6px">' + [2, 3, 4, 5].map((n) => '<button class="pchip' + (c.partes === n ? ' on' : '') + '" data-a="pagoPartes" data-k="' + n + '">' + n + ' ' + T('partes') + '</button>').join('') + '</div>' : '') +
-      precuentaHTML(L, c.modo === 'mio' ? 'LO QUE PAGAS' : c.modo === 'todo' ? 'TODA LA MESA' : 'TODA LA MESA · 1 DE ' + c.partes, c.modo === 'mio' ? 'mio' : '',
-        c.modo === 'partes' ? 'pagas 1 de ' + c.partes + ' partes: ' + clp(c.base) : 'pagas ' + clp(c.base)) +
-      '<button class="envG" data-a="pagoPasso" data-k="propina"' + (c.base > 0 ? '' : ' disabled') + '><b>' + T('CONTINUAR') + ' · ' + clp(c.base) + '</b><span>' + T('después eliges la propina') + '</span></button></div>';
+  const tit = '<div class="pedtit">' + T('Tu cuenta') + ' · ' + T('Mesa') + ' ' + esc(MESA) + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>';
+  if (c.resta <= 0 && c.mesa > 0) {
+    return '<div class="ped cta pgx">' + tit + precuentaHTML(righeMesa(), 'PRECUENTA', '', 'no es boleta') +
+      '<div class="okv">✓ ' + T('Cuenta pagada') + '<span>' + T('gracias por venir') + '</span></div>' +
+      '<button class="segui" data-a="cuentaChiudi">' + T('Volver al menú') + '</button></div>';
   }
-  if (passo === 'propina') {
-    const p = S.pagoProp || '10';
-    return '<div class="ped cta">' + passoTit('Propina', 'que') +
-      '<div class="prq">' + T('Propina para el equipo') + '</div><div class="pchips p210">' +
-      '<button class="pchip' + (p === '10' ? ' on' : '') + '" data-a="pagoProp" data-k="10">10%<small>' + clp(Math.round(c.base * 0.10)) + '</small></button>' +
-      '<button class="pchip' + (p === 'otro' ? ' on' : '') + '" data-a="pagoProp" data-k="otro">' + T('Otro') + '<small>' + T('tú eliges el monto') + '</small></button>' +
-      '<button class="pchip pnone' + (p === 'sin' ? ' on' : '') + '" data-a="pagoProp" data-k="sin">' + T('Sin propina') + '</button></div>' +
-      (p === 'otro' ? '<div class="ckf potrof"><label>' + T('Monto de la propina') + '</label><input type="text" inputmode="numeric" name="pagoPropOtro" maxlength="7" placeholder="$" value="' + (S.pagoPropOtro || '') + '" data-a="pagoPropCampo"></div>' : '') +
-      '<div class="ckr"><span>' + T(c.modo === 'mio' ? 'Lo tuyo' : c.modo === 'todo' ? 'Toda la mesa' : 'Tu parte') + '</span><span>' + clp(c.base) + '</span></div>' +
-      '<div class="ckr"><span>' + T('Propina') + '</span><span id="pgPr">' + clp(c.propina) + '</span></div>' +
-      '<div class="tot"><span>' + T('A pagar') + '</span><span id="pgTot">' + clp(c.totale) + '</span></div>' + pagandoHTML(c) +
-      '<button class="envG" data-a="pagoPasso" data-k="metodo"><b>' + T('CONTINUAR') + ' · ' + clp(c.totale) + '</b><span>' + T('después eliges cómo pagas') + '</span></button></div>';
-  }
-  if (passo === 'metodo') {
-    return '<div class="ped cta">' + passoTit('¿Cómo pagas?', 'propina') + sim() +
-      '<div class="tot" style="margin-bottom:10px"><span>' + T('A pagar') + '</span><span>' + clp(c.totale) + '</span></div>' + pagandoHTML(c) +
-      '<button class="envG" data-a="pagoMetodo" data-k="transferencia"><b>🏦 ' + T('Transferencia') + '</b><span>' + T('desde la app de tu banco, sin tarjeta') + '</span></button>' +
-      '<button class="envG" style="background:var(--card);color:var(--txt);border:1.5px solid var(--linea2)" data-a="pagoMetodo" data-k="tarjeta"><b>💳 ' + T('Tarjeta') + '</b><span>' + T('te traemos la máquina a tu mesa') + '</span></button></div>';
-  }
-  // ok
-  const u = (S.pagati || [])[(S.pagati || []).length - 1] || { base: 0, propina: 0, metodo: '' };
-  const resta = Math.max(0, sommaRighe(righeMesa()) - pagatoGia());
-  return '<div class="ped cta">' + passoTit(u.metodo === 'tarjeta' ? 'Te llevamos la máquina' : '¡Pagado!') + sim() +
-    '<div class="okv">' + (u.metodo === 'tarjeta' ? '💳 ' + T('Tu mesero viene con la máquina') : '✓ ' + T('Pago recibido')) +
-      '<span>' + clp(u.base) + (u.propina ? ' + ' + T('propina') + ' ' + clp(u.propina) : '') + ' = <b>' + clp(u.base + u.propina) + '</b></span></div>' +
-    precuentaHTML(u.righe || [], 'LO QUE PAGASTE', '', resta > 0 ? 'en la mesa queda ' + clp(resta) + ' por pagar' : 'la cuenta de la mesa quedó pagada', true) +
-    '<button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b><span>' + (resta > 0 ? T('los demás pueden seguir pidiendo y pagar lo suyo') : T('gracias por venir')) + '</span></button></div>';
+  const sg = (a, k, on, t, sub) => '<button class="sg' + (on ? ' on' : '') + '" data-a="' + a + '" data-k="' + k + '"' + (on ? ' aria-pressed="true"' : '') + '>' + t + (sub ? '<small>' + sub + '</small>' : '') + '</button>';
+  const p = S.pagoProp || '10';
+  const nota = c.modo === 'partes' ? 'pagas 1 de ' + c.partes + ': ' + clp(c.base) : c.modo === 'mio' ? 'pagas lo tuyo: ' + clp(c.base) : 'pagas toda la mesa: ' + clp(c.base);
+  return '<div class="ped cta pgx">' + tit +
+    precuentaHTML(righeMesa(), 'PRECUENTA', c.modo === 'mio' ? 'mio' : '', nota) +
+    '<div class="prq">' + T('¿Qué pagas?') + '</div>' +
+    '<div class="sgs">' + sg('pagoModo', 'mio', c.modo === 'mio', T('Lo mío'), clp(Math.min(c.mio, c.resta))) +
+      sg('pagoModo', 'todo', c.modo === 'todo', T('Toda la mesa'), clp(c.resta)) +
+      sg('pagoModo', 'partes', c.modo === 'partes', T('Dividir'), c.modo === 'partes' ? clp(c.base) + ' c/u' : T('en partes iguales')) + '</div>' +
+    (c.modo === 'partes' ? '<div class="stp"><button data-a="pagoPartes" data-k="' + (c.partes - 1) + '"' + (c.partes <= 2 ? ' disabled' : '') + ' aria-label="menos">−</button>' +
+      '<span><b>' + c.partes + '</b> ' + T('personas') + '</span><button data-a="pagoPartes" data-k="' + (c.partes + 1) + '"' + (c.partes >= 12 ? ' disabled' : '') + ' aria-label="más">+</button></div>' : '') +
+    '<div class="prq">' + T('Propina para el equipo') + '</div>' +
+    '<div class="sgs">' + sg('pagoProp', '10', p === '10', '10%', clp(Math.round(c.base * 0.10))) + sg('pagoProp', 'otro', p === 'otro', T('Otro'), '') + sg('pagoProp', 'sin', p === 'sin', T('Sin propina'), '') + '</div>' +
+    (p === 'otro' ? '<div class="ckf potrof"><input type="text" inputmode="numeric" name="pagoPropOtro" maxlength="7" placeholder="' + T('Monto de la propina') + ' $" value="' + (S.pagoPropOtro || '') + '" data-a="pagoPropCampo" aria-label="' + T('Monto de la propina') + '"></div>' : '') +
+    '<div class="pgpie">' + sim() +
+      '<div class="ckr"><span>' + T(c.modo === 'mio' ? 'Lo tuyo' : c.modo === 'todo' ? 'Toda la mesa' : 'Tu parte') + ' ' + clp(c.base) + ' + ' + T('propina') + ' <span id="pgPr">' + clp(c.propina) + '</span></span></div>' +
+      '<button class="envG" data-a="pagoMetodo" data-k="transferencia"' + (c.base > 0 ? '' : ' disabled') + '><b>' + T('PAGAR') + ' <em id="pgTot">' + clp(c.totale) + '</em></b><span>🏦 ' + T('transferencia desde tu banco · sin tarjeta') + '</span></button>' +
+      '<button class="segui" data-a="pagoMetodo" data-k="tarjeta"' + (c.base > 0 ? '' : ' disabled') + '>💳 ' + T('Prefiero tarjeta: te traemos la máquina') + '</button>' +
+    '</div></div>';
 }
 function lingueHTML() {
   return '<div class="ped"><div class="pedtit">Idioma · Language<button class="pedx" data-a="lingueChiudi">✕</button></div><div class="lng">' +
@@ -1692,7 +1701,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'cuentaTab' && (k === 'mio' || k === 'mesa')) { S.cuentaTab = k; pinta(); return; }   // v0.9.25 · ⑤ il percorso della cuenta
   if (a === 'pagoPasso' && PAGO_PASSI.indexOf(k) >= 0 && k !== 'ok') { S.pagoPaso = k; pinta(); return; }
   if (a === 'pagoModo' && (k === 'mio' || k === 'todo' || k === 'partes')) { S.pagoModo = k; if (k === 'partes' && !S.pagoPartes) S.pagoPartes = 2; pinta(); return; }
-  if (a === 'pagoPartes' && /^[2-5]$/.test(k)) { S.pagoPartes = Number(k); pinta(); return; }
+  if (a === 'pagoPartes' && /^([2-9]|1[0-2])$/.test(k)) { S.pagoPartes = Number(k); pinta(); return; }
   if (a === 'pagoProp' && (k === '10' || k === 'otro' || k === 'sin')) { S.pagoProp = k; pinta(); return; }
   if (a === 'pagoPropCampo') return;
   if (a === 'pagoMetodo' && (k === 'transferencia' || k === 'tarjeta')) {
