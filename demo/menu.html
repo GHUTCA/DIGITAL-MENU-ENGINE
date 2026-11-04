@@ -393,7 +393,13 @@ button{font-family:inherit}
 .stp button:disabled{opacity:.3;cursor:default}
 .stp span{font-size:14px}
 .pgpie{position:sticky;bottom:0;z-index:2;margin:14px -14px -12px;padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));background:var(--sup);border-top:1px solid var(--linea2);box-shadow:0 -10px 24px rgba(0,0,0,.18)}
-.pgpie .ckr{justify-content:center;margin:0 0 2px}
+.pgsum{display:flex;flex-direction:column;gap:4px;margin:2px 2px 4px;font-variant-numeric:tabular-nums}
+.pgsum>div{display:flex;justify-content:space-between;align-items:baseline;font-size:16px;color:var(--txt)}
+.pgsum>div span{font-weight:600}
+.pgsum>div b{font-weight:800}
+.pgsum>.t{border-top:1.5px solid var(--linea2);padding-top:6px;margin-top:2px;font-size:20px}
+.pgsum>.t span{font-weight:800}
+.pgx .rcv-n{font-size:14px;font-weight:800;color:#2A2118;background:#F1E7D3;border-radius:6px;padding:7px 8px}   /* «pagas 1 de 4: $7.083» si legge */
 .pgx .envG em{font-style:normal}
 .pgx .envG:disabled,.pgx .segui:disabled{opacity:.4;cursor:default}
 /* v0.9.2 · la porta che porta a zero: disponibile, non nascosta, ma più stretta e più scura (Alberto 31-ago, pago.html 2.10) */
@@ -474,7 +480,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.27 · DEMO 21</div>
+<div class="ver" id="ver">menu v0.9.28 · DEMO 22</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1231,7 +1237,9 @@ function cuentaHTML() {
     '<div class="sgs">' + sg('pagoProp', '10', p === '10', '10%', clp(Math.round(c.base * 0.10))) + sg('pagoProp', 'otro', p === 'otro', T('Otro'), '') + sg('pagoProp', 'sin', p === 'sin', T('Sin propina'), '') + '</div>' +
     (p === 'otro' ? '<div class="ckf potrof"><input type="text" inputmode="numeric" name="pagoPropOtro" maxlength="7" placeholder="' + T('Monto de la propina') + ' $" value="' + (S.pagoPropOtro || '') + '" data-a="pagoPropCampo" aria-label="' + T('Monto de la propina') + '"></div>' : '') +
     '<div class="pgpie">' + sim() +
-      '<div class="ckr"><span>' + T(c.modo === 'mio' ? 'Lo tuyo' : c.modo === 'todo' ? 'Toda la mesa' : 'Tu parte') + ' ' + clp(c.base) + ' + ' + T('propina') + ' <span id="pgPr">' + clp(c.propina) + '</span></span></div>' +
+      '<div class="pgsum"><div><span>' + (c.modo === 'mio' ? T('Lo tuyo') : c.modo === 'todo' ? T('Toda la mesa') : T('Tu parte') + ' · 1 ' + T('de') + ' ' + c.partes) + '</span><b>' + clp(c.base) + '</b></div>' +
+        '<div><span>' + T('Propina') + (p === '10' ? ' 10%' : '') + '</span><b id="pgPr">' + clp(c.propina) + '</b></div>' +
+        '<div class="t"><span>' + T('Total a pagar') + '</span><b id="pgTotS">' + clp(c.totale) + '</b></div></div>' +
       '<button class="envG" data-a="pagoMetodo" data-k="transferencia"' + (c.base > 0 ? '' : ' disabled') + '><b>' + T('PAGAR') + ' <em id="pgTot">' + clp(c.totale) + '</em></b><span>🏦 ' + T('transferencia desde tu banco · sin tarjeta') + '</span></button>' +
       '<button class="segui" data-a="pagoMetodo" data-k="tarjeta"' + (c.base > 0 ? '' : ' disabled') + '>💳 ' + T('Prefiero tarjeta: te traemos la máquina') + '</button>' +
     '</div></div>';
@@ -1656,6 +1664,7 @@ document.getElementById('app').addEventListener('input', (ev) => {
     const c = pagoConti(), q = (id) => document.getElementById(id);
     if (q('pgPr')) q('pgPr').textContent = clp(c.propina);
     if (q('pgTot')) q('pgTot').textContent = clp(c.totale);
+    if (q('pgTotS')) q('pgTotS').textContent = clp(c.totale);
     return; }
   if (ev.target.dataset.a === 'ckCampo' && ev.target.name === 'propOtro') {
     const n = parseInt(String(ev.target.value || '').replace(/\D/g, ''), 10) || 0; S.ck.propOtro = Math.min(n, 9999999);
