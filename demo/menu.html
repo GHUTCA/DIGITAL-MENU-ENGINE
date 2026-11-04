@@ -458,7 +458,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.23 · DEMO 17</div>
+<div class="ver" id="ver">menu v0.9.24 · DEMO 18</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -908,11 +908,12 @@ function pedidoHTML() {
     const L = S.listo;
     // v0.9.6 · D-431: il pedido aspetta il mesero (mesa libera), o il mesero ha detto no
     if (L.pc || L.rech) return '<div class="ped"><div class="pedtit">' + (L.rech ? '🙋' : '⏳') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
-      '<div class="okv">' + (L.rech ? (L.rech === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa')
-        : 'Esperando que el mesero confirme tu mesa') + '<span>' + T('Mesa') + ' ' + esc(MESA) + ' · ' + (L.rech ? 'tu pedido no se preparó y no se cobra. Pídele al mesero'
+      '<div class="okv">' + (L.rech ? (L.rech === 'cancelado' ? 'Cancelaste tu pedido' : L.rech === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa')
+        : 'Esperando que el mesero confirme tu mesa') + '<span>' + T('Mesa') + ' ' + esc(MESA) + ' · ' + (L.rech === 'cancelado' ? 'no se preparó y no se cobra. Puedes armar otro cuando quieras' : L.rech ? 'tu pedido no se preparó y no se cobra. Pídele al mesero'
         : L.mot === 'conto_cerrado' ? 'tu cuenta de esta mesa ya se cerró: cuando el mesero confirme, entra en una cuenta nueva'
         : 'tu pedido ya está guardado: cuando el mesero confirme, pasa a cocina y barra') + '</span></div>' +
-      L.righe.map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') + '</div>';
+      L.righe.map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') +
+      (L.pc && L.uuid ? '<button class="segui" data-a="esperaCancela">' + (S.cancelando ? T('Cancelando…') : '✕ ' + T('Cancelar pedido')) + '</button>' : '') + '</div>';
     return '<div class="ped"><div class="pedtit">' + T('¡Listo!') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
       '<div class="okv">✓ ' + T('Tu pedido va') + ' ' + T(L.dove) + '<span>' + T('Mesa') + ' ' + esc(MESA) + ' · ' + T('recién enviado') + '</span></div>' +
       L.righe.map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') + seguirCard(L.righe.map((r) => r.p)) + '</div>';
@@ -932,7 +933,7 @@ function pedidoHTML() {
       '<i class="barra" style="--da:' + (rem / ATTESA_INVIO * 100).toFixed(1) + '%;animation-duration:' + rem + 'ms"></i></button>'; }
   else if (S.inviaStato === 'volando') bot = '<button class="envG hold"><b>' + T('Enviando…') + '</b><span>' + T('no cierres esta pantalla') + '</span></button>';
   else bot = (S.errore ? '<div class="avv">' + esc(S.errore) + '</div>' : '') +
-    '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : T('ENVIAR PEDIDO') + ' · ' + clp(t.s)) + '</b><span>' + t.n + ' ' + T(t.n > 1 ? 'productos' : 'producto') + ' · ' + T(adove(righe().map((r) => r.p))) + '</span></button>' +
+    '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : (!cuentaLeer() && pcVisto() ? T('ENVIAR AL MESERO') : T('ENVIAR PEDIDO')) + ' · ' + clp(t.s)) + '</b><span>' + (!cuentaLeer() && pcVisto() ? T('tu pedido lo confirma el mesero antes de ir a cocina') : t.n + ' ' + T(t.n > 1 ? 'productos' : 'producto') + ' · ' + T(adove(righe().map((r) => r.p)))) + '</span></button>' +
     /* v0.9.17 (Alberto: «una frase che chiarisca che se clicco non posso poi cambiare idea»): sotto ENVIAR, sempre, prima del tocco */
     (S.errore ? '' : (() => { const p = (ENVINFO[S.lang] || ENVINFO.es).replace('{n}', Math.round(ATTESA_INVIO / 1000)).split(' · ');
       return '<div class="envinfo"><i>🔒</i><span><b>' + esc(p[0]) + '</b>' + (p[1] ? '<small>' + esc(p[1]) + '</small>' : '') + '</span></div>'; })());   // v0.9.18: leggibile (Alberto), sotto ENVIAR e più piccolo di lui
@@ -1133,16 +1134,46 @@ const consumoTel = () => envOggi().reduce((s, e) => s + (e.righe || []).reduce((
 /* v0.9.9 (Alberto in prova, 2-nov: «perché non mettiamo una precuenta di carta in mezzo»): il conto è un FOGLIO, come la precuenta che il
    mesero porta al tavolo: intestazione del locale, mesa e ora, le righe col puntino fino al prezzo, il totale grande, «no es boleta».
    La carta è chiara di giorno e di notte (è carta). Al centro dello schermo, non schiacciata in fondo. ⏳ Il disegno lo conferma 🎨 DESIGN. */
+/* v0.9.24 · ⑤ LA CUENTA (D-450, mockup del 4-nov): «Lo mío» = ciò che è partito da questo telefono (il foglio di sempre); «Toda la mesa» = il conto
+   della mesa, che il bordo servirà per chiave (pronto: oggi lo dice). Il pago si sceglie QUI: todo · lo mío · en partes (2-5), propina sempre 10%.
+   Il PAGAR dal tavolo è «pronto» (Fintoc 2.10): oggi resta il «Pedir la cuenta» col POS, che funziona. */
+function pagoTotali() {
+  const mio = consumoTel(), mesa = S.cuentaMesa && Number(S.cuentaMesa.total) > 0 ? Number(S.cuentaMesa.total) : null;
+  const base = S.pagoModo === 'todo' ? (mesa != null ? mesa : mio) : S.pagoModo === 'partes' ? Math.round((mesa != null ? mesa : mio) / (S.pagoPartes || 2)) : mio;
+  return { mio, mesa, base, propina: Math.round(base * 0.10) };
+}
+function pagoHTML() {
+  const t = pagoTotali(), m = S.pagoModo || 'mio';
+  return '<div class="prq">' + T('¿Cómo pagas?') + '</div><div class="pchips p210">' +
+    '<button class="pchip' + (m === 'mio' ? ' on' : '') + '" data-a="pagoModo" data-k="mio">' + T('Lo mío') + '<small>' + clp(t.mio) + '</small></button>' +
+    '<button class="pchip' + (m === 'todo' ? ' on' : '') + '" data-a="pagoModo" data-k="todo">' + T('Toda la mesa') + '<small>' + (t.mesa != null ? clp(t.mesa) : T('pronto')) + '</small></button>' +
+    '<button class="pchip' + (m === 'partes' ? ' on' : '') + '" data-a="pagoModo" data-k="partes">' + T('En partes iguales') + '<small>' + (m === 'partes' ? (S.pagoPartes || 2) + ' × ' + clp(t.base) : '2 · 3 · 4 · 5') + '</small></button></div>' +
+    (m === 'partes' ? '<div class="pchips">' + [2, 3, 4, 5].map((n) => '<button class="pchip' + ((S.pagoPartes || 2) === n ? ' on' : '') + '" data-a="pagoPartes" data-k="' + n + '">' + n + '</button>').join('') + '</div>' : '') +
+    '<div class="ckr"><span>' + T('Propina sugerida') + ' 10%</span><span>' + clp(t.propina) + '</span></div>' +
+    '<div class="tot"><span>' + T('A pagar') + '</span><span>' + clp(t.base + t.propina) + '</span></div>' +
+    '<button class="envG spento"><b>' + T('PAGAR') + ' · ' + clp(t.base + t.propina) + '</b><span>' + T('pronto: el pago desde la mesa todavía no está activo') + '</span></button>';
+}
 function cuentaHTML() {
   const L = []; envOggi().forEach((e) => (e.righe || []).forEach((r) => { const x = L.find((y) => y.nome === r.nome && y.pr === r.pr); if (x) x.q += r.q; else L.push(Object.assign({}, r)); }));
   const d = oraSantiago(), ora = String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' · ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   const brand = (S.cfg && S.cfg.brand_name) || LOCAL;
-  return '<div class="ped cta"><div class="pedtit">' + T('Tu cuenta') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' +
+  const tab = S.cuentaTab || 'mio';
+  const tabs = '<div class="pchips" style="margin:2px 0 10px">' +
+    '<button class="pchip' + (tab === 'mio' ? ' on' : '') + '" data-a="cuentaTab" data-k="mio">' + T('Lo mío') + '</button>' +
+    '<button class="pchip' + (tab === 'mesa' ? ' on' : '') + '" data-a="cuentaTab" data-k="mesa">' + T('Toda la mesa') + '</button></div>';
+  if (tab === 'mesa') return '<div class="ped cta"><div class="pedtit">' + T('Tu cuenta') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' + tabs +
+    (S.cuentaMesa && Array.isArray(S.cuentaMesa.righe)
+      ? '<div class="rcv"><div class="rcv-t">' + T('MESA') + ' ' + esc(MESA) + '</div><div class="rcv-s"></div>' + S.cuentaMesa.righe.map((r) => '<div class="rcv-l"><span class="rq">' + r.q + '</span><span class="rn">' + esc(r.nome) + (r.chi ? ' · ' + esc(r.chi) : '') + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>').join('') +
+        '<div class="rcv-s"></div><div class="rcv-tot"><span>TOTAL</span><span>' + clp(S.cuentaMesa.total) + '</span></div></div>'
+      : '<div class="okv">' + T('La cuenta de toda la mesa llega pronto') + '<span>' + T('por ahora ves lo que pediste desde este teléfono, en «Lo mío»') + '</span></div>') +
+    pagoHTML() + '<button class="envG" data-a="cuentaPos"><b>' + T('Pedir la cuenta') + '</b><span>' + T('te traemos la máquina a tu mesa') + '</span></button>' +
+    '<button class="segui" data-a="cuentaChiudi">' + T('Seguir pidiendo') + '</button></div>';
+  return '<div class="ped cta"><div class="pedtit">' + T('Tu cuenta') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' + tabs +
     '<div class="rcv"><div class="rcv-b">' + esc(brand) + '</div><div class="rcv-t">PRECUENTA</div>' +
     '<div class="rcv-m">' + T('Mesa') + ' ' + esc(MESA) + ' · ' + ora + '</div><div class="rcv-s"></div>' +
     L.map((r) => '<div class="rcv-l"><span class="rq">' + r.q + '</span><span class="rn">' + esc(r.nome) + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>').join('') +
     '<div class="rcv-s"></div><div class="rcv-tot"><span>TOTAL</span><span>' + clp(consumoTel()) + '</span></div>' +
-    '<div class="rcv-n">' + T('Lo que pediste desde este teléfono') + ' · no es boleta</div></div>' +
+    '<div class="rcv-n">' + T('Lo que pediste desde este teléfono') + ' · no es boleta</div></div>' + pagoHTML() +
     '<button class="envG" data-a="cuentaPos"><b>' + T('Pedir la cuenta') + '</b><span>' + T('te traemos la máquina a tu mesa') + '</span></button>' +
     '<button class="segui" data-a="cuentaChiudi">' + T('Seguir pidiendo') + '</button></div>';
 }
@@ -1276,7 +1307,8 @@ function payloadPedido(confirmado) {
     plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
     precios_epoch: (S.tick && S.tick.precios_epoch) || '', ritmo_activo: '', member: '',
     items_json: itemsJson, envio_directo: false, destino: '', via: 'unica', confirmado: !!confirmado,
-    mesa_origen: 'qr', dispositivo_id: dispositivo(), ts: Date.now() };   // la mesa viene sempre dal QR (?mesa=): menu.html non ha memoria di sessione
+    mesa_origen: 'qr', dispositivo_id: dispositivo(), ts: Date.now(),
+    conto_id: (cuentaLeer() || {}).id || '', conto_llave: (cuentaLeer() || {}).llave || '' };   // v0.9.24 · D-444: la chiave di QUESTO telefono (vuota = chiede conferma)   // la mesa viene sempre dal QR (?mesa=): menu.html non ha memoria di sessione
   // v0.6.5: dispositivo_id = l'apparecchio (stessa chiave pinsita_dev della campanella); il conto con ID ne fa la nascita «origen qr»
 }
 async function postBordo(ruta, body, ms, hdr) {
@@ -1293,6 +1325,15 @@ async function postBordo(ruta, body, ms, hdr) {
    Rotta spenta (`ruta_apagada`) ⇒ il telefono non può saperlo: lo dice e smette. Una risposta che non è un esito (404, 503, rete) ⇒ il prossimo giro.
    Le attese vivono in sessionStorage (stessa vita del conto del telefono): una ricarica le riprende. */
 const ESPERA_K = () => 'pinsita_qrc_' + LOCAL + '_' + MESA;
+/* v0.9.24 · ① LA CHIAVE DEL CONTO (D-444): sta nel telefono, per locale e mesa, mai nei log. Stessa chiave di menu_digital v2.116.0. */
+const CUENTA_K = () => 'pinsita_cuenta_' + LOCAL + '_' + MESA;
+function cuentaLeer() { try { const c = JSON.parse(localStorage.getItem(CUENTA_K()) || 'null'); return c && c.id && c.llave ? c : null; } catch (e) { return null; } }
+function cuentaGuardar(id, llave) { if (!id || !llave) return; try { localStorage.setItem(CUENTA_K(), JSON.stringify({ id: String(id), llave: String(llave), ts: Date.now() })); } catch (e) { /* solo memoria */ } }
+function cuentaOlvidar() { try { localStorage.removeItem(CUENTA_K()); } catch (e) { /* niente */ } }
+/* il telefono ha visto che QUI il primo pedido si conferma: da lì ENVIAR lo dice prima del tocco */
+const PCV_K = () => 'pinsita_qrpc_' + LOCAL + '_' + MESA;
+function pcVisto() { try { return sessionStorage.getItem(PCV_K()) === '1'; } catch (e) { return false; } }
+function pcSegna() { try { sessionStorage.setItem(PCV_K(), '1'); } catch (e) { /* niente */ } }
 const ESPERA_MAX_MS = 30 * 60 * 1000;
 let ESPERA_POLL = null;
 const espere = () => (Array.isArray(S.espere) ? S.espere : (S.espere = []));
@@ -1306,6 +1347,7 @@ function esperaFine(e, esito) {
   const L = e.dono ? (S.dono && S.dono.uuid === e.uuid ? S.dono : null) : S.listo;
   if (esito === 'ok') { if (!e.dono) envAggiungi(e.righe); if (L) L.pc = false; nota('✓ El mesero confirmó tu mesa — ' + cosa + (e.dono ? ' va en camino' : ' ya va a cocina y barra')); }
   else if (esito === 'ciego') { if (L) L.pc = false; nota('🙋 Pregúntale a tu mesero si confirmó tu mesa'); }
+  else if (esito === 'cancelado') { if (L) { L.pc = false; L.rech = 'cancelado'; } nota('✓ ' + T('Cancelaste') + ' ' + cosa + ' — no se preparó y no se cobra'); }
   else { if (L) { L.pc = false; L.rech = esito; } nota('🙋 ' + (esito === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa') + ' — ' + cosa + ' no se preparó'); }
   pinta();
 }
@@ -1316,9 +1358,24 @@ async function esperaUno(e) {
   try { r = await (await fetch(BORDO + '/pedido-estado/' + encodeURIComponent(LOCAL) + '?uuid=' + encodeURIComponent(e.uuid),
     { headers: { 'X-Borde-Token': TOKEN_LETTURA }, signal: ctrl.signal })).json(); } catch (x) { r = null; } finally { clearTimeout(tid); }
   if (espere().indexOf(e) < 0) return;   // un altro giro ha già chiuso
+  if (r && r.ok === true && r.conto_id && r.conto_llave) cuentaGuardar(r.conto_id, r.conto_llave);   // v0.9.24 · D-444: la chiave arriva SOLO da qui
   if (r && r.need === 'mesa_rechazada') return esperaFine(e, r.motivo === 'sin_respuesta' ? 'sin_respuesta' : 'rechazada');
+  if (r && r.need === 'pedido_cancelado') return esperaFine(e, 'cancelado');
   if (r && r.ok === true && r.estado && r.estado !== 'por_confirmar') { atiendeSalva(r); return esperaFine(e, 'ok'); }   // v0.9.14: chi ha confermato la mesa
   if (r && r.error === 'ruta_apagada') return esperaFine(e, 'ciego');
+}
+/* v0.9.24 · ③ il cliente cancela il SUO pedido mentre aspetta (D-444, Alberto mer 4). Solo al bordo (`cancelarQr`, ⚙️ ARQ be54d16). */
+async function esperaCancela() {
+  const L = S.listo; const e = L && L.uuid ? espere().find((x) => x.uuid === L.uuid) : null;
+  if (!e || S.cancelando) return;
+  S.cancelando = true; pinta();
+  let r = null;
+  try { r = await postBordo('/pedido/', { action: 'cancelarQr', uuid: e.uuid, mesa: MESA, dispositivo_id: dispositivo() }, 6000); } catch (x) { r = null; }
+  S.cancelando = false;
+  if (r && r.ok === true && r.esito === 'cancelado') return esperaFine(e, 'cancelado');
+  if (r && r.need === 'qr_ya_resuelto') { nota('🙋 Ya no se puede cancelar: el mesero ya respondió'); await esperaUno(e); return pinta(); }
+  nota(r && r.error === 'otro_telefono' ? '🙋 Este pedido lo hizo otro teléfono' : '🙋 No pudimos cancelarlo. Pídele al mesero');
+  pinta();
 }
 async function esperaGiro() {
   if (!espere().length) { clearInterval(ESPERA_POLL); ESPERA_POLL = null; return; }
@@ -1348,7 +1405,7 @@ async function inviaOra(confirmado) {
     histAggiungi(Object.keys(S.cart));
     const rr = righe().map((x) => ({ id: x.p.id, nome: nomeRiga(x), q: x.q, pr: prezzoRiga(x) }));
     // v0.9.6 · D-431: mesa libera ⇒ il bordo lo tiene finché il mesero conferma. Non entra nel conto del telefono finché non è confermato.
-    if (r.por_confirmar) { S.listo.pc = true; S.listo.mot = r.motivo || ''; esperaInizia({ uuid: pl.uuid, ts: Date.now(), mot: r.motivo || '', righe: rr }); }
+    if (r.por_confirmar) { pcSegna(); S.listo.pc = true; S.listo.mot = r.motivo || ''; S.listo.uuid = pl.uuid; esperaInizia({ uuid: pl.uuid, ts: Date.now(), mot: r.motivo || '', righe: rr }); }
     else envAggiungi(rr);   // v0.8: il conto di questo telefono (il Pagar in alto)   // v0.7 «Otra vez»: ciò che è PARTITO, non ciò che è stato solo messo nel carrello
     S.cart = {}; S.uuid = ''; S.uuidFirma = '';
     /* v0.9.9 (Alberto, 2-nov: «perché far vedere questa schermata, vai subito al postre o dove dice il bottone, perché fargli fare clic?»):
@@ -1361,6 +1418,9 @@ async function inviaOra(confirmado) {
       if (d) { S.fam = d.fam; S.cat = d.cat; }
       nota('✓ ' + T('Tu pedido va') + ' ' + T(L.dove) + ' · ' + L.righe.map((x) => x.q + '× ' + x.nome).join(' · '));
     }
+  } else if (r && r.need === 'llave_muerta') { cuentaOlvidar(); pcSegna(); S.errore = 'Tu cuenta de esta mesa se cerró. Para pedir de nuevo, el mesero tiene que confirmar: toca enviar.';   // v0.9.24 · D-444
+  } else if (r && r.need === 'telefono_bloqueado') { S.errore = 'Este teléfono no puede pedir por el menú hoy. Pídele al mesero: tu pedido sigue aquí.';   // v0.9.24 · D-445 ①
+  } else if (r && r.need === 'mesa_bloqueada') { S.errore = 'Esta mesa no está recibiendo pedidos por el menú. Pídele al mesero: tu pedido sigue aquí.';
   } else if (r && r.need === 'mesa_confirmar') { S.need = ''; S.errore = 'No pudimos enviar tu pedido. Tu pedido sigue aquí: reintenta o avísale a tu mesero.'; }
   else if (r && r.need === 'items_agotados') {
     const fuera = Array.isArray(r.agotados) ? r.agotados : [];
@@ -1573,6 +1633,10 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'tusChiudi') { S.tus = false; pinta(); return; }
   if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; pinta(); return; }
   if (a === 'lingua' && LANGS.some((x) => x[0] === k)) { S.lang = k; S.lingue = false; document.documentElement.lang = k; try { localStorage.setItem('pinsita_lang', k); } catch (e) {} pinta(); return; }
+  if (a === 'cuentaTab' && (k === 'mio' || k === 'mesa')) { S.cuentaTab = k; pinta(); return; }   // v0.9.24 · ⑤
+  if (a === 'pagoModo' && (k === 'mio' || k === 'todo' || k === 'partes')) { S.pagoModo = k; if (k === 'partes' && !S.pagoPartes) S.pagoPartes = 2; pinta(); return; }
+  if (a === 'pagoPartes' && /^[2-5]$/.test(k)) { S.pagoPartes = Number(k); pinta(); return; }
+  if (a === 'esperaCancela') { esperaCancela(); return; }   // v0.9.24 · ③
   if (a === 'cuentaPos' && envioOn()) { S.cuenta = false; llamaMesero('cuenta'); pinta(); opinionApri('cuenta', ''); return; }   // v0.9.12: subito, senza attesa (Alberto: «sotto i 20 ms»)
   // v0.7 · «Otra vez»: la stessa riga di prima (piatto + scelta), una in più
   if (a === 'ripeti' && S.hist.indexOf(k) >= 0 && !S.inviando && !S.inviaStato) { const pp = S.prod.find((x) => x.id === k.split('§')[0]);
