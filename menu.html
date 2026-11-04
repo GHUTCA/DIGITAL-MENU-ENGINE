@@ -457,7 +457,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.25</div>
+<div class="ver" id="ver">menu v0.9.26</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -758,7 +758,7 @@ function z1() {
   return casa + '<div class="chi"><b class="mrc">' + esc(brand) + '</b><span' + (CANAL ? ' class="pst"' : '') + '>' + sotto + '</span>' + ati + '</div>' +
     '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
     (showAcceso() ? '<button class="live" data-a="djApri"><i></i>LIVE</button>' : '') +
-    (MESA && cons > 0 ? '<button class="paga1" data-a="cuentaApri" aria-label="' + esc(T('Pagar')) + '">🧾 <b>' + clp(cons) + '</b></button>' : '');   // v0.9.23 (Alberto): un simbolo che si capisce in ogni lingua, non una parola che allunga la pillola
+    (MESA && cons > 0 ? '<button class="paga1" data-a="cuentaApri" aria-label="' + esc(T('Pagar')) + '">🧾 <b>' + (cons - pagatoGia() > 0 ? clp(cons - pagatoGia()) : '✓') + '</b></button>' : '');   // v0.9.23 (Alberto): un simbolo che si capisce in ogni lingua, non una parola che allunga la pillola
 }
 // la card. `lista` = la griglia intera (con foto); senza = la riga sotto la scheda (niente foto: la foto sta sopra)
 function card(p, lista) {
@@ -1154,19 +1154,24 @@ function pagoConti() {
   return { mio, mesa, resta, base, propina: pr, totale: base + pr, modo, partes };
 }
 /* la precuenta: le righe, chi le ha chieste, il totale; `evid` = 'mio' evidenzia le righe di questo telefono */
-function precuentaHTML(L, titolo, evid, nota) {
+function precuentaHTML(L, titolo, evid, nota, senzaResta) {
   const d = oraSantiago(), ora = String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' · ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   return '<div class="rcv"><div class="rcv-b">' + esc((S.cfg && S.cfg.brand_name) || LOCAL) + '</div><div class="rcv-t">' + esc(titolo) + '</div>' +
     '<div class="rcv-m">' + T('Mesa') + ' ' + esc(MESA) + ' · ' + ora + '</div><div class="rcv-s"></div>' +
     (L.length ? L.map((r) => '<div class="rcv-l"' + (evid === 'mio' && r.chi !== 'tú' ? ' style="opacity:.45"' : '') + '><span class="rq">' + r.q + '</span><span class="rn">' + esc(r.nome) + (r.chi ? ' · ' + esc(T(r.chi)) : '') + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>').join('')
       : '<div class="rcv-n">' + T('Todavía no hay pedidos en esta cuenta') + '</div>') +
     '<div class="rcv-s"></div><div class="rcv-tot"><span>TOTAL</span><span>' + clp(sommaRighe(L)) + '</span></div>' +
-    (pagatoGia() ? '<div class="rcv-l"><span class="rq"></span><span class="rn">' + T('Ya pagado') + '</span><i></i><span class="rp">−' + clp(pagatoGia()) + '</span></div>' +
+    (pagatoGia() && !senzaResta ? '<div class="rcv-l"><span class="rq"></span><span class="rn">' + T('Ya pagado') + '</span><i></i><span class="rp">−' + clp(pagatoGia()) + '</span></div>' +
       '<div class="rcv-tot"><span>' + T('RESTA') + '</span><span>' + clp(Math.max(0, sommaRighe(righeMesa()) - pagatoGia())) + '</span></div>' : '') +
     '<div class="rcv-n">' + esc(nota || 'no es boleta') + '</div></div>';
 }
 const sim = () => (pagoMesaOn() ? '' : '<div class="avvs" style="text-align:center;margin:-4px 0 8px">🧪 ' + T('simulación: no se cobra nada') + '</div>');
 const passoTit = (t, indietro) => '<div class="pedtit">' + (indietro ? '<button class="pedx" style="position:static;margin-right:6px" data-a="pagoPasso" data-k="' + indietro + '" aria-label="Volver">‹</button>' : '') + T(t) + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>';
+/* v0.9.26 · le righe di CIÒ CHE SI PAGA, una sola definizione per il passo propina, il método e la ricevuta */
+function righePagate(c) {
+  return c.modo === 'mio' ? righeMie() : c.modo === 'todo' ? righeMesa() : [{ nome: T('1 de') + ' ' + c.partes + ' ' + T('partes de la mesa'), q: 1, pr: c.base }];
+}
+const pagandoHTML = (c) => precuentaHTML(righePagate(c), c.modo === 'mio' ? 'LO QUE PAGAS' : c.modo === 'todo' ? 'TODA LA MESA' : 'TU PARTE', '', 'estás pagando ' + clp(c.base) + ' + propina', true);
 function cuentaHTML() {
   const passo = S.pagoPaso || 'cuenta', c = pagoConti(), tab = S.cuentaTab || 'mio';
   if (passo === 'cuenta') {
@@ -1201,12 +1206,12 @@ function cuentaHTML() {
       (p === 'otro' ? '<div class="ckf potrof"><label>' + T('Monto de la propina') + '</label><input type="text" inputmode="numeric" name="pagoPropOtro" maxlength="7" placeholder="$" value="' + (S.pagoPropOtro || '') + '" data-a="pagoPropCampo"></div>' : '') +
       '<div class="ckr"><span>' + T(c.modo === 'mio' ? 'Lo tuyo' : c.modo === 'todo' ? 'Toda la mesa' : 'Tu parte') + '</span><span>' + clp(c.base) + '</span></div>' +
       '<div class="ckr"><span>' + T('Propina') + '</span><span id="pgPr">' + clp(c.propina) + '</span></div>' +
-      '<div class="tot"><span>' + T('A pagar') + '</span><span id="pgTot">' + clp(c.totale) + '</span></div>' +
+      '<div class="tot"><span>' + T('A pagar') + '</span><span id="pgTot">' + clp(c.totale) + '</span></div>' + pagandoHTML(c) +
       '<button class="envG" data-a="pagoPasso" data-k="metodo"><b>' + T('CONTINUAR') + ' · ' + clp(c.totale) + '</b><span>' + T('después eliges cómo pagas') + '</span></button></div>';
   }
   if (passo === 'metodo') {
     return '<div class="ped cta">' + passoTit('¿Cómo pagas?', 'propina') + sim() +
-      '<div class="tot" style="margin-bottom:10px"><span>' + T('A pagar') + '</span><span>' + clp(c.totale) + '</span></div>' +
+      '<div class="tot" style="margin-bottom:10px"><span>' + T('A pagar') + '</span><span>' + clp(c.totale) + '</span></div>' + pagandoHTML(c) +
       '<button class="envG" data-a="pagoMetodo" data-k="transferencia"><b>🏦 ' + T('Transferencia') + '</b><span>' + T('desde la app de tu banco, sin tarjeta') + '</span></button>' +
       '<button class="envG" style="background:var(--card);color:var(--txt);border:1.5px solid var(--linea2)" data-a="pagoMetodo" data-k="tarjeta"><b>💳 ' + T('Tarjeta') + '</b><span>' + T('te traemos la máquina a tu mesa') + '</span></button></div>';
   }
@@ -1216,7 +1221,7 @@ function cuentaHTML() {
   return '<div class="ped cta">' + passoTit(u.metodo === 'tarjeta' ? 'Te llevamos la máquina' : '¡Pagado!') + sim() +
     '<div class="okv">' + (u.metodo === 'tarjeta' ? '💳 ' + T('Tu mesero viene con la máquina') : '✓ ' + T('Pago recibido')) +
       '<span>' + clp(u.base) + (u.propina ? ' + ' + T('propina') + ' ' + clp(u.propina) : '') + ' = <b>' + clp(u.base + u.propina) + '</b></span></div>' +
-    precuentaHTML(u.righe || [], 'LO QUE PAGASTE', '', resta > 0 ? 'en la mesa queda ' + clp(resta) + ' por pagar' : 'la cuenta de la mesa quedó pagada') +
+    precuentaHTML(u.righe || [], 'LO QUE PAGASTE', '', resta > 0 ? 'en la mesa queda ' + clp(resta) + ' por pagar' : 'la cuenta de la mesa quedó pagada', true) +
     '<button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b><span>' + (resta > 0 ? T('los demás pueden seguir pidiendo y pagar lo suyo') : T('gracias por venir')) + '</span></button></div>';
 }
 function lingueHTML() {
@@ -1689,8 +1694,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'pagoPropCampo') return;
   if (a === 'pagoMetodo' && (k === 'transferencia' || k === 'tarjeta')) {
     const c = pagoConti();
-    const quali = c.modo === 'mio' ? righeMie() : c.modo === 'todo' ? righeMesa()
-      : [{ nome: T('1 de') + ' ' + c.partes + ' ' + T('partes de la mesa'), q: 1, pr: c.base }];
+    const quali = righePagate(c);
     (S.pagati = S.pagati || []).push({ base: c.base, propina: c.propina, metodo: k, modo: c.modo, righe: quali, ts: Date.now() });
     if (k === 'tarjeta' && pagoMesaOn() && envioOn()) llamaMesero('cuenta');   // simulato: nessun mesero chiamato
     S.pagoPaso = 'ok'; pinta(); return; }
