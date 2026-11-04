@@ -458,7 +458,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.24 · DEMO 18</div>
+<div class="ver" id="ver">menu v0.9.25 · DEMO 19</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1134,48 +1134,93 @@ const consumoTel = () => envOggi().reduce((s, e) => s + (e.righe || []).reduce((
 /* v0.9.9 (Alberto in prova, 2-nov: «perché non mettiamo una precuenta di carta in mezzo»): il conto è un FOGLIO, come la precuenta che il
    mesero porta al tavolo: intestazione del locale, mesa e ora, le righe col puntino fino al prezzo, il totale grande, «no es boleta».
    La carta è chiara di giorno e di notte (è carta). Al centro dello schermo, non schiacciata in fondo. ⏳ Il disegno lo conferma 🎨 DESIGN. */
-/* v0.9.24 · ⑤ LA CUENTA (D-450, mockup del 4-nov): «Lo mío» = ciò che è partito da questo telefono (il foglio di sempre); «Toda la mesa» = il conto
-   della mesa, che il bordo servirà per chiave (pronto: oggi lo dice). Il pago si sceglie QUI: todo · lo mío · en partes (2-5), propina sempre 10%.
-   Il PAGAR dal tavolo è «pronto» (Fintoc 2.10): oggi resta il «Pedir la cuenta» col POS, che funziona. */
-function pagoTotali() {
-  const mio = consumoTel(), mesa = S.cuentaMesa && Number(S.cuentaMesa.total) > 0 ? Number(S.cuentaMesa.total) : null;
-  const base = S.pagoModo === 'todo' ? (mesa != null ? mesa : mio) : S.pagoModo === 'partes' ? Math.round((mesa != null ? mesa : mio) / (S.pagoPartes || 2)) : mio;
-  return { mio, mesa, base, propina: Math.round(base * 0.10) };
+/* v0.9.25 · ⑤ LA CUENTA COME PERCORSO (Alberto, mer 4-nov, sulla 0.9.24: «ho visto la precuenta e sotto i bottoni di pagar, poi la precuenta non
+   è più apparsa, non vedo cosa sto pagando… fai che tutto porti dove deve portare anche se non è funzionante, così posso simulare il flusso»).
+   Cinque passi, ognuno con la precuenta di CIÒ CHE SI STA PAGANDO sempre davanti:
+     cuenta (Lo mío / Toda la mesa) → qué (lo mío · toda la mesa · en partes) → propina (10% già scelto, D-450) → método → ¡pagado!
+   Il pago dal tavolo vero (Fintoc, 2.10) non c'è ancora: finché `pago_mesa_on` della config è vuota, l'ultimo passo SI SIMULA e lo dice
+   («simulación: no se cobra nada»), e la cuenta di questo telefono ricorda cosa è stato «pagato» (solo in memoria della sessione).
+   «Toda la mesa» = il conto della mesa servito dal bordo (`S.cuentaMesa`, quando ci sarà); senza, le righe di questo telefono, dichiarato. */
+const PAGO_PASSI = ['cuenta', 'que', 'propina', 'metodo', 'ok'];
+const pagoMesaOn = () => !!String((S.cfg && S.cfg.pago_mesa_on) || '').trim();
+const righeMie = () => { const L = []; envOggi().forEach((e) => (e.righe || []).forEach((r) => { const x = L.find((y) => y.nome === r.nome && y.pr === r.pr); if (x) x.q += r.q; else L.push(Object.assign({ chi: 'tú' }, r)); })); return L; };
+const righeMesa = () => (S.cuentaMesa && Array.isArray(S.cuentaMesa.righe) ? S.cuentaMesa.righe : righeMie().concat(MESA === '998' ? DEMO_ANA : []));
+/* SALA DEMO (04-nov): sulla 998 la mesa ha anche un secondo telefono finto, «Ana», per provare Toda la mesa e le parti. Il menu.html vero non ce l'ha. */
+const DEMO_ANA = [{ nome: 'Gohan de Salmón', q: 1, pr: 18150, chi: 'Ana' }, { nome: 'Aperol Spritz', q: 1, pr: 6990, chi: 'Ana' }];
+const sommaRighe = (L) => L.reduce((s, r) => s + (Number(r.pr) || 0) * (Number(r.q) || 0), 0);
+const pagatoGia = () => (S.pagati || []).reduce((s, p) => s + p.base, 0);
+function pagoConti() {
+  const mio = sommaRighe(righeMie()), mesa = sommaRighe(righeMesa()), resta = Math.max(0, mesa - pagatoGia());
+  const modo = S.pagoModo || 'mio', partes = S.pagoPartes || 2;
+  const base = modo === 'todo' ? resta : modo === 'partes' ? Math.round(mesa / partes) : Math.min(mio, resta);
+  const pr = S.pagoProp === 'sin' ? 0 : S.pagoProp === 'otro' ? Math.max(0, Math.round(S.pagoPropOtro || 0)) : Math.round(base * 0.10);
+  return { mio, mesa, resta, base, propina: pr, totale: base + pr, modo, partes };
 }
-function pagoHTML() {
-  const t = pagoTotali(), m = S.pagoModo || 'mio';
-  return '<div class="prq">' + T('¿Cómo pagas?') + '</div><div class="pchips p210">' +
-    '<button class="pchip' + (m === 'mio' ? ' on' : '') + '" data-a="pagoModo" data-k="mio">' + T('Lo mío') + '<small>' + clp(t.mio) + '</small></button>' +
-    '<button class="pchip' + (m === 'todo' ? ' on' : '') + '" data-a="pagoModo" data-k="todo">' + T('Toda la mesa') + '<small>' + (t.mesa != null ? clp(t.mesa) : T('pronto')) + '</small></button>' +
-    '<button class="pchip' + (m === 'partes' ? ' on' : '') + '" data-a="pagoModo" data-k="partes">' + T('En partes iguales') + '<small>' + (m === 'partes' ? (S.pagoPartes || 2) + ' × ' + clp(t.base) : '2 · 3 · 4 · 5') + '</small></button></div>' +
-    (m === 'partes' ? '<div class="pchips">' + [2, 3, 4, 5].map((n) => '<button class="pchip' + ((S.pagoPartes || 2) === n ? ' on' : '') + '" data-a="pagoPartes" data-k="' + n + '">' + n + '</button>').join('') + '</div>' : '') +
-    '<div class="ckr"><span>' + T('Propina sugerida') + ' 10%</span><span>' + clp(t.propina) + '</span></div>' +
-    '<div class="tot"><span>' + T('A pagar') + '</span><span>' + clp(t.base + t.propina) + '</span></div>' +
-    '<button class="envG spento"><b>' + T('PAGAR') + ' · ' + clp(t.base + t.propina) + '</b><span>' + T('pronto: el pago desde la mesa todavía no está activo') + '</span></button>';
-}
-function cuentaHTML() {
-  const L = []; envOggi().forEach((e) => (e.righe || []).forEach((r) => { const x = L.find((y) => y.nome === r.nome && y.pr === r.pr); if (x) x.q += r.q; else L.push(Object.assign({}, r)); }));
+/* la precuenta: le righe, chi le ha chieste, il totale; `evid` = 'mio' evidenzia le righe di questo telefono */
+function precuentaHTML(L, titolo, evid, nota) {
   const d = oraSantiago(), ora = String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' · ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-  const brand = (S.cfg && S.cfg.brand_name) || LOCAL;
-  const tab = S.cuentaTab || 'mio';
-  const tabs = '<div class="pchips" style="margin:2px 0 10px">' +
-    '<button class="pchip' + (tab === 'mio' ? ' on' : '') + '" data-a="cuentaTab" data-k="mio">' + T('Lo mío') + '</button>' +
-    '<button class="pchip' + (tab === 'mesa' ? ' on' : '') + '" data-a="cuentaTab" data-k="mesa">' + T('Toda la mesa') + '</button></div>';
-  if (tab === 'mesa') return '<div class="ped cta"><div class="pedtit">' + T('Tu cuenta') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' + tabs +
-    (S.cuentaMesa && Array.isArray(S.cuentaMesa.righe)
-      ? '<div class="rcv"><div class="rcv-t">' + T('MESA') + ' ' + esc(MESA) + '</div><div class="rcv-s"></div>' + S.cuentaMesa.righe.map((r) => '<div class="rcv-l"><span class="rq">' + r.q + '</span><span class="rn">' + esc(r.nome) + (r.chi ? ' · ' + esc(r.chi) : '') + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>').join('') +
-        '<div class="rcv-s"></div><div class="rcv-tot"><span>TOTAL</span><span>' + clp(S.cuentaMesa.total) + '</span></div></div>'
-      : '<div class="okv">' + T('La cuenta de toda la mesa llega pronto') + '<span>' + T('por ahora ves lo que pediste desde este teléfono, en «Lo mío»') + '</span></div>') +
-    pagoHTML() + '<button class="envG" data-a="cuentaPos"><b>' + T('Pedir la cuenta') + '</b><span>' + T('te traemos la máquina a tu mesa') + '</span></button>' +
-    '<button class="segui" data-a="cuentaChiudi">' + T('Seguir pidiendo') + '</button></div>';
-  return '<div class="ped cta"><div class="pedtit">' + T('Tu cuenta') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' + tabs +
-    '<div class="rcv"><div class="rcv-b">' + esc(brand) + '</div><div class="rcv-t">PRECUENTA</div>' +
+  return '<div class="rcv"><div class="rcv-b">' + esc((S.cfg && S.cfg.brand_name) || LOCAL) + '</div><div class="rcv-t">' + esc(titolo) + '</div>' +
     '<div class="rcv-m">' + T('Mesa') + ' ' + esc(MESA) + ' · ' + ora + '</div><div class="rcv-s"></div>' +
-    L.map((r) => '<div class="rcv-l"><span class="rq">' + r.q + '</span><span class="rn">' + esc(r.nome) + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>').join('') +
-    '<div class="rcv-s"></div><div class="rcv-tot"><span>TOTAL</span><span>' + clp(consumoTel()) + '</span></div>' +
-    '<div class="rcv-n">' + T('Lo que pediste desde este teléfono') + ' · no es boleta</div></div>' + pagoHTML() +
-    '<button class="envG" data-a="cuentaPos"><b>' + T('Pedir la cuenta') + '</b><span>' + T('te traemos la máquina a tu mesa') + '</span></button>' +
-    '<button class="segui" data-a="cuentaChiudi">' + T('Seguir pidiendo') + '</button></div>';
+    (L.length ? L.map((r) => '<div class="rcv-l"' + (evid === 'mio' && r.chi !== 'tú' ? ' style="opacity:.45"' : '') + '><span class="rq">' + r.q + '</span><span class="rn">' + esc(r.nome) + (r.chi ? ' · ' + esc(T(r.chi)) : '') + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>').join('')
+      : '<div class="rcv-n">' + T('Todavía no hay pedidos en esta cuenta') + '</div>') +
+    '<div class="rcv-s"></div><div class="rcv-tot"><span>TOTAL</span><span>' + clp(sommaRighe(L)) + '</span></div>' +
+    (pagatoGia() ? '<div class="rcv-l"><span class="rq"></span><span class="rn">' + T('Ya pagado') + '</span><i></i><span class="rp">−' + clp(pagatoGia()) + '</span></div>' +
+      '<div class="rcv-tot"><span>' + T('RESTA') + '</span><span>' + clp(Math.max(0, sommaRighe(righeMesa()) - pagatoGia())) + '</span></div>' : '') +
+    '<div class="rcv-n">' + esc(nota || 'no es boleta') + '</div></div>';
+}
+const sim = () => (pagoMesaOn() ? '' : '<div class="avvs" style="text-align:center;margin:-4px 0 8px">🧪 ' + T('simulación: no se cobra nada') + '</div>');
+const passoTit = (t, indietro) => '<div class="pedtit">' + (indietro ? '<button class="pedx" style="position:static;margin-right:6px" data-a="pagoPasso" data-k="' + indietro + '" aria-label="Volver">‹</button>' : '') + T(t) + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>';
+function cuentaHTML() {
+  const passo = S.pagoPaso || 'cuenta', c = pagoConti(), tab = S.cuentaTab || 'mio';
+  if (passo === 'cuenta') {
+    const L = tab === 'mesa' ? righeMesa() : righeMie();
+    return '<div class="ped cta">' + passoTit('Tu cuenta') +
+      '<div class="pchips" style="margin:2px 0 10px"><button class="pchip' + (tab === 'mio' ? ' on' : '') + '" data-a="cuentaTab" data-k="mio">' + T('Lo mío') + '</button>' +
+      '<button class="pchip' + (tab === 'mesa' ? ' on' : '') + '" data-a="cuentaTab" data-k="mesa">' + T('Toda la mesa') + '</button></div>' +
+      precuentaHTML(L, 'PRECUENTA', '', tab === 'mesa' ? (S.cuentaMesa ? 'toda la mesa · no es boleta' : 'por ahora, lo pedido desde este teléfono · no es boleta') : 'lo que pediste desde este teléfono · no es boleta') +
+      (c.resta > 0 ? '<button class="envG" data-a="pagoPasso" data-k="que"><b>' + T('PAGAR') + '</b><span>' + T('eliges qué pagas: lo tuyo, toda la mesa o en partes') + '</span></button>'
+        : '<div class="okv">✓ ' + T('Cuenta pagada') + '<span>' + T('gracias por venir') + '</span></div>') +
+      '<button class="segui" data-a="cuentaPos">' + T('Pedir la cuenta al mesero') + ' · ' + T('te traemos la máquina') + '</button>' +
+      '<button class="segui" data-a="cuentaChiudi">' + T('Seguir pidiendo') + '</button></div>';
+  }
+  if (passo === 'que') {
+    const L = c.modo === 'mio' ? righeMie() : righeMesa();
+    const opt = (k, t, sub) => '<button class="pchip' + (c.modo === k ? ' on' : '') + '" data-a="pagoModo" data-k="' + k + '">' + t + '<small>' + sub + '</small></button>';
+    return '<div class="ped cta">' + passoTit('¿Qué pagas?', 'cuenta') +
+      '<div class="pchips p210">' + opt('mio', T('Lo mío'), clp(Math.min(c.mio, c.resta))) + opt('todo', T('Toda la mesa'), clp(c.resta)) +
+      opt('partes', T('En partes iguales'), c.modo === 'partes' ? c.partes + ' × ' + clp(c.base) : '2 · 3 · 4 · 5') + '</div>' +
+      (c.modo === 'partes' ? '<div class="pchips" style="margin-top:6px">' + [2, 3, 4, 5].map((n) => '<button class="pchip' + (c.partes === n ? ' on' : '') + '" data-a="pagoPartes" data-k="' + n + '">' + n + ' ' + T('partes') + '</button>').join('') + '</div>' : '') +
+      precuentaHTML(L, c.modo === 'mio' ? 'LO QUE PAGAS' : c.modo === 'todo' ? 'TODA LA MESA' : 'TODA LA MESA · 1 DE ' + c.partes, c.modo === 'mio' ? 'mio' : '',
+        c.modo === 'partes' ? 'pagas 1 de ' + c.partes + ' partes: ' + clp(c.base) : 'pagas ' + clp(c.base)) +
+      '<button class="envG" data-a="pagoPasso" data-k="propina"' + (c.base > 0 ? '' : ' disabled') + '><b>' + T('CONTINUAR') + ' · ' + clp(c.base) + '</b><span>' + T('después eliges la propina') + '</span></button></div>';
+  }
+  if (passo === 'propina') {
+    const p = S.pagoProp || '10';
+    return '<div class="ped cta">' + passoTit('Propina', 'que') +
+      '<div class="prq">' + T('Propina para el equipo') + '</div><div class="pchips p210">' +
+      '<button class="pchip' + (p === '10' ? ' on' : '') + '" data-a="pagoProp" data-k="10">10%<small>' + clp(Math.round(c.base * 0.10)) + '</small></button>' +
+      '<button class="pchip' + (p === 'otro' ? ' on' : '') + '" data-a="pagoProp" data-k="otro">' + T('Otro') + '<small>' + T('tú eliges el monto') + '</small></button>' +
+      '<button class="pchip pnone' + (p === 'sin' ? ' on' : '') + '" data-a="pagoProp" data-k="sin">' + T('Sin propina') + '</button></div>' +
+      (p === 'otro' ? '<div class="ckf potrof"><label>' + T('Monto de la propina') + '</label><input type="text" inputmode="numeric" name="pagoPropOtro" maxlength="7" placeholder="$" value="' + (S.pagoPropOtro || '') + '" data-a="pagoPropCampo"></div>' : '') +
+      '<div class="ckr"><span>' + T(c.modo === 'mio' ? 'Lo tuyo' : c.modo === 'todo' ? 'Toda la mesa' : 'Tu parte') + '</span><span>' + clp(c.base) + '</span></div>' +
+      '<div class="ckr"><span>' + T('Propina') + '</span><span id="pgPr">' + clp(c.propina) + '</span></div>' +
+      '<div class="tot"><span>' + T('A pagar') + '</span><span id="pgTot">' + clp(c.totale) + '</span></div>' +
+      '<button class="envG" data-a="pagoPasso" data-k="metodo"><b>' + T('CONTINUAR') + ' · ' + clp(c.totale) + '</b><span>' + T('después eliges cómo pagas') + '</span></button></div>';
+  }
+  if (passo === 'metodo') {
+    return '<div class="ped cta">' + passoTit('¿Cómo pagas?', 'propina') + sim() +
+      '<div class="tot" style="margin-bottom:10px"><span>' + T('A pagar') + '</span><span>' + clp(c.totale) + '</span></div>' +
+      '<button class="envG" data-a="pagoMetodo" data-k="transferencia"><b>🏦 ' + T('Transferencia') + '</b><span>' + T('desde la app de tu banco, sin tarjeta') + '</span></button>' +
+      '<button class="envG" style="background:var(--card);color:var(--txt);border:1.5px solid var(--linea2)" data-a="pagoMetodo" data-k="tarjeta"><b>💳 ' + T('Tarjeta') + '</b><span>' + T('te traemos la máquina a tu mesa') + '</span></button></div>';
+  }
+  // ok
+  const u = (S.pagati || [])[(S.pagati || []).length - 1] || { base: 0, propina: 0, metodo: '' };
+  const resta = Math.max(0, sommaRighe(righeMesa()) - pagatoGia());
+  return '<div class="ped cta">' + passoTit(u.metodo === 'tarjeta' ? 'Te llevamos la máquina' : '¡Pagado!') + sim() +
+    '<div class="okv">' + (u.metodo === 'tarjeta' ? '💳 ' + T('Tu mesero viene con la máquina') : '✓ ' + T('Pago recibido')) +
+      '<span>' + clp(u.base) + (u.propina ? ' + ' + T('propina') + ' ' + clp(u.propina) : '') + ' = <b>' + clp(u.base + u.propina) + '</b></span></div>' +
+    precuentaHTML(u.righe || [], 'LO QUE PAGASTE', '', resta > 0 ? 'en la mesa queda ' + clp(resta) + ' por pagar' : 'la cuenta de la mesa quedó pagada') +
+    '<button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b><span>' + (resta > 0 ? T('los demás pueden seguir pidiendo y pagar lo suyo') : T('gracias por venir')) + '</span></button></div>';
 }
 function lingueHTML() {
   return '<div class="ped"><div class="pedtit">Idioma · Language<button class="pedx" data-a="lingueChiudi">✕</button></div><div class="lng">' +
@@ -1592,6 +1637,12 @@ if (window.visualViewport) {
 document.getElementById('app').addEventListener('input', (ev) => {
   if (ev.target.classList.contains('bin')) { S.busca = ev.target.value; S.abierta = null; pinta(); return; }
   // PINSA: i campi della cassa si ricordano senza ridisegnare (perderebbe la tastiera)
+  if (ev.target.dataset.a === 'pagoPropCampo') {   // v0.9.25 · la propina «Otro» della cuenta
+    S.pagoPropOtro = Math.min(parseInt(String(ev.target.value || '').replace(/\D/g, ''), 10) || 0, 9999999);
+    const c = pagoConti(), q = (id) => document.getElementById(id);
+    if (q('pgPr')) q('pgPr').textContent = clp(c.propina);
+    if (q('pgTot')) q('pgTot').textContent = clp(c.totale);
+    return; }
   if (ev.target.dataset.a === 'ckCampo' && ev.target.name === 'propOtro') {
     const n = parseInt(String(ev.target.value || '').replace(/\D/g, ''), 10) || 0; S.ck.propOtro = Math.min(n, 9999999);
     const s = totale().s, pr = propinaDi(s), q = (id) => document.getElementById(id);
@@ -1631,11 +1682,21 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'lingueApri' || a === 'djApri' || a === 'cuentaApri') { if (S.inviando || S.inviaStato) return; S.lingue = a === 'lingueApri'; S.dj = a === 'djApri'; S.cuenta = a === 'cuentaApri'; S.tus = false; S.pedido = false; S.campana = false; S.dono = null; pinta(); return; }
   if (a === 'tusApri') { S.tus = true; S.abierta = null; S.pedido = false; S.palco = false; pinta(); return; }
   if (a === 'tusChiudi') { S.tus = false; pinta(); return; }
-  if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; pinta(); return; }
+  if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; S.pagoPaso = 'cuenta'; pinta(); return; }
   if (a === 'lingua' && LANGS.some((x) => x[0] === k)) { S.lang = k; S.lingue = false; document.documentElement.lang = k; try { localStorage.setItem('pinsita_lang', k); } catch (e) {} pinta(); return; }
-  if (a === 'cuentaTab' && (k === 'mio' || k === 'mesa')) { S.cuentaTab = k; pinta(); return; }   // v0.9.24 · ⑤
+  if (a === 'cuentaTab' && (k === 'mio' || k === 'mesa')) { S.cuentaTab = k; pinta(); return; }   // v0.9.25 · ⑤ il percorso della cuenta
+  if (a === 'pagoPasso' && PAGO_PASSI.indexOf(k) >= 0 && k !== 'ok') { S.pagoPaso = k; pinta(); return; }
   if (a === 'pagoModo' && (k === 'mio' || k === 'todo' || k === 'partes')) { S.pagoModo = k; if (k === 'partes' && !S.pagoPartes) S.pagoPartes = 2; pinta(); return; }
   if (a === 'pagoPartes' && /^[2-5]$/.test(k)) { S.pagoPartes = Number(k); pinta(); return; }
+  if (a === 'pagoProp' && (k === '10' || k === 'otro' || k === 'sin')) { S.pagoProp = k; pinta(); return; }
+  if (a === 'pagoPropCampo') return;
+  if (a === 'pagoMetodo' && (k === 'transferencia' || k === 'tarjeta')) {
+    const c = pagoConti();
+    const quali = c.modo === 'mio' ? righeMie() : c.modo === 'todo' ? righeMesa()
+      : [{ nome: T('1 de') + ' ' + c.partes + ' ' + T('partes de la mesa'), q: 1, pr: c.base }];
+    (S.pagati = S.pagati || []).push({ base: c.base, propina: c.propina, metodo: k, modo: c.modo, righe: quali, ts: Date.now() });
+    if (k === 'tarjeta' && pagoMesaOn() && envioOn()) llamaMesero('cuenta');   // simulato: nessun mesero chiamato
+    S.pagoPaso = 'ok'; pinta(); return; }
   if (a === 'esperaCancela') { esperaCancela(); return; }   // v0.9.24 · ③
   if (a === 'cuentaPos' && envioOn()) { S.cuenta = false; llamaMesero('cuenta'); pinta(); opinionApri('cuenta', ''); return; }   // v0.9.12: subito, senza attesa (Alberto: «sotto i 20 ms»)
   // v0.7 · «Otra vez»: la stessa riga di prima (piatto + scelta), una in più
