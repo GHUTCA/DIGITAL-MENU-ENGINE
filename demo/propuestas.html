@@ -201,7 +201,7 @@ function cardsHTML(R) {
   }).join('') + '</div>';
 }
 function dettaglioHTML(R) {
-  const r = riga(S.sel); if (!r) return '';
+  const r = (S.draft && S.draft.id_strumento === S.sel) ? S.draft : riga(S.sel); if (!r) return '';
   const s = R.strumenti.find((x) => x.id === r.id_strumento) || { parti: [] }, sp = Object.fromEntries((s.parti || []).map((p) => [p.id_producto, p]));
   const tx = (r.textos && r.textos.es) || {}, md = r.media || {};
   const parti = partiVigenti().filter((p) => p.id_strumento === r.id_strumento).sort((a, b) => (a.orden || 0) - (b.orden || 0));
@@ -272,8 +272,8 @@ function pinta() {
       'La regla es la misma del bordo (strumenti 0.1.0). En el vivo cada «Guardar» es una fila nueva en Postgres, con quién y cuándo, y Google no participa.</div>';
 }
 /* salvare = una versione nuova (mai un UPDATE) */
-function salva() {
-  const r = riga(S.sel); if (!r) return;
+function leggiForm() {
+  const r = (S.draft && S.draft.id_strumento === S.sel) ? S.draft : riga(S.sel);
   const v = (id) => { const e = document.getElementById(id); return e ? e.value.trim() : undefined; };
   const n = Object.assign({}, r, { uid_gesto: uid(), quien: 'demo', fuente: 'menu_admin', ts_registro: new Date().toISOString() });
   n.nombre_visible = v('f_nombre') || r.nombre_visible;
@@ -288,6 +288,19 @@ function salva() {
     const d = document.querySelector('input[name=pdef]:checked'); n.precio_default = d ? d.value : (n.precios[0] || {}).id || null; }
   if (r.tipo === 'multiplo') n.multiplo = { paga: Number(v('f_paga')), lleva: Number(v('f_lleva')) };
   if (r.tipo === 'recargo') n.factor = Number(v('f_factor'));
+  return n;
+}
+/* le modifiche in linea dei prodotti diventano subito righe nuove (sono righe loro, non dello strumento) */
+function salvaPartiInline(cambi) {
+  document.querySelectorAll('[data-pp]').forEach((el) => {
+    const p = partiVigenti().find((x) => x.id_strumento === S.sel && x.id_producto === el.dataset.pp); if (!p) return;
+    const f = el.dataset.pf, val = el.value === '' ? null : (f === 'precio' ? Number(el.value) : el.value);
+    if (JSON.stringify(p[f] == null ? null : p[f]) !== JSON.stringify(val)) { S.parti.push(Object.assign({}, p, { [f]: val, uid_gesto: uid(), quien: 'demo', fuente: 'menu_admin', ts_registro: new Date().toISOString() })); if (cambi) cambi.push(nomeP(p.id_producto) + ' · ' + f); else storia(S.sel, nomeP(p.id_producto) + ' · ' + f); }
+  });
+}
+function salva() {
+  const r = riga(S.sel); if (!r) return;
+  const n = leggiForm();
   // le stesse regole della DDL, prima di scrivere
   const e = [];
   if ((n.desde == null) !== (n.hasta == null)) e.push('«Desde» y «Hasta» van juntos, o ninguno.');
@@ -298,14 +311,9 @@ function salva() {
   S.err = '';
   const cambi = ['nombre_visible', 'dias', 'desde', 'hasta', 'hasta_tope', 'fecha_desde', 'fecha_hasta', 'prioridad', 'badge', 'precios', 'precio_default', 'multiplo', 'factor', 'textos', 'media']
     .filter((k) => JSON.stringify(n[k] == null ? null : n[k]) !== JSON.stringify(r[k] == null ? null : r[k]));
-  // le parti modificate in linea
-  document.querySelectorAll('[data-pp]').forEach((el) => {
-    const p = partiVigenti().find((x) => x.id_strumento === r.id_strumento && x.id_producto === el.dataset.pp); if (!p) return;
-    const f = el.dataset.pf, val = el.value === '' ? null : (f === 'precio' ? Number(el.value) : el.value);
-    if (JSON.stringify(p[f] == null ? null : p[f]) !== JSON.stringify(val)) { S.parti.push(Object.assign({}, p, { [f]: val, uid_gesto: uid(), quien: 'demo', fuente: 'menu_admin', ts_registro: new Date().toISOString() })); cambi.push(nomeP(p.id_producto) + ' · ' + f); }
-  });
-  if (!cambi.length) { S.err = 'No hay cambios que guardar.'; pinta(); return; }
-  S.strumenti.push(n); storia(r.id_strumento, 'Versión nueva: ' + cambi.join(', '));
+  salvaPartiInline(cambi);
+  if (!cambi.length) { S.err = 'No hay cambios que guardar.'; S.draft = null; pinta(); return; }
+  S.strumenti.push(n); S.draft = null; storia(r.id_strumento, 'Versión nueva: ' + cambi.join(', '));
   pinta();
 }
 function storia(id, cosa) { const d = new Date(); S.hist.push({ id, cosa, ora: d.toLocaleDateString('es-CL') + ' ' + d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' · demo' }); }
@@ -320,19 +328,19 @@ document.getElementById('app').addEventListener('click', (ev) => {
     const i = L.findIndex((x) => x.id_strumento === k), j = a === 'su' ? i - 1 : i + 1; if (j < 0 || j >= L.length) return;
     const oi = L[i].orden == null ? i + 1 : L[i].orden, oj = L[j].orden == null ? j + 1 : L[j].orden;
     versione(L[i], { orden: oj }, 'Orden ' + oi + ' → ' + oj); versione(L[j], { orden: oi }, 'Orden ' + oj + ' → ' + oi); pinta(); return; }
-  if (a === 'apri') { S.sel = k; S.err = ''; S.aggiungi = ''; pinta(); const d = document.getElementById('det'); if (d) d.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-  if (a === 'chiudi') { S.sel = null; S.err = ''; pinta(); return; }
+  if (a === 'apri') { S.draft = null; S.sel = k; S.err = ''; S.aggiungi = ''; pinta(); const d = document.getElementById('det'); if (d) d.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (a === 'chiudi') { S.draft = null; S.sel = null; S.err = ''; pinta(); return; }
   if (a === 'salva') { salva(); return; }
   if (a === 'dia') { el.classList.toggle('on'); return; }
   if (a === 'filtro') { S.filtro = k; pinta(); return; }
   if (a === 'sdia') { S.dia = S.dia === k ? null : k; if (!S.hora) S.hora = (document.getElementById('s_hora') || {}).value || null; pinta(); return; }
   if (a === 'ora') { S.dia = null; S.hora = null; pinta(); return; }
-  if (a === 'padd' || a === 'pdel') { const r = riga(S.sel); const pr = (r.precios || []).slice();
+  if (a === 'padd' || a === 'pdel') { S.draft = leggiForm(); const pr = (S.draft.precios || []).slice();
     if (a === 'padd') pr.push({ id: String.fromCharCode(65 + pr.length), precio: 0, etiqueta: '' }); else pr.splice(Number(k), 1);
-    const i = S.strumenti.lastIndexOf(r); S.strumenti[i] = Object.assign({}, r, { precios: pr }); pinta(); return; }   // si scrive al «Guardar»
-  if (a === 'ptogli') { const p = partiVigenti().find((x) => x.id_strumento === S.sel && x.id_producto === k);
+    S.draft.precios = pr; pinta(); return; }   // si scrive al «Guardar»
+  if (a === 'ptogli') { S.draft = leggiForm(); salvaPartiInline(); const p = partiVigenti().find((x) => x.id_strumento === S.sel && x.id_producto === k);
     S.parti.push(Object.assign({}, p, { borrado: true, uid_gesto: uid(), quien: 'demo', ts_registro: new Date().toISOString() })); storia(S.sel, 'Quitado: ' + nomeP(k)); pinta(); return; }
-  if (a === 'pagg') { const id = ((document.getElementById('f_add') || {}).value || '').trim().toUpperCase();
+  if (a === 'pagg') { S.draft = leggiForm(); salvaPartiInline(); const id = ((document.getElementById('f_add') || {}).value || '').trim().toUpperCase();
     if (!S.carta[id]) { S.err = 'Ese producto no está en la carta: elige uno de la lista.'; pinta(); return; }
     if (partiVigenti().some((x) => x.id_strumento === S.sel && x.id_producto === id)) { S.err = 'Ya está.'; pinta(); return; }
     const r = riga(S.sel); S.err = '';
