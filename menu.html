@@ -400,6 +400,57 @@ button{font-family:inherit}
 .pgsum>.t span{font-weight:800}
 .pgx .rcv-n{font-size:14px;font-weight:800;color:#2A2118;background:#F1E7D3;border-radius:6px;padding:7px 8px}   /* «pagas 1 de 4: $7.083» si legge */
 .pgx .envG em{font-style:normal}
+/* v0.9.30 · il foglio della mesa si tocca */
+.rsel{width:100%;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.rsel:disabled{cursor:default}
+.rcv-l .rck{flex:0 0 auto;width:18px;height:18px;border:2px solid #B7A896;border-radius:4px;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;transform:translateY(3px)}
+.rsel.on .rck{background:#5F7A1F;border-color:#5F7A1F}
+.rsel:not(.on) .rn,.rsel:not(.on) .rp,.rsel:not(.on) .rq{color:#A89A88}
+.rpg{flex-wrap:wrap}.rpg .rck{background:#B7A896;border-color:#B7A896}
+.rpg .rn,.rpg .rp,.rpg .rq{color:#A89A88;text-decoration:line-through}
+.rpg em{flex-basis:100%;font-style:normal;font-size:11px;font-weight:800;color:#5F7A1F;letter-spacing:.08em;text-transform:uppercase;padding-left:26px}
+.rqq{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:11.5px;color:#7A6A5C;margin-bottom:4px}
+.rqq button,.rstp .rdiv{font:inherit;border:0;background:none;color:#5F7A1F;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:2px 0}
+.rcv-r{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:2px 0;font-variant-numeric:tabular-nums}
+.rcv-r.dim{color:#7A6A5C;font-size:13px}
+.rcv-r.big{font-size:19px;font-weight:800}
+.rcv-dd{border-top:3px double #2A2118;margin:10px 0 8px}
+.rprop{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.rprop button{font:inherit;font-size:12px;font-weight:700;border:1.5px solid #B7A896;background:none;color:#7A6A5C;border-radius:4px;padding:3px 6px;cursor:pointer}
+.rprop button.on{border-color:#2A2118;background:#2A2118;color:#FFFDF7}
+.rpo{margin:4px 0 0}.rpo input{background:#FFFDF7!important;color:#2A2118!important}
+.rstp{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#7A6A5C;margin-top:6px}
+.rstp>span:last-child{display:flex;align-items:center;gap:10px;color:#2A2118;font-weight:800}
+.rstp button:not(.rdiv){font:inherit;width:30px;height:30px;border:1.5px solid #2A2118;background:none;border-radius:4px;cursor:pointer;color:#2A2118;font-size:16px}
+.rstp button:disabled{opacity:.3;cursor:default}
+.rcv-f{text-align:center;font-size:11px;color:#7A6A5C;margin-top:10px}
+.stamp{display:inline-block;border:3px solid #5F7A1F;color:#5F7A1F;font-weight:800;letter-spacing:.2em;padding:4px 12px;transform:rotate(-6deg);border-radius:4px;font-size:18px}
+.stamp.ink{border-color:#2A2118;color:#2A2118}
+/* il PAGO EXPRESS del 21-ott: bordo d'oro doppio, il battito, «Pago seguro con Fintoc» da solo */
+.xpr{background:linear-gradient(135deg,rgba(139,158,79,.20),rgba(255,197,61,.10));border:3px double var(--oro);border-radius:14px;padding:12px;margin-top:4px}
+.xpr .xt{font-size:15.5px;font-weight:800;color:var(--txt);text-align:center;line-height:1.25}
+.xpr .xb{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:12.5px;font-weight:700;color:var(--ok-chiaro)}
+.xpr .envG{margin-top:10px}
+.xpr .envG.xgo:not(.waspento){animation:xgoPulse 2.4s ease-out infinite}
+@keyframes xgoPulse{0%{box-shadow:0 0 0 0 rgba(139,158,79,.6)}70%{box-shadow:0 0 0 12px rgba(139,158,79,0)}100%{box-shadow:0 0 0 0 rgba(139,158,79,0)}}
+.xsec{text-align:center;margin-top:9px;font-size:14px;font-weight:700;color:var(--txt)}
+.xsec b{font-weight:800}
+.xwa{margin-top:10px}
+.xwak{font-size:12.5px;color:var(--suave);text-align:center;margin-top:9px}
+.xwak button{font:inherit;border:0;background:none;color:var(--txt);font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:0}
+.segui.xno{font-size:11.5px;padding:6px 0 0;opacity:.75}
+.ftot{display:flex;flex-direction:column;align-items:center;gap:2px;margin:6px 0 14px}
+.ftot b{font-size:36px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.ftot small{color:var(--suave);font-size:13px}
+.fpm{width:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--linea2);color:var(--txt);border-radius:12px;padding:15px 14px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:7px;text-align:left}
+.fpm small{font-size:11px;color:var(--suave);font-weight:700}
+.fpm .sp{font-variant-numeric:tabular-nums;color:var(--suave);font-size:13px}
+.fpm.dim{opacity:.55}
+.fproc{display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 0;font-weight:800;font-size:16px}
+.fproc span{font-size:13px;font-weight:600;color:var(--suave)}
+.fspin{width:34px;height:34px;border-radius:50%;border:4px solid var(--linea2);border-top-color:var(--ok);animation:fgira .9s linear infinite}
+@keyframes fgira{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.xpr .envG.xgo,.fspin{animation:none}}
 .fbk{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .fbk .sg{min-height:46px}
 .pgx .envG:disabled,.pgx .segui:disabled{opacity:.4;cursor:default}
@@ -481,7 +532,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.29</div>
+<div class="ver" id="ver">menu v0.9.30</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -782,7 +833,7 @@ function z1() {
   return casa + '<div class="chi"><b class="mrc">' + esc(brand) + '</b><span' + (CANAL ? ' class="pst"' : '') + '>' + sotto + '</span>' + ati + '</div>' +
     '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
     (showAcceso() ? '<button class="live" data-a="djApri"><i></i>LIVE</button>' : '') +
-    (MESA && cons > 0 ? '<button class="paga1" data-a="cuentaApri" aria-label="' + esc(T('Pagar')) + '">🧾 <b>' + (cons - pagatoGia() > 0 ? clp(cons - pagatoGia()) : '✓') + '</b></button>' : '');   // v0.9.23 (Alberto): un simbolo che si capisce in ogni lingua, non una parola che allunga la pillola
+    (MESA && cons > 0 ? '<button class="paga1" data-a="cuentaApri" aria-label="' + esc(T('Pagar')) + '">🧾 <b>' + pagoPill() + '</b></button>' : '');   // v0.9.23 (Alberto): un simbolo che si capisce in ogni lingua, non una parola che allunga la pillola
 }
 // la card. `lista` = la griglia intera (con foto); senza = la riga sotto la scheda (niente foto: la foto sta sopra)
 function card(p, lista) {
@@ -1157,106 +1208,131 @@ const consumoTel = () => envOggi().reduce((s, e) => s + (e.righe || []).reduce((
 /* v0.9.9 (Alberto in prova, 2-nov: «perché non mettiamo una precuenta di carta in mezzo»): il conto è un FOGLIO, come la precuenta che il
    mesero porta al tavolo: intestazione del locale, mesa e ora, le righe col puntino fino al prezzo, il totale grande, «no es boleta».
    La carta è chiara di giorno e di notte (è carta). Al centro dello schermo, non schiacciata in fondo. ⏳ Il disegno lo conferma 🎨 DESIGN. */
-/* v0.9.25 · ⑤ LA CUENTA COME PERCORSO (Alberto, mer 4-nov, sulla 0.9.24: «ho visto la precuenta e sotto i bottoni di pagar, poi la precuenta non
-   è più apparsa, non vedo cosa sto pagando… fai che tutto porti dove deve portare anche se non è funzionante, così posso simulare il flusso»).
-   Cinque passi, ognuno con la precuenta di CIÒ CHE SI STA PAGANDO sempre davanti:
-     cuenta (Lo mío / Toda la mesa) → qué (lo mío · toda la mesa · en partes) → propina (10% già scelto, D-450) → método → ¡pagado!
-   Il pago dal tavolo vero (Fintoc, 2.10) non c'è ancora: finché `pago_mesa_on` della config è vuota, l'ultimo passo SI SIMULA e lo dice
-   («simulación: no se cobra nada»), e la cuenta di questo telefono ricorda cosa è stato «pagato» (solo in memoria della sessione).
-   «Toda la mesa» = il conto della mesa servito dal bordo (`S.cuentaMesa`, quando ci sarà); senza, le righe di questo telefono, dichiarato. */
-const PAGO_PASSI = ['cuenta', 'que', 'propina', 'metodo', 'ok'];
+/* v0.9.30 · ⑤ IL PAGO DEL CLIENTE — dal disegno del 21-ott (Alberto, mer 4-nov: «rifallo dal disegno del 21-ott, tieni le cose buone, prendi
+   le cose buone dell'altro e tira fuori un jolly»). Il pago del mesero resta un'altra cosa (Alberto via 🛎 SALA, 4-nov: «restano diversi»).
+   DAL 21-OTT (mockup `MOCKUP_MENU_QUATTRO_ZONE_V2_21OTT2026.html` §⑦): «Tu cuenta» è una pagina che VENDE il pago · due canali soli:
+     ⚡ PAGO EXPRESS (Fintoc: tarjeta · Apple Pay · Google Pay · transferencia) e «Prefiero esperar la máquina (POS)» · il blocco express
+     col bordo d'oro e il battito, «✓ rápido · ✓ boleta a tu WhatsApp», il WhatsApp prima del pago · «🔒 Pago seguro con Fintoc» da solo.
+   DALLA BOZZA «SI PAGA SULLA PRECUENTA»: il foglio di carta è il conto · si toccano le righe che paghi (solo lo mío / toda la mesa / ÷ dividir)
+     · TÚ PAGAS, propina e TOTAL stampati grandi sul foglio (Alberto: «deve essere chiaro: sto pagando $7.083 + propina»).
+   IL JOLLY · LA MESA EN VIVO: il foglio è di tutta la mesa e chi paga lo timbra («✓ pagado · Ana»), le righe pagate non si ripagano, e chi
+     sceglie tutto ciò che resta legge «cierras la mesa». Il WhatsApp si ricorda nel telefono: la volta dopo il PAGO EXPRESS è un tocco.
+   Propina: 10% già scelto (D-450), 15%, otro, sin (il 15% solo nel pago del cliente, Alberto via SALA 4-nov).
+   Finché `pago_mesa_on` è vuota tutto SI SIMULA e lo dice. Nel vero: il pannello è il widget di Fintoc, e i pagos degli altri arrivano dal bordo. */
+const PAGO_PASSI = ['cuenta', 'fintoc', 'pos', 'ok'];
 const pagoMesaOn = () => !!String((S.cfg && S.cfg.pago_mesa_on) || '').trim();
 const righeMie = () => { const L = []; envOggi().forEach((e) => (e.righe || []).forEach((r) => { const x = L.find((y) => y.nome === r.nome && y.pr === r.pr); if (x) x.q += r.q; else L.push(Object.assign({ chi: 'tú' }, r)); })); return L; };
 const righeMesa = () => (S.cuentaMesa && Array.isArray(S.cuentaMesa.righe) ? S.cuentaMesa.righe : righeMie());
 const sommaRighe = (L) => L.reduce((s, r) => s + (Number(r.pr) || 0) * (Number(r.q) || 0), 0);
 const pagatoGia = () => (S.pagati || []).reduce((s, p) => s + p.base, 0);
+const rKey = (r) => r.nome + '|' + r.pr + '|' + (r.chi || '');
+const righePagateSet = () => { const s = new Set(); (S.pagati || []).forEach((p) => (p.chiavi || []).forEach((k) => s.add(k))); return s; };
+const WA_K = 'pinsita_wa';
+const waOk = (v) => String(v || '').replace(/\D/g, '').length >= 8;
+function waLeggi() { if (S.payWa === undefined) { try { S.payWa = localStorage.getItem(WA_K) || ''; } catch (e) { S.payWa = ''; } S.waNoto = waOk(S.payWa); } return S.payWa; }
 function pagoConti() {
-  const mio = sommaRighe(righeMie()), mesa = sommaRighe(righeMesa()), resta = Math.max(0, mesa - pagatoGia());
-  const modo = S.pagoModo || 'mio', partes = S.pagoPartes || 2;
-  const base = modo === 'todo' ? resta : modo === 'partes' ? Math.round(mesa / partes) : Math.min(mio, resta);
-  const pr = S.pagoProp === 'sin' ? 0 : S.pagoProp === 'otro' ? Math.max(0, Math.round(S.pagoPropOtro || 0)) : Math.round(base * 0.10);
-  return { mio, mesa, resta, base, propina: pr, totale: base + pr, modo, partes };
+  const L = righeMesa(), pag = righePagateSet();
+  const libere = L.filter((r) => !pag.has(rKey(r)));
+  if (!S.pagoSel) S.pagoSel = new Set(libere.filter((r) => r.chi === 'tú').map(rKey));
+  const sel = S.pagoSel, mesa = sommaRighe(L), resta = Math.max(0, mesa - pagatoGia());
+  const modo = S.pagoModo === 'partes' ? 'partes' : 'righe', partes = S.pagoPartes || 2;
+  const scelte = libere.filter((r) => sel.has(rKey(r)));
+  const base = modo === 'partes' ? Math.round(resta / partes) : Math.min(sommaRighe(scelte), resta);
+  const p = S.pagoProp || '10';
+  const pr = p === 'sin' ? 0 : p === 'otro' ? Math.max(0, Math.round(S.pagoPropOtro || 0)) : Math.round(base * (p === '15' ? 0.15 : 0.10));
+  return { L, pag, sel, libere, scelte, mesa, resta, base, propina: pr, totale: base + pr, modo, partes, p,
+    chiude: base > 0 && base >= resta, mioResta: sommaRighe(libere.filter((r) => r.chi === 'tú')) };
 }
-/* la precuenta: le righe, chi le ha chieste, il totale; `evid` = 'mio' evidenzia le righe di questo telefono */
-function precuentaHTML(L, titolo, evid, nota, senzaResta) {
-  const d = oraSantiago(), ora = String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' · ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-  return '<div class="rcv"><div class="rcv-b">' + esc((S.cfg && S.cfg.brand_name) || LOCAL) + '</div><div class="rcv-t">' + esc(titolo) + '</div>' +
-    '<div class="rcv-m">' + T('Mesa') + ' ' + esc(MESA) + ' · ' + ora + '</div><div class="rcv-s"></div>' +
-    (L.length ? L.map((r) => '<div class="rcv-l"' + (evid === 'mio' && r.chi !== 'tú' ? ' style="opacity:.45"' : '') + '><span class="rq">' + r.q + '</span><span class="rn">' + esc(r.nome) + (r.chi ? ' · ' + esc(T(r.chi)) : '') + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>').join('')
-      : '<div class="rcv-n">' + T('Todavía no hay pedidos en esta cuenta') + '</div>') +
-    '<div class="rcv-s"></div><div class="rcv-tot"><span>TOTAL</span><span>' + clp(sommaRighe(L)) + '</span></div>' +
-    (pagatoGia() && !senzaResta ? '<div class="rcv-l"><span class="rq"></span><span class="rn">' + T('Ya pagado') + '</span><i></i><span class="rp">−' + clp(pagatoGia()) + '</span></div>' +
-      '<div class="rcv-tot"><span>' + T('RESTA') + '</span><span>' + clp(Math.max(0, sommaRighe(righeMesa()) - pagatoGia())) + '</span></div>' : '') +
-    '<div class="rcv-n">' + esc(nota || 'no es boleta') + '</div></div>';
-}
+const pagoPill = () => { const c = pagoConti(); return c.resta <= 0 ? '✓' : clp(c.mioResta > 0 ? c.mioResta : c.resta); };
 const sim = () => (pagoMesaOn() ? '' : '<div class="avvs" style="text-align:center;margin:-4px 0 8px">🧪 ' + T('simulación: no se cobra nada') + '</div>');
-const passoTit = (t, indietro) => '<div class="pedtit">' + (indietro ? '<button class="pedx" style="position:static;margin-right:6px" data-a="pagoPasso" data-k="' + indietro + '" aria-label="Volver">‹</button>' : '') + T(t) + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>';
-/* v0.9.26 · le righe di CIÒ CHE SI PAGA, una sola definizione per il passo propina, il método e la ricevuta */
-function righePagate(c) {
-  return c.modo === 'mio' ? righeMie() : c.modo === 'todo' ? righeMesa() : [{ nome: T('1 de') + ' ' + c.partes + ' ' + T('partes de la mesa'), q: 1, pr: c.base }];
+const oraFoglio = () => { const d = oraSantiago(); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' · ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+const testaFoglio = (t) => '<div class="rcv-b">' + esc((S.cfg && S.cfg.brand_name) || LOCAL) + '</div><div class="rcv-t">' + esc(t) + '</div><div class="rcv-m">' + T('Mesa') + ' ' + esc(MESA) + ' · ' + oraFoglio() + '</div><div class="rcv-s"></div>';
+/* il foglio della mesa: ogni riga si tocca; le pagate portano il timbro di chi le ha pagate */
+function foglioHTML(c) {
+  const chiPaga = (k) => { const p = (S.pagati || []).find((x) => (x.chiavi || []).indexOf(k) >= 0); return p ? p.chi : ''; };
+  const righe = c.L.map((r, i) => {
+    const k = rKey(r), nm = '<span class="rq">' + r.q + '</span><span class="rn">' + esc(r.nome) + (r.chi ? ' · ' + esc(T(r.chi)) : '') + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span>';
+    if (c.pag.has(k)) { const chi = chiPaga(k); return '<div class="rcv-l rpg"><span class="rck">✓</span>' + nm + '<em>' + T('pagado') + (chi && chi !== 'tú' ? ' · ' + esc(chi) : chi === 'tú' ? ' · ' + T('por ti') : '') + '</em></div>'; }
+    const on = c.modo === 'righe' && c.sel.has(k);
+    return '<button class="rcv-l rsel' + (on ? ' on' : '') + '" data-a="pagoRiga" data-k="' + i + '"' + (c.modo === 'partes' ? ' disabled' : '') + ' aria-pressed="' + on + '"><span class="rck">' + (on ? '✓' : '') + '</span>' + nm + '</button>';
+  }).join('');
+  const prop = ['10', '15', 'otro', 'sin'].map((k) => '<button class="' + (c.p === k ? 'on' : '') + '" data-a="pagoProp" data-k="' + k + '">' + (k === 'otro' ? T('otro') : k === 'sin' ? T('sin') : k + '%') + '</button>').join('');
+  return '<div class="rcv">' + testaFoglio('PRECUENTA') +
+    (c.modo === 'partes'
+      ? '<div class="rqq"><span>' + T('la mesa en partes iguales') + '</span><button data-a="pagoModo" data-k="righe">' + T('elegir por producto') + '</button></div>'
+      : '<div class="rqq"><span>' + T('toca lo que pagas') + '</span><span><button data-a="pagoSolo">' + T('solo lo mío') + '</button> · <button data-a="pagoTodo">' + T('toda la mesa') + '</button></span></div>') +
+    (c.L.length ? righe : '<div class="rcv-f">' + T('Todavía no hay pedidos en esta cuenta') + '</div>') +
+    '<div class="rcv-s"></div>' +
+    '<div class="rcv-r dim"><span>' + T('Total mesa') + '</span><span>' + clp(c.mesa) + '</span></div>' +
+    (pagatoGia() ? '<div class="rcv-r dim"><span>' + T('Ya pagado') + '</span><span>−' + clp(pagatoGia()) + '</span></div>' : '') +
+    (c.modo === 'partes'
+      ? '<div class="rstp"><span style="color:inherit;font-weight:400">' + T('dividir entre') + '</span><span><button data-a="pagoPartes" data-k="' + (c.partes - 1) + '"' + (c.partes <= 2 ? ' disabled' : '') + ' aria-label="menos">−</button>' + c.partes + ' ' + T('personas') + '<button data-a="pagoPartes" data-k="' + (c.partes + 1) + '"' + (c.partes >= 12 ? ' disabled' : '') + ' aria-label="más">+</button></span></div>'
+      : '<div class="rstp"><span style="color:inherit;font-weight:400">' + T('¿en partes iguales?') + '</span><button class="rdiv" data-a="pagoModo" data-k="partes">÷ ' + T('dividir') + '</button></div>') +
+    '<div class="rcv-dd"></div>' +
+    '<div class="rcv-r big"><span>' + (c.modo === 'partes' ? T('TU PARTE') + ' · 1 ' + T('DE') + ' ' + c.partes : T('TÚ PAGAS')) + '</span><span>' + clp(c.base) + '</span></div>' +
+    '<div class="rcv-r"><span class="rprop">' + T('PROPINA') + ' ' + prop + '</span><span id="pgPr">' + clp(c.propina) + '</span></div>' +
+    (c.p === 'otro' ? '<div class="ckf rpo"><input type="tel" inputmode="numeric" maxlength="7" placeholder="$ ' + T('monto de la propina') + '" value="' + (S.pagoPropOtro || '') + '" data-a="pagoPropCampo" aria-label="' + T('Monto de la propina') + '"></div>' : '') +
+    '<div class="rcv-dd"></div>' +
+    '<div class="rcv-tot"><span>TOTAL</span><span id="pgTot">' + clp(c.totale) + '</span></div>' +
+    '<div class="rcv-f">' + T('no es boleta') + '</div></div>';
 }
-const pagandoHTML = (c) => precuentaHTML(righePagate(c), c.modo === 'mio' ? 'LO QUE PAGAS' : c.modo === 'todo' ? 'TODA LA MESA' : 'TU PARTE', '', 'estás pagando ' + clp(c.base) + ' + propina', true);
-/* v0.9.27 · ⑤ IL PAGO EXPRESS — UNA SCHERMATA (Alberto, mer 4-nov, sulla DEMO 20: «troppi passi, è un pago express, vai a vedere i top
-   mondiali come lo fanno»). Il modello è Sunday (sundayapp.com, benchmark 23-ago): il conto si apre già pagabile, e nella STESSA schermata
-   si sceglie cosa si paga e la propina; il bottone in fondo porta l'importo e paga. Due tocchi nel caso normale (apri → Pagar).
-     · la precuenta della mesa intera sempre davanti; con «Lo mío» le righe degli altri si spengono
-     · ¿Qué pagas?  Lo mío · Toda la mesa · Dividir (− N +, 2-12 personas)
-     · Propina 10% già scelta (D-450) · Otro · Sin
-     · in fondo, fermo: il totale e PAGAR (transferencia) · «prefiero tarjeta» (te traemos la máquina)
-   Finché `pago_mesa_on` è vuota il pago SI SIMULA e lo dice. Poi la ricevuta (¡Pagado!). */
-function cuentaHTML() {
+function pagoRegistra(met) {
   const c = pagoConti();
-  if (S.pagoPaso === 'ok') {
-    const u = (S.pagati || [])[(S.pagati || []).length - 1] || { base: 0, propina: 0, metodo: '' };
-    const resta = Math.max(0, sommaRighe(righeMesa()) - pagatoGia());
-    return '<div class="ped cta pgx">' + '<div class="pedtit">' + T(u.metodo === 'tarjeta' ? 'Te llevamos la máquina' : '¡Pagado!') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' + sim() +
-      '<div class="okv">' + (u.metodo === 'tarjeta' ? '💳 ' + T('Tu mesero viene con la máquina') : '✓ ' + T('Pago recibido')) +
-        '<span>' + clp(u.base) + (u.propina ? ' + ' + T('propina') + ' ' + clp(u.propina) : '') + ' = <b>' + clp(u.base + u.propina) + '</b></span></div>' +
-      precuentaHTML(u.righe || [], 'LO QUE PAGASTE', '', resta > 0 ? 'en la mesa queda ' + clp(resta) + ' por pagar' : 'la cuenta de la mesa quedó pagada', true) +
-      '<button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b><span>' + (resta > 0 ? T('los demás pueden seguir pidiendo y pagar lo suyo') : T('gracias por venir')) + '</span></button></div>';
+  const righe = c.modo === 'partes' ? [{ nome: T('1 de') + ' ' + c.partes + ' ' + T('partes de la mesa'), q: 1, pr: c.base }] : c.scelte;
+  (S.pagati = S.pagati || []).push({ base: c.base, propina: c.propina, metodo: met, modo: c.modo, righe, chiavi: c.modo === 'partes' ? [] : c.scelte.map(rKey), chi: 'tú', ts: Date.now() });
+  S.pagoSel = null; S.pagoPaso = 'ok'; S.fintocProc = '';
+}
+const MET_FINTOC = [['tarjeta', '💳', 'Tarjeta de crédito o débito', ''], ['apple', '', 'Apple Pay', ''], ['google', '', 'Google Pay', 'por confirmar'], ['transf', '🏦', 'Transferencia desde tu banco', '']];
+const metNome = (k) => { const m = MET_FINTOC.find((x) => x[0] === k); return m ? m[2] : k; };
+function cuentaHTML() {
+  waLeggi();
+  const c = pagoConti(), X = '<button class="pedx" data-a="cuentaChiudi">✕</button>';
+  /* SALA DEMO: sulla 998 «Ana» paga lo suo dal suo telefono qualche secondo dopo — è il jolly visto da fuori. Nel vero lo porta il bordo. */
+  if (typeof DEMO_ANA !== 'undefined' && MESA === '998' && !S.anaT && (S.pagoPaso || 'cuenta') === 'cuenta') {
+    S.anaT = setTimeout(() => { const pag = righePagateSet(), sue = DEMO_ANA.filter((r) => !pag.has(rKey(r))); if (!sue.length) return;
+      (S.pagati = S.pagati || []).push({ base: sommaRighe(sue), propina: Math.round(sommaRighe(sue) * 0.1), metodo: 'apple', modo: 'righe', righe: sue, chiavi: sue.map(rKey), chi: 'Ana', ts: Date.now() });
+      if (S.pagoSel) sue.forEach((r) => S.pagoSel.delete(rKey(r)));
+      nota('✓ Ana ' + T('pagó lo suyo') + ' · Apple Pay'); if (S.cuenta && (S.pagoPaso || 'cuenta') === 'cuenta' && !scrivendo()) pinta(); }, 7000);
   }
-  const tit = '<div class="pedtit">' + T('Tu cuenta') + ' · ' + T('Mesa') + ' ' + esc(MESA) + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>';
+  if (S.pagoPaso === 'ok' || S.pagoPaso === 'pos') {
+    const pos = S.pagoPaso === 'pos', u = pos ? { base: c.base, propina: c.propina, righe: c.modo === 'partes' ? [{ nome: T('1 de') + ' ' + c.partes + ' ' + T('partes de la mesa'), q: 1, pr: c.base }] : c.scelte, metodo: 'pos' }
+      : ((S.pagati || []).filter((p) => p.chi === 'tú').slice(-1)[0] || { base: 0, propina: 0, righe: [], metodo: '' });
+    const resta = pos ? c.resta : Math.max(0, c.mesa - pagatoGia());
+    return '<div class="ped cta pgx"><div class="pedtit">' + T(pos ? 'Viene la máquina' : '¡Pagado!') + X + '</div>' + sim() +
+      '<div class="rcv">' + testaFoglio(pos ? 'POR PAGAR CON LA MÁQUINA' : 'COMPROBANTE') +
+        (u.righe || []).map((r) => '<div class="rcv-l"><span class="rq">' + r.q + '</span><span class="rn">' + esc(r.nome) + (r.chi ? ' · ' + esc(T(r.chi)) : '') + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>').join('') +
+        '<div class="rcv-dd"></div><div class="rcv-r"><span>' + T('Consumo') + '</span><span>' + clp(u.base) + '</span></div><div class="rcv-r"><span>' + T('Propina') + '</span><span>' + clp(u.propina) + '</span></div>' +
+        '<div class="rcv-tot"><span>TOTAL</span><span>' + clp(u.base + u.propina) + '</span></div>' +
+        '<div style="text-align:center;margin-top:14px"><span class="stamp' + (pos ? ' ink' : '') + '">' + (pos ? T('EN CAMINO') : T('PAGADO')) + '</span></div>' +
+        '<div class="rcv-f">' + (pos ? T('tu mesero viene con la máquina a tu mesa') : metNome(u.metodo) + ' · Fintoc') + '</div></div>' +
+      (!pos ? '<div class="okv">' + (waOk(S.payWa) ? '📲 ' + T('Tu boleta va a tu WhatsApp') + '<span>' + esc(S.payWa) + '</span>' : '🧾 ' + T('Pide tu boleta al mesero')) + '</div>' : '') +
+      '<div class="okv" style="background:transparent">' + (resta > 0 ? T('En la mesa quedan') + ' ' + clp(resta) + ' ' + T('por pagar') + '<span>' + T('los demás pagan lo suyo desde su teléfono') + '</span>' : '🎉 ' + T('¡La mesa quedó pagada!') + '<span>' + T('gracias por venir') + '</span>') + '</div>' +
+      (pos ? '<button class="segui" data-a="fintocVolver">⚡ ' + T('Mejor pago yo con PAGO EXPRESS') + '</button>' : '') +
+      '<button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b></button></div>';
+  }
   if (S.pagoPaso === 'fintoc') {
-    const bk = S.fintocBanco || '';
-    const BANCOS = ['Banco de Chile', 'BancoEstado', 'Santander', 'BCI', 'Itaú', 'Scotiabank', 'Banco Falabella', 'Banco Security'];
-    return '<div class="ped cta pgx"><div class="pedtit"><button class="pedx" style="position:static;margin-right:6px" data-a="fintocVolver" aria-label="Volver">‹</button>' + T('Pagar con transferencia') + '<button class="pedx" data-a="cuentaChiudi">✕</button></div>' + sim() +
-      '<div class="pgsum" style="margin:4px 2px 10px"><div class="t"><span>' + T('Total a pagar') + '</span><b>' + clp(c.totale) + '</b></div></div>' +
-      (!bk ? '<div class="prq">' + T('Elige tu banco') + ' <small style="font-weight:600;color:var(--suave)">· Fintoc</small></div><div class="fbk">' +
-          BANCOS.map((n) => '<button class="sg" data-a="fintocBanco" data-k="' + esc(n) + '">' + esc(n) + '</button>').join('') + '</div>'
-        : '<div class="okv" style="text-align:center">🏦 ' + esc(bk) + '<span>' + T('Abre la app de tu banco y aprueba la transferencia de') + ' <b>' + clp(c.totale) + '</b> ' + T('a') + ' ' + esc((S.cfg && S.cfg.brand_name) || LOCAL) + '</span></div>' +
-          '<button class="envG" data-a="fintocOk"><b>' + T('YA APROBÉ') + '</b><span>' + T('en la simulación, este botón hace de tu banco') + '</span></button>' +
-          '<button class="segui" data-a="fintocBanco" data-k="">' + T('Elegir otro banco') + '</button>') +
-      '</div>';
+    return '<div class="ped cta pgx"><div class="pedtit"><button class="pedx" style="position:static;margin-right:6px" data-a="fintocVolver" aria-label="Volver">‹</button>🔒 ' + T('Pago seguro') + X + '</div>' + sim() +
+      '<div class="ftot"><small>' + T('Pagas') + '</small><b>' + clp(c.totale) + '</b><small>' + T('consumo') + ' ' + clp(c.base) + ' + ' + T('propina') + ' ' + clp(c.propina) + '</small></div>' +
+      (S.fintocProc ? '<div class="fproc"><div class="fspin"></div>' + esc(metNome(S.fintocProc)) + '<span>' + T('procesando con Fintoc…') + '</span></div>'
+        : '<div class="prq" style="text-align:center">' + T('¿Cómo pagas?') + '</div>' + MET_FINTOC.map((m) => '<button class="fpm' + (m[3] ? ' dim' : '') + '" data-a="fintocMet" data-k="' + m[0] + '"><span>' + m[1] + ' ' + m[2] + (m[3] ? ' <small>· ' + T(m[3]) + '</small>' : '') + '</span><span class="sp">' + clp(c.totale) + '</span></button>').join('')) +
+      '<div class="xsec">🔒 ' + T('Pago seguro con') + ' <b>Fintoc</b></div></div>';
   }
-  if (c.resta <= 0 && c.mesa > 0) {
-    return '<div class="ped cta pgx">' + tit + precuentaHTML(righeMesa(), 'PRECUENTA', '', 'no es boleta') +
-      '<div class="okv">✓ ' + T('Cuenta pagada') + '<span>' + T('gracias por venir') + '</span></div>' +
-      '<button class="segui" data-a="cuentaChiudi">' + T('Volver al menú') + '</button></div>';
+  if (c.mesa > 0 && c.resta <= 0) {
+    return '<div class="ped cta pgx"><div class="pedtit">' + T('Tu cuenta') + X + '</div>' + foglioHTML(c) + '<div class="okv">🎉 ' + T('¡La mesa quedó pagada!') + '<span>' + T('gracias por venir') + '</span></div><button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b></button></div>';
   }
-  const sg = (a, k, on, t, sub) => '<button class="sg' + (on ? ' on' : '') + '" data-a="' + a + '" data-k="' + k + '"' + (on ? ' aria-pressed="true"' : '') + '>' + t + (sub ? '<small>' + sub + '</small>' : '') + '</button>';
-  const p = S.pagoProp || '10', met = S.pagoMet === 'tarjeta' ? 'tarjeta' : 'transferencia';
-  const nota = c.modo === 'partes' ? 'pagas 1 de ' + c.partes + ': ' + clp(c.base) : c.modo === 'mio' ? 'pagas lo tuyo: ' + clp(c.base) : 'pagas toda la mesa: ' + clp(c.base);
-  return '<div class="ped cta pgx">' + tit +
-    precuentaHTML(righeMesa(), 'PRECUENTA', c.modo === 'mio' ? 'mio' : '', nota) +
-    '<div class="prq">' + T('¿Qué pagas?') + '</div>' +
-    '<div class="sgs">' + sg('pagoModo', 'mio', c.modo === 'mio', T('Lo mío'), clp(Math.min(c.mio, c.resta))) +
-      sg('pagoModo', 'todo', c.modo === 'todo', T('Toda la mesa'), clp(c.resta)) +
-      sg('pagoModo', 'partes', c.modo === 'partes', T('Dividir'), c.modo === 'partes' ? clp(c.base) + ' c/u' : T('en partes iguales')) + '</div>' +
-    (c.modo === 'partes' ? '<div class="stp"><button data-a="pagoPartes" data-k="' + (c.partes - 1) + '"' + (c.partes <= 2 ? ' disabled' : '') + ' aria-label="menos">−</button>' +
-      '<span><b>' + c.partes + '</b> ' + T('personas') + '</span><button data-a="pagoPartes" data-k="' + (c.partes + 1) + '"' + (c.partes >= 12 ? ' disabled' : '') + ' aria-label="más">+</button></div>' : '') +
-    '<div class="prq">' + T('Propina para el equipo') + '</div>' +
-    '<div class="sgs">' + sg('pagoProp', '10', p === '10', '10%', clp(Math.round(c.base * 0.10))) + sg('pagoProp', 'otro', p === 'otro', T('Otro'), '') + sg('pagoProp', 'sin', p === 'sin', T('Sin propina'), '') + '</div>' +
-    (p === 'otro' ? '<div class="ckf potrof"><input type="text" inputmode="numeric" name="pagoPropOtro" maxlength="7" placeholder="' + T('Monto de la propina') + ' $" value="' + (S.pagoPropOtro || '') + '" data-a="pagoPropCampo" aria-label="' + T('Monto de la propina') + '"></div>' : '') +
-    '<div class="prq">' + T('¿Cómo pagas?') + '</div>' +
-    '<div class="sgs">' + sg('pagoMet', 'transferencia', met === 'transferencia', '🏦 ' + T('Transferencia'), T('con Fintoc, desde tu banco')) +
-      sg('pagoMet', 'tarjeta', met === 'tarjeta', '💳 ' + T('Tarjeta'), T('te traemos la máquina')) + '</div>' +
-    '<div class="pgpie">' + sim() +
-      '<div class="pgsum"><div><span>' + (c.modo === 'mio' ? T('Lo tuyo') : c.modo === 'todo' ? T('Toda la mesa') : T('Tu parte') + ' · 1 ' + T('de') + ' ' + c.partes) + '</span><b>' + clp(c.base) + '</b></div>' +
-        '<div><span>' + T('Propina') + (p === '10' ? ' 10%' : '') + '</span><b id="pgPr">' + clp(c.propina) + '</b></div>' +
-        '<div class="t"><span>' + T('Total a pagar') + '</span><b id="pgTotS">' + clp(c.totale) + '</b></div></div>' +
-      '<button class="envG" data-a="pagoMetodo" data-k="' + met + '"' + (c.base > 0 ? '' : ' disabled') + '><b>' + T(met === 'tarjeta' ? 'PEDIR LA MÁQUINA' : 'PAGAR') + ' <em id="pgTot">' + clp(c.totale) + '</em></b><span>' +
-        (met === 'tarjeta' ? '💳 ' + T('tu mesero viene con el POS a tu mesa') : '🏦 ' + T('se abre Fintoc: eliges tu banco y apruebas')) + '</span></button>' +
-    '</div></div>';
+  const wa = S.payWa || '', waPronto = waOk(wa) || S.noWa, okBtn = c.base > 0 && waPronto;
+  return '<div class="ped cta pgx"><div class="pedtit">' + T('Tu cuenta') + ' · ' + T('Mesa') + ' ' + esc(MESA) + X + '</div>' +
+    foglioHTML(c) +
+    '<div class="xpr"><div class="xt">⚡ ' + T('No pierdas tiempo: usa el PAGO EXPRESS') + '</div>' +
+      '<div class="xb"><span>✓ ' + T('rápido') + '</span><span>✓ ' + T('boleta a tu WhatsApp') + '</span><span>✓ ' + T('sin esperar') + '</span></div>' +
+      (S.waNoto && waOk(wa) ? '<div class="xwak">📲 ' + T('boleta a') + ' ' + esc(wa) + ' · <button data-a="waCambia">' + T('cambiar') + '</button></div>'
+        : S.noWa ? '<div class="xwak">' + T('sin boleta por WhatsApp') + ' · <button data-a="waCambia">' + T('poner mi WhatsApp') + '</button></div>'
+        : '<div class="ckf xwa"><input type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="' + T('Tu WhatsApp para la boleta') + ' · +56 9 …" value="' + esc(wa) + '" data-a="payWa" aria-label="WhatsApp"></div>') +
+      '<button class="envG xgo' + (okBtn ? '' : ' waspento') + '" data-xgo="1" data-a="' + (c.base <= 0 ? 'nada' : waPronto ? 'pagoExpress' : 'waFalta') + '"><b>⚡ PAGO EXPRESS · <em id="pgTotS">' + clp(c.totale) + '</em></b><span>' +
+        (c.chiude ? '🎉 ' + T('con esto cierras la mesa') : T('tarjeta · Apple Pay · Google Pay · transferencia')) + '</span></button>' +
+      '<div class="xsec">🔒 ' + T('Pago seguro con') + ' <b>Fintoc</b></div>' +
+      (!waOk(wa) && !S.noWa ? '<button class="segui xno" data-a="waNo">' + T('pagar sin boleta por WhatsApp') + '</button>' : '') + '</div>' +
+    '<button class="segui" data-a="pagoPos"' + (c.base > 0 ? '' : ' disabled') + '>' + T('Prefiero esperar la máquina (POS)') + '</button></div>';
 }
 function lingueHTML() {
   return '<div class="ped"><div class="pedtit">Idioma · Language<button class="pedx" data-a="lingueChiudi">✕</button></div><div class="lng">' +
@@ -1673,6 +1749,11 @@ if (window.visualViewport) {
 document.getElementById('app').addEventListener('input', (ev) => {
   if (ev.target.classList.contains('bin')) { S.busca = ev.target.value; S.abierta = null; pinta(); return; }
   // PINSA: i campi della cassa si ricordano senza ridisegnare (perderebbe la tastiera)
+  if (ev.target.dataset.a === 'payWa') {   // v0.9.30
+    S.payWa = String(ev.target.value || '').slice(0, 20); ev.target.classList.remove('male');
+    const ok = waOk(S.payWa), bt = document.querySelector('[data-xgo]');
+    if (bt && bt.dataset.a !== 'nada') { bt.classList.toggle('waspento', !ok); bt.dataset.a = ok ? 'pagoExpress' : 'waFalta'; }
+    return; }
   if (ev.target.dataset.a === 'pagoPropCampo') {   // v0.9.25 · la propina «Otro» della cuenta
     S.pagoPropOtro = Math.min(parseInt(String(ev.target.value || '').replace(/\D/g, ''), 10) || 0, 9999999);
     const c = pagoConti(), q = (id) => document.getElementById(id);
@@ -1721,23 +1802,20 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'tusChiudi') { S.tus = false; pinta(); return; }
   if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; S.pagoPaso = 'cuenta'; pinta(); return; }
   if (a === 'lingua' && LANGS.some((x) => x[0] === k)) { S.lang = k; S.lingue = false; document.documentElement.lang = k; try { localStorage.setItem('pinsita_lang', k); } catch (e) {} pinta(); return; }
-  if (a === 'cuentaTab' && (k === 'mio' || k === 'mesa')) { S.cuentaTab = k; pinta(); return; }   // v0.9.25 · ⑤ il percorso della cuenta
-  if (a === 'pagoPasso' && PAGO_PASSI.indexOf(k) >= 0 && k !== 'ok') { S.pagoPaso = k; pinta(); return; }
-  if (a === 'pagoModo' && (k === 'mio' || k === 'todo' || k === 'partes')) { S.pagoModo = k; if (k === 'partes' && !S.pagoPartes) S.pagoPartes = 2; pinta(); return; }
+  // v0.9.30 · ⑤ il pago del cliente sul foglio della mesa
+  if (a === 'pagoRiga') { const c = pagoConti(), r = c.L[Number(k)]; if (r && !c.pag.has(rKey(r))) { const kk = rKey(r); if (c.sel.has(kk)) c.sel.delete(kk); else c.sel.add(kk); S.pagoModo = 'righe'; } pinta(); return; }
+  if (a === 'pagoSolo' || a === 'pagoTodo') { const c = pagoConti(); S.pagoSel = new Set(c.libere.filter((r) => a === 'pagoTodo' || r.chi === 'tú').map(rKey)); S.pagoModo = 'righe'; pinta(); return; }
+  if (a === 'pagoModo' && (k === 'righe' || k === 'partes')) { S.pagoModo = k; if (k === 'partes' && !S.pagoPartes) S.pagoPartes = 2; pinta(); return; }
   if (a === 'pagoPartes' && /^([2-9]|1[0-2])$/.test(k)) { S.pagoPartes = Number(k); pinta(); return; }
-  if (a === 'pagoProp' && (k === '10' || k === 'otro' || k === 'sin')) { S.pagoProp = k; pinta(); return; }
-  if (a === 'pagoPropCampo') return;
-  if (a === 'pagoMet' && (k === 'transferencia' || k === 'tarjeta')) { S.pagoMet = k; pinta(); return; }   // v0.9.29
-  if (a === 'pagoMetodo' && k === 'transferencia' && S.pagoPaso !== 'fintoc') { S.pagoPaso = 'fintoc'; S.fintocBanco = ''; pinta(); return; }
-  if (a === 'fintocBanco') { S.fintocBanco = k || ''; pinta(); return; }
-  if (a === 'fintocVolver') { S.pagoPaso = 'cuenta'; pinta(); return; }
-  if ((a === 'pagoMetodo' && (k === 'transferencia' || k === 'tarjeta')) || a === 'fintocOk') {
-    const k = a === 'fintocOk' ? 'transferencia' : el.dataset.k;
-    const c = pagoConti();
-    const quali = righePagate(c);
-    (S.pagati = S.pagati || []).push({ base: c.base, propina: c.propina, metodo: k, modo: c.modo, righe: quali, ts: Date.now() });
-    if (k === 'tarjeta' && pagoMesaOn() && envioOn()) llamaMesero('cuenta');   // simulato: nessun mesero chiamato
-    S.pagoPaso = 'ok'; pinta(); return; }
+  if (a === 'pagoProp' && /^(10|15|otro|sin)$/.test(k)) { S.pagoProp = k; pinta(); return; }
+  if (a === 'pagoPropCampo' || a === 'payWa' || a === 'nada') return;
+  if (a === 'waFalta') { const i = document.querySelector('[data-a=payWa]'); if (i) { i.classList.add('male'); i.focus(); } return; }
+  if (a === 'waCambia') { S.payWa = ''; S.waNoto = false; S.noWa = false; pinta(); return; }
+  if (a === 'waNo') { S.noWa = true; pinta(); return; }
+  if (a === 'pagoExpress') { S.pagoPaso = 'fintoc'; S.fintocProc = ''; if (waOk(S.payWa)) { S.waNoto = true; try { localStorage.setItem(WA_K, S.payWa); } catch (e) { /* solo memoria */ } } pinta(); return; }
+  if (a === 'fintocMet' && !S.fintocProc && /^(tarjeta|apple|google|transf)$/.test(k)) { S.fintocProc = k; pinta(); setTimeout(() => { pagoRegistra(k); pinta(); }, 1400); return; }
+  if (a === 'fintocVolver') { S.pagoPaso = 'cuenta'; S.fintocProc = ''; pinta(); return; }
+  if (a === 'pagoPos') { S.pagoPaso = 'pos'; if (pagoMesaOn() && envioOn()) llamaMesero('cuenta'); pinta(); return; }   // simulato: nessun mesero chiamato
   if (a === 'esperaCancela') { esperaCancela(); return; }   // v0.9.24 · ③
   if (a === 'cuentaPos' && envioOn()) { S.cuenta = false; llamaMesero('cuenta'); pinta(); opinionApri('cuenta', ''); return; }   // v0.9.12: subito, senza attesa (Alberto: «sotto i 20 ms»)
   // v0.7 · «Otra vez»: la stessa riga di prima (piatto + scelta), una in più
