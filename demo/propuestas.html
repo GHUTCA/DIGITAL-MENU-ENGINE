@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- DEVICE-CLASS: 2 · scrivania (PC / tablet prima) -->
+<title>Propuestas · BKS</title>
+<!-- 📖 MENU BKS V32 · mer 4-nov-2026 · DEMO del pannello «Propuestas» (5.2-PE §6, D-433 / D-454): «l'artefatto» che contiene menú, promo,
+     botellas, eventi, scene e destacados. Tutto in questo telefono/PC: NON salva niente, NON parla con Google né col bordo.
+     La regola è la COPIA ESATTA di quella del bordo (propuestas/regla.js): chi si vede adesso, a che prezzo, chi vince il carosello.
+     Il seme (propuestas/seme_BKS.json) nasce dalle tab di oggi (AURORA, PRECIOS_REGLA, PROMOS) e da vetrina.json. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{--bg:#F3EADC;--sup:#FBF6EE;--card:#FFFFFF;--txt:#241A14;--suave:#6B5A4F;--linea:rgba(36,26,20,.12);--linea2:rgba(36,26,20,.22);
+  --ok:#5F7A1F;--ok-txt:#FFFFFF;--ok-bg:#E6EED3;--oro:#A8701F;--oro-bg:#F6E7C8;--male:#B3261E;--male-bg:#F8DEDA;--grigio-bg:#ECE6DC;--viola:#5B2A86;--viola-bg:#EBDDF6;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F0C09;--sup:#17120D;--card:#1E1812;--txt:#F3EDE4;--suave:#B5A797;--linea:rgba(243,237,228,.12);--linea2:rgba(243,237,228,.24);
+  --ok:#8B9E4F;--ok-txt:#14180A;--ok-bg:#26301A;--oro:#E0A84A;--oro-bg:#33281A;--male:#FF8A80;--male-bg:#3A1D1A;--grigio-bg:#26201A;--viola:#C9A0EE;--viola-bg:#2C1F3A;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F0C09;--sup:#17120D;--card:#1E1812;--txt:#F3EDE4;--suave:#B5A797;--linea:rgba(243,237,228,.12);--linea2:rgba(243,237,228,.24);
+  --ok:#8B9E4F;--ok-txt:#14180A;--ok-bg:#26301A;--oro:#E0A84A;--oro-bg:#33281A;--male:#FF8A80;--male-bg:#3A1D1A;--grigio-bg:#26201A;--viola:#C9A0EE;--viola-bg:#2C1F3A;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:Outfit,system-ui,sans-serif;font-size:14px}
+.w{max-width:1180px;margin:0 auto;padding-block:16px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.01em}
+h2{margin:0 0 8px;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--suave)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.demo{background:var(--oro-bg);color:var(--txt);border:1.5px solid var(--oro);border-radius:10px;padding:8px 12px;font-size:12.5px;font-weight:600}
+.box{background:var(--card);border:1.5px solid var(--linea);border-radius:14px;padding:14px}
+.reloj{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.reloj b{font-size:13px}
+.dsel{display:flex;gap:4px}
+button{font-family:inherit;cursor:pointer}
+.d{min-width:34px;height:34px;border-radius:8px;border:1.5px solid var(--linea2);background:var(--sup);color:var(--txt);font-weight:800}
+.d.on{background:var(--txt);color:var(--bg);border-color:var(--txt)}
+input,select,textarea{font-family:inherit;font-size:14px;color:var(--txt);background:var(--sup);border:1.5px solid var(--linea2);border-radius:8px;padding:7px 9px}
+input[type=time]{width:110px}
+.bt{border:1.5px solid var(--linea2);background:var(--sup);color:var(--txt);border-radius:9px;padding:8px 12px;font-weight:800;font-size:13px}
+.bt.pri{background:var(--ok);color:var(--ok-txt);border-color:var(--ok)}
+.bt.peq{padding:5px 9px;font-size:12px}
+.prev{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media (max-width:860px){.prev{grid-template-columns:1fr}}
+.car{position:relative;border-radius:12px;overflow:hidden;min-height:150px;background:#1a1410;color:#fff;display:flex;align-items:flex-end}
+.car img,.car video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.car .ct{position:relative;padding:12px;background:linear-gradient(transparent,rgba(0,0,0,.75));width:100%}
+.car .ct small{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;opacity:.9}
+.car .ct b{display:block;font-size:17px;font-weight:800}
+.car .ct span{font-size:12.5px;opacity:.9}
+.vuoto{color:var(--suave);font-size:13px;padding:10px 0}
+.lst{display:flex;flex-direction:column;gap:5px;max-height:190px;overflow:auto}
+.lr{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:5px 8px;border-radius:7px;background:var(--sup)}
+.lr span:last-child{font-family:"JetBrains Mono",monospace;font-size:12px;white-space:nowrap}
+.lr i{font-style:normal;color:var(--suave);font-size:11.5px}
+.fil{display:flex;gap:6px;flex-wrap:wrap}
+.fc{border:1.5px solid var(--linea2);background:var(--card);color:var(--txt);border-radius:99px;padding:6px 12px;font-weight:700;font-size:12.5px}
+.fc.on{background:var(--txt);color:var(--bg);border-color:var(--txt)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.cd{background:var(--card);border:1.5px solid var(--linea);border-radius:13px;padding:12px;display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left;color:var(--txt);min-width:0}
+.cd:hover{border-color:var(--linea2)}
+.cd.sel{border-color:var(--ok);box-shadow:0 0 0 2px var(--ok)}
+.ch{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.ch b{font-size:15.5px;font-weight:800;line-height:1.2}
+.tp{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--suave)}
+.fin{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--txt)}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;border-radius:99px;padding:3px 9px;align-self:flex-start}
+.st.si{background:var(--ok-bg);color:var(--ok)}
+.st.no{background:var(--grigio-bg);color:var(--suave)}
+.st.ap{background:var(--grigio-bg);color:var(--suave)}
+.st.ma{background:var(--male-bg);color:var(--male)}
+.gr{font-size:11.5px;font-weight:700;background:var(--viola-bg);color:var(--viola);border-radius:6px;padding:2px 7px;align-self:flex-start}
+.sw{position:relative;width:46px;height:26px;border-radius:99px;border:0;background:var(--linea2);flex:0 0 auto}
+.sw:after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}
+.sw.on{background:var(--ok)}.sw.on:after{left:23px}
+.cfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--suave)}
+.ord{display:flex;gap:4px}
+.ord button{width:28px;height:28px;border-radius:7px;border:1.5px solid var(--linea2);background:var(--sup);color:var(--txt);font-weight:800}
+/* il dettaglio */
+.dt{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media (max-width:860px){.dt{grid-template-columns:1fr}}
+.fld{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.fld label{font-size:12px;font-weight:800;color:var(--suave)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.pr{display:grid;grid-template-columns:60px 120px minmax(0,1fr) auto auto;gap:6px;align-items:center;margin-bottom:6px}
+.pt{display:grid;grid-template-columns:minmax(0,1.6fr) 110px 90px 90px 96px auto;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--linea);font-size:13px}
+.pt.h{font-size:11px;font-weight:800;color:var(--suave);text-transform:uppercase;letter-spacing:.05em}
+.pt .pn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt .pv{font-size:11.5px;font-weight:700}
+.pv.si{color:var(--ok)}.pv.no{color:var(--male)}
+.ptw{overflow-x:auto}
+.ptw>div{min-width:640px}
+.hist{display:flex;flex-direction:column;gap:4px;font-size:12.5px;max-height:220px;overflow:auto}
+.hist div{display:flex;gap:8px;padding:5px 8px;border-radius:7px;background:var(--sup)}
+.hist time{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--suave);white-space:nowrap}
+.nota{font-size:12px;color:var(--suave);line-height:1.45}
+.err{color:var(--male);font-size:12.5px;font-weight:700}
+.add{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.add input{flex:1 1 220px}
+.ok{color:var(--ok);font-weight:800}
+</style>
+</head>
+<body>
+<div class="w" id="app"><div class="box">Cargando…</div></div>
+<script type="module">
+import { strumentiAdesso, slotAdesso } from './propuestas/regla.js';
+
+const DIAS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'], DIA_N = { L: 'Lun', M: 'Mar', X: 'Mié', J: 'Jue', V: 'Vie', S: 'Sáb', D: 'Dom' };
+const TIPO = { menu: 'Menú', botellas: 'Botellas', multiplo: '2x1 / múltiplo', precio_fijo: 'Precio fijo', recargo: 'Recargo', evento: 'Evento', escena: 'Escena del carrusel', destacados: 'Destacados', fondo: 'Fondo / noche' };
+const FILTRI = [['todo', 'Todo'], ['menu', 'Menús'], ['promo', 'Promos'], ['botellas', 'Botellas'], ['evento', 'Eventos y escenas'], ['destacados', 'Destacados'], ['recargo', 'Recargos'], ['fondo', 'Fondo']];
+const PERCHE = { spento: 'Apagado', grupo_spento: 'Su noche está apagada', non_oggi: 'Hoy no', fuori_data: 'Fuera de fecha', fuori_orario: 'Fuera de horario', sin_partes: 'Sin productos disponibles',
+  tipo_sconosciuto: 'Tipo desconocido', hasta_tope_invalida: 'Tope inválido', finestra_invalida: 'Horario inválido', precios_invalidi: 'Precios inválidos', multiplo_invalido: '2x1 inválido', factor_invalido: 'Recargo inválido',
+  sin_precio: 'Sin precio', contenitore_non_si_vende: 'El menú no está a la venta' };
+const PERCHE_P = { agotado: 'Agotado (86)', non_si_vende: 'No está a la venta', parte_fuori_finestra: 'Su hora queda fuera', finestra_parte_invalida: 'Hora inválida', fuori_orario_parte: 'Fuera de su hora' };
+const clp = (n) => (n == null || isNaN(n) ? '—' : '$' + Math.round(n).toLocaleString('es-CL'));
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => 'demo-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);   // la chiave nasce dal client
+
+const S = { strumenti: [], parti: [], carta: {}, hist: [], filtro: 'todo', sel: null, dia: null, hora: null, err: '', aggiungi: '' };
+
+/* l'orologio: «adesso» vero, o il giorno e l'ora che scegli (Santiago) */
+function oraSantiago(ms) { const f = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Santiago', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', weekday: 'short' });
+  const o = {}; for (const p of f.formatToParts(new Date(ms))) o[p.type] = p.value; return o; }
+function adesso() {
+  if (!S.dia && !S.hora) return Date.now();
+  // il giorno scelto della settimana corrente (operativo: prima delle 06:00 è ancora il giorno prima) e l'ora scelta, a Santiago
+  const now = Date.now(), base = new Date(now);
+  const wd = { Mon: 'L', Tue: 'M', Wed: 'X', Thu: 'J', Fri: 'V', Sat: 'S', Sun: 'D' }[oraSantiago(now).weekday];
+  const diff = (DIAS.indexOf(S.dia || wd) - DIAS.indexOf(wd));
+  const [h, m] = String(S.hora || '12:00').split(':').map(Number);
+  let t = base.getTime() + diff * 864e5;
+  const p = oraSantiago(t), off = (Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) - Math.floor(t / 6e4) * 6e4);
+  let ms = Date.UTC(+p.year, +p.month - 1, +p.day, h, m) - off;
+  if (h < 6) ms += 864e5;   // 00:00–05:59 appartiene alla notte del giorno scelto
+  return ms;
+}
+function risposta() { return strumentiAdesso({ strumenti: vigenti(), parti: partiVigenti(), gesti: [], carta: S.carta, ago86: [], local: 'BKS', now: adesso() }); }
+/* la forma della casa: ogni salvataggio è una riga nuova, si legge l'ultima per chiave (strumento_vigente) */
+function vigenti() { const m = {}; for (const r of S.strumenti) m[r.id_strumento] = r; return Object.values(m).filter((r) => !r.borrado); }
+function partiVigenti() { const m = {}; for (const r of S.parti) m[r.id_strumento + '|' + r.id_producto] = r; return Object.values(m).filter((r) => !r.borrado); }
+const riga = (id) => vigenti().find((r) => r.id_strumento === id);
+const nomeP = (id) => (S.carta[id] ? S.carta[id].nombre : id);
+
+function finestra(r) {
+  const d = (r.dias && r.dias.length ? (r.dias.length === 7 ? 'Todos' : r.dias.map((x) => DIA_N[x] || x).join(' · ')) : 'Todos los días');
+  const h = r.desde && r.hasta ? r.desde + '–' + r.hasta : 'todo el día';
+  const f = r.fecha_desde || r.fecha_hasta ? ' · ' + (r.fecha_desde || '…') + ' → ' + (r.fecha_hasta || '…') : '';
+  return d + ' · ' + h + f;
+}
+function statoHTML(s) {
+  if (s.visible) return '<span class="st si">● Visible ahora</span>';
+  const t = PERCHE[s.perche] || s.perche || 'No visible';
+  return '<span class="st ' + (s.perche === 'spento' ? 'ap' : /invalid|sconosciuto|sin_precio/.test(s.perche) ? 'ma' : 'no') + '">' + esc(t) + '</span>';
+}
+const passa = (r) => S.filtro === 'todo' || (S.filtro === 'promo' ? ['multiplo', 'precio_fijo'].includes(r.tipo) : S.filtro === 'evento' ? ['evento', 'escena'].includes(r.tipo) : r.tipo === S.filtro);
+
+function anteprimaHTML(R) {
+  const car = slotAdesso(R, ['evento', 'escena'], adesso(), vigenti());
+  const cr = car ? riga(car.id) : null, tx = cr && cr.textos && cr.textos.es || {}, md = cr && cr.media || {};
+  const carH = cr ? '<div class="car">' + (md.poster || md.imagen ? '<img src="' + esc(md.poster || md.imagen) + '" alt="">' : '') +
+      '<div class="ct"><small>' + esc(tx.eyebrow || TIPO[cr.tipo]) + '</small><b>' + esc(tx.titulo || cr.nombre_visible) + '</b><span>' + esc(tx.sub || '') + '</span></div></div>' +
+      '<div class="nota" style="margin-top:6px">Gana <b>' + esc(cr.nombre_visible) + '</b>: la ventana más corta ahora, luego la prioridad, luego el más reciente. Nunca el orden de las filas.</div>'
+    : '<div class="vuoto">Ningún evento ni escena visible a esta hora.</div>';
+  const dest = R.strumenti.filter((s) => s.visible && s.tipo === 'destacados');
+  const destH = dest.length ? '<div class="lst">' + dest.map((s) => s.parti.filter((p) => p.vende).map((p) => '<div class="lr"><span>' + esc(nomeP(p.id_producto)) + '</span><span><i>' + esc(s.nombre) + '</i></span></div>').join('')).join('') + '</div>'
+    : '<div class="vuoto">Sin destacados visibles.</div>';
+  const cam = Object.entries(R.prodotti || {}).filter(([, v]) => v.strumento || v.multiplo || v.recargo || v.badge);
+  const camH = cam.length ? '<div class="lst">' + cam.map(([id, v]) => '<div class="lr"><span>' + esc(nomeP(id)) + ' <i>' + esc(v.badge || '') + '</i></span><span>' +
+      (v.multiplo ? v.multiplo.paga + 'x' + v.multiplo.lleva : v.precio !== v.listino ? '<s>' + clp(v.listino) + '</s> ' + clp(v.precio) : clp(v.precio)) + '</span></div>').join('') + '</div>'
+    : '<div class="vuoto">Ningún producto cambia de precio ni lleva promo ahora.</div>';
+  return '<div class="prev"><div class="box"><h2>Ahora el carrusel muestra</h2>' + carH + '</div><div class="box"><h2>Ahora en destacados</h2>' + destH + '</div><div class="box"><h2>Productos con promo ahora (' + cam.length + ')</h2>' + camH + '</div></div>';
+}
+function cardsHTML(R) {
+  const per = Object.fromEntries(R.strumenti.map((s) => [s.id, s]));
+  const L = vigenti().filter(passa).sort((a, b) => (a.orden == null ? 1e9 : a.orden) - (b.orden == null ? 1e9 : b.orden) || a.nombre_visible.localeCompare(b.nombre_visible));
+  if (!L.length) return '<div class="box vuoto">Nada en este filtro.</div>';
+  return '<div class="cards">' + L.map((r, i) => {
+    const s = per[r.id_strumento] || { visible: false, perche: '' }, np = partiVigenti().filter((p) => p.id_strumento === r.id_strumento).length;
+    const prezzo = r.tipo === 'menu' && r.precios && r.precios.length ? ' · ' + r.precios.map((p) => clp(p.precio)).join(' / ') : r.tipo === 'recargo' ? ' · ×' + r.factor : r.tipo === 'multiplo' && r.multiplo ? ' · paga ' + r.multiplo.paga + ', lleva ' + r.multiplo.lleva : '';
+    return '<div class="cd' + (S.sel === r.id_strumento ? ' sel' : '') + '" data-a="apri" data-k="' + esc(r.id_strumento) + '" role="button" tabindex="0">' +
+      '<div class="ch"><div><div class="tp">' + esc(TIPO[r.tipo] || r.tipo) + esc(prezzo) + '</div><b>' + esc(r.nombre_visible) + '</b></div>' +
+      '<button class="sw' + (r.activo ? ' on' : '') + '" data-a="interr" data-k="' + esc(r.id_strumento) + '" aria-label="Encender o apagar" aria-pressed="' + !!r.activo + '"></button></div>' +
+      '<div class="fin">' + esc(finestra(r)) + '</div>' + (r.grupo ? '<span class="gr">dentro de ' + esc((riga(String(r.grupo).toUpperCase()) || {}).nombre_visible || r.grupo) + '</span>' : '') +
+      statoHTML(s) +
+      '<div class="cfoot"><span>' + (np ? np + ' producto' + (np > 1 ? 's' : '') : (['evento', 'escena', 'fondo'].includes(r.tipo) ? 'sin productos: se ve solo' : 'sin productos')) + '</span>' +
+      '<span class="ord"><button data-a="su" data-k="' + esc(r.id_strumento) + '" aria-label="Subir">↑</button><button data-a="giu" data-k="' + esc(r.id_strumento) + '" aria-label="Bajar">↓</button></span></div></div>';
+  }).join('') + '</div>';
+}
+function dettaglioHTML(R) {
+  const r = riga(S.sel); if (!r) return '';
+  const s = R.strumenti.find((x) => x.id === r.id_strumento) || { parti: [] }, sp = Object.fromEntries((s.parti || []).map((p) => [p.id_producto, p]));
+  const tx = (r.textos && r.textos.es) || {}, md = r.media || {};
+  const parti = partiVigenti().filter((p) => p.id_strumento === r.id_strumento).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+  const conPrezzo = ['botellas', 'precio_fijo'].includes(r.tipo), conRol = r.tipo === 'menu';
+  const storia = S.hist.filter((h) => h.id === r.id_strumento).slice().reverse();
+  return '<div class="box" id="det"><div class="top"><div><div class="tp">' + esc(TIPO[r.tipo]) + ' · ' + esc(r.id_strumento) + '</div><h1>' + esc(r.nombre_visible) + '</h1></div>' +
+      '<div class="row"><button class="bt" data-a="chiudi">Cerrar</button><button class="bt pri" data-a="salva">Guardar versión</button></div></div>' +
+      (S.err ? '<div class="err">' + esc(S.err) + '</div>' : '') +
+    '<div class="dt" style="margin-top:12px"><div>' +
+      '<div class="fld"><label>Nombre que ve el cliente</label><input id="f_nombre" value="' + esc(r.nombre_visible) + '"></div>' +
+      '<div class="fld"><label>Días</label><div class="dsel" id="f_dias">' + DIAS.map((d) => '<button class="d' + ((r.dias || []).includes(d) ? ' on' : '') + '" data-a="dia" data-k="' + d + '">' + d + '</button>').join('') + '</div><span class="nota">Ninguno marcado = todos los días.</span></div>' +
+      '<div class="row"><div class="fld"><label>Desde</label><input type="time" id="f_desde" value="' + esc(r.desde || '') + '"></div><div class="fld"><label>Hasta</label><input type="time" id="f_hasta" value="' + esc(r.hasta || '') + '"></div>' +
+        '<div class="fld"><label>Tope del push del JL</label><input type="time" id="f_tope" value="' + esc(r.hasta_tope || '') + '"></div></div>' +
+      '<div class="nota" style="margin:-4px 0 10px">«Hasta» que pasa la medianoche (22:00–03:00) es la misma noche. Sin tope, el JL solo puede acortar.</div>' +
+      (['evento', 'escena', 'menu'].includes(r.tipo) || r.fecha_desde || r.fecha_hasta ? '<div class="row"><div class="fld"><label>Fecha desde</label><input type="date" id="f_fd" value="' + esc(r.fecha_desde || '') + '"></div><div class="fld"><label>Fecha hasta</label><input type="date" id="f_fh" value="' + esc(r.fecha_hasta || '') + '"></div></div>' : '') +
+      '<div class="row"><div class="fld"><label>Prioridad (1 = más alta)</label><input type="number" min="1" id="f_prio" value="' + esc(r.prioridad == null ? '' : r.prioridad) + '" style="width:110px"></div>' +
+        '<div class="fld" style="flex:1 1 200px"><label>Etiqueta bajo el producto</label><input id="f_badge" value="' + esc(r.badge || '') + '" placeholder="En 2x1 ahora"></div></div>' +
+      (r.tipo === 'menu' ? '<div class="fld"><label>Precios posibles · el JL mueve la palanca</label>' + (r.precios || []).map((p, i) => '<div class="pr"><input value="' + esc(p.id) + '" data-pi="' + i + '" data-pf="id"><input type="number" value="' + esc(p.precio) + '" data-pi="' + i + '" data-pf="precio"><input value="' + esc(p.etiqueta || '') + '" data-pi="' + i + '" data-pf="etiqueta"><label class="nota"><input type="radio" name="pdef" value="' + esc(p.id) + '"' + (r.precio_default === p.id ? ' checked' : '') + '> de base</label><button class="bt peq" data-a="pdel" data-k="' + i + '">Quitar</button></div>').join('') +
+        '<button class="bt peq" data-a="padd">+ Precio</button><div class="nota">Contenedor: <b>' + esc(nomeP(r.id_contenitore)) + '</b> (' + esc(r.id_contenitore || '—') + '). Se vende el menú, no el plato: los platos guardan su precio de carta.</div></div>' : '') +
+      (r.tipo === 'multiplo' ? '<div class="row"><div class="fld"><label>Paga</label><input type="number" id="f_paga" value="' + esc((r.multiplo || {}).paga || 1) + '" style="width:90px"></div><div class="fld"><label>Lleva</label><input type="number" id="f_lleva" value="' + esc((r.multiplo || {}).lleva || 2) + '" style="width:90px"></div></div>' : '') +
+      (r.tipo === 'recargo' ? '<div class="fld"><label>Factor</label><input type="number" step="0.001" id="f_factor" value="' + esc(r.factor || '') + '" style="width:120px"></div>' : '') +
+    '</div><div>' +
+      '<div class="fld"><label>Texto · arriba</label><input id="f_eyebrow" value="' + esc(tx.eyebrow || '') + '"></div>' +
+      '<div class="fld"><label>Texto · título</label><input id="f_titulo" value="' + esc(tx.titulo || '') + '"></div>' +
+      '<div class="fld"><label>Texto · bajada</label><input id="f_sub" value="' + esc(tx.sub || '') + '"></div>' +
+      '<div class="fld"><label>Imagen o póster (enlace)</label><input id="f_img" value="' + esc(md.poster || md.imagen || '') + '"></div>' +
+      '<div class="fld"><label>Video (enlace)</label><input id="f_vid" value="' + esc(md.video || '') + '"></div>' +
+      (md.poster || md.imagen ? '<img src="' + esc(md.poster || md.imagen) + '" alt="" style="max-width:100%;max-height:150px;border-radius:10px;object-fit:cover">' : '') +
+    '</div></div>' +
+    (['evento', 'escena', 'fondo'].includes(r.tipo) && !parti.length ? '' :
+    '<h2 style="margin-top:12px">Productos · ' + parti.length + '</h2><div class="ptw"><div>' +
+      '<div class="pt h"><span>Producto</span><span>' + (conRol ? 'Grupo' : conPrezzo ? 'Precio' : 'Carta') + '</span><span>Desde</span><span>Hasta</span><span>Ahora</span><span></span></div>' +
+      parti.map((p) => { const v = sp[p.id_producto];
+        return '<div class="pt"><span class="pn" title="' + esc(p.id_producto) + '">' + esc(nomeP(p.id_producto)) + '</span>' +
+          (conRol ? '<select data-pp="' + esc(p.id_producto) + '" data-pf="rol">' + ['', 'entrada', 'bebida', 'fondo', 'postre'].map((x) => '<option' + ((p.rol || '') === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select>'
+            : conPrezzo ? '<input type="number" value="' + esc(p.precio == null ? '' : p.precio) + '" data-pp="' + esc(p.id_producto) + '" data-pf="precio">' : '<span class="fin">' + clp((S.carta[p.id_producto] || {}).precio) + '</span>') +
+          '<input type="time" value="' + esc(p.desde || '') + '" data-pp="' + esc(p.id_producto) + '" data-pf="desde"><input type="time" value="' + esc(p.hasta || '') + '" data-pp="' + esc(p.id_producto) + '" data-pf="hasta">' +
+          '<span class="pv ' + (v && v.vende ? 'si">✓ se vende' : 'no">' + esc(v ? (PERCHE_P[v.perche] || v.perche || '—') : '—')) + '</span>' +
+          '<button class="bt peq" data-a="ptogli" data-k="' + esc(p.id_producto) + '">Quitar</button></div>'; }).join('') +
+      '</div></div>' +
+      '<div class="add"><input list="carta_l" id="f_add" placeholder="Agregar un producto de la carta…" value="' + esc(S.aggiungi) + '"><button class="bt peq" data-a="pagg">Agregar</button></div>') +
+    '<h2 style="margin-top:14px">Historial</h2><div class="hist">' + (storia.length ? storia.map((h) => '<div><time>' + esc(h.ora) + '</time><span>' + esc(h.cosa) + '</span></div>').join('') : '<div><span class="nota">Viene del seme (las hojas de hoy). Cada «Guardar versión» deja aquí quién, cuándo y qué.</span></div>') + '</div>' +
+  '</div>';
+}
+function pinta() {
+  const R = risposta();
+  if (!R.ok) { document.getElementById('app').innerHTML = '<div class="box err">La regla no respondió: ' + esc(R.perche) + '</div>'; return; }
+  const live = !S.dia && !S.hora;
+  document.getElementById('app').innerHTML =
+    '<div class="top"><div><div class="tp">BKS · menu_admin</div><h1>Propuestas</h1></div>' +
+      '<div class="demo">🧪 DEMO · los cambios viven solo en esta pantalla: no se guarda nada y nadie más los ve</div></div>' +
+    '<div class="box reloj"><b>' + (live ? '🕒 Ahora: ' : '🕒 Simulando: ') + esc(DIA_N[R.ahora.dia] || R.ahora.dia) + ' ' + esc(R.ahora.hhmm) + '</b>' +
+      '<span class="dsel">' + DIAS.map((d) => '<button class="d' + (S.dia === d ? ' on' : '') + '" data-a="sdia" data-k="' + d + '">' + d + '</button>').join('') + '</span>' +
+      '<input type="time" id="s_hora" value="' + esc(S.hora || R.ahora.hhmm) + '">' +
+      (live ? '' : '<button class="bt peq" data-a="ora">Volver a ahora</button>') +
+      '<span class="nota">Elige un día y una hora para ver qué vería el cliente.</span></div>' +
+    anteprimaHTML(R) +
+    '<div class="top"><div class="fil">' + FILTRI.map(([k, t]) => '<button class="fc' + (S.filtro === k ? ' on' : '') + '" data-a="filtro" data-k="' + k + '">' + t + '</button>').join('') + '</div>' +
+      '<button class="bt" data-a="nuovo">+ Nueva propuesta</button></div>' +
+    (S.sel ? dettaglioHTML(R) : '') +
+    cardsHTML(R) +
+    '<datalist id="carta_l">' + Object.entries(S.carta).map(([id, c]) => '<option value="' + esc(id) + '">' + esc(c.nombre) + '</option>').join('') + '</datalist>' +
+    '<div class="nota">Lo que la demo no tiene: la estación del producto (aquí «se vende» = activo, visible y no agotado) · los gestos del JL del día (push ±15′ y palanca del precio) que viven en la app del JL. ' +
+      'La regla es la misma del bordo (strumenti 0.1.0). En el vivo cada «Guardar» es una fila nueva en Postgres, con quién y cuándo, y Google no participa.</div>';
+}
+/* salvare = una versione nuova (mai un UPDATE) */
+function salva() {
+  const r = riga(S.sel); if (!r) return;
+  const v = (id) => { const e = document.getElementById(id); return e ? e.value.trim() : undefined; };
+  const n = Object.assign({}, r, { uid_gesto: uid(), quien: 'demo', fuente: 'menu_admin', ts_registro: new Date().toISOString() });
+  n.nombre_visible = v('f_nombre') || r.nombre_visible;
+  n.dias = [...document.querySelectorAll('#f_dias .d.on')].map((b) => b.dataset.k);
+  n.desde = v('f_desde') || null; n.hasta = v('f_hasta') || null; n.hasta_tope = v('f_tope') || null;
+  if (document.getElementById('f_fd')) { n.fecha_desde = v('f_fd') || null; n.fecha_hasta = v('f_fh') || null; }
+  n.prioridad = v('f_prio') ? Number(v('f_prio')) : null; n.badge = v('f_badge') || null;
+  n.textos = { es: { eyebrow: v('f_eyebrow') || '', titulo: v('f_titulo') || '', sub: v('f_sub') || '' } };
+  const img = v('f_img'), vid = v('f_vid'); n.media = img || vid ? Object.assign({}, r.media || {}, { poster: img || null, imagen: img || null, video: vid || null }) : null;
+  if (r.tipo === 'menu') { n.precios = (r.precios || []).map((p, i) => ({ id: (document.querySelector('[data-pi="' + i + '"][data-pf=id]') || {}).value || p.id, precio: Number((document.querySelector('[data-pi="' + i + '"][data-pf=precio]') || {}).value || p.precio), etiqueta: (document.querySelector('[data-pi="' + i + '"][data-pf=etiqueta]') || {}).value || '' }));
+    const d = document.querySelector('input[name=pdef]:checked'); n.precio_default = d ? d.value : (n.precios[0] || {}).id || null; }
+  if (r.tipo === 'multiplo') n.multiplo = { paga: Number(v('f_paga')), lleva: Number(v('f_lleva')) };
+  if (r.tipo === 'recargo') n.factor = Number(v('f_factor'));
+  // le stesse regole della DDL, prima di scrivere
+  const e = [];
+  if ((n.desde == null) !== (n.hasta == null)) e.push('«Desde» y «Hasta» van juntos, o ninguno.');
+  if (n.tipo === 'menu' && (!n.precios.length || n.precios.some((p) => !(p.precio > 0) || !p.id))) e.push('Cada precio necesita un nombre y un monto mayor que cero.');
+  if (n.tipo === 'multiplo' && !(n.multiplo.paga > 0 && n.multiplo.lleva > n.multiplo.paga)) e.push('En un 2x1 «lleva» tiene que ser mayor que «paga».');
+  if (n.tipo === 'recargo' && !(n.factor > 1 && n.factor <= 2)) e.push('El recargo va entre 1 y 2 (ej. 1,10).');
+  if (e.length) { S.err = e.join(' '); pinta(); return; }
+  S.err = '';
+  const cambi = ['nombre_visible', 'dias', 'desde', 'hasta', 'hasta_tope', 'fecha_desde', 'fecha_hasta', 'prioridad', 'badge', 'precios', 'precio_default', 'multiplo', 'factor', 'textos', 'media']
+    .filter((k) => JSON.stringify(n[k] == null ? null : n[k]) !== JSON.stringify(r[k] == null ? null : r[k]));
+  // le parti modificate in linea
+  document.querySelectorAll('[data-pp]').forEach((el) => {
+    const p = partiVigenti().find((x) => x.id_strumento === r.id_strumento && x.id_producto === el.dataset.pp); if (!p) return;
+    const f = el.dataset.pf, val = el.value === '' ? null : (f === 'precio' ? Number(el.value) : el.value);
+    if (JSON.stringify(p[f] == null ? null : p[f]) !== JSON.stringify(val)) { S.parti.push(Object.assign({}, p, { [f]: val, uid_gesto: uid(), quien: 'demo', fuente: 'menu_admin', ts_registro: new Date().toISOString() })); cambi.push(nomeP(p.id_producto) + ' · ' + f); }
+  });
+  if (!cambi.length) { S.err = 'No hay cambios que guardar.'; pinta(); return; }
+  S.strumenti.push(n); storia(r.id_strumento, 'Versión nueva: ' + cambi.join(', '));
+  pinta();
+}
+function storia(id, cosa) { const d = new Date(); S.hist.push({ id, cosa, ora: d.toLocaleDateString('es-CL') + ' ' + d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' · demo' }); }
+function versione(r, cambia, cosa) { S.strumenti.push(Object.assign({}, r, cambia, { uid_gesto: uid(), quien: 'demo', fuente: 'menu_admin', ts_registro: new Date().toISOString() })); storia(r.id_strumento, cosa); }
+
+document.getElementById('app').addEventListener('click', (ev) => {
+  const el = ev.target.closest('[data-a]'); if (!el) return;
+  const a = el.dataset.a, k = el.dataset.k;
+  if (a === 'interr') { ev.stopPropagation(); const r = riga(k); versione(r, { activo: !r.activo }, r.activo ? 'Apagado' : 'Encendido'); pinta(); return; }
+  if (a === 'su' || a === 'giu') { ev.stopPropagation();
+    const L = vigenti().filter(passa).sort((x, y) => (x.orden == null ? 1e9 : x.orden) - (y.orden == null ? 1e9 : y.orden));
+    const i = L.findIndex((x) => x.id_strumento === k), j = a === 'su' ? i - 1 : i + 1; if (j < 0 || j >= L.length) return;
+    const oi = L[i].orden == null ? i + 1 : L[i].orden, oj = L[j].orden == null ? j + 1 : L[j].orden;
+    versione(L[i], { orden: oj }, 'Orden ' + oi + ' → ' + oj); versione(L[j], { orden: oi }, 'Orden ' + oj + ' → ' + oi); pinta(); return; }
+  if (a === 'apri') { S.sel = k; S.err = ''; S.aggiungi = ''; pinta(); const d = document.getElementById('det'); if (d) d.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (a === 'chiudi') { S.sel = null; S.err = ''; pinta(); return; }
+  if (a === 'salva') { salva(); return; }
+  if (a === 'dia') { el.classList.toggle('on'); return; }
+  if (a === 'filtro') { S.filtro = k; pinta(); return; }
+  if (a === 'sdia') { S.dia = S.dia === k ? null : k; if (!S.hora) S.hora = (document.getElementById('s_hora') || {}).value || null; pinta(); return; }
+  if (a === 'ora') { S.dia = null; S.hora = null; pinta(); return; }
+  if (a === 'padd' || a === 'pdel') { const r = riga(S.sel); const pr = (r.precios || []).slice();
+    if (a === 'padd') pr.push({ id: String.fromCharCode(65 + pr.length), precio: 0, etiqueta: '' }); else pr.splice(Number(k), 1);
+    const i = S.strumenti.lastIndexOf(r); S.strumenti[i] = Object.assign({}, r, { precios: pr }); pinta(); return; }   // si scrive al «Guardar»
+  if (a === 'ptogli') { const p = partiVigenti().find((x) => x.id_strumento === S.sel && x.id_producto === k);
+    S.parti.push(Object.assign({}, p, { borrado: true, uid_gesto: uid(), quien: 'demo', ts_registro: new Date().toISOString() })); storia(S.sel, 'Quitado: ' + nomeP(k)); pinta(); return; }
+  if (a === 'pagg') { const id = ((document.getElementById('f_add') || {}).value || '').trim().toUpperCase();
+    if (!S.carta[id]) { S.err = 'Ese producto no está en la carta: elige uno de la lista.'; pinta(); return; }
+    if (partiVigenti().some((x) => x.id_strumento === S.sel && x.id_producto === id)) { S.err = 'Ya está.'; pinta(); return; }
+    const r = riga(S.sel); S.err = '';
+    S.parti.push({ uid_gesto: uid(), local: 'BKS', id_strumento: S.sel, id_producto: id, desde: null, hasta: null, precio: ['botellas', 'precio_fijo'].includes(r.tipo) ? S.carta[id].precio : null,
+      rol: r.tipo === 'menu' ? 'fondo' : null, orden: partiVigenti().filter((x) => x.id_strumento === S.sel).length + 1, borrado: false, quien: 'demo', fuente: 'menu_admin', ts_registro: new Date().toISOString() });
+    storia(S.sel, 'Agregado: ' + nomeP(id)); pinta(); return; }
+  if (a === 'nuovo') {
+    const tipo = 'evento', base = 'NUEVO-' + (vigenti().filter((x) => /^NUEVO-/.test(x.id_strumento)).length + 1);
+    S.strumenti.push({ uid_gesto: uid(), local: 'BKS', id_strumento: base, tipo, nombre_visible: 'Nueva propuesta', activo: false, grupo: null, dias: [], desde: '20:00', hasta: '23:00', hasta_tope: null,
+      fecha_desde: null, fecha_hasta: null, prioridad: null, orden: 99, id_contenitore: null, precios: [], precio_default: null, multiplo: null, factor: null, badge: null, media: null,
+      textos: { es: { eyebrow: '', titulo: '', sub: '' } }, cta: null, borrado: false, quien: 'demo', fuente: 'menu_admin', ts_registro: new Date().toISOString() });
+    storia(base, 'Creada (apagada): evento'); S.sel = base; S.filtro = 'todo'; pinta(); return; }
+});
+document.getElementById('app').addEventListener('change', (ev) => {
+  if (ev.target.id === 's_hora') { S.hora = ev.target.value || null; if (!S.dia) { const R = risposta(); S.dia = R.ahora.dia; } pinta(); }
+  if (ev.target.id === 'f_add') S.aggiungi = ev.target.value;
+});
+document.getElementById('app').addEventListener('keydown', (ev) => { if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.classList.contains('cd')) { ev.preventDefault(); ev.target.click(); } });
+
+try {
+  const j = await (await fetch('./propuestas/seme_BKS.json', { cache: 'no-store' })).json();
+  S.strumenti = j.strumenti; S.parti = j.parti; S.carta = j.carta; pinta();
+  setInterval(() => { if (!S.dia && !S.hora && !document.activeElement.closest('#det')) pinta(); }, 60000);
+} catch (e) { document.getElementById('app').innerHTML = '<div class="box err">No se pudo leer el seme: ' + esc(e.message) + '</div>'; }
+</script>
+</body>
+</html>
