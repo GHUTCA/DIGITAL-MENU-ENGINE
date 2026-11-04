@@ -427,11 +427,13 @@ button{font-family:inherit}
 .stamp{display:inline-block;border:3px solid #5F7A1F;color:#5F7A1F;font-weight:800;letter-spacing:.2em;padding:4px 12px;transform:rotate(-6deg);border-radius:4px;font-size:18px}
 .stamp.ink{border-color:#2A2118;color:#2A2118}
 /* il PAGO EXPRESS del 21-ott: bordo d'oro doppio, il battito, «Pago seguro con Fintoc» da solo */
-.xpr{background:linear-gradient(135deg,rgba(139,158,79,.20),rgba(255,197,61,.10));border:3px double var(--oro);border-radius:14px;padding:12px;margin-top:4px}
+.xpr{background:var(--card);border:3px double var(--oro);border-radius:14px;padding:12px;margin-top:4px}
 .xpr .xt{font-size:15.5px;font-weight:800;color:var(--txt);text-align:center;line-height:1.25}
 .xpr .xb{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:12.5px;font-weight:700;color:var(--ok-chiaro)}
 .xpr .envG{margin-top:10px}
-.xpr .envG.xgo:not(.waspento){animation:xgoPulse 2.4s ease-out infinite}
+.xpr .envG.xgo.waspento{background:var(--ok);color:var(--ok-txt);border:0}   /* v0.9.31: niente tratteggio velato */
+.xwa input{background:var(--sup)!important}
+.xpr .envG.xgo{animation:xgoPulse 2.4s ease-out infinite}
 @keyframes xgoPulse{0%{box-shadow:0 0 0 0 rgba(139,158,79,.6)}70%{box-shadow:0 0 0 12px rgba(139,158,79,0)}100%{box-shadow:0 0 0 0 rgba(139,158,79,0)}}
 .xsec{text-align:center;margin-top:9px;font-size:14px;font-weight:700;color:var(--txt)}
 .xsec b{font-weight:800}
@@ -532,7 +534,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.30</div>
+<div class="ver" id="ver">menu v0.9.31</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
