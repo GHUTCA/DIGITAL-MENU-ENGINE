@@ -377,7 +377,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v3.5.1</div>
+    <div class="hub-footer-version" id="ver">menu_admin v3.5.2</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -1653,7 +1653,7 @@ function renderTurno(loadFailed){
     <input type="text" class="input-field" id="grupoInput" placeholder="ej: 1+88 · la primera manda" maxlength="40" style="margin:0;flex:1">
     <button class="franja-add" style="width:auto;padding:12px 16px" onclick="doUnirMesas()">🔗 Unir</button></div>`;
 
-  html += `<button class="turno-sec-btn" onclick="doRepetirSemana()">↻ Repetir asignación de la semana pasada</button>`;
+  /* v3.5.2 · [📖 MENU BKS V32 · mer 4-nov · D-446] «Repetir semana» non c'è più: Alberto lo ha eliminato, lo rifà RRHH col turnos nuovo. */
   html += `<button class="turno-sec-btn" onclick="openPlazaCfg()">＋ Nueva plaza</button>`;
   el.innerHTML = html;
 }
@@ -2054,21 +2054,6 @@ async function confirmPlazaCfg(){
   } catch (err) {
     showToast('error', err.message==='timeout' ? 'Tiempo agotado · reintenta' : 'Sin conexión');
   } finally { btn.disabled = false; }
-}
-
-/* Repetir semana */
-async function doRepetirSemana(){
-  try {
-    const porta = await turnoPortaGasChiusa();   // v3.3.1 · «Repetir semana» scrive assegnazioni: stessa porta
-    if (porta.chiusa) { avisoPlazasEnAppJl(porta); return; }
-    const r = await withRetry(() => gasPost('repetirSemana', { pin: lastSavedPin }), 'repetirSemana');
-    if (r && r.ok) {
-      showToast(r.copiadas>0?'success':'warn', r.copiadas>0 ? `${r.copiadas} ${r.copiadas>1?'asignaciones copiadas':'asignación copiada'} de la semana pasada` : 'Nada que copiar de la semana pasada');
-      if(r.copiadas>0){ await loadTurno(); renderTurno(); }
-    } else showToast('error', r && r.error ? 'Error: '+r.error : 'No se pudo copiar');
-  } catch (err) {
-    showToast('error', err.message==='timeout' ? 'Tiempo agotado · reintenta' : 'Sin conexión');
-  }
 }
 
 /* TOAST */
