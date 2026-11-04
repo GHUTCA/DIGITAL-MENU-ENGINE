@@ -435,8 +435,15 @@ button{font-family:inherit}
 .xwa input{background:var(--sup)!important}
 .xpr .envG.xgo{animation:xgoPulse 2.4s ease-out infinite}
 @keyframes xgoPulse{0%{box-shadow:0 0 0 0 rgba(139,158,79,.6)}70%{box-shadow:0 0 0 12px rgba(139,158,79,0)}100%{box-shadow:0 0 0 0 rgba(139,158,79,0)}}
-.xsec{text-align:center;margin-top:9px;font-size:14px;font-weight:700;color:var(--txt)}
+.xsec{display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--sup);border:1.5px solid var(--ok);border-left:6px solid var(--ok);border-radius:10px;padding:9px 10px;font-size:14px;color:var(--txt);text-align:left}   /* v0.9.33: evidente, non più grande */
+.xsec .xlk{flex:0 0 auto;font-size:18px}
+.xsec>span:nth-child(2){flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px}
 .xsec b{font-weight:800}
+.xsec small{font-size:11.5px;font-weight:600;color:var(--suave);line-height:1.3}
+.xinf{flex:0 0 auto;background:var(--card);border:1.5px solid var(--linea2);color:var(--txt);border-radius:8px;padding:6px 8px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+.xinfo{margin-top:6px;background:var(--card);border:1.5px solid var(--linea2);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--txt);text-align:left;line-height:1.4}
+.xinfo b{display:block;font-size:13.5px;margin-bottom:4px}
+.xinfo p{margin:4px 0 0}
 .xwa{margin-top:10px}
 .xwak{font-size:12.5px;color:var(--suave);text-align:center;margin-top:9px}
 .xwak button{font:inherit;border:0;background:none;color:var(--txt);font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:0}
@@ -547,7 +554,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.32</div>
+<div class="ver" id="ver">menu v0.9.33</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1299,6 +1306,17 @@ function pagoRegistra(met) {
 }
 const MET_FINTOC = [['tarjeta', '💳', 'Tarjeta de crédito o débito', ''], ['apple', '', 'Apple Pay', ''], ['google', '', 'Google Pay', 'por confirmar'], ['transf', '🏦', 'Transferencia desde tu banco', '']];
 const metNome = (k) => { const m = MET_FINTOC.find((x) => x[0] === k); return m ? m[2] : k; };
+/* v0.9.33 · la fiducia: una riga che si vede (non più grande: più evidente) e, a richiesta, chi è Fintoc */
+function fiduciaHTML() {
+  return '<div class="xsec"><span class="xlk">🔒</span><span><b>' + T('Pago seguro con Fintoc') + '</b><small>' + T('nosotros nunca vemos ni guardamos tus datos bancarios') + '</small></span>' +
+    '<button class="xinf" data-a="fintocInfo" aria-expanded="' + !!S.fintocInfo + '">' + (S.fintocInfo ? '✕' : 'ⓘ ' + T('¿Qué es?')) + '</button></div>' +
+    (S.fintocInfo ? '<div class="xinfo"><b>' + T('¿Quién es Fintoc?') + '</b>' +
+      '<p>' + T('Fintoc es la empresa que procesa tu pago. Es la primera iniciadora de pagos de Chile con certificación ISO 27001 (seguridad de la información) y cumple la Ley Fintec.') + '</p>' +
+      '<p>✓ ' + T('Nosotros no vemos tus datos: tu pago va por un canal separado y a nosotros solo nos llega «mesa pagada».') + '</p>' +
+      '<p>✓ ' + T('Fintoc no guarda tus credenciales.') + '</p>' +
+      '<p>✓ ' + T('Nunca te pediremos tu clave: ni el mesero ni por WhatsApp. Tu clave solo se escribe en el paso de tu banco.') + '</p>' +
+      '<p>✓ ' + T('Si pagas por transferencia, en tu cartola aparece «Fintoc».') + '</p></div>' : '');
+}
 function cuentaHTML() {
   waLeggi();
   const c = pagoConti(), X = '<button class="pedx" data-a="cuentaChiudi">✕</button>';
@@ -1330,7 +1348,7 @@ function cuentaHTML() {
       '<div class="ftot"><small>' + T('Pagas') + '</small><b>' + clp(c.totale) + '</b><small>' + T('consumo') + ' ' + clp(c.base) + ' + ' + T('propina') + ' ' + clp(c.propina) + '</small></div>' +
       (S.fintocProc ? '<div class="fproc"><div class="fspin"></div>' + esc(metNome(S.fintocProc)) + '<span>' + T('procesando con Fintoc…') + '</span></div>'
         : '<div class="prq" style="text-align:center">' + T('¿Cómo pagas?') + '</div>' + MET_FINTOC.map((m) => '<button class="fpm' + (m[3] ? ' dim' : '') + '" data-a="fintocMet" data-k="' + m[0] + '"><span>' + m[1] + ' ' + m[2] + (m[3] ? ' <small>· ' + T(m[3]) + '</small>' : '') + '</span><span class="sp">' + clp(c.totale) + '</span></button>').join('')) +
-      '<div class="xsec">🔒 ' + T('Pago seguro con') + ' <b>Fintoc</b></div></div>';
+      fiduciaHTML() + '</div>';
   }
   if (c.mesa > 0 && c.resta <= 0) {
     return '<div class="ped cta pgx"><div class="pedtit">' + T('Tu cuenta') + X + '</div>' + foglioHTML(c) + '<div class="okv">🎉 ' + T('¡La mesa quedó pagada!') + '<span>' + T('gracias por venir') + '</span></div><button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b></button></div>';
@@ -1339,13 +1357,13 @@ function cuentaHTML() {
   return '<div class="ped cta pgx"><div class="pedtit">' + T('Tu cuenta') + ' · ' + T('Mesa') + ' ' + esc(MESA) + X + '</div>' +
     foglioHTML(c) +
     '<div class="xpr"><div class="xt">⚡ ' + T('No pierdas tiempo: usa el PAGO EXPRESS') + '</div>' +
-      '<div class="xb"><span>✓ ' + T('rápido') + '</span><span>✓ ' + T('boleta a tu WhatsApp') + '</span><span>✓ ' + T('sin esperar') + '</span></div>' +
+      '<div class="xb"><span>✓ ' + T('rápido') + '</span><span>✓ ' + T('seguro') + '</span><span>✓ ' + T('boleta a tu WhatsApp') + '</span></div>' +
       (S.waNoto && waOk(wa) ? '<div class="xwak">📲 ' + T('boleta a') + ' ' + esc(wa) + ' · <button data-a="waCambia">' + T('cambiar') + '</button></div>'
         : S.noWa ? '<div class="xwak">' + T('sin boleta por WhatsApp') + ' · <button data-a="waCambia">' + T('poner mi WhatsApp') + '</button></div>'
         : '<div class="ckf xwa"><input type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="' + T('Tu WhatsApp para la boleta') + ' · +56 9 …" value="' + esc(wa) + '" data-a="payWa" aria-label="WhatsApp"></div>') +
       '<button class="envG xgo' + (okBtn ? '' : ' waspento') + '" data-xgo="1" data-a="' + (c.base <= 0 ? 'nada' : waPronto ? 'pagoExpress' : 'waFalta') + '"><b>⚡ PAGO EXPRESS · <em id="pgTotS">' + clp(c.totale) + '</em></b><span>' +
         (c.chiude ? '🎉 ' + T('con esto cierras la mesa') : T('tarjeta · Apple Pay · Google Pay · transferencia')) + '</span></button>' +
-      '<div class="xsec">🔒 ' + T('Pago seguro con') + ' <b>Fintoc</b></div>' +
+      fiduciaHTML() + '' +
       (!waOk(wa) && !S.noWa ? '<button class="segui xno" data-a="waNo">' + T('pagar sin boleta por WhatsApp') + '</button>' : '') + '</div>' +
     '<button class="segui" data-a="pagoPos"' + (c.base > 0 ? '' : ' disabled') + '>' + T('Prefiero esperar la máquina (POS)') + '</button></div>';
 }
@@ -1829,6 +1847,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'waNo') { S.noWa = true; pinta(); return; }
   if (a === 'pagoExpress') { S.pagoPaso = 'fintoc'; S.fintocProc = ''; if (waOk(S.payWa)) { S.waNoto = true; try { localStorage.setItem(WA_K, S.payWa); } catch (e) { /* solo memoria */ } } pinta(); return; }
   if (a === 'fintocMet' && !S.fintocProc && /^(tarjeta|apple|google|transf)$/.test(k)) { S.fintocProc = k; pinta(); setTimeout(() => { pagoRegistra(k); pinta(); }, 1400); return; }
+  if (a === 'fintocInfo') { S.fintocInfo = !S.fintocInfo; pinta(); return; }   // v0.9.33
   if (a === 'fintocVolver') { S.pagoPaso = 'cuenta'; S.fintocProc = ''; pinta(); return; }
   if (a === 'pagoPos') { S.pagoPaso = 'pos'; if (pagoMesaOn() && envioOn()) llamaMesero('cuenta'); pinta(); return; }   // simulato: nessun mesero chiamato
   if (a === 'esperaCancela') { esperaCancela(); return; }   // v0.9.24 · ③
