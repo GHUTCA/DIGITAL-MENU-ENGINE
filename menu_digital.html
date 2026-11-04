@@ -14093,8 +14093,8 @@ function renderPedidoEstado(){
   let v = VISTAS[PA.estado] || VISTAS.pendiente;
   // v2.115.0 · D-431: rifiutato dal mesero o scaduto senza risposta = `cancelado` (terminale, fuori dal totale), col suo perché
   if (PA.estado === 'cancelado' && PA.rech) v = { icon:'🙋', anim:false,
-    t: PA.rech === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa',
-    s: 'Tu pedido no se preparó y no se cobra. Pídele al mesero o acércate a la barra' };
+    t: PA.rech === 'cliente' ? 'Cancelaste tu pedido' : (PA.rech === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa'),
+    s: PA.rech === 'cliente' ? 'No se preparó y no se cobra. Puedes armar otro cuando quieras' : 'Tu pedido no se preparó y no se cobra. Pídele al mesero o acércate a la barra' };
   /* v2.65.0 · R5 (caso mesa 106: 65 min su «recibido ✓» col vino già al pass).
      La produzione non aspetta el MÍO — la card tampoco. `prod` viene dai
      fossili del GAS: si sovrascrive la vista SOLO negli stati non terminali,
@@ -14127,7 +14127,7 @@ function renderPedidoEstado(){
       ${_nocheHtml(PA.uuid)}
       ${terminal
         ? `<button class="cart-listo-btn" onclick="cerrarPedidoActual()">${getLang('pedido_pedir_mas') || 'Pedir algo más'}</button>`
-        : `<button class="v2-via-mesero" style="width:100%;margin-bottom:8px" onclick="v2MeEquivoque(this)">${v2T('meq_btn', {mesero: MESERO_MESA || (getLang('pedido_el_mesero') || 'el mesero')})}</button>
+        : `${PA.estado === 'por_confirmar' ? '<button class="v2-via-mesero" style="width:100%;margin-bottom:8px" onclick="cancelarPedidoEnEspera(this)">✕ Cancelar pedido</button>' : ''}<button class="v2-via-mesero" style="width:100%;margin-bottom:8px" onclick="v2MeEquivoque(this)">${v2T('meq_btn', {mesero: MESERO_MESA || (getLang('pedido_el_mesero') || 'el mesero')})}</button>
            <button class="cart-listo-btn" onclick="closeCart()">${getLang('cart_close') || 'Cerrar'}</button>`}
     </div>`;
 }
@@ -14291,7 +14291,7 @@ async function _estadoPedidoFetch(uuid, cur, timeoutMs){
       });
       clearTimeout(tid);
       const r = await resp.json();
-      if (r && r.need === 'mesa_rechazada') return r;
+      if (r && (r.need === 'mesa_rechazada' || r.need === 'pedido_cancelado')) return r;   // v2.116.0 · D-444 ③: anche il cancelado del cliente
       if (r && r.ok === true && r.conto_id && r.conto_llave) _cuentaGuardar(r.conto_id, r.conto_llave);   // v2.116.0 · D-444: solo da qui
       if (r && r.ok === true && r.estado && !_estadoIndietro(r, cur) && !_bordoNonSaProd(r)) return r;
       if (r && r.error === 'ruta_apagada') _ESTADO_BORDE_OFF = true;
@@ -14307,10 +14307,36 @@ function _estadoRechazo(p, r){
   if (!p) return false;
   let mot = '';
   if (r && r.need === 'mesa_rechazada') mot = r.motivo === 'sin_respuesta' ? 'sin_respuesta' : 'rechazada';
+  else if (r && r.need === 'pedido_cancelado') mot = 'cliente';   // v2.116.0 · D-444 ③
   else if (p.estado === 'por_confirmar' && Date.now() - (p.ts || 0) > _POR_CONFIRMAR_MAX_MS) mot = 'sin_respuesta';
   if (!mot) return false;
   p.estado = 'cancelado'; p.rech = mot;
   return true;
+}
+
+/* v2.116.0 · [📖 MENU BKS V32 · mer 4-nov · D-444 ③, deciso da Alberto] il cliente può cancelar il SUO pedido mentre aspetta il garzón.
+   Solo al bordo (`cancelarQr`, contratto di ⚙️ ARQ `be54d16`): il GAS non conosce l'attesa. Lo stesso uuid ritentato risponde `ya:true`.
+   `qr_ya_resuelto` = il garzón ha già risposto: si rinfresca lo stato e si dice. Nessun avviso al JL, non conta come rifiuto. */
+async function cancelarPedidoEnEspera(btn){
+  const PA = PEDIDO_ACTUAL;
+  if (!PA || PA.estado !== 'por_confirmar') return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Cancelando…'; }
+  let r = null;
+  try { r = await _postBorde({ action: 'cancelarQr', uuid: PA.uuid, mesa: MESA_ID, dispositivo_id: _llamadaDev() }, 6000); } catch (e) { r = null; }
+  if (r && r.ok === true && r.esito === 'cancelado') {
+    PA.estado = 'cancelado'; PA.rech = 'cliente';
+    try { renderPedidoEstado(); } catch (e) {}
+    return;
+  }
+  if (r && r.need === 'qr_ya_resuelto') {
+    showToastMsg('🙋 Ya no se puede cancelar: el mesero ya respondió', 6000);
+  } else if (r && r.error === 'otro_telefono') {
+    showToastMsg('🙋 Este pedido lo hizo otro teléfono', 6000);
+  } else {
+    showToastMsg('🙋 No pudimos cancelarlo. Pídele al mesero', 6000);
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '✕ Cancelar pedido'; }
+  try { if (typeof _pollPedidoUnaVez === 'function') _pollPedidoUnaVez(); } catch (e) {}
 }
 
 function iniciarPollPedido(){
