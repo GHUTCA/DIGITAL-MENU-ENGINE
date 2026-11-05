@@ -14269,7 +14269,7 @@ const SOLO_MIRAR_K = 'pinsita_qr_solo_mirar';
 let PEDIDO_DIGITAL_CFG = false;
 function _soloMirar(){
   try { const m = JSON.parse(localStorage.getItem(SOLO_MIRAR_K) || 'null');
-    return !!(m && MESA_ID && m.local === LOCAL_ID && String(m.mesa) === String(MESA_ID) && m.fop === _fechaOpCliente()); } catch(e){ return false; }
+    return !!(m && !m.libero && MESA_ID && m.local === LOCAL_ID && String(m.mesa) === String(MESA_ID) && m.fop === _fechaOpCliente()); } catch(e){ return false; }
 }
 function _soloMirarPinta(){
   let el = document.getElementById('soloMirarBar');
@@ -14286,8 +14286,8 @@ function _soloMirarRidisegna(){
 function _soloMirarOn(uuid){
   if (!MESA_ID) return;
   let prev = null; try { prev = JSON.parse(localStorage.getItem(SOLO_MIRAR_K) || 'null'); } catch(e){}
-  const u = uuid || (prev && prev.mesa === String(MESA_ID) && prev.fop === _fechaOpCliente() ? prev.uuid : '') || '';   // telefono_bloqueado non porta uuid: si tiene quello di prima
-  try { localStorage.setItem(SOLO_MIRAR_K, JSON.stringify({ local: LOCAL_ID, mesa: String(MESA_ID), fop: _fechaOpCliente(), ts: Date.now(), uuid: u })); } catch(e){}
+  const u = uuid || (prev && prev.local === LOCAL_ID && prev.mesa === String(MESA_ID) && prev.fop === _fechaOpCliente() ? prev.uuid : '') || '';   // telefono_bloqueado non porta uuid: si tiene quello di prima
+  try { localStorage.setItem(SOLO_MIRAR_K, JSON.stringify({ local: LOCAL_ID, mesa: String(MESA_ID), fop: _fechaOpCliente(), ts: Date.now(), uuid: u, libero: false })); } catch(e){}
   if (PEDIDO_DIGITAL) { PEDIDO_DIGITAL = false; _soloMirarRidisegna(); } else _soloMirarPinta();
   _soloMirarPoll();
 }
@@ -14324,7 +14324,9 @@ function _soloMirarPoll(){
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && _SM_TIMER) _soloMirarChiedi(); });
 function soloMirarReintentar(){
-  try { localStorage.removeItem(SOLO_MIRAR_K); } catch(e){}
+  /* v2.117.1 · M4 di EL GIRO: si toglie il blocco, NON il ricordo dell'uuid rifiutato. Se il bordo dice ancora telefono_bloqueado,
+     _soloMirarOn riprende quell'uuid e il poll sa ancora cosa chiedere: lo sblocco del garzón arriva da solo anche dopo «Toca aquí». */
+  try { const m = JSON.parse(localStorage.getItem(SOLO_MIRAR_K) || 'null'); if (m) { m.libero = true; localStorage.setItem(SOLO_MIRAR_K, JSON.stringify(m)); } } catch(e){}
   _soloMirarStop();
   PEDIDO_DIGITAL = PEDIDO_DIGITAL_CFG;
   _soloMirarRidisegna();
