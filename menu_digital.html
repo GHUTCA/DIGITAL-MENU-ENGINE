@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.116.0</span>
+<span id="ver" hidden>menu2 · v2.116.1</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -6437,7 +6437,7 @@ const TRANSLATIONS = {
     pedido_st_digitado:'En el sistema', pedido_st_digitado_sub:'Cocina y barra ya lo están preparando',
     pedido_st_entregado:'¡Entregado — buen provecho!', pedido_st_entregado_sub:'Gracias por pedir desde tu mesa',
     pedido_st_problema:'Mejor díselo al mesero', pedido_st_problema_sub:'No pudimos confirmarlo — llama al mesero o acércate a la barra',
-    pedido_el_mesero:'El mesero', pedido_camino_toast:'va en camino', pedido_items:'productos',
+    pedido_el_mesero:'El mesero', pedido_camino_toast:'va en camino', pedido_items:'productos', meq_mesero_gen:'tu garzón', pedido_item1:'producto', pedido_num:'Pedido N° {n} · recibido ✓', pedido_lo_pediste:'🧾 Lo que pediste recién', pedido_cancelar:'✕ Cancelar pedido',
     pedido_pedir_mas:'Pedir algo más',
     pedido_noche_titulo:'Lo pedido esta noche', pedido_total_noche:'Total de la noche',
     pedido_ya_noche:'Ya pedido esta noche',
@@ -6459,7 +6459,7 @@ const TRANSLATIONS = {
     cart_close:'Cerrar',
     all_day:'Todo el día',
     breakfast:'Desayuno', lunch:'Almuerzo', snack:'Merienda', dinner:'Cena',
-    agotado:'Agotado', nuevo:'Nuevo', popular:'Popular', agotado_ahora:'Se acabó justo ahora:', agotado_sacado:'lo saqué de tu pedido, el resto sigue listo 🛎', cat_cafes:'Cafés', recap_dir:'Tu pedido va directo a producción en {dest}', add_llevas:'— ahora llevas {n}× en tu pedido', dig_dest:'Ya lo están preparando en {dest}', meq_btn:'🙋 Me equivoqué — avisar a {mesero}', preg_mod:'¿Cómo lo quieres?', mod_comoviene:'Como viene', warn_qty:'Vas a pedir {n}× — ¿está bien? Ajusta aquí mismo',
+    agotado:'Agotado', nuevo:'Nuevo', popular:'Popular', agotado_ahora:'Se acabó justo ahora:', agotado_sacado:'lo saqué de tu pedido, el resto sigue listo 🛎', cat_cafes:'Cafés', recap_dir:'Tu pedido va directo a producción en {dest}', add_llevas:'— ahora llevas {n}× en tu pedido', dig_dest:'Ya lo están preparando en {dest}', meq_btn:'🙋 ¿Te equivocaste? Avisa a {mesero}', preg_mod:'¿Cómo lo quieres?', mod_comoviene:'Como viene', warn_qty:'Vas a pedir {n}× — ¿está bien? Ajusta aquí mismo',
     vegano:'Vegano', singluten:'Sin Gluten', chef:"Chef's Choice", temporada:'Temporada',
     member_price:'Precio miembro',
     upsell_title:'También te puede gustar',
@@ -6587,7 +6587,7 @@ const TRANSLATIONS = {
     pedido_st_digitado:'In the system', pedido_st_digitado_sub:'Kitchen and bar are already on it',
     pedido_st_entregado:'Delivered — enjoy!', pedido_st_entregado_sub:'Thanks for ordering from your table',
     pedido_st_problema:'Better tell your waiter', pedido_st_problema_sub:'We could not confirm it — call the waiter or go to the bar',
-    pedido_el_mesero:'Your waiter', pedido_camino_toast:'is on the way', pedido_items:'items',
+    pedido_el_mesero:'Your waiter', pedido_camino_toast:'is on the way', pedido_items:'items', meq_mesero_gen:'your waiter', pedido_item1:'item', pedido_num:'Order #{n} · received ✓', pedido_lo_pediste:'🧾 What you just ordered', pedido_cancelar:'✕ Cancel order',
     pedido_pedir_mas:'Order something else',
     pedido_noche_titulo:'Ordered tonight', pedido_total_noche:'Tonight’s total',
     pedido_ya_noche:'Already ordered tonight',
@@ -6609,7 +6609,7 @@ const TRANSLATIONS = {
     cart_close:'Close',
     all_day:'All day',
     breakfast:'Breakfast', lunch:'Lunch', snack:'Snack', dinner:'Dinner',
-    agotado:'Sold out', nuevo:'New', popular:'Popular', agotado_ahora:'Just sold out:', agotado_sacado:'I removed it from your order, the rest is ready 🛎', cat_cafes:'Coffee', recap_dir:'Your order goes straight into production — {dest}', add_llevas:'— you now have {n}× in your order', dig_dest:'Already being prepared — {dest}', meq_btn:'🙋 Made a mistake — tell {mesero}', preg_mod:'How do you want it?', mod_comoviene:'As it comes', warn_qty:'You\'re ordering {n}× — all good? Adjust right here',
+    agotado:'Sold out', nuevo:'New', popular:'Popular', agotado_ahora:'Just sold out:', agotado_sacado:'I removed it from your order, the rest is ready 🛎', cat_cafes:'Coffee', recap_dir:'Your order goes straight into production — {dest}', add_llevas:'— you now have {n}× in your order', dig_dest:'Already being prepared — {dest}', meq_btn:'🙋 Made a mistake? Tell {mesero}', preg_mod:'How do you want it?', mod_comoviene:'As it comes', warn_qty:'You\'re ordering {n}× — all good? Adjust right here',
     vegano:'Vegan', singluten:'Gluten Free', chef:"Chef's Choice", temporada:'Seasonal',
     member_price:'Member price',
     upsell_title:'You might also like',
@@ -6811,7 +6811,7 @@ const TRANSLATIONS = {
     pedido_st_problema_sub:'Não conseguimos confirmar — chame o garçom ou vá até o bar',
     pedido_el_mesero:'O garçom',
     pedido_camino_toast:'está a caminho',
-    pedido_items:'produtos',
+    pedido_items:'produtos', meq_mesero_gen:'o garçom', pedido_item1:'produto', pedido_num:'Pedido Nº {n} · recebido ✓', pedido_lo_pediste:'🧾 O que você acabou de pedir', pedido_cancelar:'✕ Cancelar pedido',
     pedido_pedir_mas:'Pedir mais alguma coisa',
     pedido_noche_titulo:'O que você pediu hoje à noite',
     pedido_total_noche:'Total da noite',
@@ -6850,7 +6850,7 @@ const TRANSLATIONS = {
     pedido_st_digitado:'Nel sistema', pedido_st_digitado_sub:'Cucina e bar lo stanno già preparando',
     pedido_st_entregado:'Consegnato — buon appetito!', pedido_st_entregado_sub:'Grazie per aver ordinato dal tavolo',
     pedido_st_problema:'Meglio dirlo al cameriere', pedido_st_problema_sub:'Non siamo riusciti a confermarlo — chiama il cameriere o vieni al bancone',
-    pedido_el_mesero:'Il cameriere', pedido_camino_toast:'sta arrivando', pedido_items:'prodotti',
+    pedido_el_mesero:'Il cameriere', pedido_camino_toast:'sta arrivando', pedido_items:'prodotti', meq_mesero_gen:'il cameriere', pedido_item1:'prodotto', pedido_num:'Ordine N° {n} · ricevuto ✓', pedido_lo_pediste:'🧾 Quello che hai appena ordinato', pedido_cancelar:'✕ Annulla ordine',
     pedido_pedir_mas:'Ordina qualcos\'altro',
     pedido_noche_titulo:'Ordinato stasera', pedido_total_noche:'Totale della serata',
     pedido_ya_noche:'Già ordinato stasera',
@@ -6958,7 +6958,7 @@ const TRANSLATIONS = {
     cart_close:'Schließen',
     all_day:'Den ganzen Tag',
     breakfast:'Frühstück', lunch:'Mittagessen', snack:'Snack', dinner:'Abendessen',
-    agotado:'Ausverkauft', nuevo:'Neu', popular:'Beliebt', agotado_ahora:'Gerade ausverkauft:', agotado_sacado:'ich habe es aus deiner Bestellung entfernt, der Rest ist bereit 🛎', cat_cafes:'Kaffee', recap_dir:'Deine Bestellung geht direkt in die Produktion — {dest}', add_llevas:'— jetzt {n}× in deiner Bestellung', dig_dest:'Wird schon zubereitet — {dest}', meq_btn:'🙋 Vertan — {mesero} Bescheid geben', preg_mod:'Wie möchtest du es?', mod_comoviene:'Wie es kommt', warn_qty:'Du bestellst {n}× — passt das? Hier anpassen',
+    agotado:'Ausverkauft', nuevo:'Neu', popular:'Beliebt', agotado_ahora:'Gerade ausverkauft:', agotado_sacado:'ich habe es aus deiner Bestellung entfernt, der Rest ist bereit 🛎', cat_cafes:'Kaffee', recap_dir:'Deine Bestellung geht direkt in die Produktion — {dest}', add_llevas:'— jetzt {n}× in deiner Bestellung', dig_dest:'Wird schon zubereitet — {dest}', meq_btn:'🙋 Vertan — {mesero} Bescheid geben', meq_mesero_gen:'dem Kellner', preg_mod:'Wie möchtest du es?', mod_comoviene:'Wie es kommt', warn_qty:'Du bestellst {n}× — passt das? Hier anpassen',
     vegano:'Vegan', singluten:'Glutenfrei', chef:'Empfehlung des Küchenchefs', temporada:'Saisonal',
     member_price:'Mitgliederpreis',
     upsell_title:'Das könnte dir auch gefallen',
@@ -7046,7 +7046,7 @@ const TRANSLATIONS = {
     cart_close:'Fermer',
     all_day:'Toute la journée',
     breakfast:'Petit-déjeuner', lunch:'Déjeuner', snack:'Goûter', dinner:'Dîner',
-    agotado:'Épuisé', nuevo:'Nouveau', popular:'Populaire', agotado_ahora:'Vient de se terminer :', agotado_sacado:'je l\'ai retiré de ta commande, le reste est prêt 🛎', cat_cafes:'Cafés', recap_dir:'Ta commande part directement en production — {dest}', add_llevas:'— tu en as maintenant {n}×', dig_dest:'Déjà en préparation — {dest}', meq_btn:'🙋 Je me suis trompé — prévenir {mesero}', preg_mod:'Comment tu le veux ?', mod_comoviene:'Comme il vient', warn_qty:'Tu commandes {n}× — c\'est bon ? Ajuste ici',
+    agotado:'Épuisé', nuevo:'Nouveau', popular:'Populaire', agotado_ahora:'Vient de se terminer :', agotado_sacado:'je l\'ai retiré de ta commande, le reste est prêt 🛎', cat_cafes:'Cafés', recap_dir:'Ta commande part directement en production — {dest}', add_llevas:'— tu en as maintenant {n}×', dig_dest:'Déjà en préparation — {dest}', meq_btn:'🙋 Je me suis trompé — prévenir {mesero}', meq_mesero_gen:'le serveur', preg_mod:'Comment tu le veux ?', mod_comoviene:'Comme il vient', warn_qty:'Tu commandes {n}× — c\'est bon ? Ajuste ici',
     vegano:'Végétalien', singluten:'Sans Gluten', chef:'Choix du Chef', temporada:'Saison',
     member_price:'Prix membre',
     upsell_title:'Vous pourriez aussi aimer',
@@ -7134,7 +7134,7 @@ const TRANSLATIONS = {
     cart_close:'关闭',
     all_day:'全天',
     breakfast:'早餐', lunch:'午餐', snack:'下午茶', dinner:'晚餐',
-    agotado:'售罄', nuevo:'新品', popular:'热门', agotado_ahora:'刚刚售罄：', agotado_sacado:'已从你的订单中移除，其余可以发送 🛎', cat_cafes:'咖啡', recap_dir:'你的订单直接进入制作 — {dest}', add_llevas:'— 你的订单里现在有 {n}×', dig_dest:'正在制作中 — {dest}', meq_btn:'🙋 点错了 — 通知 {mesero}', preg_mod:'要怎么做？', mod_comoviene:'标准做法', warn_qty:'你要点 {n} 份 — 确定吗？可在此调整',
+    agotado:'售罄', nuevo:'新品', popular:'热门', agotado_ahora:'刚刚售罄：', agotado_sacado:'已从你的订单中移除，其余可以发送 🛎', cat_cafes:'咖啡', recap_dir:'你的订单直接进入制作 — {dest}', add_llevas:'— 你的订单里现在有 {n}×', dig_dest:'正在制作中 — {dest}', meq_btn:'🙋 点错了 — 通知 {mesero}', meq_mesero_gen:'服务员', preg_mod:'要怎么做？', mod_comoviene:'标准做法', warn_qty:'你要点 {n} 份 — 确定吗？可在此调整',
     vegano:'素食', singluten:'无麸质', chef:'主厨推荐', temporada:'季节特供',
     member_price:'会员价',
     upsell_title:'您可能还喜欢',
@@ -7222,7 +7222,7 @@ const TRANSLATIONS = {
     cart_close:'閉じる',
     all_day:'終日',
     breakfast:'朝食', lunch:'ランチ', snack:'スナック', dinner:'夕食',
-    agotado:'売り切れ', nuevo:'新着', popular:'人気', agotado_ahora:'ただいま売り切れです：', agotado_sacado:'ご注文から外しました。残りは送信できます 🛎', cat_cafes:'コーヒー', recap_dir:'ご注文はそのまま調理へ — {dest}', add_llevas:'— 現在 {n}× 入っています', dig_dest:'すでに準備中 — {dest}', meq_btn:'🙋 間違えた — {mesero}に知らせる', preg_mod:'お好みは？', mod_comoviene:'そのまま', warn_qty:'{n}個の注文です — よろしいですか？ここで調整できます',
+    agotado:'売り切れ', nuevo:'新着', popular:'人気', agotado_ahora:'ただいま売り切れです：', agotado_sacado:'ご注文から外しました。残りは送信できます 🛎', cat_cafes:'コーヒー', recap_dir:'ご注文はそのまま調理へ — {dest}', add_llevas:'— 現在 {n}× 入っています', dig_dest:'すでに準備中 — {dest}', meq_btn:'🙋 間違えた — {mesero}に知らせる', meq_mesero_gen:'店員', preg_mod:'お好みは？', mod_comoviene:'そのまま', warn_qty:'{n}個の注文です — よろしいですか？ここで調整できます',
     vegano:'ビーガン', singluten:'グルテンフリー', chef:'シェフのおすすめ', temporada:'季節限定',
     member_price:'会員価格',
     upsell_title:'こちらもおすすめ',
@@ -13292,7 +13292,7 @@ function renderRevisionPedido(){
             : `<span style="opacity:.75;margin-right:6px">1×</span>`;
           return `<div class="cart-recap-item"><span>${qBadge}${toTitleCase(i.nombre)}</span><span>${formatPrice(i.precio*q)}</span></div>`;
         }).join('')}
-        <div class="cart-recap-item" style="border-top:1px solid var(--brand-border);margin-top:6px;padding-top:8px;font-weight:700"><span>${getLang('mesa')||'Mesa'} ${MESA_ID} · ${n} ${getLang('pedido_items')||'productos'}</span><span>${formatPriceWithSymbol(total)}</span></div>
+        <div class="cart-recap-item" style="border-top:1px solid var(--brand-border);margin-top:6px;padding-top:8px;font-weight:700"><span>${getLang('mesa')||'Mesa'} ${MESA_ID} · ${n} ${n === 1 ? (getLang('pedido_item1')||'producto') : (getLang('pedido_items')||'productos')}</span><span>${formatPriceWithSymbol(total)}</span></div>
       </div>
       <!-- v2.13.1 · CASO 17-lug sera: il branch mesa_confirmar scrive in #v2Vias —
            senza questo div nella revisione il dialogo «¿Sigues en la mesa?» non
@@ -14112,22 +14112,22 @@ function renderPedidoEstado(){
   }
   const terminal = ['entregado','cerrado','expirado','cancelado'].includes(PA.estado);
   // v2.12 · «Pedido N° 076 · recibido ✓» — il numero uccide l'ansia del re-invio
-  const numPed = PA.id ? ('Pedido N° ' + String(PA.id).slice(-3) + ' · recibido ✓') : '';
+  const numPed = PA.id ? (getLang('pedido_num') || 'Pedido N° {n} · recibido ✓').replace('{n}', String(PA.id).slice(-3)) : '';
   el.innerHTML = `
     <div class="cart-recap">
       <div class="cart-recap-check${v.anim ? ' pedido-pulse' : ''}">${v.icon}</div>
       <div class="cart-recap-title">${v.t}</div>
       ${numPed ? `<div class="cart-recap-sub" style="font-weight:800;letter-spacing:.4px">${numPed}</div>` : ''}
       <div class="cart-recap-sub">${v.s}</div>
-      <div class="v2c-sub" style="text-align:left">🧾 Lo que pediste recién</div>
+      <div class="v2c-sub" style="text-align:left">${getLang('pedido_lo_pediste') || '🧾 Lo que pediste recién'}</div>
       <div class="cart-recap-list">
         ${(PA.items||[]).map(i => `<div class="cart-recap-item"><span>${(i.qty||1)}× ${toTitleCase(i.nombre)}</span><span>${formatPrice(i.precio*(i.qty||1))}</span></div>`).join('')}
-        <div class="cart-recap-item" style="border-top:1px solid var(--brand-border);margin-top:6px;padding-top:8px;font-weight:700"><span>${getLang('mesa')||'Mesa'} ${MESA_ID} · ${PA.n} ${getLang('pedido_items')||'productos'}</span><span>${formatPriceWithSymbol(PA.total)}</span></div>
+        <div class="cart-recap-item" style="border-top:1px solid var(--brand-border);margin-top:6px;padding-top:8px;font-weight:700"><span>${getLang('mesa')||'Mesa'} ${MESA_ID} · ${PA.n} ${PA.n === 1 ? (getLang('pedido_item1')||'producto') : (getLang('pedido_items')||'productos')}</span><span>${formatPriceWithSymbol(PA.total)}</span></div>
       </div>
       ${_nocheHtml(PA.uuid)}
       ${terminal
         ? `<button class="cart-listo-btn" onclick="cerrarPedidoActual()">${getLang('pedido_pedir_mas') || 'Pedir algo más'}</button>`
-        : `${PA.estado === 'por_confirmar' ? '<button class="v2-via-mesero" style="width:100%;margin-bottom:8px" onclick="cancelarPedidoEnEspera(this)">✕ Cancelar pedido</button>' : ''}<button class="v2-via-mesero" style="width:100%;margin-bottom:8px" onclick="v2MeEquivoque(this)">${v2T('meq_btn', {mesero: MESERO_MESA || (getLang('pedido_el_mesero') || 'el mesero')})}</button>
+        : `${PA.estado === 'por_confirmar' ? '<button class="v2-via-mesero" style="width:100%;margin-bottom:8px" onclick="cancelarPedidoEnEspera(this)">' + (getLang('pedido_cancelar') || '✕ Cancelar pedido') + '</button>' : ''}<button class="v2-via-mesero" style="width:100%;margin-bottom:8px" onclick="v2MeEquivoque(this)">${v2T('meq_btn', {mesero: MESERO_MESA || (getLang('meq_mesero_gen') || 'tu garzón')})}</button>
            <button class="cart-listo-btn" onclick="closeCart()">${getLang('cart_close') || 'Cerrar'}</button>`}
     </div>`;
 }
