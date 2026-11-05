@@ -572,7 +572,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.0</div>
+<div class="ver" id="ver">menu v0.10.1</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1658,9 +1658,10 @@ async function inviaOra(confirmado) {
    il tavolo resta libero (nessun QR occupa un tavolo, Alberto 05-nov). Leve spente ⇒ il bordo risponde 404 e il menù resta quello di oggi.
    🔑 il pedido di barra NON è un pedido di sala: vive in `bar:<uuid>`, il telefono lo tiene nella SUA lista (uuid + llave_pedido) per
    il giorno operativo, e il pago lo conferma il bordo, mai lo schermo: il QR `PBK1.<uuid>` serve solo a farsi rispondere dal bordo.
-   POLL DICHIARATO (N2): `estadoPedidoBarra` ogni 10 s, UNO per giro (il più vecchio non finito), solo a schermo visibile e solo mentre un
+   POLL DICHIARATO (N2): `estadoPedidoBarra` ogni 10 s, UNA chiamata per giro con tutti i pedidi vivi (fino a 10, risposta 5 di ARQ), solo a schermo visibile e solo mentre un
    pedido è vivo. Muore quando il push dello stato arriva al telefono (`PUSH_INVIO_BORDE_ON`, contratto §Ⓑ).
-   ⏳ Fuori, dichiarato: il pago Fintoc dal telefono (2.10, mer 11: §⑪ domanda 2) · la fonte della lista corta (§⑪ domanda 1) · le
+   La lista corta della porta è lo strumento `PORTA-<LOCAL>` di Propuestas (`getModoQr` → `lista.ids`); la guardia vera è al bordo (`fuera_de_lista`).
+   ⏳ Fuori, dichiarato: il pago Fintoc dal telefono (2.10, mer 11: `pagos` porterà 'fintoc', oggi il menù disegna solo «paga a una persona») · le
    traduzioni (oggi le frasi nuove sono solo in spagnolo). */
 const modoBar = () => S.modo === 'barra' || S.modo === 'porta';
 const BAR_K = () => 'pinsita_bar_' + LOCAL;
@@ -1684,9 +1685,9 @@ async function barModo() {
   const pl = { action: 'getModoQr', local: LOCAL, dispositivo_id: dispositivo() };
   if (MESA) { pl.mesa = MESA; pl.conto_llave = (cuentaLeer() || {}).llave || ''; } else if (PUNTO) pl.punto = PUNTO; else pl.porta = PORTA;
   let r = null; try { r = await postBordo('/pedido/', pl, 3000); } catch (e) { r = null; }
-  if (r && r.ok === true && (r.modo === 'barra' || r.modo === 'porta')) { S.modo = r.modo; S.portaIds = Array.isArray(r.ids) ? r.ids.map(String) : null; S.barPagos = Array.isArray(r.pagos) ? r.pagos : ['persona']; }
+  if (r && r.ok === true && (r.modo === 'barra' || r.modo === 'porta')) { S.modo = r.modo; S.portaIds = r.modo === 'porta' && r.lista && Array.isArray(r.lista.ids) ? r.lista.ids.map(String) : null; S.barPagos = Array.isArray(r.pagos) ? r.pagos : ['persona']; }
   else if (MESA) S.modo = 'mesa';   // leva spenta, rete, risposta strana: il tavolo resta il mondo di oggi
-  else S.modo = 'cerrada';          // QR grande o porta senza modo barra: si guarda la carta e si chiede a un garzón
+  else S.modo = 'cerrada';          // QR grande o porta senza modo barra (o porta senza lista: motivo 'sin_lista'): si guarda la carta e si chiede a un garzón
 }
 function barraBotHTML(t) {
   if (S.barVolo) return '<button class="envG hold"><b>Creando tu pedido…</b><span>' + T('no cierres esta pantalla') + '</span></button>';
@@ -1729,6 +1730,10 @@ async function barraCrea() {
     S.modo = r.modo === 'barra' || r.modo === 'porta' ? r.modo : (MESA ? 'mesa' : 'cerrada');
     S.errore = S.modo === 'mesa' ? 'Ahora se pide a la mesa: revisa tu pedido y envíalo.' : modoBar() ? '' : 'Ahora se pide a un garzón. Tu pedido sigue aquí.';
     nota('🙋 Cambió la forma de pedir en el local');
+  } else if (r && r.need === 'fuera_de_lista') {
+    if (Array.isArray(r.ids)) S.portaIds = r.ids.map(String);
+    const fuera = []; Object.keys(S.cart).forEach((k) => { const id = k.split('§')[0]; if (S.portaIds && S.portaIds.indexOf(id) < 0) { const p = S.prod.find((y) => y.id === id); if (p && fuera.indexOf(p.n) < 0) fuera.push(p.n); delete S.cart[k]; } });
+    S.errore = 'En la entrada se pide de la lista corta' + (fuera.length ? ': sacamos ' + fuera.join(' · ') : '') + '. Adentro tienes la carta completa.';
   } else if (r && r.need === 'barra_cerrada') { S.modo = MESA ? 'mesa' : 'cerrada'; S.errore = 'La barra no está tomando pedidos por el menú. Pídele a un garzón.'; }
   else if (r && r.need === 'items_agotados') {
     const fuera = Array.isArray(r.agotados) ? r.agotados : [];
@@ -1748,16 +1753,18 @@ function barPollSubito() { barGiro(true); }
 async function barGiro(scelto) {
   if (!barVivi().length) { if (BAR_POLL) { clearInterval(BAR_POLL); BAR_POLL = null; } return; }
   if (BAR_VOLO || document.visibilityState !== 'visible') return;
-  const v = barVivi(); const b = (scelto && v.find((x) => x.uuid === S.barSel)) || v.slice().sort((x, y) => (x.tq || 0) - (y.tq || 0))[0];   // un giro, UNA domanda: il meno interrogato
-  if (!b) return;
-  BAR_VOLO = true; b.tq = Date.now();
-  let r = null; try { r = await postBordo('/pedido/', { action: 'estadoPedidoBarra', local: LOCAL, uuid: b.uuid, llave_pedido: b.llave }, 4000); } catch (e) { r = null; }
+  const v = barVivi().slice(0, 10);   // un giro, UNA domanda, per tutti i pedidi vivi (fino a 10): nessuno resta vecchio mentre si guarda un altro
+  BAR_VOLO = true;
+  let r = null; try { r = await postBordo('/pedido/', { action: 'estadoPedidoBarra', local: LOCAL, pedidos: v.map((b) => ({ uuid: b.uuid, llave_pedido: b.llave })) }, 4000); } catch (e) { r = null; }
   BAR_VOLO = false;
-  if (r && r.ok === true && r.estado) {
-    const prima = b.estado; b.estado = r.estado; if (r.numero) b.numero = r.numero; b.brazalete = r.brazalete || null; b.pagado = !!r.pagado;
-    if (prima !== 'listo' && r.estado === 'listo') { nota('🍸 ¡N° ' + b.numero + ' listo! Retíralo en la barra'); try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) { /* niente */ } }
-    if (prima === 'por_pagar' && r.estado === 'pagado_en_espera') nota('✓ N° ' + b.numero + ' pagado');
-  } else if (r && (r.error === 'llave_invalida' || r.error === 'no_existe')) b.estado = 'perso';   // non è più nostro da chiedere: si smette, il JL lo vede dal bordo
+  if (r && r.ok === true && Array.isArray(r.pedidos)) r.pedidos.forEach((x) => {
+    const b = x && v.find((y) => y.uuid === x.uuid); if (!b) return;
+    if (x.error === 'llave_invalida' || x.error === 'no_existe') { b.estado = 'perso'; return; }   // non è più nostro da chiedere: si smette, il JL lo vede dal bordo
+    if (!x.estado) return;
+    const prima = b.estado; b.estado = x.estado; if (x.numero) b.numero = x.numero; b.brazalete = x.brazalete || null; b.pagado = !!x.pagado;
+    if (prima !== 'listo' && x.estado === 'listo') { nota('🍸 ¡N° ' + b.numero + ' listo! Retíralo en la barra'); try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) { /* niente */ } }
+    if (prima === 'por_pagar' && x.estado === 'pagado_en_espera') nota('✓ N° ' + b.numero + ' pagado');
+  });
   barSalva(); pinta();
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && BAR_POLL) barGiro(); });
