@@ -377,7 +377,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v3.6.0</div>
+    <div class="hub-footer-version" id="ver">menu_admin v3.6.1</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -1262,7 +1262,7 @@ function openProductActions(prodId){
   // v3.5.0 · i gesti nuovi della carta in PG (solo col bordo che risponde): Activo, En carta, horario
   if(STATE.role==='gerente' && CARTA_PG.on && p.pg_ts){
     actions.push({ id:'activo_toggle', icon:iconNoSign(), title:p.activo===false?'Activar producto':'Desactivar producto', meta:p.activo===false?'Vuelve a venderse':'Deja de venderse en todas partes (no es un 86)' });
-    actions.push({ id:'visible_toggle', icon:iconCompass(), title:p.menu_visible===false?'Mostrar en la carta':'Ocultar de la carta', meta:p.menu_visible===false?'El cliente lo vuelve a ver':'El cliente no lo ve · el mesero sí' });
+    actions.push({ id:'visible_toggle', icon:iconCompass(), title:p.menu_visible===false?'Mostrar en la carta':'Ocultar de la carta', meta:p.menu_visible===false?'Vuelve a la carta del cliente y del mesero':'Sale de la carta del cliente y del mesero · sigue activo' });
     actions.push({ id:'horario', icon:iconFlame(), title:'Horario', meta:`Desde ${p.hora_inicio||'que abre'} · hasta ${p.hora_fin||'que cierra su estación'}` });
   }
 
@@ -1289,7 +1289,7 @@ function chooseAction(id){
   }
   if(id==='visible_toggle'){
     showConfirm({ question: p.menu_visible===false?`¿Mostrar "${p.nombre}" en la carta?`:`¿Ocultar "${p.nombre}" de la carta?`,
-      explainer: p.menu_visible===false?'El cliente lo vuelve a ver en su teléfono.':'El cliente no lo ve en su teléfono. El mesero lo puede seguir vendiendo.',
+      explainer: p.menu_visible===false?'Vuelve a la carta del cliente y del mesero.':'Sale de la carta del cliente y del mesero. El producto sigue activo: para que deje de venderse, usa Desactivar.',
       btnLabel: p.menu_visible===false?'Sí, mostrar':'Sí, ocultar', btnClass: p.menu_visible===false?'success':'' });
     return;
   }
