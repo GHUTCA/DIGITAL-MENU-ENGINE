@@ -5743,7 +5743,7 @@ html.vestido2 body.theme-dark:not([data-fascia-menu="dia"]):not([data-fascia-men
 </style>
 </head>
 <body>
-<span id="ver" hidden>menu2 · v2.116.1</span>
+<span id="ver" hidden>menu2 · v2.116.2</span>
 
 <!-- v1.32 · MODO RESPALDO · barra "carta de referencia" (testo iniettato da intentarRespaldo) -->
 <div id="respaldoBar"></div>
@@ -6437,7 +6437,7 @@ const TRANSLATIONS = {
     pedido_st_digitado:'En el sistema', pedido_st_digitado_sub:'Cocina y barra ya lo están preparando',
     pedido_st_entregado:'¡Entregado — buen provecho!', pedido_st_entregado_sub:'Gracias por pedir desde tu mesa',
     pedido_st_problema:'Mejor díselo al mesero', pedido_st_problema_sub:'No pudimos confirmarlo — llama al mesero o acércate a la barra',
-    pedido_el_mesero:'El mesero', pedido_camino_toast:'va en camino', pedido_items:'productos', meq_mesero_gen:'tu garzón', pedido_item1:'producto', pedido_num:'Pedido N° {n} · recibido ✓', pedido_lo_pediste:'🧾 Lo que pediste recién', pedido_cancelar:'✕ Cancelar pedido',
+    pedido_el_mesero:'El mesero', pedido_camino_toast:'va en camino', pedido_items:'productos', meq_mesero_gen:'tu garzón', pedido_item1:'producto', pedido_num:'Pedido N° {n} · recibido ✓', pedido_lo_pediste:'🧾 Lo que pediste recién', qr_pc_t:'Esperando que el mesero confirme tu mesa', qr_pc_s:'Tu pedido ya está guardado: cuando el mesero confirme, pasa a cocina y barra', qr_pc_s_cerrado:'Tu cuenta de esta mesa ya se cerró. Cuando el mesero confirme, tu pedido entra en una cuenta nueva', qr_reg_pc_desc:'Cuando confirme, le llevamos tu regalo a la mesa {d} con tu mensaje.<br>Si no lo confirma, no se prepara y no se cobra.', qr_rech_t:'El mesero no confirmó tu mesa', qr_rech_sin_t:'Nadie confirmó tu mesa a tiempo', qr_rech_cli_t:'Cancelaste tu pedido', qr_rech_s:'Tu pedido no se preparó y no se cobra. Pídele al mesero o acércate a la barra', qr_rech_cli_s:'No se preparó y no se cobra. Puedes armar otro cuando quieras', qr_rech_toast:' — tu pedido no se preparó', qr_canc_resuelto:'Ya no se puede cancelar: el mesero ya respondió', qr_canc_otro:'Este pedido lo hizo otro teléfono', qr_canc_err:'No pudimos cancelarlo. Pídele al mesero', qr_llave_muerta:'Tu cuenta de esta mesa se cerró. Para pedir de nuevo, el mesero tiene que confirmar.', qr_telefono_bloqueado:'Este teléfono no puede pedir por el menú hoy. Pídele al mesero.', qr_mesa_no:'Esta mesa no está recibiendo pedidos por el menú. Pídele al mesero.', qr_confirma_aviso:'Tu pedido lo confirma el mesero antes de ir a cocina.', pedido_cancelar:'✕ Cancelar pedido',
     pedido_pedir_mas:'Pedir algo más',
     pedido_noche_titulo:'Lo pedido esta noche', pedido_total_noche:'Total de la noche',
     pedido_ya_noche:'Ya pedido esta noche',
@@ -6587,7 +6587,7 @@ const TRANSLATIONS = {
     pedido_st_digitado:'In the system', pedido_st_digitado_sub:'Kitchen and bar are already on it',
     pedido_st_entregado:'Delivered — enjoy!', pedido_st_entregado_sub:'Thanks for ordering from your table',
     pedido_st_problema:'Better tell your waiter', pedido_st_problema_sub:'We could not confirm it — call the waiter or go to the bar',
-    pedido_el_mesero:'Your waiter', pedido_camino_toast:'is on the way', pedido_items:'items', meq_mesero_gen:'your waiter', pedido_item1:'item', pedido_num:'Order #{n} · received ✓', pedido_lo_pediste:'🧾 What you just ordered', pedido_cancelar:'✕ Cancel order',
+    pedido_el_mesero:'Your waiter', pedido_camino_toast:'is on the way', pedido_items:'items', meq_mesero_gen:'your waiter', pedido_item1:'item', pedido_num:'Order #{n} · received ✓', pedido_lo_pediste:'🧾 What you just ordered', qr_pc_t:'Waiting for the waiter to confirm your table', qr_pc_s:'Your order is saved: once the waiter confirms, it goes to the kitchen and bar', qr_pc_s_cerrado:'The bill for this table is already closed. Once the waiter confirms, your order starts a new bill', qr_reg_pc_desc:'Once confirmed, we take your gift to table {d} with your message.<br>If it isn’t confirmed, it isn’t prepared and you aren’t charged.', qr_rech_t:'The waiter didn’t confirm your table', qr_rech_sin_t:'Nobody confirmed your table in time', qr_rech_cli_t:'You cancelled your order', qr_rech_s:'Your order wasn’t prepared and you won’t be charged. Ask the waiter or come to the bar', qr_rech_cli_s:'It wasn’t prepared and you won’t be charged. You can place another one whenever you like', qr_rech_toast:' — your order wasn’t prepared', qr_canc_resuelto:'It can’t be cancelled anymore: the waiter already answered', qr_canc_otro:'This order was placed from another phone', qr_canc_err:'We couldn’t cancel it. Ask the waiter', qr_llave_muerta:'Your bill for this table is closed. To order again, the waiter has to confirm.', qr_telefono_bloqueado:'This phone can’t order from the menu today. Ask the waiter.', qr_mesa_no:'This table isn’t taking orders from the menu. Ask the waiter.', qr_confirma_aviso:'The waiter confirms your order before it goes to the kitchen.', pedido_cancelar:'✕ Cancel order',
     pedido_pedir_mas:'Order something else',
     pedido_noche_titulo:'Ordered tonight', pedido_total_noche:'Tonight’s total',
     pedido_ya_noche:'Already ordered tonight',
@@ -13617,8 +13617,8 @@ async function regaloEnviar(prodId){
       document.getElementById('sheetContent').innerHTML = `
         <div class="sheet-body" style="text-align:center;padding-top:26px">
           <div style="font-size:52px">⏳</div>
-          <div class="sheet-name">Esperando que el mesero confirme tu mesa</div>
-          <div class="sheet-desc">Cuando confirme, le llevamos tu regalo a la mesa ${escapeHtml(String(destino))} con tu mensaje.<br>Si no lo confirma, no se prepara y no se cobra.</div>
+          <div class="sheet-name">${getLang('qr_pc_t')}</div>
+          <div class="sheet-desc">${getLang('qr_reg_pc_desc').replace('{d}', escapeHtml(String(destino)))}</div>
           <button onclick="closeDetail()" style="margin-top:14px;padding:13px 26px;border-radius:12px;border:none;background:#f0c43f;color:#000;font-weight:800;font-size:15px;cursor:pointer">${_rg('reg_listo')}</button>
         </div>`;
     } else if (resp && resp.ok) {
@@ -13940,7 +13940,7 @@ async function _enviarPedidoDigitalInner(opts){
      prossimo invio torna a chiedere al mesero. Carrito intatto, nessun reinvio automatico: il cliente decide. */
   if (resp && !resp.ok && resp.need === 'llave_muerta') {
     _colaRemove(uuid); _cartPendClear(); _cuentaOlvidar(); _cuentaSegnaConfirma();
-    showToastMsg('🙋 ' + (getLang('qr_llave_muerta') || 'Tu cuenta de esta mesa se cerró. Para pedir de nuevo, el mesero tiene que confirmar.'), 9000);
+    showToastMsg('🙋 ' + getLang('qr_llave_muerta'), 9000);
     if (btn) { btn.disabled = false; btn.textContent = getLang('cart_listo') || 'Enviar pedido 🛎'; }
     try { renderCart(); } catch(e){}
     return;
@@ -13949,13 +13949,13 @@ async function _enviarPedidoDigitalInner(opts){
      riprova). Carrito intatto: lo può dettare al mesero. */
   if (resp && !resp.ok && resp.need === 'telefono_bloqueado') {
     _colaRemove(uuid); _cartPendClear();
-    showToastMsg('🙋 ' + (getLang('qr_telefono_bloqueado') || 'Este teléfono no puede pedir por el menú hoy. Pídele al mesero.'), 9000);
+    showToastMsg('🙋 ' + getLang('qr_telefono_bloqueado'), 9000);
     if (btn) { btn.disabled = false; btn.textContent = getLang('cart_listo') || 'Enviar pedido 🛎'; }
     return;
   }
   if (resp && !resp.ok && resp.need === 'mesa_bloqueada') {
     _colaRemove(uuid); _cartPendClear();
-    showToastMsg('🙋 Esta mesa no está recibiendo pedidos por el menú. Pídele al mesero.', 9000);
+    showToastMsg('🙋 ' + getLang('qr_mesa_no'), 9000);
     if (btn) { btn.disabled = false; btn.textContent = getLang('cart_listo') || 'Enviar pedido 🛎'; }
     return;
   }
@@ -14068,10 +14068,8 @@ function renderPedidoEstado(){
   const _enVen = PA.ven > 0 && (Date.now() - (PA.ven_ts || 0)) < PA.ven * 1000;
   const VISTAS = {
     // v2.115.0 · D-431 · mesa libera: il pedido aspetta che il mesero confermi che al tavolo c'è gente (non va in cucina prima)
-    por_confirmar: { icon:'⏳', anim:true, t: 'Esperando que el mesero confirme tu mesa',
-                  s: PA.pc_mot === 'conto_cerrado'
-                       ? 'Tu cuenta de esta mesa ya se cerró. Cuando el mesero confirme, tu pedido entra en una cuenta nueva'
-                       : 'Tu pedido ya está guardado: cuando el mesero confirme, pasa a cocina y barra' },
+    por_confirmar: { icon:'⏳', anim:true, t: getLang('qr_pc_t'),
+                  s: PA.pc_mot === 'conto_cerrado' ? getLang('qr_pc_s_cerrado') : getLang('qr_pc_s') },
     // round5 oss.7.3 · sappiamo CHI è il mesero: si chiama per nome
     pendiente:  { icon:'🛎', anim:true,  t: MESERO_MESA ? ('Avisando a ' + MESERO_MESA + '…') : (getLang('pedido_st_pendiente') || 'Llamando al mesero…'),
                   s: _enVen
@@ -14093,8 +14091,8 @@ function renderPedidoEstado(){
   let v = VISTAS[PA.estado] || VISTAS.pendiente;
   // v2.115.0 · D-431: rifiutato dal mesero o scaduto senza risposta = `cancelado` (terminale, fuori dal totale), col suo perché
   if (PA.estado === 'cancelado' && PA.rech) v = { icon:'🙋', anim:false,
-    t: PA.rech === 'cliente' ? 'Cancelaste tu pedido' : (PA.rech === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa'),
-    s: PA.rech === 'cliente' ? 'No se preparó y no se cobra. Puedes armar otro cuando quieras' : 'Tu pedido no se preparó y no se cobra. Pídele al mesero o acércate a la barra' };
+    t: PA.rech === 'cliente' ? getLang('qr_rech_cli_t') : (PA.rech === 'sin_respuesta' ? getLang('qr_rech_sin_t') : getLang('qr_rech_t')),
+    s: PA.rech === 'cliente' ? getLang('qr_rech_cli_s') : getLang('qr_rech_s') };
   /* v2.65.0 · R5 (caso mesa 106: 65 min su «recibido ✓» col vino già al pass).
      La produzione non aspetta el MÍO — la card tampoco. `prod` viene dai
      fossili del GAS: si sovrascrive la vista SOLO negli stati non terminali,
@@ -14329,13 +14327,13 @@ async function cancelarPedidoEnEspera(btn){
     return;
   }
   if (r && r.need === 'qr_ya_resuelto') {
-    showToastMsg('🙋 Ya no se puede cancelar: el mesero ya respondió', 6000);
+    showToastMsg('🙋 ' + getLang('qr_canc_resuelto'), 6000);
   } else if (r && r.error === 'otro_telefono') {
-    showToastMsg('🙋 Este pedido lo hizo otro teléfono', 6000);
+    showToastMsg('🙋 ' + getLang('qr_canc_otro'), 6000);
   } else {
-    showToastMsg('🙋 No pudimos cancelarlo. Pídele al mesero', 6000);
+    showToastMsg('🙋 ' + getLang('qr_canc_err'), 6000);
   }
-  if (btn) { btn.disabled = false; btn.textContent = '✕ Cancelar pedido'; }
+  if (btn) { btn.disabled = false; btn.textContent = getLang('pedido_cancelar'); }
   try { if (typeof _pollPedidoUnaVez === 'function') _pollPedidoUnaVez(); } catch (e) {}
 }
 
@@ -14349,7 +14347,7 @@ function iniciarPollPedido(){
       if(_estadoRechazo(PEDIDO_ACTUAL, r)){
         try { mstSet(PEDIDO_KEY, JSON.stringify(PEDIDO_ACTUAL)); } catch(e){}
         _nocheSave();
-        showToastMsg('🙋 ' + (PEDIDO_ACTUAL.rech === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa') + ' — tu pedido no se preparó', 9000);
+        showToastMsg('🙋 ' + (PEDIDO_ACTUAL.rech === 'sin_respuesta' ? getLang('qr_rech_sin_t') : getLang('qr_rech_t')) + getLang('qr_rech_toast'), 9000);
         const sheetOpen = document.getElementById('cartSheet')?.classList.contains('open');
         if(sheetOpen && CART.items.length === 0) renderPedidoEstado();
         detenerPollPedido();
@@ -15325,7 +15323,7 @@ function _cuentaPideConfirma(){ try { return sessionStorage.getItem('pinsita_qr_
 function _cuentaSegnaConfirma(){ try { sessionStorage.setItem('pinsita_qr_confirma', '1'); } catch(e){} }
 function _cuentaAviso(){
   if (_cuentaLeer() || !_cuentaPideConfirma()) return '';
-  return '<div class="v2-seguro-q" style="font-size:13px;margin:0 0 8px">🙋 ' + escapeHtml(getLang('qr_confirma_aviso') || 'Tu pedido lo confirma el mesero antes de ir a cocina.') + '</div>';
+  return '<div class="v2-seguro-q" style="font-size:13px;margin:0 0 8px">🙋 ' + escapeHtml(getLang('qr_confirma_aviso')) + '</div>';
 }
 function _llamadaDev(){
   let d = '';
