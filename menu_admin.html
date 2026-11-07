@@ -338,6 +338,83 @@
   .qr-card-cod { font-family:'Outfit',sans-serif; font-size:26px; font-weight:700; letter-spacing:0.16em; color:#111; }
   .qr-overlay-hint { color:rgba(255,255,255,0.75); font-size:12.5px; text-align:center; line-height:1.6; max-width:300px; }
   .qr-overlay-close { background:transparent; border:1px solid rgba(255,255,255,0.35); color:#fff; padding:10px 22px; border-radius:999px; font-size:13px; cursor:pointer; }
+
+  /* ═══ v3.7.0 · PROPUESTAS (5.2-PE, D-433/D-454) · scrivania prima (classe 2) · tutto dentro #viewPropuestas ═══ */
+  #viewPropuestas { overflow-y:auto; -webkit-overflow-scrolling:touch; display:none; flex-direction:column; }
+  #viewPropuestas.active { display:flex; }
+  #viewPropuestas .pw { width:100%; max-width:1180px; margin:0 auto; padding-block:12px 48px; padding-left:max(14px,env(safe-area-inset-left,0px)); padding-right:max(14px,env(safe-area-inset-right,0px)); display:flex; flex-direction:column; gap:12px; font-family:'Outfit',system-ui,sans-serif; font-size:14px; }
+  #viewPropuestas h1 { font-size:22px; font-weight:700; }
+  #viewPropuestas h2 { font-size:11.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px; }
+  #viewPropuestas .ptop { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  #viewPropuestas .pbox { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px; min-width:0; }
+  #viewPropuestas .pban { border-radius:10px; padding:9px 12px; font-size:13px; font-weight:600; border:1px solid var(--gold); background:var(--gold-soft); color:var(--text); }
+  #viewPropuestas .pban.err { border-color:var(--accent-line); background:var(--accent-soft); }
+  #viewPropuestas button, #viewPropuestas input, #viewPropuestas select { font-family:inherit; }
+  #viewPropuestas input, #viewPropuestas select { font-size:14px; color:var(--text); background:var(--surface-2); border:1px solid var(--border-strong); border-radius:8px; padding:7px 9px; min-width:0; }
+  #viewPropuestas input:disabled, #viewPropuestas select:disabled { opacity:.45; }
+  #viewPropuestas input[type=time] { width:112px; color-scheme:dark; }
+  #viewPropuestas input[type=date] { color-scheme:dark; }
+  #viewPropuestas .pbt { border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text); border-radius:9px; padding:8px 12px; font-weight:700; font-size:13px; cursor:pointer; }
+  #viewPropuestas .pbt.pri { background:var(--success); border-color:var(--success); color:#fff; }
+  #viewPropuestas .pbt.peq { padding:5px 9px; font-size:12px; }
+  #viewPropuestas .pbt:disabled { opacity:.4; cursor:default; }
+  #viewPropuestas .prev { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr); gap:10px; }
+  @media (max-width:860px){ #viewPropuestas .prev { grid-template-columns:1fr; } }
+  #viewPropuestas .car { position:relative; border-radius:10px; overflow:hidden; min-height:140px; background:#000; color:#fff; display:flex; align-items:flex-end; }
+  #viewPropuestas .car img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  #viewPropuestas .car .ct { position:relative; padding:12px; background:linear-gradient(transparent,rgba(0,0,0,.8)); width:100%; }
+  #viewPropuestas .car small { display:block; font-size:11px; font-weight:700; letter-spacing:.08em; opacity:.9; }
+  #viewPropuestas .car b { display:block; font-size:17px; }
+  #viewPropuestas .vuoto, #viewPropuestas .nota { color:var(--text-muted); font-size:12.5px; line-height:1.45; }
+  #viewPropuestas .lst { display:flex; flex-direction:column; gap:4px; max-height:190px; overflow:auto; }
+  #viewPropuestas .lr { display:flex; justify-content:space-between; gap:8px; font-size:13px; padding:5px 8px; border-radius:7px; background:var(--surface-2); }
+  #viewPropuestas .lr span:last-child { font-family:'JetBrains Mono',monospace; font-size:12px; white-space:nowrap; }
+  #viewPropuestas .lr i { font-style:normal; color:var(--text-muted); font-size:11.5px; }
+  #viewPropuestas .fil { display:flex; gap:6px; flex-wrap:wrap; }
+  #viewPropuestas .fc { border:1px solid var(--border-strong); background:var(--surface); color:var(--text); border-radius:99px; padding:6px 12px; font-weight:600; font-size:12.5px; cursor:pointer; }
+  #viewPropuestas .fc.on { background:var(--text); color:var(--bg); border-color:var(--text); }
+  #viewPropuestas .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:10px; }
+  #viewPropuestas .cd { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px; cursor:pointer; color:var(--text); min-width:0; }
+  #viewPropuestas .cd.sel { border-color:var(--success); box-shadow:0 0 0 2px var(--success); }
+  #viewPropuestas .ch { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  #viewPropuestas .ch b { font-size:15px; line-height:1.2; }
+  #viewPropuestas .tp { font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); }
+  #viewPropuestas .fin { font-family:'JetBrains Mono',monospace; font-size:12px; }
+  #viewPropuestas .st { display:inline-flex; font-size:12px; font-weight:700; border-radius:99px; padding:3px 9px; align-self:flex-start; background:var(--surface-3); color:var(--text-muted); }
+  #viewPropuestas .st.si { background:var(--success-soft); color:var(--success); }
+  #viewPropuestas .st.ma { background:var(--accent-soft); color:var(--accent); }
+  #viewPropuestas .gr { font-size:11.5px; font-weight:600; background:var(--gold-soft); color:var(--gold); border-radius:6px; padding:2px 7px; align-self:flex-start; }
+  #viewPropuestas .sw { position:relative; width:46px; height:26px; border-radius:99px; border:0; background:var(--surface-3); flex:0 0 auto; cursor:pointer; }
+  #viewPropuestas .sw:after { content:""; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:left .15s; }
+  #viewPropuestas .sw.on { background:var(--success); } #viewPropuestas .sw.on:after { left:23px; }
+  #viewPropuestas .sw:disabled { opacity:.45; cursor:default; }
+  #viewPropuestas .cfoot { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:12px; color:var(--text-muted); }
+  #viewPropuestas .ord { display:flex; gap:4px; }
+  #viewPropuestas .ord button { width:28px; height:28px; border-radius:7px; border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text); font-weight:700; cursor:pointer; }
+  #viewPropuestas .dt { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; }
+  @media (max-width:860px){ #viewPropuestas .dt { grid-template-columns:1fr; } }
+  #viewPropuestas .fld { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+  #viewPropuestas .fld label { font-size:12px; font-weight:600; color:var(--text-muted); }
+  #viewPropuestas .row { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; }
+  #viewPropuestas .dsel { display:flex; gap:4px; flex-wrap:wrap; }
+  #viewPropuestas .d { min-width:34px; height:34px; border-radius:8px; border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text); font-weight:700; cursor:pointer; }
+  #viewPropuestas .d.on { background:var(--text); color:var(--bg); }
+  #viewPropuestas .pr { display:grid; grid-template-columns:56px 110px minmax(0,1fr) auto auto; gap:6px; align-items:center; margin-bottom:6px; }
+  @media (max-width:560px){ #viewPropuestas .pr { grid-template-columns:56px minmax(0,1fr) auto; } #viewPropuestas .pr > input:nth-child(3) { grid-column:1 / -1; grid-row:2; } }
+  #viewPropuestas .ptw { overflow-x:auto; }
+  #viewPropuestas .ptw > div { min-width:640px; }
+  #viewPropuestas .pt { display:grid; grid-template-columns:minmax(0,1.6fr) 110px 100px 100px 110px auto; gap:6px; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  #viewPropuestas .pt.h { font-size:10.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; }
+  #viewPropuestas .pn { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #viewPropuestas .pv { font-size:11.5px; font-weight:600; } #viewPropuestas .pv.si { color:var(--success); } #viewPropuestas .pv.no { color:var(--accent); }
+  #viewPropuestas .hist { display:flex; flex-direction:column; gap:4px; font-size:12.5px; max-height:220px; overflow:auto; }
+  #viewPropuestas .hist div { display:flex; gap:8px; padding:5px 8px; border-radius:7px; background:var(--surface-2); }
+  #viewPropuestas .hist time { font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-muted); white-space:nowrap; }
+  #viewPropuestas .perr { color:var(--accent); font-size:12.5px; font-weight:600; }
+  #viewPropuestas .add { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; } #viewPropuestas .add input { flex:1 1 220px; }
+  #viewPropuestas .nuovi { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:8px; }
+  #viewPropuestas .nv { display:flex; flex-direction:column; gap:4px; text-align:left; background:var(--surface-2); border:1px solid var(--border-strong); border-radius:12px; padding:12px; color:var(--text); cursor:pointer; }
+  #viewPropuestas .nv span { font-size:12.5px; color:var(--text-muted); line-height:1.35; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -377,7 +454,7 @@
   </header>
   <div class="hub-body" id="hubBody"></div>
   <footer class="hub-footer">
-    <div class="hub-footer-version" id="ver">menu_admin v3.6.1</div>
+    <div class="hub-footer-version" id="ver">menu_admin v3.7.0</div>
     <button onclick="logout()">Cerrar sesión</button>
   </footer>
 </section>
@@ -543,6 +620,18 @@
       <button class="bs-btn bs-btn-confirm" id="plazaCfgBtn" onclick="confirmPlazaCfg()">Guardar plaza</button>
     </div>
   </div>
+</section>
+
+<!-- VIEW PROPUESTAS · v3.7.0 · 5.2-PE · legge e scrive SOLO dal bordo (/propuestasAdmin), mai Google -->
+<section id="viewPropuestas" class="view">
+  <div class="lst-header">
+    <div class="lst-header-row">
+      <button class="lst-icon-btn" onclick="backToHub()" aria-label="Volver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
+      <div class="lst-header-titles"><div class="lst-header-title">Propuestas</div><div class="lst-header-sub" id="propSub">Menús · promos · eventos · destacados</div></div>
+      <button class="lst-icon-btn" onclick="propCarica()" aria-label="Recargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></button>
+    </div>
+  </div>
+  <div class="pw" id="propApp"><div class="pbox">Cargando…</div></div>
 </section>
 
 <!-- QR OVERLAY · v2.0 -->
@@ -1076,6 +1165,7 @@ function renderHub(){
     onclick:'openTurnoView()', active:true, hasActive:!!STATE.turno });
   html += card({ icon:iconNoSign(), title:'86 productos', meta:`${c86} activos · tap para abrir`, counter:c86, counterClass:c86>0?'':'zero', onclick:'open86View()', active:true });
   html += card({ icon:iconStar(), title:'Push & Promos', meta:pushed?'':'Gancho 🎣 · destacar producto', metaActive:pushed?`${pushed.nombre} · hasta ${pushed.pushed.until}`:null, counter:pushed?1:0, counterClass:pushed?'':'zero', onclick:'openPushList()', active:true, hasActive:!!pushed });
+  html += card({ icon:iconTag(), iconClass:'gold', title:'Propuestas', meta: isGerente ? 'Menús · promos · eventos · destacados' : 'Ver propuestas · cambiar horarios', onclick:'openPropuestas()', active:true });   // v3.7.0 · 5.2-PE
   if(isOp){ html += card({ icon:iconAlert(), iconClass:'warn', title:'Reportar error precio', meta:'Precio diferente vs ALOHA', onclick:'openReportList()', active:true }); }
   if(isGerente){ const rc = reports.length; html += card({ icon:iconDollar(), iconClass:'gold', title:'Cambiar precio', meta:rc>0?`${rc} reportes pendientes`:'Editar precios del menú', counter:rc, counterClass:rc>0?'warn':'zero', onclick:'openPriceList()', active:true, hasActive:rc>0 }); }
   if(isGerente){
@@ -1085,7 +1175,6 @@ function renderHub(){
   if(isGerente){
     html += `<div class="hub-section-label">Estratégicas · Próximamente</div>`;
     html += card({ icon:iconFlame(), title:'Override estacional', meta:'BBQ brasileño, Halloween, etc.', soon:true });
-    html += card({ icon:iconTag(), title:'Crear promo', meta:'2x1, descuentos, combos', soon:true });
     html += card({ icon:iconMic(), title:'Evento sponsor', meta:'RedBull, Heineken, partners', soon:true });
   }
   body.innerHTML = html;
@@ -2275,6 +2364,352 @@ document.addEventListener('visibilitychange', function(){
     }
   }
 });
+
+/* ═══ v3.7.0 · [📖 MENU BKS V32 · sab 7-nov] PROPUESTAS — il pannello vero del 5.2-PE (D-433 · D-454) ═══
+   Contratto: ATALAYA/4_CANTIERE_MENU/CONTRATTO_ROTTE_PROPUESTAS_07NOV2026.md (bb1921a + 9b92243).
+   · LEGGE e SCRIVE solo dal bordo: GET /propuestasAdmin/<LOCAL> · GET …/historial?id= · POST /propuestasAdmin/<LOCAL>. Google non partecipa.
+   · La regola NON è qui: «chi si vede adesso» arriva calcolato dal bordo (`adesso`, `anteprima`). Il vetro mostra, non ricalcola.
+   · Ogni salvataggio è una RIGA NUOVA (fila intera), `uid_gesto` coniato qui UNA volta per gesto: il retry rimanda lo stesso.
+     `base_ts` = la versione che stavo guardando ⇒ se un altro ha cambiato nel frattempo, il bordo dice `version_cambiata`.
+   · Leva STRUMENTI_PG_ON "0" ⇒ il bordo risponde `leva:"0"` e il vetro è in SOLA LETTURA («Aún no activo»).
+   · Chi firma: gerente tutto · JL solo la finestra (D-454 ③). Il vetro spegne i campi, ma il giudice è il bordo.
+   · Prova contro il bordo finto: ?pbase=http://localhost:PORT, accettato SOLO se la pagina stessa gira su localhost
+     (un PIN non deve mai poter essere mandato a un host scelto da un link). */
+const PROP_BASE = (function(){
+  const h = location.hostname, b = QS.get('pbase');
+  return (b && (h === 'localhost' || h === '127.0.0.1') && /^http:\/\/(localhost|127\.0\.0\.1):\d{2,5}$/.test(b)) ? b : BORDE_86;
+})();
+const PROP_DIAS = ['L','M','X','J','V','S','D'], PROP_DIA_N = { L:'Lun', M:'Mar', X:'Mié', J:'Jue', V:'Vie', S:'Sáb', D:'Dom' };
+const PROP_TIPO = { menu:'Menú', botellas:'Botellas', multiplo:'2x1 / múltiplo', precio_fijo:'Precio fijo', recargo:'Recargo', evento:'Evento', escena:'Escena del carrusel', destacados:'Destacados', fondo:'Fondo / noche' };
+const PROP_FILTRI = [['todo','Todo'],['menu','Menús'],['promo','Promos'],['botellas','Botellas'],['evento','Eventos y escenas'],['destacados','Destacados'],['recargo','Recargos'],['fondo','Fondo']];
+const PROP_PERCHE = { spento:'Apagado', grupo_spento:'Su noche está apagada', non_oggi:'Hoy no', fuori_data:'Fuera de fecha', fuori_orario:'Fuera de horario', sin_partes:'Sin productos disponibles',
+  tipo_sconosciuto:'Tipo desconocido', hasta_tope_invalida:'Tope inválido', finestra_invalida:'Horario inválido', precios_invalidi:'Precios inválidos', multiplo_invalido:'2x1 inválido', factor_invalido:'Recargo inválido',
+  sin_precio:'Sin precio', contenitore_non_si_vende:'El menú no está a la venta', contenitore_agotado:'El menú está en 86' };
+const PROP_PERCHE_P = { agotado:'Agotado (86)', non_si_vende:'No se vende hoy', parte_fuori_finestra:'Su hora queda fuera', finestra_parte_invalida:'Hora inválida', fuori_orario_parte:'Fuera de su hora', sin_precio:'Sin precio' };
+const PROP_ERR = { apagado:'Aún no activo · solo lectura', ruta_apagada:'Aún no activo · solo lectura', token_invalido:'Sin acceso al servidor', pin_jl_requerido:'Escribe tu PIN', pin_jl_invalido:'PIN incorrecto',
+  pin_jl_bloqueado:'PIN bloqueado · espera', pin_jl_bloqueado_apparecchio:'PIN bloqueado · espera', firmante_no_autorizado:'Tu PIN no puede cambiar esto', version_cambiata:'Otro cambió esta propuesta · recargué',
+  ya_existe:'Ya existe una propuesta con ese código', uid_reusado:'Error del panel · recarga la página', local_distinto:'Error del panel · recarga la página', fila_invalida:'Revisa los datos',
+  pg_no_responde:'Las propuestas no responden · reintenta', contenitore_sin_grupos:'Este menú aún no tiene sus opciones completas' };
+/* i tipi che si creano dal pannello: nascono SPENTI coi campi giusti (come la demo che Alberto ha visto il 4-nov) */
+const PROP_NUOVI = {
+  evento:{ ico:'🎉', desc:'Una noche, un DJ, una fecha. Sale en el carrusel con su foto.', campi:(hoy)=>({ desde:'20:00', hasta:'23:59', fecha_desde:hoy, fecha_hasta:hoy, prioridad:1 }) },
+  multiplo:{ ico:'🍸', desc:'Paga 1, lleva 2 en los productos que elijas, en su horario.', campi:()=>({ desde:'16:00', hasta:'20:00', multiplo:{ paga:1, lleva:2 }, badge:'En 2x1 ahora' }) },
+  precio_fijo:{ ico:'🏷', desc:'Productos a un precio fijo en su horario (como el martes a $2.000).', campi:()=>({ desde:'12:00', hasta:'23:00', badge:'Precio especial' }) },
+  menu:{ ico:'🍽', desc:'Un precio por un menú compuesto: fondo, bebida, postre…', campi:()=>({ desde:'12:00', hasta:'15:00', precios:[{ id:'A', precio:9990, etiqueta:'Menú' }], precio_default:'A', badge:'En el menú' }) },
+  escena:{ ico:'🎬', desc:'Una foto en el carrusel: un plato, cómo lo hacemos.', campi:()=>({ prioridad:5 }) },
+  destacados:{ ico:'★', desc:'Productos que se muestran arriba en la carta.', campi:()=>({ badge:'★ destacado' }) },
+  botellas:{ ico:'🍾', desc:'Botellas con su precio de noche, cada una con su hora.', campi:()=>({ desde:'22:00', hasta:'03:00', badge:'Botella' }) },
+  recargo:{ ico:'↗', desc:'Sube los precios en un horario (ej. ×1,10 de noche).', campi:()=>({ desde:'23:00', hasta:'03:00', factor:1.1 }) },
+};
+/* le colonne di una riga di `strumento` (§1 ①): la fila si manda INTERA, mai i soli campi cambiati */
+const PROP_COL_S = ['local','id_strumento','tipo','nombre_visible','activo','grupo','dias','desde','hasta','hasta_tope','fecha_desde','fecha_hasta','prioridad','orden','id_contenitore','precios','precio_default','multiplo','factor','badge','media','textos','cta','borrado'];
+const PROP_COL_P = ['local','id_strumento','id_producto','desde','hasta','precio','rol','orden','borrado'];
+const PROP_FINESTRA = ['dias','desde','hasta','hasta_tope','fecha_desde','fecha_hasta'];   // ciò che può cambiare il JL (D-454 ③)
+const P = { d:null, filtro:'todo', sel:null, draft:null, err:'', sim:null, scegli:false, hist:{}, busy:false, stato:'' };
+
+const propEsc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const propClp = (n) => (n == null || isNaN(n) ? '—' : '$' + Math.round(n).toLocaleString('es-CL'));
+function propUid(){ const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join(''); return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20); }
+const propEsGer = () => STATE.role === 'gerente';
+const propLevaOn = () => !!(P.d && P.d.leva === '1');
+const propNome = (id) => { const p = PRODUCTS.find((x) => x.id === id); return p ? p.nombre : id; };
+const propRiga = (id) => ((P.d && P.d.strumenti) || []).find((r) => r.id_strumento === id);
+const propParti = (id) => ((P.d && P.d.parti) || []).filter((p) => p.id_strumento === id).sort((a, b) => (a.orden == null ? 1e9 : a.orden) - (b.orden == null ? 1e9 : b.orden));
+const propAdesso = (id) => (((P.d && P.d.adesso && P.d.adesso.strumenti) || []).find((s) => s.id === id)) || null;
+
+async function propFetch(path, init, ms){
+  const ctrl = new AbortController(); const tid = setTimeout(() => ctrl.abort(), ms || 6000);
+  try {
+    const r = await fetch(PROP_BASE + path, Object.assign({ cache:'no-store', signal:ctrl.signal }, init || {},
+      { headers: Object.assign({ 'X-Borde-Token': BORDE_TOKEN_86 }, (init && init.headers) || {}) }));
+    clearTimeout(tid);
+    let j = null; try { j = await r.json(); } catch (e) { j = null; }
+    return { status:r.status, j };
+  } catch (e) { clearTimeout(tid); return { status:0, j:null, red: e.name === 'AbortError' ? 'timeout' : 'red' }; }
+}
+/* l'istante «simulato» (solo a leva "0", il bordo lo ignora a leva "1"): giorno della settimana corrente + ora, a Santiago */
+function propSimISO(){
+  if (!P.sim) return null;
+  const parti = (ms) => { const o = {}; for (const x of new Intl.DateTimeFormat('en-GB', { timeZone:'America/Santiago', hourCycle:'h23', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', weekday:'short' }).formatToParts(new Date(ms))) o[x.type] = x.value; return o; };
+  const now = Date.now(), wd = { Mon:'L', Tue:'M', Wed:'X', Thu:'J', Fri:'V', Sat:'S', Sun:'D' }[parti(now).weekday];
+  const t = now + (PROP_DIAS.indexOf(P.sim.dia || wd) - PROP_DIAS.indexOf(wd)) * 864e5, p = parti(t);
+  const off = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) - Math.floor(t / 6e4) * 6e4;
+  const [h, m] = String(P.sim.hora || '12:00').split(':').map(Number);
+  let ms = Date.UTC(+p.year, +p.month - 1, +p.day, h, m) - off; if (h < 6) ms += 864e5;   // 00-06 è la notte del giorno scelto
+  return new Date(ms).toISOString();
+}
+async function propCarica(){
+  if (P.busy) return; P.busy = true; P.stato = '';
+  const sim = propSimISO();
+  const r = await propFetch('/propuestasAdmin/' + encodeURIComponent(CFG.LOCAL) + (sim ? '?ahora=' + encodeURIComponent(sim) : ''), { method:'GET' }, 6000);
+  P.busy = false;
+  if (r.j && r.j.ok === true && Array.isArray(r.j.strumenti) && Array.isArray(r.j.parti)) { P.d = r.j; }
+  else if (r.status === 404 || (r.j && r.j.error === 'ruta_apagada')) { P.d = null; P.stato = 'ruta'; }
+  else { P.stato = r.red ? 'red' : ((r.j && r.j.error) || ('http_' + r.status)); }   // il dato vecchio resta, col suo errore sopra (N4)
+  propPinta();
+}
+function openPropuestas(){ P.sel = null; P.draft = null; P.err = ''; P.scegli = false; showView('viewPropuestas'); propPinta(); propCarica(); }
+
+/* UN gesto = UNA chiamata; un errore di rete si riprova UNA volta con lo STESSO corpo (stessa uid_gesto) */
+async function propScrivi(tabla, fila, baseTs){
+  if (!propLevaOn()) { showToast('warn', PROP_ERR.apagado); return { ok:false, error:'apagado' }; }
+  const body = JSON.stringify({ pin:lastSavedPin, tabla, uid_gesto:propUid(), base_ts:baseTs || null, fila });
+  let r = await propFetch('/propuestasAdmin/' + encodeURIComponent(CFG.LOCAL), { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body }, 8000);
+  if (r.status === 0) r = await propFetch('/propuestasAdmin/' + encodeURIComponent(CFG.LOCAL), { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body }, 8000);
+  if (r.status === 0) { showToast('error', 'La propuesta no respondió · reintenta'); return { ok:false, error:'red' }; }
+  const j = r.j || {};
+  if (j.ok === true) { if (j.avviso === 'contenitore_inexistente') showToast('warn', 'Guardado · el menú aún no existe en la carta'); return j; }
+  let t = PROP_ERR[j.error] || j.error || 'No se pudo guardar';
+  if (j.error === 'firmante_no_autorizado' && Array.isArray(j.campos)) t += ' (' + j.campos.join(', ') + ')';
+  if (j.error === 'fila_invalida' && j.campo) t = 'Revisa ' + j.campo + (j.regla ? ': ' + j.regla : '');
+  if (j.error === 'pin_jl_bloqueado' && j.faltan_s) t += ' ' + j.faltan_s + ' s';
+  if (j.error === 'contenitore_sin_grupos' && Array.isArray(j.faltan)) t += ': falta ' + j.faltan.map((f) => f.rol).join(', ');
+  showToast('error', t);
+  if (j.error === 'version_cambiata') await propCarica();
+  return Object.assign({ ok:false }, j);
+}
+function propFila(r, cambia){ const f = {}; for (const k of PROP_COL_S) f[k] = r[k] === undefined ? null : r[k]; return Object.assign(f, cambia || {}); }
+function propFilaP(p, cambia){ const f = {}; for (const k of PROP_COL_P) f[k] = p[k] === undefined ? null : p[k]; return Object.assign(f, cambia || {}); }
+
+function propFinestraTxt(r){
+  const d = r.dias && r.dias.length ? (r.dias.length === 7 ? 'Todos' : r.dias.map((x) => PROP_DIA_N[x] || x).join(' · ')) : 'Todos los días';
+  const h = r.desde && r.hasta ? r.desde + '–' + r.hasta + (r.hasta_tope ? ' (JL hasta ' + r.hasta_tope + ')' : '') : 'todo el día';
+  const f = r.fecha_desde || r.fecha_hasta ? ' · ' + (r.fecha_desde || '…') + ' → ' + (r.fecha_hasta || '…') : '';
+  return d + ' · ' + h + f;
+}
+function propStato(s){
+  if (!s) return '<span class="st">—</span>';
+  if (s.visible) return '<span class="st si">● Visible ahora</span>';
+  const p = String(s.perche || ''), base = p.split(':')[0];
+  const t = base === 'gruppo_senza_opzioni' ? 'Falta ' + p.split(':')[1] + ' disponible' : (PROP_PERCHE[base] || p || 'No visible');
+  return '<span class="st' + (/invalid|sconosciuto|sin_precio/.test(p) ? ' ma' : '') + '">' + propEsc(t) + '</span>';
+}
+const propPassa = (r) => P.filtro === 'todo' || (P.filtro === 'promo' ? ['multiplo','precio_fijo'].includes(r.tipo) : P.filtro === 'evento' ? ['evento','escena'].includes(r.tipo) : r.tipo === P.filtro);
+
+function propAnteprima(){
+  const a = P.d.anteprima || {}, car = a.carrusel ? propRiga(a.carrusel.id) : null;
+  const tx = (car && car.textos && car.textos.es) || {}, md = (car && car.media) || {};
+  const carH = car ? '<div class="car">' + (md.poster || md.imagen ? '<img src="' + propEsc(md.poster || md.imagen) + '" alt="">' : '') +
+      '<div class="ct"><small>' + propEsc(tx.eyebrow || PROP_TIPO[car.tipo]) + '</small><b>' + propEsc(tx.titulo || car.nombre_visible) + '</b><span>' + propEsc(tx.sub || '') + '</span></div></div>' +
+      '<div class="nota" style="margin-top:6px">Gana <b>' + propEsc(car.nombre_visible) + '</b>: la ventana más corta ahora, luego la prioridad, luego la más reciente.</div>'
+    : '<div class="vuoto">Ningún evento ni escena visible a esta hora.</div>';
+  const ad = (P.d.adesso && P.d.adesso.strumenti) || [];
+  const dest = ad.filter((s) => s.visible && s.tipo === 'destacados');
+  const destH = dest.length ? '<div class="lst">' + dest.map((s) => (s.parti || []).filter((p) => p.vende).map((p) => '<div class="lr"><span>' + propEsc(propNome(p.id_producto)) + '</span><span><i>' + propEsc(s.nombre) + '</i></span></div>').join('')).join('') + '</div>'
+    : '<div class="vuoto">Sin destacados visibles.</div>';
+  const cam = Object.entries((P.d.adesso && P.d.adesso.prodotti) || {}).filter(([, v]) => v.strumento || v.multiplo || v.recargo || v.badge);
+  const camH = cam.length ? '<div class="lst">' + cam.map(([id, v]) => '<div class="lr"><span>' + propEsc(propNome(id)) + ' <i>' + propEsc(v.badge || '') + '</i></span><span>' +
+      (v.multiplo ? v.multiplo.lleva + 'x' + v.multiplo.paga : v.precio !== v.listino ? '<s>' + propClp(v.listino) + '</s> ' + propClp(v.precio) : propClp(v.precio)) + '</span></div>').join('') + '</div>'
+    : '<div class="vuoto">Ningún producto cambia de precio ni lleva promo ahora.</div>';
+  return '<div class="prev"><div class="pbox"><h2>Ahora el carrusel muestra</h2>' + carH + '</div><div class="pbox"><h2>Ahora en destacados</h2>' + destH +
+    '</div><div class="pbox"><h2>Productos con promo ahora (' + cam.length + ')</h2>' + camH + '</div></div>';
+}
+function propCards(){
+  const L = P.d.strumenti.filter(propPassa).slice().sort((a, b) => (a.orden == null ? 1e9 : a.orden) - (b.orden == null ? 1e9 : b.orden) || String(a.nombre_visible).localeCompare(String(b.nombre_visible)));
+  if (!L.length) return '<div class="pbox vuoto">Nada en este filtro.</div>';
+  const scrive = propLevaOn() && propEsGer();
+  return '<div class="cards">' + L.map((r) => {
+    const np = propParti(r.id_strumento).length;
+    const prezzo = r.tipo === 'menu' && r.precios && r.precios.length ? ' · ' + r.precios.map((p) => propClp(p.precio)).join(' / ') : r.tipo === 'recargo' ? ' · ×' + r.factor : r.tipo === 'multiplo' && r.multiplo ? ' · paga ' + r.multiplo.paga + ', lleva ' + r.multiplo.lleva : '';
+    const grp = r.grupo ? (propRiga(String(r.grupo).toUpperCase()) || {}).nombre_visible || r.grupo : '';
+    return '<div class="cd' + (P.sel === r.id_strumento ? ' sel' : '') + '" data-pa="apri" data-k="' + propEsc(r.id_strumento) + '" role="button" tabindex="0">' +
+      '<div class="ch"><div><div class="tp">' + propEsc(PROP_TIPO[r.tipo] || r.tipo) + propEsc(prezzo) + '</div><b>' + propEsc(r.nombre_visible) + '</b></div>' +
+      '<button class="sw' + (r.activo ? ' on' : '') + '" data-pa="interr" data-k="' + propEsc(r.id_strumento) + '" aria-label="Encender o apagar" aria-pressed="' + !!r.activo + '"' + (scrive ? '' : ' disabled') + '></button></div>' +
+      '<div class="fin">' + propEsc(propFinestraTxt(r)) + '</div>' + (grp ? '<span class="gr">dentro de ' + propEsc(grp) + '</span>' : '') +
+      propStato(propAdesso(r.id_strumento)) +
+      '<div class="cfoot"><span>' + (np ? np + ' producto' + (np > 1 ? 's' : '') : (['evento','escena','fondo'].includes(r.tipo) ? 'sin productos: se ve solo' : 'sin productos')) + '</span>' +
+      (scrive ? '<span class="ord"><button data-pa="su" data-k="' + propEsc(r.id_strumento) + '" aria-label="Subir">↑</button><button data-pa="giu" data-k="' + propEsc(r.id_strumento) + '" aria-label="Bajar">↓</button></span>' : '') + '</div></div>';
+  }).join('') + '</div>';
+}
+function propDettaglio(){
+  const r = (P.draft && P.draft.id_strumento === P.sel) ? P.draft : propRiga(P.sel); if (!r) return '';
+  const s = propAdesso(r.id_strumento) || { parti:[] }, sp = Object.fromEntries((s.parti || []).map((p) => [p.id_producto, p]));
+  const tx = (r.textos && r.textos.es) || {}, md = r.media || {}, parti = propParti(r.id_strumento);
+  const conPrezzo = ['botellas','precio_fijo'].includes(r.tipo), conRol = r.tipo === 'menu';
+  const ger = propEsGer(), leva = propLevaOn();
+  const dis = (finestra) => (!leva || (!ger && !finestra)) ? ' disabled' : '';
+  const storia = P.hist[r.id_strumento];
+  return '<div class="pbox" id="propDet"><div class="ptop"><div><div class="tp">' + propEsc(PROP_TIPO[r.tipo]) + ' · ' + propEsc(r.id_strumento) + '</div><h1>' + propEsc(r.nombre_visible) + '</h1></div>' +
+      '<div class="row"><button class="pbt" data-pa="chiudi">Cerrar</button>' + (leva ? '<button class="pbt pri" data-pa="salva">Guardar versión</button>' : '') + '</div></div>' +
+      (P.err ? '<div class="perr">' + propEsc(P.err) + '</div>' : '') +
+      (!ger && leva ? '<div class="nota">Como JL puedes cambiar los días y el horario. Lo demás lo cambia el gerente.</div>' : '') +
+    '<div class="dt" style="margin-top:12px"><div>' +
+      '<div class="fld"><label>Nombre que ve el cliente</label><input id="pf_nombre" value="' + propEsc(r.nombre_visible) + '"' + dis(false) + '></div>' +
+      '<div class="fld"><label>Días</label><div class="dsel" id="pf_dias">' + PROP_DIAS.map((d) => '<button class="d' + ((r.dias || []).includes(d) ? ' on' : '') + '" data-pa="dia" data-k="' + d + '"' + dis(true) + '>' + d + '</button>').join('') + '</div><span class="nota">Ninguno marcado = todos los días.</span></div>' +
+      '<div class="row"><div class="fld"><label>Desde</label><input type="time" id="pf_desde" value="' + propEsc(r.desde || '') + '"' + dis(true) + '></div><div class="fld"><label>Hasta</label><input type="time" id="pf_hasta" value="' + propEsc(r.hasta || '') + '"' + dis(true) + '></div>' +
+        '<div class="fld"><label>El JL puede alargar hasta</label><input type="time" id="pf_tope" value="' + propEsc(r.hasta_tope || '') + '"' + dis(true) + '></div></div>' +
+      '<div class="nota" style="margin:-4px 0 10px">Un «hasta» que pasa la medianoche (22:00–03:00) es la misma noche. Sin tope, el JL solo puede acortar.</div>' +
+      '<div class="row"><div class="fld"><label>Fecha desde</label><input type="date" id="pf_fd" value="' + propEsc(r.fecha_desde || '') + '"' + dis(true) + '></div><div class="fld"><label>Fecha hasta</label><input type="date" id="pf_fh" value="' + propEsc(r.fecha_hasta || '') + '"' + dis(true) + '></div></div>' +
+      '<div class="row"><div class="fld"><label>Prioridad (1 = más alta)</label><input type="number" min="1" id="pf_prio" value="' + propEsc(r.prioridad == null ? '' : r.prioridad) + '" style="width:110px"' + dis(false) + '></div>' +
+        '<div class="fld" style="flex:1 1 200px"><label>Etiqueta bajo el producto</label><input id="pf_badge" value="' + propEsc(r.badge || '') + '" placeholder="En 2x1 ahora"' + dis(false) + '></div></div>' +
+      (r.tipo === 'menu' ? '<div class="fld"><label>Precios posibles · el JL mueve la palanca</label>' + (r.precios || []).map((p, i) => '<div class="pr"><input value="' + propEsc(p.id) + '" data-ppi="' + i + '" data-ppf="id"' + dis(false) + '><input type="number" value="' + propEsc(p.precio) + '" data-ppi="' + i + '" data-ppf="precio"' + dis(false) + '><input value="' + propEsc(p.etiqueta || '') + '" data-ppi="' + i + '" data-ppf="etiqueta"' + dis(false) + '><label class="nota"><input type="radio" name="ppdef" value="' + propEsc(p.id) + '"' + (r.precio_default === p.id ? ' checked' : '') + dis(false) + '> de base</label>' + (ger && leva ? '<button class="pbt peq" data-pa="pdel" data-k="' + i + '">Quitar</button>' : '<span></span>') + '</div>').join('') +
+        (ger && leva ? '<button class="pbt peq" data-pa="padd">+ Precio</button>' : '') + '<div class="nota">Contenedor: <b>' + propEsc(propNome(r.id_contenitore)) + '</b> (' + propEsc(r.id_contenitore || '—') + '). Se vende el menú, no el plato: los platos guardan su precio de carta.</div></div>' : '') +
+      (r.tipo === 'multiplo' ? '<div class="row"><div class="fld"><label>Paga</label><input type="number" id="pf_paga" value="' + propEsc((r.multiplo || {}).paga || 1) + '" style="width:90px"' + dis(false) + '></div><div class="fld"><label>Lleva</label><input type="number" id="pf_lleva" value="' + propEsc((r.multiplo || {}).lleva || 2) + '" style="width:90px"' + dis(false) + '></div></div>' : '') +
+      (r.tipo === 'recargo' ? '<div class="fld"><label>Factor</label><input type="number" step="0.001" id="pf_factor" value="' + propEsc(r.factor || '') + '" style="width:120px"' + dis(false) + '></div>' : '') +
+    '</div><div>' +
+      '<div class="fld"><label>Texto · arriba</label><input id="pf_eyebrow" value="' + propEsc(tx.eyebrow || '') + '"' + dis(false) + '></div>' +
+      '<div class="fld"><label>Texto · título</label><input id="pf_titulo" value="' + propEsc(tx.titulo || '') + '"' + dis(false) + '></div>' +
+      '<div class="fld"><label>Texto · bajada</label><input id="pf_sub" value="' + propEsc(tx.sub || '') + '"' + dis(false) + '></div>' +
+      '<div class="fld"><label>Imagen (enlace)</label><input id="pf_img" value="' + propEsc(md.poster || md.imagen || '') + '"' + dis(false) + '></div>' +
+      (md.poster || md.imagen ? '<img src="' + propEsc(md.poster || md.imagen) + '" alt="" style="max-width:100%;max-height:150px;border-radius:10px;object-fit:cover">' : '') +
+    '</div></div>' +
+    (['evento','escena','fondo'].includes(r.tipo) && !parti.length ? '' :
+    '<h2 style="margin-top:12px">Productos · ' + parti.length + '</h2><div class="ptw"><div>' +
+      '<div class="pt h"><span>Producto</span><span>' + (conRol ? 'Grupo' : conPrezzo ? 'Precio' : 'Carta') + '</span><span>Desde</span><span>Hasta</span><span>Ahora</span><span></span></div>' +
+      parti.map((p) => { const v = sp[p.id_producto], pc = PRODUCTS.find((x) => x.id === p.id_producto);
+        return '<div class="pt"><span class="pn" title="' + propEsc(p.id_producto) + '">' + propEsc(propNome(p.id_producto)) + '</span>' +
+          (conRol ? '<select data-pp="' + propEsc(p.id_producto) + '" data-pf="rol"' + dis(false) + '>' + ['','entrada','bebida','fondo','postre'].map((x) => '<option' + ((p.rol || '') === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select>'
+            : conPrezzo ? '<input type="number" value="' + propEsc(p.precio == null ? '' : p.precio) + '" data-pp="' + propEsc(p.id_producto) + '" data-pf="precio"' + dis(false) + '>' : '<span class="fin">' + propClp(pc && pc.precio) + '</span>') +
+          '<input type="time" value="' + propEsc(p.desde || '') + '" data-pp="' + propEsc(p.id_producto) + '" data-pf="desde"' + dis(true) + '><input type="time" value="' + propEsc(p.hasta || '') + '" data-pp="' + propEsc(p.id_producto) + '" data-pf="hasta"' + dis(true) + '>' +
+          '<span class="pv ' + (v && v.vende ? 'si">✓ se vende' : 'no">' + propEsc(v ? (PROP_PERCHE_P[v.perche] || v.perche || '—') : '—')) + '</span>' +
+          (ger && leva ? '<button class="pbt peq" data-pa="ptogli" data-k="' + propEsc(p.id_producto) + '">Quitar</button>' : '<span></span>') + '</div>'; }).join('') +
+      '</div></div>' +
+      (ger && leva ? '<div class="add"><input list="propCartaL" id="pf_add" placeholder="Agregar un producto de la carta…"><button class="pbt peq" data-pa="pagg">Agregar</button></div>' : '')) +
+    '<h2 style="margin-top:14px">Historial</h2><div class="hist">' + (storia === undefined ? '<div><span class="nota">Cargando…</span></div>' : storia.length ? storia.map((h) =>
+      '<div><time>' + propEsc(new Date(h.ts_registro).toLocaleString('es-CL', { timeZone:'America/Santiago', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })) + '</time><span>' +
+      propEsc((h.tabla === 'strumento_parte' ? 'Producto ' + propNome((h.fila || {}).id_producto) + ' · ' : '') + ((h.fila || {}).borrado ? 'quitado' : 'versión') + ' · ' + (h.quien || '') + ' · ' + (h.fuente || '')) + '</span></div>').join('') : '<div><span class="nota">Sin versiones.</span></div>') + '</div>' +
+  '</div>';
+}
+function propPinta(){
+  const app = document.getElementById('propApp'); if (!app) return;
+  const sub = document.getElementById('propSub');
+  if (!P.d) {
+    if (sub) sub.textContent = 'Menús · promos · eventos · destacados';
+    app.innerHTML = P.stato === 'ruta' ? '<div class="pban">Aún no activo · el servidor todavía no tiene las propuestas. Cuando estén, aparecen aquí solas.</div>'
+      : P.stato ? '<div class="pban err">No pude leer las propuestas (' + propEsc(PROP_ERR[P.stato] || P.stato) + '). <button class="pbt peq" onclick="propCarica()">Reintentar</button></div>'
+      : '<div class="pbox">Cargando…</div>';
+    return;
+  }
+  const d = P.d, ah = (d.adesso && d.adesso.ahora) || {}, leva = propLevaOn(), ger = propEsGer();
+  const eta = d.carta_ts ? Math.round((Date.now() - Date.parse(d.carta_ts)) / 1000) : null;
+  if (sub) sub.textContent = d.strumenti.length + ' propuestas · ' + d.strumenti.filter((r) => r.activo).length + ' encendidas';
+  app.innerHTML =
+    (P.stato ? '<div class="pban err">Lo que ves puede estar viejo: no pude recargar (' + propEsc(PROP_ERR[P.stato] || P.stato) + ').</div>' : '') +
+    (!leva ? '<div class="pban">🔒 Aún no activo · solo lectura. Ves las propuestas reales y lo que el cliente vería, pero nadie puede cambiarlas todavía.</div>' : '') +
+    '<div class="pbox"><div class="row" style="align-items:center"><b>' + (P.sim ? '🕒 Simulando: ' : '🕒 Ahora: ') + propEsc(PROP_DIA_N[ah.dia] || ah.dia || '') + ' ' + propEsc(ah.hhmm || '') + '</b>' +
+      (!leva ? '<span class="dsel">' + PROP_DIAS.map((x) => '<button class="d' + (P.sim && P.sim.dia === x ? ' on' : '') + '" data-pa="sdia" data-k="' + x + '">' + x + '</button>').join('') + '</span>' +
+        '<input type="time" id="ps_hora" value="' + propEsc((P.sim && P.sim.hora) || ah.hhmm || '') + '">' + (P.sim ? '<button class="pbt peq" data-pa="ora">Volver a ahora</button>' : '') : '') +
+      (eta != null && eta > 120 ? '<span class="nota">La carta usada tiene ' + Math.round(eta / 60) + ' min.</span>' : '') +
+      (!leva ? '<span class="nota">Elige un día y una hora para ver qué vería el cliente.</span>' : '') + '</div></div>' +
+    propAnteprima() +
+    '<div class="ptop"><div class="fil">' + PROP_FILTRI.map(([k, t]) => '<button class="fc' + (P.filtro === k ? ' on' : '') + '" data-pa="filtro" data-k="' + k + '">' + t + '</button>').join('') + '</div>' +
+      (leva && ger ? '<button class="pbt pri" data-pa="nuovo">' + (P.scegli ? 'Cancelar' : '+ Nueva propuesta') + '</button>' : '') + '</div>' +
+    (P.scegli ? '<div class="pbox"><h2>¿Qué quieres crear?</h2><div class="fld" style="max-width:420px"><label>Nombre que verá el cliente</label><input id="pn_nombre" placeholder="ej. Noche de Jazz · 2x1 Pisco Sour"></div>' +
+      '<div class="nuovi">' + Object.entries(PROP_NUOVI).map(([k, n]) => '<button class="nv" data-pa="crea" data-k="' + k + '"><b>' + n.ico + ' ' + propEsc(PROP_TIPO[k]) + '</b><span>' + propEsc(n.desc) + '</span></button>').join('') + '</div>' +
+      '<div class="nota" style="margin-top:8px">Nace <b>apagada</b>: la completas y la enciendes cuando está lista.</div></div>' : '') +
+    (P.sel ? propDettaglio() : '') + propCards() +
+    '<datalist id="propCartaL">' + PRODUCTS.map((p) => '<option value="' + propEsc(p.id) + '">' + propEsc(p.nombre) + '</option>').join('') + '</datalist>' +
+    '<div class="nota">Cada «Guardar» es una versión nueva en Postgres, con quién y cuándo. Los gestos del día del JL (alargar ±15′, palanca del precio) viven en la app del JL: aquí solo se ven.</div>';
+}
+/* il modulo → la riga INTERA della versione nuova */
+function propLeggiForm(){
+  const r = (P.draft && P.draft.id_strumento === P.sel) ? P.draft : propRiga(P.sel);
+  const v = (id) => { const e = document.getElementById(id); return e ? e.value.trim() : undefined; };
+  const n = propFila(r);
+  n.nombre_visible = v('pf_nombre') || r.nombre_visible;
+  n.dias = [...document.querySelectorAll('#pf_dias .d.on')].map((b) => b.dataset.k);
+  n.desde = v('pf_desde') || null; n.hasta = v('pf_hasta') || null; n.hasta_tope = v('pf_tope') || null;
+  n.fecha_desde = v('pf_fd') || null; n.fecha_hasta = v('pf_fh') || null;
+  n.prioridad = v('pf_prio') ? Number(v('pf_prio')) : null; n.badge = v('pf_badge') || null;
+  n.textos = Object.assign({}, r.textos || {}, { es: Object.assign({}, (r.textos || {}).es || {}, { eyebrow: v('pf_eyebrow') || '', titulo: v('pf_titulo') || '', sub: v('pf_sub') || '' }) });
+  const img = v('pf_img'), m0 = r.media || {};
+  if (img !== (m0.poster || m0.imagen || '')) n.media = img ? Object.assign({}, m0, { poster: img, imagen: img }) : (m0.video ? Object.assign({}, m0, { poster:null, imagen:null }) : null);
+  if (r.tipo === 'menu') {
+    n.precios = (r.precios || []).map((p, i) => { const g = (f) => (document.querySelector('[data-ppi="' + i + '"][data-ppf="' + f + '"]') || {}).value;
+      return { id: g('id') || p.id, precio: Number(g('precio') || p.precio), etiqueta: g('etiqueta') || '' }; });
+    const dd = document.querySelector('input[name=ppdef]:checked'); n.precio_default = dd ? dd.value : (n.precios[0] || {}).id || null;
+  }
+  if (r.tipo === 'multiplo') n.multiplo = { paga: Number(v('pf_paga')), lleva: Number(v('pf_lleva')) };
+  if (r.tipo === 'recargo') n.factor = Number(v('pf_factor'));
+  return n;
+}
+const propEq = (a, b) => JSON.stringify(a == null ? null : a) === JSON.stringify(b == null ? null : b);
+async function propSalva(){
+  const r = propRiga(P.sel); if (!r) return;
+  const n = propLeggiForm(), e = [];
+  if ((n.desde == null) !== (n.hasta == null)) e.push('«Desde» y «Hasta» van juntos, o ninguno.');
+  if (n.tipo === 'menu' && (!n.precios.length || n.precios.some((p) => !(p.precio > 0) || !p.id))) e.push('Cada precio necesita un nombre y un monto mayor que cero.');
+  if (n.tipo === 'multiplo' && !(n.multiplo.paga > 0 && n.multiplo.lleva > n.multiplo.paga)) e.push('En un 2x1 «lleva» tiene que ser mayor que «paga».');
+  if (n.tipo === 'recargo' && !(n.factor > 1 && n.factor <= 2)) e.push('El recargo va entre 1 y 2 (ej. 1,10).');
+  if (e.length) { P.err = e.join(' '); propPinta(); return; }
+  /* le parti cambiate in linea: ognuna una riga sua */
+  const cambiP = [];
+  document.querySelectorAll('#propDet [data-pp]').forEach((el) => {
+    const p = propParti(P.sel).find((x) => x.id_producto === el.dataset.pp); if (!p) return;
+    const f = el.dataset.pf, val = el.value === '' ? null : (f === 'precio' ? Number(el.value) : el.value);
+    if (!propEq(p[f], val)) { const c = cambiP.find((x) => x.p === p); if (c) c.cambia[f] = val; else cambiP.push({ p, cambia: { [f]: val } }); }
+  });
+  const cambiS = PROP_COL_S.filter((k) => !propEq(n[k], r[k]));
+  if (!cambiS.length && !cambiP.length) { P.err = 'No hay cambios que guardar.'; propPinta(); return; }
+  P.err = '';
+  if (cambiS.length) { const j = await propScrivi('strumento', n, r.ts_registro); if (!j.ok) return; }
+  for (const c of cambiP) { const j = await propScrivi('strumento_parte', propFilaP(c.p, c.cambia), c.p.ts_registro); if (!j.ok) break; }
+  P.draft = null; showToast('success', 'Guardado'); delete P.hist[P.sel]; await propCarica(); propStoria(P.sel);
+}
+async function propStoria(id){
+  if (!id) return;
+  const r = await propFetch('/propuestasAdmin/' + encodeURIComponent(CFG.LOCAL) + '/historial?id=' + encodeURIComponent(id), { method:'GET' }, 6000);
+  P.hist[id] = (r.j && r.j.ok && Array.isArray(r.j.versiones)) ? r.j.versiones : [];
+  if (P.sel === id) propPinta();
+}
+document.getElementById('propApp').addEventListener('click', async (ev) => {
+  const el = ev.target.closest('[data-pa]'); if (!el || el.disabled) return;
+  const a = el.dataset.pa, k = el.dataset.k;
+  if (a === 'interr') { ev.stopPropagation(); const r = propRiga(k); el.disabled = true;
+    const j = await propScrivi('strumento', propFila(r, { activo: !r.activo }), r.ts_registro); if (j.ok) { showToast('success', r.activo ? 'Apagada' : 'Encendida'); await propCarica(); } else el.disabled = false; return; }
+  if (a === 'su' || a === 'giu') { ev.stopPropagation();
+    const L = P.d.strumenti.filter(propPassa).slice().sort((x, y) => (x.orden == null ? 1e9 : x.orden) - (y.orden == null ? 1e9 : y.orden) || String(x.nombre_visible).localeCompare(String(y.nombre_visible)));
+    const i = L.findIndex((x) => x.id_strumento === k), j2 = a === 'su' ? i - 1 : i + 1; if (j2 < 0 || j2 >= L.length) return;
+    const oi = L[i].orden == null ? i + 1 : L[i].orden, oj = L[j2].orden == null ? j2 + 1 : L[j2].orden;
+    const r1 = await propScrivi('strumento', propFila(L[i], { orden: oj }), L[i].ts_registro);
+    if (r1.ok) await propScrivi('strumento', propFila(L[j2], { orden: oi }), L[j2].ts_registro);
+    await propCarica(); return; }
+  if (a === 'apri') { P.draft = null; P.sel = k; P.err = ''; propPinta(); propStoria(k); const d = document.getElementById('propDet'); if (d) d.scrollIntoView({ behavior:'smooth', block:'start' }); return; }
+  if (a === 'chiudi') { P.draft = null; P.sel = null; P.err = ''; propPinta(); return; }
+  if (a === 'salva') { el.disabled = true; try { await propSalva(); } finally { el.disabled = false; } return; }
+  if (a === 'dia') { el.classList.toggle('on'); return; }
+  if (a === 'filtro') { P.filtro = k; propPinta(); return; }
+  if (a === 'sdia') { const h = (document.getElementById('ps_hora') || {}).value || null; P.sim = (P.sim && P.sim.dia === k) ? null : { dia:k, hora:h }; propCarica(); return; }
+  if (a === 'ora') { P.sim = null; propCarica(); return; }
+  if (a === 'padd' || a === 'pdel') { P.draft = propLeggiForm(); const pr = (P.draft.precios || []).slice();
+    if (a === 'padd') pr.push({ id: String.fromCharCode(65 + pr.length), precio: 0, etiqueta: '' }); else pr.splice(Number(k), 1);
+    P.draft.precios = pr; propPinta(); return; }   // si scrive al «Guardar»
+  if (a === 'ptogli') { const p = propParti(P.sel).find((x) => x.id_producto === k); if (!p) return; el.disabled = true;
+    const j = await propScrivi('strumento_parte', propFilaP(p, { borrado: true }), p.ts_registro); if (j.ok) { showToast('success', 'Quitado: ' + propNome(k)); delete P.hist[P.sel]; await propCarica(); propStoria(P.sel); } else el.disabled = false; return; }
+  if (a === 'pagg') { const id = ((document.getElementById('pf_add') || {}).value || '').trim().toUpperCase(), r = propRiga(P.sel);
+    if (!PRODUCTS.some((x) => x.id === id)) { P.err = 'Ese producto no está en la carta: elige uno de la lista.'; propPinta(); return; }
+    if (propParti(P.sel).some((x) => x.id_producto === id)) { P.err = 'Ya está.'; propPinta(); return; }
+    const pc = PRODUCTS.find((x) => x.id === id); el.disabled = true;
+    const j = await propScrivi('strumento_parte', { local: CFG.LOCAL, id_strumento: P.sel, id_producto: id, desde: null, hasta: null, precio: ['botellas','precio_fijo'].includes(r.tipo) ? (pc.precio || null) : null,
+      rol: r.tipo === 'menu' ? 'fondo' : null, orden: propParti(P.sel).length + 1, borrado: false }, null);
+    if (j.ok) { P.err = ''; showToast('success', 'Agregado: ' + propNome(id)); delete P.hist[P.sel]; await propCarica(); propStoria(P.sel); } else el.disabled = false; return; }
+  if (a === 'nuovo') { P.scegli = !P.scegli; propPinta(); return; }
+  if (a === 'crea' && PROP_NUOVI[k]) {
+    const N = PROP_NUOVI[k], nome = ((document.getElementById('pn_nombre') || {}).value || '').trim() || ('Nueva ' + PROP_TIPO[k]);
+    let base = nome.toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 36) || 'NUEVA';
+    while (base.length < 2 || propRiga(base)) base = base.replace(/-\d+$/, '') + '-' + (Math.floor(Math.random() * 90) + 10);
+    const hoy = new Intl.DateTimeFormat('en-CA', { timeZone:'America/Santiago' }).format(new Date());
+    const fila = Object.assign({ local: CFG.LOCAL, id_strumento: base, tipo: k, nombre_visible: nome, activo: false, grupo: null, dias: [], desde: null, hasta: null, hasta_tope: null,
+      fecha_desde: null, fecha_hasta: null, prioridad: null, orden: 99, id_contenitore: null, precios: [], precio_default: null, multiplo: null, factor: null, badge: null, media: null,
+      textos: { es: { eyebrow: '', titulo: nome, sub: '' } }, cta: null, borrado: false }, N.campi(hoy));
+    el.disabled = true;
+    const j = await propScrivi('strumento', fila, null);
+    if (j.ok) { P.scegli = false; P.filtro = 'todo'; P.sel = base; showToast('success', 'Creada apagada'); await propCarica(); propStoria(base); const d = document.getElementById('propDet'); if (d) d.scrollIntoView({ behavior:'smooth', block:'start' }); }
+    else el.disabled = false;
+    return; }
+});
+document.getElementById('propApp').addEventListener('change', (ev) => {
+  if (ev.target.id === 'ps_hora') { P.sim = { dia: (P.sim && P.sim.dia) || ((P.d && P.d.adesso && P.d.adesso.ahora) || {}).dia || null, hora: ev.target.value || null }; propCarica(); }
+});
+document.getElementById('propApp').addEventListener('keydown', (ev) => { if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.classList && ev.target.classList.contains('cd')) { ev.preventDefault(); ev.target.click(); } });
+/* l'anteprima invecchia: ogni minuto si rilegge, ma mai sotto le dita di chi sta scrivendo nel dettaglio */
+setInterval(() => {
+  const v = document.getElementById('viewPropuestas');
+  if (!v || !v.classList.contains('active') || P.sim || document.visibilityState !== 'visible') return;
+  if (P.sel || P.draft || P.scegli) return;   // dettaglio aperto = modifiche in corso: non si ridisegna sotto le dita
+  propCarica();
+}, 60000);
 </script>
 </body>
 </html>
