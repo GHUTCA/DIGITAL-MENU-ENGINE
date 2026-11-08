@@ -628,11 +628,15 @@ function propLeggiForm(){
   n._bad = bad;
   return n;
 }
+const IMG_OK = /^(https:\/\/menu\.pinsita\.cl\/[^\s"'<>]+|(\.\/)?[a-z0-9_\-/]+\.(jpe?g|png|webp|avif|gif))$/i;
 const propEq = (a, b) => JSON.stringify(a == null ? null : a) === JSON.stringify(b == null ? null : b);
 async function propSalva(){
   const r = propRiga(P.sel); if (!r) return;
   const n = propLeggiForm(), e = [];
   if (n._bad.length) e.push('Las horas van en 24 h, como 03:00 o 23:30.'); delete n._bad;
+  /* le foto vivono nella NOSTRA casa: un link a Drive o a un altro host porterebbe Google dentro la carta per la porta di un dato (🟡 di 💵 EL GIRO, 8-nov) */
+  const img = (document.getElementById('pf_img') || {}).value; const m0 = r.media || {};
+  if (img && img.trim() !== (m0.poster || m0.imagen || '') && !IMG_OK.test(img.trim())) e.push('La imagen tiene que estar en menu.pinsita.cl (súbela primero ahí).');
   if ((n.desde == null) !== (n.hasta == null)) e.push('«Desde» y «Hasta» van juntos, o ninguno.');
   if (n.tipo === 'menu' && (!n.precios.length || n.precios.some((p) => !(p.precio > 0) || !p.id))) e.push('Cada precio necesita un nombre y un monto mayor que cero.');
   if (n.tipo === 'multiplo' && !(n.multiplo.paga > 0 && n.multiplo.lleva > n.multiplo.paga)) e.push('En un 2x1 «lleva» tiene que ser mayor que «paga».');
