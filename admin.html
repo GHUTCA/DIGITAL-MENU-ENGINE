@@ -628,7 +628,8 @@ function propLeggiForm(){
   n._bad = bad;
   return n;
 }
-const IMG_OK = /^(https:\/\/menu\.pinsita\.cl\/[^\s"'<>]+|(\.\/)?[a-z0-9_\-/]+\.(jpe?g|png|webp|avif|gif))$/i;
+/* relativo = comincia con una lettera/cifra e non contiene «//» (`//host/x.png` è un host, non un percorso: 🟡 di 💵 su 7b5a98f) */
+const IMG_OK = /^(https:\/\/menu\.pinsita\.cl\/[^\s"'<>]+|(?!.*\/\/)(\.\/)?[a-z0-9_\-][a-z0-9_\-/]*\.(jpe?g|png|webp|avif|gif))$/i;
 const propEq = (a, b) => JSON.stringify(a == null ? null : a) === JSON.stringify(b == null ? null : b);
 async function propSalva(){
   const r = propRiga(P.sel); if (!r) return;
