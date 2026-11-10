@@ -214,7 +214,7 @@ button{font-family:inherit}
 .pedov .lin img,.pedov .lin .lth{width:58px;height:58px;border-radius:12px}
 .pedov .lin .lnm{font-size:15.5px}
 .pedov .lin .lsc{font-size:12px}
-.pedov .lin .lq{gap:9px;font-size:16px;font-weight:800}
+.pedov .lin .lq{gap:9px;font-size:16px;font-weight:800;min-width:calc(2 * 36px + 2ch + 18px)}
 .pedov .lin .lq i{width:36px;height:36px;border-radius:10px;font-size:18px}
 .pedov .lin .lpz{font-size:16px}
 .vab{padding:10px 0 4px}
@@ -230,8 +230,8 @@ button{font-family:inherit}
 .lin{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--linea)}
 .lin img,.lin .lth{width:38px;height:38px;border-radius:8px;object-fit:cover;background:var(--sup);flex:0 0 auto}
 .lin .lnm{flex:1;min-width:0;font-size:13px;font-weight:700}
-.lin .lpz{font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
-.lin .lq{display:flex;align-items:center;gap:6px}
+.lin .lpz{font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums;min-width:5.4em;text-align:right;flex:0 0 auto} /* v0.9.35: il prezzo ha una larghezza fissa, i +/- restano in colonna (Alberto 10-nov) */
+.lin .lq{display:flex;align-items:center;justify-content:space-between;gap:6px;font-variant-numeric:tabular-nums;min-width:calc(2 * 28px + 2ch + 12px);flex:0 0 auto}
 .lin .lq i{font-style:normal;width:28px;height:28px;border-radius:8px;border:1px solid var(--linea2);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .tot{display:flex;justify-content:space-between;font-weight:800;font-size:16px;margin:12px 0 4px}
 .vuoto{color:var(--suave);font-size:13px;padding:18px 0}
@@ -558,7 +558,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.9.34 · DEMO 29 · propuestas</div>
+<div class="ver" id="ver">menu v0.9.35 · DEMO 30 · propuestas</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
