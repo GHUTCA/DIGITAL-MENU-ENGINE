@@ -2,6 +2,9 @@
  "_nota": "La vetrina di ogni locale: il palco, i destacados, il fondo. La sceglie Alberto (il cervello, finché non c'è: 29-ott). TAMPONE dichiarato come fotos.json: lo uccide la config del locale in Postgres (menu_config_local, 🚚 MIGRA). Mai su Google.",
  "BKS": {
   "fondo": "vetrina/BKS/fondo.svg",
+  "_fondi": "v0.9 (Alberto 30-ott): di giorno le strelitzie chiare, di notte quelle scure; cambiano da sole con l'ora (tema_dia_desde / tema_noche_desde della config, default 06:00 / 20:00). «fondo» resta come notte per chi non ha fondo_noche.",
+  "fondo_dia": "vetrina/BKS/fondo_dia.svg",
+  "fondo_noche": "vetrina/BKS/fondo.svg",
   "_show": "Le sere dello show (giorno operativo, taglio 06:00; 0 = domenica). La slide del DJ sale solo in quei giorni, la pillola LIVE solo fra desde e hasta. DATI DEL MOCKUP: li conferma Alberto.",
   "_prova": "🔴 PROVA (Alberto 29-ott: «lascialo attivo per vedere anche lui»): show acceso tutti i giorni e a tutte le ore, finché il menù vero è solo sulla 998. PRIMA DI APRIRE IL QR AI CLIENTI si rimette quello del mockup o quello che dice Alberto: dias [5, 6], desde 23:00, hasta 04:00.",
   "show": { "dias": [0, 1, 2, 3, 4, 5, 6], "desde": "00:00", "hasta": "23:59" },
@@ -15,7 +18,7 @@
      "tag": "👀 Cómo lo hacemos", "id": "BKS-PAS-001", "tit": "Lasaña de berenjenas, capa por capa", "sub": "Hecha aquí, lenta y caliente" }
   ],
   "destacados": [
-   { "id": "BKS-MOJ-006", "b": "★ el más pedido" },
+   { "id": "BKS-MOJ-006", "b": "⭐ TOP" },
    { "id": "BKS-SOU-003" },
    { "id": "BKS-SPR-001" },
    { "id": "BKS-PAS-005" },
