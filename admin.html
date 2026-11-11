@@ -149,6 +149,7 @@
   .cgrp { display:flex; flex-direction:column; gap:4px; }
   .crow { display:grid; grid-template-columns:minmax(0,1fr) auto auto auto; gap:10px; align-items:center; padding:8px 10px; border-radius:9px; background:var(--surface-2); cursor:pointer; }
   .crow.sel { box-shadow:0 0 0 2px var(--success); }
+  .crow.off { cursor:default; opacity:.85; } .crow.off .cn { color:var(--text-muted); }
   .crow .cn { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600; }
   .crow .cn small { display:block; font-weight:400; font-size:11.5px; color:var(--text-muted); }
   .crow .cp { font-family:'JetBrains Mono',monospace; font-size:13px; white-space:nowrap; }
@@ -186,7 +187,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.0.0</div>
+  <div id="ver">admin v1.0.1</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -298,7 +299,7 @@ function apriTab(t){
 document.querySelector('.tabs').addEventListener('click', (ev) => { const b = ev.target.closest('.tab'); if (b) apriTab(b.dataset.tab); });
 
 /* ═══ LA CARTA (GET/POST /cartaAdmin) — anche le Propuestas la usano per i nomi ═══ */
-const C = { list:null, at:0, stato:'', q:'', cat:'todas', sel:null, err:'', busy:false };
+const C = { list:null, all:null, off:false, at:0, stato:'', q:'', cat:'todas', sel:null, err:'', busy:false };   // v1.0.1: `all` anche gli apagados, `off` = «Ver apagados» (spento di base: ordine di Alberto 8-nov)
 const CARTA_ERR = { version_cambiata:'Otro cambió este producto · recargué', firmante_no_autorizado:'Tu PIN no puede cambiar la carta', pin_jl_invalido:'PIN incorrecto · vuelve a entrar',
   pin_jl_bloqueado:'PIN bloqueado · espera', producto_desconocido:'El producto no está en la carta', pg_no_responde:'La carta no responde · reintenta', precio_invalido:'Precio inválido', hora_invalida:'Hora inválida',
   ruta_apagada:'La carta aún no está activa', gesto_id_ajeno:'Error del panel · recarga la página', token_invalido:'Sin acceso al servidor' };
@@ -308,7 +309,7 @@ async function cartaCarica(){
   if (C.busy) return; C.busy = true;
   const r = await api('/cartaAdmin/' + encodeURIComponent(LOCAL), { method:'GET' }, 6000);
   C.busy = false;
-  if (r.j && r.j.ok === true && Array.isArray(r.j.productos)) { C.list = r.j.productos.filter((p) => p.activo !== false); C.at = Date.now(); C.stato = ''; }
+  if (r.j && r.j.ok === true && Array.isArray(r.j.productos)) { C.all = r.j.productos; C.list = C.all.filter((p) => p.activo !== false); C.at = Date.now(); C.stato = ''; }
   else C.stato = r.status === 0 ? 'red' : ((r.j && r.j.error) || 'http_' + r.status);
   if (TAB === 'carta') cartaPinta();
   else if (P.d) propPinta();   // i nomi dei prodotti nelle propuestas
@@ -331,17 +332,19 @@ function cartaPinta(){
     app.innerHTML = C.stato ? '<div class="pban err">No pude leer la carta (' + esc(CARTA_ERR[C.stato] || C.stato) + '). <button class="pbt peq" data-ca="recarga">Reintentar</button></div>' : '<div class="pbox">Cargando la carta…</div>';
     return;
   }
-  const cats = [...new Set(C.list.map((p) => p.categoria || 'otros'))].sort((a, b) => a.localeCompare(b, 'es'));
+  const OFF = (C.all || []).filter((p) => p.activo === false);
+  const cats = [...new Set(C.list.concat(C.off ? OFF : []).map((p) => p.categoria || 'otros'))].sort((a, b) => a.localeCompare(b, 'es'));
   const q = C.q.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  const L = C.list.filter((p) => (C.cat === 'todas' || (p.categoria || 'otros') === C.cat) &&
-    (!q || (p.nombre + ' ' + p.id_producto).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').includes(q)));
+  const filtro = (p) => (C.cat === 'todas' || (p.categoria || 'otros') === C.cat) &&
+    (!q || (p.nombre + ' ' + p.id_producto).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').includes(q));
+  const L = C.list.filter(filtro), LO = C.off ? OFF.filter(filtro) : [];
   const grp = {}; L.forEach((p) => { const c = p.categoria || 'otros'; (grp[c] = grp[c] || []).push(p); });
   const scrive = puedeCarta();
   const ora = (p) => (p.hora_inicio || p.hora_fin) ? (hhShow(p.hora_inicio) || 'abre') + '–' + (hhShow(p.hora_fin) || 'cierra') : '';
   app.innerHTML =
     (C.stato ? '<div class="pban err">Lo que ves puede estar viejo: no pude recargar (' + esc(CARTA_ERR[C.stato] || C.stato) + ').</div>' : '') +
     (!scrive ? '<div class="pban">Tu PIN puede ver la carta, pero no cambiarla.</div>' : '') +
-    '<div class="ptop"><h1>Carta · ' + C.list.length + ' productos</h1><button class="pbt peq" data-ca="recarga">Recargar</button></div>' +
+    '<div class="ptop"><h1>Carta · ' + C.list.length + ' productos</h1><div class="row">' + (OFF.length ? '<button class="pbt peq" data-ca="veroff" aria-pressed="' + C.off + '">' + (C.off ? 'Ocultar apagados' : 'Ver apagados · ' + OFF.length) + '</button>' : '') + '<button class="pbt peq" data-ca="recarga">Recargar</button></div></div>' +
     '<div class="cbar"><input type="search" id="cq" placeholder="Buscar producto…" value="' + esc(C.q) + '"></div>' +
     '<div class="fil">' + ['todas'].concat(cats).map((c) => '<button class="fc' + (C.cat === c ? ' on' : '') + '" data-ca="cat" data-k="' + esc(c) + '">' + esc(c === 'todas' ? 'Todas' : c.charAt(0).toUpperCase() + c.slice(1)) + '</button>').join('') + '</div>' +
     (C.sel ? cartaDettaglio() : '') +
@@ -351,7 +354,12 @@ function cartaPinta(){
         '<span class="cn">' + esc(p.nombre) + '<small>' + esc(p.menu_visible === false ? 'Oculto de la carta' : p.vendible ? 'Se vende ahora' : 'No se vende ahora') + '</small></span>' +
         '<span class="ch2">' + esc(ora(p)) + '</span><span class="cp">' + (p.sin_precio ? 'sin precio' : clp(p.precio)) + '</span>' +
         '<button class="sw' + (p.menu_visible !== false ? ' on' : '') + '" data-ca="visibile" data-k="' + esc(p.id_producto) + '" aria-label="En la carta" aria-pressed="' + (p.menu_visible !== false) + '"' + (scrive ? '' : ' disabled') + '></button></div>').join('') +
-      '</div></div>').join('') : '<div class="pbox vuoto">Nada con ese filtro.</div>') +
+      '</div></div>').join('') : (LO.length ? '' : '<div class="pbox vuoto">Nada con ese filtro.</div>')) +
+    (LO.length ? '<div class="pbox"><h2>Apagados · ' + LO.length + '</h2><div class="cgrp">' + LO.sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es')).map((p) =>
+        '<div class="crow off"><span class="cn">' + esc(p.nombre) + '<small>' + esc((p.categoria || 'otros') + ' · apagado: no se ve ni se vende') + '</small></span>' +
+        '<span class="ch2"></span><span class="cp">' + (p.sin_precio ? 'sin precio' : clp(p.precio)) + '</span>' +
+        (scrive ? '<button class="pbt peq" data-ca="enciende" data-k="' + esc(p.id_producto) + '">Encender</button>' : '<span></span>') + '</div>').join('') +
+      '</div><div class="nota">Al encenderlo vuelve a la carta con su precio de antes. Si el precio cambia, ábrelo arriba y cámbialo.</div></div>' : '') +
     '<div class="nota">El interruptor dice si el producto se ve en la carta (QR y mesero). Cada cambio es una versión nueva en Postgres, con quién y cuándo.</div>';
 }
 function cartaDettaglio(){
@@ -401,6 +409,10 @@ document.getElementById('cartaApp').addEventListener('click', async (ev) => {
   if (a === 'chiudi') { C.sel = null; C.err = ''; cartaPinta(); return; }
   if (a === 'salva') { el.disabled = true; try { await cartaSalva(); } finally { el.disabled = false; } return; }
   if (a === 'cat') { C.cat = k; cartaPinta(); return; }
+  if (a === 'veroff') { C.off = !C.off; cartaPinta(); return; }
+  if (a === 'enciende') { const p = (C.all || []).find((x) => x.id_producto === k); if (!p) return; el.disabled = true;   // v1.0.1 · lo stesso gesto `activo` del bordo, col PIN e la versione vista
+    if (await cartaGesto(p, 'activo', true)) toast('ok', 'Encendido: ' + p.nombre); else el.disabled = false;
+    await cartaCarica(); return; }
   if (a === 'recarga') { cartaCarica(); return; }
 });
 document.getElementById('cartaApp').addEventListener('input', (ev) => { if (ev.target.id === 'cq') { C.q = ev.target.value; const pos = ev.target.selectionStart; cartaPinta(); const n = document.getElementById('cq'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } } });
