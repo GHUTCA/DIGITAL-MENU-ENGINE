@@ -558,7 +558,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.6</div>
+<div class="ver" id="ver">menu v0.10.7</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -771,8 +771,8 @@ function modsJSON(s) {
   if (!s || !String(s).trim()) return null;
   let a; try { a = JSON.parse(s); } catch (e) { return null; }
   if (!Array.isArray(a)) return null;
-  const out = a.map((g, i) => ({ k: 'q' + i, tit: String((g && g.tit) || '¿Cómo lo quieres?'),
-    ops: ((g && g.ops) || []).map((o) => ({ o: String((o && o.o) || '').trim(), d: Math.max(0, Math.round(Number(o && o.d) || 0)), ref: String((o && o.ref) || '').trim() }))
+  const out = a.map((g, i) => ({ k: 'q' + i, g: String((g && g.g) || ''), tit: String((g && g.tit) || '¿Cómo lo quieres?'),
+    ops: ((g && g.ops) || []).map((o) => ({ o: String((o && o.o) || '').trim(), d: Math.max(0, Math.round(Number(o && o.d) || 0)), ref: String((o && o.ref) || '').trim(), oid: String((o && o.oid) || '').trim(), cl: String((o && o.cl) || '').trim() }))
       .filter((o) => o.o && !/[¦§|]/.test(o.o)) })).filter((g) => g.ops.length >= 1);
   return out.length ? out : null;
 }
@@ -1509,9 +1509,12 @@ const _uuid = () => { try { if (crypto && crypto.randomUUID) return crypto.rando
 function contScelte(r) {
   if (!r.p || r.p.c !== 'menu_contenitore' || !r.p.mods) return [];
   const k = r.k.split('§')[2] || '', pz = k.split('¦');
-  return domande(r.p).map((q, i) => { const op = q.ops.find((x) => x.o === pz[i]); return op ? { gn: q.tit, o: op.o, d: op.d, ref: op.ref || '' } : null; }).filter(Boolean);
+  return domande(r.p).map((q, i) => { const op = q.ops.find((x) => x.o === pz[i]); return op ? { g: q.g || '', gn: q.tit, oid: op.oid || '', o: op.o, d: op.d, cl: op.cl || '', ref: op.ref || '' } : null; }).filter(Boolean);
 }
-const contMods = (r) => { const m = contScelte(r); return m.length ? { mods: m } : {}; };
+/* v0.10.7 · la STESSA forma della sala viva (🛎 SALA, «LA FORMA DELLA RIGA DI MENÚ», sala.html aea5c1c r.7499-7597): il contenitore si chiama
+   col suo nome e basta, op vuoto, e la cucina legge il piatto dai mods (se il nome portasse anche le scelte il cuoco le leggerebbe due volte).
+   mods: g · gn · oid · o · d · cl dove PG li porta (g/oid/cl li aggiunge 🎛 BKP all'allaccio), più ref; precio_base = il contenitore. */
+const contMods = (r) => { const m = contScelte(r); return m.length ? { mods: m, nombre: r.p.n, op: '', precio_base: prezzoOra(r.p).v, pri: 0 } : {}; };
 function bebideMenu(rr) {
   const bc = barraCats(), out = {};
   rr.forEach((r) => contScelte(r).forEach((m) => {
@@ -1519,7 +1522,7 @@ function bebideMenu(rr) {
     const cat = pb ? pb.c : ''; if (!pb || bc.indexOf(String(cat).toLowerCase()) < 0) return;   // solo ciò che va in BARRA: il piatto sta già nel contenitore
     const key = m.ref + '|' + r.p.id;
     if (out[key]) { out[key].qty += r.q; out[key].llevar += r.q; }
-    else out[key] = { id: m.ref, nombre: r.p.n + ' · ' + pb.n, precio: 0, qty: r.q, llevar: r.q, op: '', termino: '', es_menu: true, promo: '', cat: cat, menu_beb_de: r.p.id };
+    else out[key] = { id: m.ref, nombre: r.p.n + ' · ' + pb.n, precio: 0, qty: r.q, llevar: r.q, op: '', termino: '', es_menu: true, promo: '', pri: 0, cat: cat, menu_beb_de: r.p.id };
   }));
   return Object.values(out);
 }
