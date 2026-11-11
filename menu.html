@@ -558,7 +558,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.4</div>
+<div class="ver" id="ver">menu v0.10.5</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -754,7 +754,13 @@ const esaurito = (p) => p.agotado || (tickA().ids || []).indexOf(p.id) >= 0 || S
    (lettura pubblica di 🎛 BKP). La colonna `Modificadores` della carta e `termino_opciones` nascono dal foglio: non si leggono.
    Chi ha domande ⇒ «Con opciones · pronto», mai il ripiego su Google. Si riaccende cambiando la SORGENTE di domande(), non questa riga. */
 const SCELTE_ON = false;
-const chiedeScelta = (p) => p.c === 'menu_contenitore' || (!SCELTE_ON && !p.mods && !!(p.mt || p.carne));
+/* v0.10.5 (Alberto 11-nov: «il Menú del día funziona come il Menú de la Noche, già fatto»): un menú-contenitore con le sue domande da PG
+   si ordina come la Pinsa. MA solo se le opzioni portano `ref` (il prodotto vero, ramo bkp-allaccio di 🎛 BKP): è il `ref` che manda la
+   bebida in barra come riga a $0 (la cura di 🍳 COCINA del 24-set, «57 perse su 64», e della mesa 54 in sala). Senza ref resta «pronto». */
+const contOk = (p) => !!(p.mods && p.mods.some((g) => g.ops.some((o) => o.ref)) && p.mods.every((g) => { const bc = barraCats(), inB = (o) => { const x = S.prod.find((y) => y.id === o.ref); return !!(x && bc.indexOf(String(x.c).toLowerCase()) >= 0); };
+  return !g.ops.some(inB) || g.ops.every((o) => o.ref);   // un gruppo che ha bebidas di barra le deve avere TUTTE col ref: una senza finirebbe in cocina
+}));
+const chiedeScelta = (p) => (p.c === 'menu_contenitore' && !contOk(p)) || (!SCELTE_ON && !p.mods && !!(p.mt || p.carne));
 const normT = (s) => String(s || '').trim().toLowerCase().replace(/[oa]$/, '');
 function parseOp(s) { const m = String(s).match(/^(.*?)\s*\+\s*\$?\s*([\d.]+)\s*$/); return m ? { o: m[1].trim(), d: prezzo(m[2]) } : { o: String(s).trim(), d: 0 }; }
 /* PINSA (30-ott) · LE DOMANDE DA POSTGRES: la carta del bordo porta `Modificadores_JSON`, i gruppi di mod_* già applicati al prodotto,
@@ -766,7 +772,7 @@ function modsJSON(s) {
   let a; try { a = JSON.parse(s); } catch (e) { return null; }
   if (!Array.isArray(a)) return null;
   const out = a.map((g, i) => ({ k: 'q' + i, tit: String((g && g.tit) || '¿Cómo lo quieres?'),
-    ops: ((g && g.ops) || []).map((o) => ({ o: String((o && o.o) || '').trim(), d: Math.max(0, Math.round(Number(o && o.d) || 0)) }))
+    ops: ((g && g.ops) || []).map((o) => ({ o: String((o && o.o) || '').trim(), d: Math.max(0, Math.round(Number(o && o.d) || 0)), ref: String((o && o.ref) || '').trim() }))
       .filter((o) => o.o && !/[¦§|]/.test(o.o)) })).filter((g) => g.ops.length >= 1);
   return out.length ? out : null;
 }
@@ -1499,12 +1505,32 @@ const _uuid = () => { try { if (crypto && crypto.randomUUID) return crypto.rando
   const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
   const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join(''); return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
 } catch (e) {} return 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); };
+/* v0.10.5 · le scelte del contenitore come le scrive la sala viva (`mods`: gn · o · d · ref) e la bebida a $0 (`menu_beb_de`) */
+function contScelte(r) {
+  if (!r.p || r.p.c !== 'menu_contenitore' || !r.p.mods) return [];
+  const k = r.k.split('§')[2] || '', pz = k.split('¦');
+  return domande(r.p).map((q, i) => { const op = q.ops.find((x) => x.o === pz[i]); return op ? { gn: q.tit, o: op.o, d: op.d, ref: op.ref || '' } : null; }).filter(Boolean);
+}
+const contMods = (r) => { const m = contScelte(r); return m.length ? { mods: m } : {}; };
+function bebideMenu(rr) {
+  const bc = barraCats(), out = {};
+  rr.forEach((r) => contScelte(r).forEach((m) => {
+    if (!m.ref) return; const pb = S.prod.concat(PROD_SM).find((x) => x.id === m.ref) || null;
+    const cat = pb ? pb.c : ''; if (!pb || bc.indexOf(String(cat).toLowerCase()) < 0) return;   // solo ciò che va in BARRA: il piatto sta già nel contenitore
+    const key = m.ref + '|' + r.p.id;
+    if (out[key]) { out[key].qty += r.q; out[key].llevar += r.q; }
+    else out[key] = { id: m.ref, nombre: r.p.n + ' · ' + pb.n, precio: 0, qty: r.q, llevar: r.q, op: '', termino: '', es_menu: true, promo: '', cat: cat, menu_beb_de: r.p.id };
+  }));
+  return Object.values(out);
+}
+
 function payloadPedido(confirmado) {
   // contratto del vivo (_enviarPedidoDigitalInner): `nombre` composto per gli umani (piatto · modo · término), i CAMPI per le
   // macchine: `op` = il modo scelto (senza l'etichetta del prezzo), `termino`; `precio` porta DENTRO il sovrapprezzo
   // (Σ precio×qty resta vero ovunque) e `precio_base` dice il listino nudo quando c'è un sovrapprezzo.
-  const items = righe().map((r) => ({ id: r.p.id, nombre: nomeRiga(r), precio: prezzoRiga(r), qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '',
-    es_menu: false, promo: '', cat: r.p.c, precio_base: r.d ? prezzoOra(r.p).v : undefined }));
+  const items = righe().map((r) => Object.assign({ id: r.p.id, nombre: nomeRiga(r), precio: prezzoRiga(r), qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '',
+    es_menu: false, promo: '', cat: r.p.c, precio_base: r.d ? prezzoOra(r.p).v : undefined }, contMods(r)));
+  items.push(...bebideMenu(righe()));
   const itemsJson = JSON.stringify(items);
   if (S.uuidFirma !== itemsJson) { S.uuid = _uuid(); S.uuidFirma = itemsJson; }
   return { action: 'enviarPedido', local: LOCAL, uuid: S.uuid, mesa: MESA, total: totale().s,
