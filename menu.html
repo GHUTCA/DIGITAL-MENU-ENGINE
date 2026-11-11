@@ -558,7 +558,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.9</div>
+<div class="ver" id="ver">menu v0.10.10</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -801,7 +801,7 @@ function sceltaDi(p, m) {
   const g = dq.find((x) => x.k === 'm');
   return { m: m === 'Como viene' ? '' : m, d: (g && (g.ops.find((x) => x.o === m) || {}).d) || 0 };
 }
-function righe() { return Object.keys(S.cart).map((k) => { const [id, t, m] = k.split('§'); const p = S.prod.find((x) => x.id === id);
+function righe() { return Object.keys(S.cart).map((k) => { const [id, t, m] = k.split('§'); const p = S.prod.find((x) => x.id === id); if (p) (S.cartNomi = S.cartNomi || {})[id] = p.n;
   const sc = sceltaDi(p, m);
   return { k, p, t, m: sc.m, q: S.cart[k], d: sc.d }; }).filter((r) => r.p); }
 const qtyDi = (p) => righe().filter((r) => r.p.id === p.id).reduce((s, r) => s + r.q, 0);
@@ -1531,6 +1531,7 @@ function bebideMenu(rr) {
 }
 
 function payloadPedido(confirmado) {
+  carrelloRivedi();   // v0.10.10 · E1/E2: niente parte con una riga sparita o un menú con le scelte rotte
   // contratto del vivo (_enviarPedidoDigitalInner): `nombre` composto per gli umani (piatto · modo · término), i CAMPI per le
   // macchine: `op` = il modo scelto (senza l'etichetta del prezzo), `termino`; `precio` porta DENTRO il sovrapprezzo
   // (Σ precio×qty resta vero ovunque) e `precio_base` dice il listino nudo quando c'è un sovrapprezzo.
@@ -2004,9 +2005,33 @@ async function cartaRilegge() {
     PROD_SM.forEach((p) => { if (FF[p.id]) { p.img = FF[p.id].img; p.fy = FF[p.id].fy; } });
     if (cfg && typeof cfg === 'object' && Object.keys(cfg).length) S.cfg = cfg;
     S.prod = np; memberRivela(); await strumCarica();
+    carrelloRivedi();
     if (S.abierta && !S.prod.some((p) => p.id === S.abierta)) S.abierta = null;   // la scheda di un prodotto spento si chiude
   } catch (e) { /* resta la carta di prima */ }
 }
+/* v0.10.10 · i due 🟠 di 💵 EL GIRO su b73297a: la carta cambia mentre il cliente ha il carrello aperto.
+   E1 · un prodotto spento dall'admin spariva dal pedido SENZA DIRLO (righe() lo scarta) ⇒ ora esce dal carrello e il cliente lo legge.
+   E2 · un contenitore le cui scelte non combaciano più con le domande (un'opzione rinominata) partiva con meno mods e SENZA la bebida
+        in barra ⇒ ora esce dal carrello e il cliente lo rifà. Stessa guardia in payloadPedido, prima di spedire. */
+function sceltaRotta(p, k) {
+  if (!p || !p.mods) return false;
+  const pz = (k.split('§')[2] || '').split('¦'), dq = domande(p);
+  return pz.length !== dq.length || dq.some((q, i) => !q.ops.some((o) => o.o === pz[i]));
+}
+function carrelloRivedi() {
+  const via = [];
+  for (const k of Object.keys(S.cart || {})) {
+    const id = k.split('§')[0], p = S.prod.find((x) => x.id === id);
+    if (!p) { via.push({ k, t: (S.cartNomi && S.cartNomi[id]) || '', c: 'no' }); continue; }
+    if (sceltaRotta(p, k)) via.push({ k, t: p.n, c: 'rifai' });
+  }
+  if (!via.length) return;
+  via.forEach((x) => { delete S.cart[x.k]; });
+  const no = via.filter((x) => x.c === 'no').map((x) => x.t).filter(Boolean), rf = via.filter((x) => x.c === 'rifai').map((x) => x.t);
+  nota((no.length ? T('Ya no está disponible') + ': ' + no.join(', ') + '. ' : (via.some((x) => x.c === 'no') ? T('Un producto de tu pedido ya no está disponible') + '. ' : '')) +
+    (rf.length ? T('Elige de nuevo') + ': ' + rf.join(', ') + '.' : ''));
+}
+
 setInterval(async () => { if (!LOCAL || !S.prod.length || document.visibilityState !== 'visible') return; vestiPelle();
   if (++GIRO_N % 3 === 0) await cartaRilegge(); await leggiTick(); if (!scrivendo()) pinta(); }, 60000);
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && LOCAL && S.prod.length) { await cartaRilegge(); await leggiTick(); if (!scrivendo()) pinta(); } });
@@ -2040,11 +2065,12 @@ async function strumCarica() {
     const j = r.ok ? await r.json() : null;
     if (!j || !j.ok || String(j.strumenti_conto_on || '') !== '1' || !Array.isArray(j.strumenti)) { STRUM = null; S._sr = null; return; }
     if (!STRUM_FN) STRUM_FN = await import('./propuestas/regla.js');
-    STRUM = { strumenti: j.strumenti, parti: j.parti || [], gesti: j.gesti_hoy || [] }; S._sr = null;
+    STRUM = { strumenti: j.strumenti, parti: j.parti || [], gesti: j.gesti_hoy || [], ts: Date.now() }; S._sr = null;
   } catch (e) { /* bordo muto: resta lo stato di prima (spento al primo giro) */ }
 }
 const strumVig = (rows, key) => { const m = {}; for (const r of rows || []) m[key(r)] = r; return Object.values(m).filter((r) => !r.borrado); };
 function strumR() {
+  if (STRUM && Date.now() - (STRUM.ts || 0) > 10 * 60000) { STRUM = null; S._sr = null; }   // v0.10.10 · L6: bordo muto da 10' ⇒ niente prezzi di strumenti (la leva potrebbe essere già spenta)
   if (!STRUM || !STRUM_FN || !S.prod) return null;
   const k = Math.floor(Date.now() / 60000); if (S._sr && S._srk === k) return S._sr;
   const carta = {}; for (const id in (STRUM.carta || {})) carta[id] = STRUM.carta[id];   // i contenitori che la carta ancora non ha (Menú del día)
