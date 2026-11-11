@@ -3,24 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
   <title>Pinsita · Menú</title>
+  <!-- v3 · mer 11-nov-2026 · 📖 MENU BKS V32 · ordine di Alberto: «QR nuovo dentro oggi, QR vecchio chiuso».
+       La radice (sticker ?mesa=N) e il vecchio menu_digital.html mandano al menù nuovo menu.html.
+       ?local= (o ?l=) diventa ?l=, BKS se manca; mesa, depto, kiosco e l'hash passano intatti.
+       Il vecchio menu_digital.html vive nella storia git (commit prima di questo). -->
   <script>
-    // Redirige la raíz al menú conservando la query (?mesa=N&member=...&local=...).
-    // Así el QR limpio menu.pinsita.cl/?mesa=50 abre menu_digital.html?mesa=50.
-    // v2 (15-jul) · FIX QR NUOVI: il QR pulito ?mesa=N NON porta ?local= e
-    // menu_digital senza local mostra "Invalid QR" (validateLocal). Il DOMINIO
-    // è il locale: qui la porta d'ingresso aggiunge local=BKS se manca.
-    // Un ?local= esplicito nella query VINCE sempre (multilocal salvo).
     (function () {
-      var hash = location.hash || '';
-      var p = new URLSearchParams(location.search || '');
-      if (!p.get('local')) p.set('local', 'BKS');
-      location.replace('menu_digital.html?' + p.toString() + hash);
+      var q = new URLSearchParams(location.search || ''), o = new URLSearchParams();
+      var l = (q.get('l') || q.get('local') || 'BKS').toUpperCase();
+      o.set('l', /^[A-Z]{2,6}$/.test(l) ? l : 'BKS');
+      q.forEach(function (v, k) { if (k !== 'l' && k !== 'local') o.set(k, v); });
+      location.replace('menu.html?' + o.toString() + (location.hash || ''));
     })();
   </script>
-  <meta http-equiv="refresh" content="0; url=menu_digital.html">
 </head>
-<body style="font-family:system-ui,sans-serif;background:#111;color:#eee;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
-  <p>Abriendo el menú… <a href="menu_digital.html" style="color:#3fe0f0">toca aquí si no carga</a></p>
+<body style="font-family:system-ui,sans-serif;background:#0A0806;color:#eee;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
+  <p>Abriendo el menú… <a href="menu.html?l=BKS" style="color:#E8B04B">toca aquí si no carga</a></p>
 </body>
 </html>
