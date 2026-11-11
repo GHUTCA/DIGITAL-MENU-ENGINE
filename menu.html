@@ -558,7 +558,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.2</div>
+<div class="ver" id="ver">menu v0.10.3</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -694,13 +694,13 @@ function prodotti(csv) {
     d: r[ix('Descripcion')], dl: dCols.reduce((o, x) => { if (r[x[1]]) o[x[0]] = r[x[1]]; return o; }, {}), p: prezzo(r[ix('Precio')]), img: r[ix('Imagen_URL')] || '',
     activo: r[ix('Activo')] === 'TRUE', agotado: r[ix('Agotado')] === 'TRUE', visible: r[ix('Menu_Visible')] !== 'FALSE',
     hi: oraDec(r[ix('Hora_Inicio')], 0), hf: oraDec(r[ix('Hora_Fin')], 24),
-    sm: String(r[ix('Solo_Member')] || '').trim(), pm: prezzo(r[ix('Precio_Member')]) || 0,   // v0.10.2: il prezzo member, come il vecchio
+    sm: String(r[ix('Solo_Member')] || '').trim(), pm: prezzo(r[ix('Precio_Member')]) || 0, sp: String(r[ix('Sin_Precio')] || '').trim().toUpperCase() === 'TRUE',   // v0.10.2: il prezzo member, come il vecchio
     // le scelte che la carta porta già: il testo dei modificadores («Sola/Chelada +$1.500») e il badge della carne (→ término)
     mt: String(r[ix('Modificadores')] || '').trim(), carne: /\bcarne\b/i.test(r[ix('Badges')] || ''),
     // PINSA: lo sconto del canale depto non tocca chi porta `Sin_Descuento` (le Promociones) · le domande dai mod_* di Postgres
     sinDesc: String(r[ix('Sin_Descuento')] || '').trim().toUpperCase() === 'TRUE', mods: modsJSON(r[ix('Modificadores_JSON')]),
   // Solo_Member: il piatto non esiste per nessuno tranne chi porta quel tag (come il vivo). Rientra col member, passo dopo.
-  })).filter((p) => p.activo && p.visible && p.p > 0).filter((p) => { if (p.sm) { PROD_SM.push(p); return false; } return true; });
+  })).filter((p) => p.activo && p.visible && (p.p > 0 || (p.sm && p.sp))).filter((p) => { if (p.sm) { PROD_SM.push(p); return false; } return true; });   // v0.10.3 (Alberto 11-nov): i piatti FAM costano $0 con Sin_Precio: per il member passano
 }
 
 /* ═══ il tick: la stessa foto che il menù vivo chiede a Google ogni 60", qui letta dal bordo (sec menu_tick) ═══
