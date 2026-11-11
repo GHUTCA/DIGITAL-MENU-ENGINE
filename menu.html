@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head>
-<!-- menu v0.10.0 · mer 11-nov-2026 · 📖 MENU BKS V32 · ordine di Alberto: «QR nuovo dentro oggi, anche senza pagamento, QR vecchio chiuso». Nasce dalla DEMO 30 (v0.9.35) senza i pezzi da sala di prova. --><meta charset="utf-8">
+<!-- menu v0.10.1 (member dal GAS, tampone fino a ven 13) · v0.10.0 · mer 11-nov-2026 · 📖 MENU BKS V32 · ordine di Alberto: «QR nuovo dentro oggi, anche senza pagamento, QR vecchio chiuso». Nasce dalla DEMO 30 (v0.9.35) senza i pezzi da sala di prova. --><meta charset="utf-8">
 <meta name="theme-color" id="tc" content="#0A0806">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>Menú</title>
@@ -558,7 +558,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.0</div>
+<div class="ver" id="ver">menu v0.10.1</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -684,6 +684,7 @@ function parseCSV(t) {
 }
 const prezzo = (s) => Number(String(s || '').replace(/[^0-9]/g, '')) || 0;
 const oraDec = (s, def) => { const m = String(s || '').trim().match(/^(\d{1,2})\s*:?\s*(\d{1,2})?/); return m ? (+m[1]) + (m[2] ? (+m[2]) / 60 : 0) : def; };
+let PROD_SM = [];   // v0.10.1: i Solo_Member, fuori carta finché il member non li rivela
 function prodotti(csv) {
   const rows = parseCSV(csv); const h = rows[0] || []; const ix = (n) => h.indexOf(n);
   // v0.8: tutte le descrizioni della carta restano nel telefono (`dl`), così il 🌐 cambia lingua senza rileggere la carta
@@ -699,7 +700,7 @@ function prodotti(csv) {
     // PINSA: lo sconto del canale depto non tocca chi porta `Sin_Descuento` (le Promociones) · le domande dai mod_* di Postgres
     sinDesc: String(r[ix('Sin_Descuento')] || '').trim().toUpperCase() === 'TRUE', mods: modsJSON(r[ix('Modificadores_JSON')]),
   // Solo_Member: il piatto non esiste per nessuno tranne chi porta quel tag (come il vivo). Rientra col member, passo dopo.
-  })).filter((p) => p.activo && p.visible && p.p > 0 && !p.sm);
+  })).filter((p) => p.activo && p.visible && p.p > 0).filter((p) => { if (p.sm) { PROD_SM.push(p); return false; } return true; });
 }
 
 /* ═══ il tick: la stessa foto che il menù vivo chiede a Google ogni 60", qui letta dal bordo (sec menu_tick) ═══
@@ -857,7 +858,7 @@ function z1() {
   const casa = inPalco() ? '' : '<button class="casa" data-a="inicio" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>';
   // v0.8 · la riga intera del mockup v1.1: 🌐 sempre · LIVE solo a show acceso · Pagar (l'unico pieno) dopo il primo invio, con l'importo
   const cons = consumoTel();
-  const ati = CANAL === '' || !MESA || !S.atiende ? '' : '<em class="ati">' + T('te atiende') + ' <b>' + esc(S.atiende) + '</b></em>';
+  const ati = (S.member && S.member.nombre ? '<em class="ati">' + T('Hola') + ' <b>' + esc(String(S.member.nombre).split(' ')[0]) + '</b></em>' : '') + (CANAL === '' || !MESA || !S.atiende ? '' : '<em class="ati">' + T('te atiende') + ' <b>' + esc(S.atiende) + '</b></em>');
   return casa + '<div class="chi"><b class="mrc">' + esc(brand) + '</b><span' + (CANAL ? ' class="pst"' : '') + '>' + sotto + '</span>' + ati + '</div>' +
     '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
     (showAcceso() ? '<button class="live" data-a="djApri"><i></i>LIVE</button>' : '') +
@@ -1194,7 +1195,7 @@ async function inviaDono() {
   const pr = prezzoOra(p).v;
   const pl = { action: 'enviarPedido', local: LOCAL, uuid: d.uuid, mesa: MESA, total: pr,
     idioma: ((navigator.language || '') + '').slice(0, 8), idioma_menu: S.lang, plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
-    precios_epoch: (S.tick && S.tick.precios_epoch) || '', ritmo_activo: '', member: '',
+    precios_epoch: (S.tick && S.tick.precios_epoch) || '', ritmo_activo: '', member: (S.member && S.member.ok ? String(S.member.id) : ''),
     items_json: JSON.stringify([{ id: p.id, nombre: '🎁 ' + p.n, precio: pr, qty: 1, llevar: 1, op: '', termino: '', es_menu: false, promo: '', cat: p.c }]),
     regalo_para: d.mesa, regalo_nota: d.msg, regalo_firma: d.firma === 'anon' ? '' : 'de la mesa ' + MESA,
     confirmado: true, mesa_origen: 'qr', dispositivo_id: dispositivo(), ts: Date.now() };   // gesto deliberato: niente prompt fantasma (come il vivo)
@@ -1507,7 +1508,7 @@ function payloadPedido(confirmado) {
   return { action: 'enviarPedido', local: LOCAL, uuid: S.uuid, mesa: MESA, total: totale().s,
     idioma: ((navigator.language || '') + '').slice(0, 8), idioma_menu: S.lang,
     plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
-    precios_epoch: (S.tick && S.tick.precios_epoch) || '', ritmo_activo: '', member: '',
+    precios_epoch: (S.tick && S.tick.precios_epoch) || '', ritmo_activo: '', member: (S.member && S.member.ok ? String(S.member.id) : ''),
     items_json: itemsJson, envio_directo: false, destino: '', via: 'unica', confirmado: !!confirmado,
     mesa_origen: 'qr', dispositivo_id: dispositivo(), ts: Date.now(),
     conto_id: (cuentaLeer() || {}).id || '', conto_llave: (cuentaLeer() || {}).llave || '' };   // v0.9.24 · D-444: la chiave di QUESTO telefono (vuota = chiede conferma)   // la mesa viene sempre dal QR (?mesa=): menu.html non ha memoria di sessione
@@ -2092,6 +2093,33 @@ function opinionApri(dove, uuid) {
     if (v === 'ok') { if (!rv.mot.length) { nota(X[13]); return; } manda(); }
   });
 }
+/* ═══ v0.10.1 · IL MEMBER DELLA LISTA — 🩹 TAMPONE DICHIARATO (Alberto, mer 11-nov: «QR oggi, member dal GAS come tampone fino a ven 13») ═══
+   Cosa fa, come il vecchio menu_digital (r.14971-15060): ?member=ID (ricordato nel telefono, stessa chiave del vecchio) → getMember sul GAS
+   (tab MIEMBROS) ⇒ saluto «Hola <nombre>», i piatti Solo_Member della sua famiglia entrano in carta, l'ID va nel pedido.
+   Ottimista: l'ultimo riconoscimento vive nel telefono e si pinta subito; il GAS corregge solo se smentisce.
+   🔴 È L'UNICA LETTURA DA GOOGLE DI QUESTO MENÙ. La uccide: `miembros` in PG (🚚 MIGRA) + GET /member/<LOCAL> del bordo (🎛 BKP),
+   data ven 13 (bacheca «IL MEMBER BLOCCA: ORE, DA DOVE LEGGE, ORA NUOVA»). Quel giorno questo fetch passa al bordo e GAS_MEMBER sparisce. */
+const GAS_MEMBER = 'https://script.google.com/macros/s/AKfycbzZkS3bBaYc34uJ6wXP9FG13i58-NT0FJp964vqkUYbRObUxryeRb9l_Fz24kb42f5t/exec';
+const MEMBER_ID = (() => { const okId = (x) => /^[A-Za-z0-9_-]{2,30}$/.test(x || '');
+  const q = qs.get('member'); const k = 'menu_member_' + (LOCAL || 'X');
+  try { if (okId(q)) { localStorage.setItem(k, q); return q; } const m = localStorage.getItem(k); return okId(m) ? m : ''; } catch (e) { return okId(q) ? q : ''; } })();
+function memberRivela() {
+  if (!S.member || !PROD_SM.length || !S.prod) return false;
+  const yo = [S.member.id, S.member.familia].map((x) => String(x || '').trim().toLowerCase()).filter(Boolean);
+  const miei = PROD_SM.filter((p) => p.sm.toLowerCase().split(',').map((t) => t.trim()).some((t) => yo.indexOf(t) >= 0) && !S.prod.some((x) => x.id === p.id));
+  miei.forEach((p) => S.prod.push(p)); return miei.length > 0;
+}
+function memberPinta(d) { S.member = d; memberRivela(); if (S.prod) pinta(); }
+async function memberCarica() {
+  if (!MEMBER_ID) return;
+  const ck = 'pinsita_member_' + MEMBER_ID; let ottimista = false;
+  try { const c = JSON.parse(localStorage.getItem(ck) || 'null'); if (c && c.ok && String(c.id) === MEMBER_ID) { memberPinta(c); ottimista = true; } } catch (e) { /* niente */ }
+  try {
+    const d = await (await fetch(GAS_MEMBER + '?action=getMember&id=' + encodeURIComponent(MEMBER_ID) + '&local=' + encodeURIComponent(LOCAL))).json();
+    if (d && d.ok) { try { localStorage.setItem(ck, JSON.stringify(d)); } catch (e) { /* solo memoria */ } memberPinta(d); }
+    else if (d && d.ok === false && ottimista) { try { localStorage.removeItem(ck); } catch (e) { /* niente */ } S.member = null; if (S.prod) pinta(); }
+  } catch (e) { /* Google lento o giù: resta l'ottimista, la carta non aspetta */ }
+}
 (async function avvio() {
   S.lang = langIniziale(); document.documentElement.lang = S.lang;   // v0.8: la lingua del telefono, o quella scelta col 🌐 l'ultima volta
   if (!LOCAL) { document.getElementById('z3').innerHTML = '<div class="msg"><b>Escanea el QR de tu mesa</b>Así sabemos dónde estás y qué carta mostrarte.</div>'; return; }
@@ -2107,7 +2135,7 @@ function opinionApri(dove, uuid) {
     S.cfg = (jc && jc.datos && jc.datos.datos && jc.datos.datos.config) || {};
     /* SALA DEMO (Alberto 2-nov: «la demo serve a provare tutto»): SOLO in questa copia, SOLO sulla mesa 998 di prova, invio e voce
        del cliente accesi senza toccare la config del locale. Le altre mesas restano a guardare. Il menu.html vivo non ha questa riga. */
-    S.prod = prodotti(await rk.text());
+    S.prod = prodotti(await rk.text()); memberRivela(); memberCarica();
     S.prod.forEach((p) => { if (ff[p.id]) { p.img = ff[p.id].img; p.fy = ff[p.id].fy; } });
     await leggiTick();
     if (S.cfg.brand_name) document.title = S.cfg.brand_name;
