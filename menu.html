@@ -558,7 +558,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.7</div>
+<div class="ver" id="ver">menu v0.10.8</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1514,7 +1514,8 @@ function contScelte(r) {
 /* v0.10.7 · la STESSA forma della sala viva (🛎 SALA, «LA FORMA DELLA RIGA DI MENÚ», sala.html aea5c1c r.7499-7597): il contenitore si chiama
    col suo nome e basta, op vuoto, e la cucina legge il piatto dai mods (se il nome portasse anche le scelte il cuoco le leggerebbe due volte).
    mods: g · gn · oid · o · d · cl dove PG li porta (g/oid/cl li aggiunge 🎛 BKP all'allaccio), più ref; precio_base = il contenitore. */
-const contMods = (r) => { const m = contScelte(r); return m.length ? { mods: m, nombre: r.p.n, op: '', precio_base: prezzoOra(r.p).v, pri: 0 } : {}; };
+// v0.10.8 (🛎 SALA, «UNA CORREZIONE ALLA FORMA»): ref e menu_beb_de NON viaggiano — la sala li usa solo sul telefono. Il libro riconosce la bebida da es_menu + precio 0.
+const contMods = (r) => { const m = contScelte(r).map(({ ref, ...x }) => x); return m.length ? { mods: m, nombre: r.p.n, op: '', precio_base: prezzoOra(r.p).v, pri: 0 } : {}; };
 function bebideMenu(rr) {
   const bc = barraCats(), out = {};
   rr.forEach((r) => contScelte(r).forEach((m) => {
@@ -1522,7 +1523,7 @@ function bebideMenu(rr) {
     const cat = pb ? pb.c : ''; if (!pb || bc.indexOf(String(cat).toLowerCase()) < 0) return;   // solo ciò che va in BARRA: il piatto sta già nel contenitore
     const key = m.ref + '|' + r.p.id;
     if (out[key]) { out[key].qty += r.q; out[key].llevar += r.q; }
-    else out[key] = { id: m.ref, nombre: r.p.n + ' · ' + pb.n, precio: 0, qty: r.q, llevar: r.q, op: '', termino: '', es_menu: true, promo: '', pri: 0, cat: cat, menu_beb_de: r.p.id };
+    else out[key] = { id: m.ref, nombre: r.p.n + ' · ' + pb.n, precio: 0, qty: r.q, llevar: r.q, op: '', termino: '', es_menu: true, promo: '', pri: 0, cat: cat };
   }));
   return Object.values(out);
 }
