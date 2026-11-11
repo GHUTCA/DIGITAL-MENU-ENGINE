@@ -558,7 +558,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.3</div>
+<div class="ver" id="ver">menu v0.10.4</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1955,8 +1955,29 @@ async function leggiTick() {
 // un giro ogni 60", come il vivo, e solo col telefono in mano (sostituisce il poll a Google, non se ne aggiunge uno)
 // PINSA: mentre il cliente scrive nella cassa il tick si aggiorna ma non ridisegna (perderebbe il campo e la tastiera)
 const scrivendo = () => !!(document.activeElement && document.activeElement.closest && document.activeElement.closest('.ckf'));
-setInterval(async () => { if (!LOCAL || !S.prod.length || document.visibilityState !== 'visible') return; vestiPelle(); await leggiTick(); if (!scrivendo()) pinta(); }, 60000);
-document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && LOCAL && S.prod.length) { await leggiTick(); if (!scrivendo()) pinta(); } });
+/* v0.10.4 (Alberto 11-nov: «ho messo il piatto OFF nell'admin ma lo vedo sempre, non esiste come ricaricare la pagina»): fino a qui il menù
+   leggeva la CARTA una volta sola, all'apertura; il giro dei 60" portava solo il tick (prezzi di fascia, nascosti, agotados). Un prodotto spento
+   dall'admin restava sul telefono finché il cliente non riapriva il link — e nella pagina che scorre dentro .z3 tirare giù non ricarica.
+   Ora la carta (e la config: la leva dell'invio) si rilegge ogni 3 minuti e ogni volta che il cliente torna sulla pagina. Se il bordo non
+   risponde resta la carta di prima: mai una carta vuota. Il tempo reale vero è il push (N2): questo è il ripiego dichiarato fino ad allora. */
+let FF = {}, GIRO_N = 0;
+async function cartaRilegge() {
+  try {
+    const [rc, rk] = await Promise.all([leggi(BORDO + '/estado/' + LOCAL + '?seccion=menu_config&t=' + TOKEN_LETTURA), leggi(BORDO + '/carta/' + LOCAL + '?t=' + TOKEN_LETTURA)]);
+    const jc = await rc.json(), cfg = jc && jc.datos && jc.datos.datos && jc.datos.datos.config;
+    const testo = await rk.text(), salvaSm = PROD_SM.slice(); PROD_SM.length = 0;
+    const np = prodotti(testo);
+    if (!np.length) { PROD_SM.push(...salvaSm); return; }   // una carta vuota non sostituisce quella buona
+    np.forEach((p) => { if (FF[p.id]) { p.img = FF[p.id].img; p.fy = FF[p.id].fy; } });
+    PROD_SM.forEach((p) => { if (FF[p.id]) { p.img = FF[p.id].img; p.fy = FF[p.id].fy; } });
+    if (cfg && typeof cfg === 'object' && Object.keys(cfg).length) S.cfg = cfg;
+    S.prod = np; memberRivela();
+    if (S.abierta && !S.prod.some((p) => p.id === S.abierta)) S.abierta = null;   // la scheda di un prodotto spento si chiude
+  } catch (e) { /* resta la carta di prima */ }
+}
+setInterval(async () => { if (!LOCAL || !S.prod.length || document.visibilityState !== 'visible') return; vestiPelle();
+  if (++GIRO_N % 3 === 0) await cartaRilegge(); await leggiTick(); if (!scrivendo()) pinta(); }, 60000);
+document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && LOCAL && S.prod.length) { await cartaRilegge(); await leggiTick(); if (!scrivendo()) pinta(); } });
 /* LE NOSTRE FOTO (v0.5.3, Alberto 28-ott): vivono in questo repo, `fotos/<LOCAL>/<id>.webp`, elencate in `fotos/fotos.json`
    ({"BKS":{"BKS-BAR-002":"BKS-BAR-002.webp"}}), e vincono sulla `Imagen_URL` della carta. Mai su Google.
    ⏳ TAMPONE dichiarato: lo uccide il catalogo nativo in Postgres (AUT-0752, seme sab 31-ott), dove la foto è una colonna del prodotto.
@@ -2138,7 +2159,7 @@ async function memberCarica() {
     /* SALA DEMO (Alberto 2-nov: «la demo serve a provare tutto»): SOLO in questa copia, SOLO sulla mesa 998 di prova, invio e voce
        del cliente accesi senza toccare la config del locale. Le altre mesas restano a guardare. Il menu.html vivo non ha questa riga. */
     S.prod = prodotti(await rk.text()); memberRivela(); memberCarica();
-    S.prod.forEach((p) => { if (ff[p.id]) { p.img = ff[p.id].img; p.fy = ff[p.id].fy; } });
+    FF = ff || {}; S.prod.forEach((p) => { if (ff[p.id]) { p.img = ff[p.id].img; p.fy = ff[p.id].fy; } });
     await leggiTick();
     if (S.cfg.brand_name) document.title = S.cfg.brand_name;
     if (String(S.cfg.tema || '').toLowerCase() === 'claro') document.documentElement.classList.add('claro');   // PINSA: il tema del local
