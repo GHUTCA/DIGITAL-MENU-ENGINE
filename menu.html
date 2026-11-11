@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head>
-<!-- menu v0.10.1 (member dal GAS, tampone fino a ven 13) · v0.10.0 · mer 11-nov-2026 · 📖 MENU BKS V32 · ordine di Alberto: «QR nuovo dentro oggi, anche senza pagamento, QR vecchio chiuso». Nasce dalla DEMO 30 (v0.9.35) senza i pezzi da sala di prova. --><meta charset="utf-8">
+<!-- menu v0.10.2 (prezzo member) · v0.10.1 (member dal GAS, tampone fino a ven 13) · v0.10.0 · mer 11-nov-2026 · 📖 MENU BKS V32 · ordine di Alberto: «QR nuovo dentro oggi, anche senza pagamento, QR vecchio chiuso». Nasce dalla DEMO 30 (v0.9.35) senza i pezzi da sala di prova. --><meta charset="utf-8">
 <meta name="theme-color" id="tc" content="#0A0806">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>Menú</title>
@@ -115,7 +115,7 @@ button{font-family:inherit}
    bicchiere stanno nella metà bassa della foto (il tavolo), il cielo della foto è il fondo del bar. Default 60%; una foto nostra
    può dichiarare il suo punto in fotos.json ({"f":"x.webp","y":70}). */
 .det .fo::before{background-size:cover;filter:blur(16px) brightness(.45);transform:scale(1.1)}
-.det .fo::after{background-size:cover}
+.det .fo::after{background-size:contain}   /* v0.10.2 (Alberto 11-nov, Chardonnay Sour tagliato): il prodotto si vede INTERO; ai lati e sopra/sotto resta la stessa foto sfocata del ::before */
 .det .fo.tg::before,.det .fo.tg::after{content:none}
 .det .fo>*{position:relative;z-index:1}
 .det .fo.tg{display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;font-family:Fraunces,Georgia,serif;font-weight:300;font-size:25px;color:#fff;
@@ -125,7 +125,7 @@ button{font-family:inherit}
 .det .bd{flex:0 0 auto;padding:6px 13px 7px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n p" "d d";column-gap:10px;align-items:baseline}
 .det .bd h2{grid-area:n}.det .bd .pz{grid-area:p;text-align:right}.det .bd .ds{grid-area:d}
 .det h2{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:20px;margin:0;letter-spacing:-.3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.det .ds{font-size:12px;color:var(--suave);line-height:1.4;margin:3px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.det .ds{font-size:13px;font-weight:500;color:var(--suave);line-height:1.4;   /* v0.10.2 (Alberto 11-nov: «troppo sottile»): 12→13px, 400→500 */ margin:3px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .det .pz{font-size:19px;font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
 .mini{flex:0 0 auto;border-top:1px solid var(--linea2);background:var(--velo);padding:9px 8px 5px;display:flex;gap:8px;
   overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-padding-inline:8px}
@@ -558,7 +558,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.1</div>
+<div class="ver" id="ver">menu v0.10.2</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -694,7 +694,7 @@ function prodotti(csv) {
     d: r[ix('Descripcion')], dl: dCols.reduce((o, x) => { if (r[x[1]]) o[x[0]] = r[x[1]]; return o; }, {}), p: prezzo(r[ix('Precio')]), img: r[ix('Imagen_URL')] || '',
     activo: r[ix('Activo')] === 'TRUE', agotado: r[ix('Agotado')] === 'TRUE', visible: r[ix('Menu_Visible')] !== 'FALSE',
     hi: oraDec(r[ix('Hora_Inicio')], 0), hf: oraDec(r[ix('Hora_Fin')], 24),
-    sm: String(r[ix('Solo_Member')] || '').trim(),
+    sm: String(r[ix('Solo_Member')] || '').trim(), pm: prezzo(r[ix('Precio_Member')]) || 0,   // v0.10.2: il prezzo member, come il vecchio
     // le scelte che la carta porta già: il testo dei modificadores («Sola/Chelada +$1.500») e il badge della carne (→ término)
     mt: String(r[ix('Modificadores')] || '').trim(), carne: /\bcarne\b/i.test(r[ix('Badges')] || ''),
     // PINSA: lo sconto del canale depto non tocca chi porta `Sin_Descuento` (le Promociones) · le domande dai mod_* di Postgres
@@ -718,6 +718,8 @@ function prezzoOra(p) {
   const r = inMenuDia(p) ? null : (tickP().reglas || {})[p.id];
   // priorità del vivo: regla-fascia > base; il barrato solo se la regola ABBASSA
   let z = { v: p.p, orig: 0 };
+  // v0.10.2 (🟡ⓐ di EL GIRO): col member riconosciuto vince Precio_Member, come nel vecchio menu_digital (r.10461). Fuori dal menú del día.
+  if (S.member && S.member.ok && p.pm > 0 && !inMenuDia(p)) return { v: p.pm, orig: p.pm < p.p ? p.p : 0 };
   if (r && r.precio > 0 && r.precio !== p.p) z = { v: r.precio, orig: r.precio < p.p ? p.p : 0 };
   // PINSA: lo sconto del canale depto si confronta col prezzo di adesso e vince solo se è più basso (mai due sconti sommati)
   const sx = strumP(p.id);   // SALA DEMO: il prezzo dello strumento (precio fijo, botellas, recargo), solo mostrato
