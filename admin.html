@@ -153,6 +153,9 @@
   .crow .cn { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600; }
   .crow .cn small { display:block; font-weight:400; font-size:11.5px; color:var(--text-muted); }
   .crow .cp { font-family:'JetBrains Mono',monospace; font-size:13px; white-space:nowrap; }
+  .swl { display:flex; align-items:center; gap:6px; } .swl em { font-style:normal; font-size:11.5px; color:var(--text-muted); white-space:nowrap; }   /* v1.0.2 · l'interruttore dice cosa fa */
+  .capa { margin-top:14px; padding-top:12px; border-top:1px solid var(--surface-3); display:flex; flex-wrap:wrap; gap:8px; align-items:center; }   /* v1.0.2 · «Apagar» */
+  .capa .pbt.dan { border-color:#c0392b; color:#c0392b; } .capa .pbt.dan.pie { background:#c0392b; color:#fff; }
   .crow .ch2 { font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-muted); white-space:nowrap; }
   @media (max-width:560px){ .crow { grid-template-columns:minmax(0,1fr) auto auto; } .crow .ch2 { display:none; } }
   .cdet { border-color:var(--success); }
@@ -187,7 +190,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.0.1</div>
+  <div id="ver">admin v1.0.2</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -299,7 +302,7 @@ function apriTab(t){
 document.querySelector('.tabs').addEventListener('click', (ev) => { const b = ev.target.closest('.tab'); if (b) apriTab(b.dataset.tab); });
 
 /* ═══ LA CARTA (GET/POST /cartaAdmin) — anche le Propuestas la usano per i nomi ═══ */
-const C = { list:null, all:null, off:false, at:0, stato:'', q:'', cat:'todas', sel:null, err:'', busy:false };   // v1.0.1: `all` anche gli apagados, `off` = «Ver apagados» (spento di base: ordine di Alberto 8-nov)
+const C = { list:null, all:null, off:false, at:0, stato:'', q:'', cat:'todas', sel:null, err:'', busy:false, conf:null };   // v1.0.1: `all` anche gli apagados, `off` = «Ver apagados» (spento di base: ordine di Alberto 8-nov)
 const CARTA_ERR = { version_cambiata:'Otro cambió este producto · recargué', firmante_no_autorizado:'Tu PIN no puede cambiar la carta', pin_jl_invalido:'PIN incorrecto · vuelve a entrar',
   pin_jl_bloqueado:'PIN bloqueado · espera', producto_desconocido:'El producto no está en la carta', pg_no_responde:'La carta no responde · reintenta', precio_invalido:'Precio inválido', hora_invalida:'Hora inválida',
   ruta_apagada:'La carta aún no está activa', gesto_id_ajeno:'Error del panel · recarga la página', token_invalido:'Sin acceso al servidor' };
@@ -353,7 +356,7 @@ function cartaPinta(){
         '<div class="crow' + (C.sel === p.id_producto ? ' sel' : '') + '" data-ca="apri" data-k="' + esc(p.id_producto) + '" role="button" tabindex="0">' +
         '<span class="cn">' + esc(p.nombre) + '<small>' + esc(p.menu_visible === false ? 'Oculto de la carta' : p.vendible ? 'Se vende ahora' : 'No se vende ahora') + '</small></span>' +
         '<span class="ch2">' + esc(ora(p)) + '</span><span class="cp">' + (p.sin_precio ? 'sin precio' : clp(p.precio)) + '</span>' +
-        '<button class="sw' + (p.menu_visible !== false ? ' on' : '') + '" data-ca="visibile" data-k="' + esc(p.id_producto) + '" aria-label="En la carta" aria-pressed="' + (p.menu_visible !== false) + '"' + (scrive ? '' : ' disabled') + '></button></div>').join('') +
+        '<span class="swl"><em>En carta</em><button class="sw' + (p.menu_visible !== false ? ' on' : '') + '" data-ca="visibile" data-k="' + esc(p.id_producto) + '" aria-label="En la carta" aria-pressed="' + (p.menu_visible !== false) + '"' + (scrive ? '' : ' disabled') + '></button></span></div>').join('') +
       '</div></div>').join('') : (LO.length ? '' : '<div class="pbox vuoto">Nada con ese filtro.</div>')) +
     (LO.length ? '<div class="pbox"><h2>Apagados · ' + LO.length + '</h2><div class="cgrp">' + LO.sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es')).map((p) =>
         '<div class="crow off"><span class="cn">' + esc(p.nombre) + '<small>' + esc((p.categoria || 'otros') + ' · apagado: no se ve ni se vende') + '</small></span>' +
@@ -375,6 +378,10 @@ function cartaDettaglio(){
     '</div>' +
     '<div class="nota">Horas de 24 h: <b class="mono">03:00</b> es de madrugada, <b class="mono">15:00</b> de tarde. Puedes escribir solo los números (<b class="mono">330</b> → 03:30). Vacío en «Desde» = desde que abre; vacío en «Hasta» = cierra con su estación.</div>' +
     (p.sin_precio ? '<div class="nota" style="margin-top:6px">Este producto está «sin precio» por decisión: no se cambia desde aquí.</div>' : '') +
+    (dis ? '' : (C.conf === p.id_producto
+      ? '<div class="capa"><span>¿Apagar <b>' + esc(p.nombre) + '</b>? No se verá ni se venderá, en el QR ni en el mesero.</span>' +
+        '<button class="pbt dan pie" data-ca="apagaSi">Sí, apagar</button><button class="pbt" data-ca="apagaNo">No</button></div>'
+      : '<div class="capa"><button class="pbt dan" data-ca="apaga">Apagar producto</button><span class="nota">Lo puedes volver a encender desde «Ver apagados».</span></div>')) +
   '</div>';
 }
 async function cartaSalva(){
@@ -405,11 +412,17 @@ document.getElementById('cartaApp').addEventListener('click', async (ev) => {
     const vis = p.menu_visible !== false;
     if (await cartaGesto(p, 'menu_visible', !vis)) toast('ok', vis ? 'Oculto de la carta: ' + p.nombre : 'De vuelta en la carta: ' + p.nombre);
     await cartaCarica(); return; }
-  if (a === 'apri') { C.sel = k; C.err = ''; cartaPinta(); const d = document.getElementById('cDet'); if (d) d.scrollIntoView({ behavior:'smooth', block:'start' }); return; }
-  if (a === 'chiudi') { C.sel = null; C.err = ''; cartaPinta(); return; }
+  if (a === 'apri') { C.sel = k; C.err = ''; C.conf = null; cartaPinta(); const d = document.getElementById('cDet'); if (d) d.scrollIntoView({ behavior:'smooth', block:'start' }); return; }
+  if (a === 'chiudi') { C.sel = null; C.err = ''; C.conf = null; cartaPinta(); return; }
   if (a === 'salva') { el.disabled = true; try { await cartaSalva(); } finally { el.disabled = false; } return; }
   if (a === 'cat') { C.cat = k; cartaPinta(); return; }
   if (a === 'veroff') { C.off = !C.off; cartaPinta(); return; }
+  if (a === 'apaga') { C.conf = C.sel; cartaPinta(); return; }   // v1.0.2 · primo tocco: solo la domanda, niente scritto
+  if (a === 'apagaNo') { C.conf = null; cartaPinta(); return; }
+  if (a === 'apagaSi') { const p = (C.list || []).find((x) => x.id_producto === C.conf); if (!p) { C.conf = null; cartaPinta(); return; } el.disabled = true;
+    const ok = await cartaGesto(p, 'activo', false);   // lo stesso gesto del bordo, col PIN e il base_ts della versione vista
+    if (ok) { toast('ok', 'Apagado: ' + p.nombre); C.conf = null; C.sel = null; await cartaCarica(); } else el.disabled = false;
+    return; }
   if (a === 'enciende') { const p = (C.all || []).find((x) => x.id_producto === k); if (!p) return; el.disabled = true;   // v1.0.1 · lo stesso gesto `activo` del bordo, col PIN e la versione vista
     if (await cartaGesto(p, 'activo', true)) toast('ok', 'Encendido: ' + p.nombre); else el.disabled = false;
     await cartaCarica(); return; }
