@@ -192,7 +192,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.1.0</div>
+  <div id="ver">admin v1.1.1</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -375,7 +375,8 @@ function cartaPinta(){
    numero dopo e una chiave NUOVA (è un altro gesto). Il ritento di rete riusa lo stesso corpo e la stessa chiave. */
 const puedeCrear = () => !!(SES && SES.puede && SES.puede.carta_crear);
 const CREA_ID_RE = /^[A-Z0-9][A-Z0-9_-]{1,59}$/;
-function creaCats(){ return [...new Set((C.all || []).map((p) => p.categoria).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')); }
+const CREA_CAT_FUORI = ['menu_contenitore'];   // v1.1.1 · N3 di EL GIRO: un contenitore senza domande il cliente lo vedrebbe «pronto». Non si crea da qui.
+function creaCats(){ return [...new Set((C.all || []).map((p) => p.categoria).filter((c) => c && CREA_CAT_FUORI.indexOf(c) < 0))].sort((a, b) => a.localeCompare(b, 'es')); }
 /* il prefisso più usato fra gli ID della categoria, e il numero dopo il più alto con quel prefisso in tutto il local (larghezza uguale) */
 function creaIdPropone(cat, salto){
   const tutti = (C.all || []).map((p) => String(p.id_producto || ''));
@@ -436,6 +437,7 @@ async function creaInvia(){
   N.id = id;
   N.err = j.error === 'red' ? 'Sin conexión · reintenta' : (CARTA_ERR[j.error] || j.error || 'No se pudo crear');
   if (j.error === 'firmante_no_autorizado') N.err = 'Solo el gerente puede crear productos';
+  if (j.error === 'pg_rechazo') N.err = 'Ese código no se puede usar · prueba otro';   // v1.1.1 · N2 di EL GIRO: un codice di un altro locale, rifiutato dal libro
   cartaPinta();
 }
 function cartaDettaglio(){
