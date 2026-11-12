@@ -145,7 +145,7 @@ button{font-family:inherit}
   justify-content:center;align-items:stretch;text-align:center;gap:3px;padding:9px 6px 4px}
 .mini .cd.ora::before{content:"VER ▲";position:absolute;top:-7px;left:50%;transform:translateX(-50%);padding:0 6px;background:var(--bg);line-height:12px;white-space:nowrap;
   font-size:9.5px;font-weight:800;letter-spacing:.08em;color:var(--oro)}
-.ver .vnm{font-size:10.5px;font-weight:700;color:var(--suave);line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.ver .vnm{font-size:14px;   /* v0.10.15 (🎨 14-nov): come la griglia, 10,5→14 */ font-weight:700;color:var(--suave);line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
 .ver .vpd{background:var(--ok);color:var(--ok-txt);border-radius:9px;font-weight:800;font-size:13px;letter-spacing:.03em;padding:6px 4px}
 .ver .vpz{font-size:13px;font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
 .ver .vst{display:flex;gap:6px;align-items:center}
@@ -649,6 +649,18 @@ const T = (w) => { const d = TR[S.lang]; return (d && d[w]) || w; };
   ['fr', {"¿En qué te ayudamos?": "Comment pouvons-nous t’aider ?", "Tu mesero viene a tu mesa.": "Ton serveur arrive à ta table.", "Tengo una duda sobre un plato": "J’ai une question sur un plat", "ingredientes, alergias, qué me recomiendas": "ingrédients, allergies, que me conseilles-tu", "Algo no está bien con mi pedido": "Quelque chose ne va pas avec ma commande", "falta algo, llegó frío, no es lo que pedí": "il manque quelque chose, arrivé froid, pas ce que j’ai commandé", "Falta algo en la mesa": "Il manque quelque chose sur la table", "servilletas, cubiertos, hielo, salsas": "serviettes, couverts, glaçons, sauces", "Quiero pagar con la máquina": "Je veux payer par carte", "te traemos el POS": "on t’apporte le terminal", "Celebramos algo 🎂": "On fête quelque chose 🎂", "cumpleaños, aniversario: te ayudamos a sorprender": "anniversaire : on t’aide à faire une surprise", "Otra cosa": "Autre chose", "🔔 Le avisamos a tu mesero · viene en un momento": "🔔 Ton serveur est prévenu · il arrive", "🔔 Tu mesero ya fue avisado · va en camino": "🔔 Ton serveur est déjà au courant · il arrive", "No pudimos avisar al mesero — inténtalo de nuevo o avísale en persona": "Impossible de prévenir le serveur — réessaie ou dis-le-lui en personne", "No reconocemos esta mesa — avísale al mesero en persona": "On ne reconnaît pas cette table — préviens le serveur en personne", "te atiende": "te sert", "¿Y cómo te atendió": "Et comment t’a servi", "Tus pedidos": "Tes commandes", "toca ＋ para pedir otra vez": "touche ＋ pour recommander", "VER Y ENVIAR": "VOIR ET ENVOYER", "¿Listo? Toca para enviar": "Prêt ? Touche pour envoyer", "Elige arriba": "Choisis au-dessus"}],
   ['ja', {"¿En qué te ayudamos?": "ご用件は？", "Tu mesero viene a tu mesa.": "担当スタッフが席に向かいます。", "Tengo una duda sobre un plato": "料理について質問があります", "ingredientes, alergias, qué me recomiendas": "材料、アレルギー、おすすめ", "Algo no está bien con mi pedido": "注文に問題があります", "falta algo, llegó frío, no es lo que pedí": "足りない、冷めている、注文と違う", "Falta algo en la mesa": "テーブルに足りないものがあります", "servilletas, cubiertos, hielo, salsas": "ナプキン、カトラリー、氷、ソース", "Quiero pagar con la máquina": "カードで払いたい", "te traemos el POS": "カード端末をお持ちします", "Celebramos algo 🎂": "お祝いがあります 🎂", "cumpleaños, aniversario: te ayudamos a sorprender": "誕生日・記念日：サプライズをお手伝いします", "Otra cosa": "その他", "🔔 Le avisamos a tu mesero · viene en un momento": "🔔 担当スタッフに伝えました · すぐ伺います", "🔔 Tu mesero ya fue avisado · va en camino": "🔔 担当スタッフはもう知っています · 向かっています", "No pudimos avisar al mesero — inténtalo de nuevo o avísale en persona": "スタッフに伝えられませんでした — もう一度試すか直接伝えてください", "No reconocemos esta mesa — avísale al mesero en persona": "このテーブルを認識できません — スタッフに直接伝えてください", "te atiende": "担当", "¿Y cómo te atendió": "サービスはいかがでしたか：", "Tus pedidos": "あなたの注文", "toca ＋ para pedir otra vez": "＋で同じものを注文", "VER Y ENVIAR": "確認して送信", "¿Listo? Toca para enviar": "準備OK？タップで送信", "Elige arriba": "上で選んでください"}],
 ].forEach(([l, d]) => { TR[l] = Object.assign(TR[l] || {}, d); });
+/* v0.10.15 (🎨 DESIGN 14-nov: «la lingua della carta non cambia senza che il cliente lo scelga»): la domanda delle scelte e il suo
+   «elige uno», nelle 8 lingue. Il titolo di un gruppo che viene dal vocabolario passa da T() e resta com'è se non ha traduzione. */
+[
+  ['en', {"¿Cómo lo quieres?":"How would you like it?","elige uno":"choose one"}],
+  ['pt', {"¿Cómo lo quieres?":"Como você prefere?","elige uno":"escolha um"}],
+  ['it', {"¿Cómo lo quieres?":"Come lo vuoi?","elige uno":"scegline uno"}],
+  ['zh', {"¿Cómo lo quieres?":"你想要怎样的？","elige uno":"选一个"}],
+  ['ko', {"¿Cómo lo quieres?":"어떻게 해 드릴까요?","elige uno":"하나 선택"}],
+  ['de', {"¿Cómo lo quieres?":"Wie möchtest du es?","elige uno":"wähle eins"}],
+  ['fr', {"¿Cómo lo quieres?":"Comment le veux-tu ?","elige uno":"choisis-en un"}],
+  ['ja', {"¿Cómo lo quieres?":"どのようにしますか？","elige uno":"1つ選んでください"}],
+].forEach(([l, d]) => { TR[l] = Object.assign(TR[l] || {}, d); });
 const S = { cfg: null, prod: [], tick: null, fam: null, cat: null, abierta: null, cart: {}, pedido: false,
   inviando: null, inviaStato: '', uuid: '', uuidFirma: '', listo: null, need: '', errore: '', agotLoc: [], campana: false, sel: {},
   // v0.7: l'inizio (palco + destacados) · la vetrina del locale · «Otra vez» · il regalo a otra mesa
@@ -898,7 +910,7 @@ function verCard(p) {
   if (!pide()) return '<div class="cd ora ver">' + vnm + '<div class="vpd">' + (CANAL ? 'Pronto podrás pedir aquí' : 'Escanea tu mesa') + '</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
   if (chiedeScelta(p)) return '<div class="cd ora ver">' + vnm + '<div class="vpd off">' + T('Con opciones · pronto') + '</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
   const dq = domande(p);
-  if (dq.length && !sceltaCompleta(p)) return '<div class="cd ora ver">' + vnm + '<div class="vpd off">Elige arriba ↑</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
+  if (dq.length && !sceltaCompleta(p)) return '<div class="cd ora ver">' + vnm + '<div class="vpd off">' + T('Elige arriba') + ' ↑</div><div class="vpz">' + clp(prezzoOra(p).v) + '</div></div>';
   // la card conta la SCELTA fatta sopra, non il piatto: «1 A punto» e poi «Jugoso» sono due righe
   const ks = chiaveSel(p), q = S.cart[ks] || 0, s = selDi(p);
   const sc = sceltaDi(p, mSel(p)), r = { p, t: s.t, m: sc.m, d: sc.d };
@@ -921,7 +933,7 @@ function pedGrande(p) {
 // le domande nella scheda grande: chip, una risposta per domanda; il sovrapprezzo SUL chip
 function domandeHTML(p) {
   if (!pide() || !ordinabile(p)) return '';
-  return domande(p).map((q) => '<div class="prep"><div class="q">' + esc(q.tit) + (selDi(p)[q.k] ? '' : ' <span class="mreq">elige uno</span>') + '</div><div class="op">' +
+  return domande(p).map((q) => '<div class="prep"><div class="q">' + esc(T(q.tit)) + (selDi(p)[q.k] ? '' : ' <span class="mreq">' + esc(T('elige uno')) + '</span>') + '</div><div class="op">' +
     q.ops.map((o) => '<button class="' + (selDi(p)[q.k] === o.o ? 'on' : '') + '" data-a="sceglie" data-k="' + esc(p.id + '|' + q.k + '|' + o.o) + '">' + esc(o.o) +
       (o.d ? ' <b>+' + clp(o.d) + '</b>' : '') + '</button>').join('') + '</div></div>').join('');
 }
