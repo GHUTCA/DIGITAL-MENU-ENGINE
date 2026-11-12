@@ -62,7 +62,8 @@ button{font-family:inherit}
 .chi b.mrc{font-family:Fraunces,Georgia,serif;font-weight:400;font-size:20px;letter-spacing:3px;line-height:1.05}
 .chi em.ati{display:inline-block;margin-left:7px;font-style:normal;font-size:11.5px;color:var(--suave);white-space:nowrap}
 .chi em.ati b{color:var(--txt)}
-.chi .msal strong{font-weight:800}   /* v0.10.16: non <b>, che in .chi è display:block e spezzava la pillola */
+.chi .msal strong{font-weight:800}
+.chi .msal.mhola{cursor:default}   /* v0.10.16: non <b>, che in .chi è display:block e spezzava la pillola */
 .chi .msal{display:inline-block;margin-left:7px;padding:2px 9px;border:1px solid var(--suave);border-radius:999px;background:none;color:var(--txt);font:inherit;font-size:11.5px;white-space:nowrap;cursor:pointer}
 .chi span.pst{display:inline-block;margin-top:4px;font-size:12px;font-weight:800;color:var(--txt);border:1px solid var(--linea2);border-radius:99px;padding:1px 9px;letter-spacing:.05em;text-transform:uppercase;max-width:100%}
 .chi span{display:block;font-size:11px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -884,7 +885,7 @@ function z1() {
   // v0.8 · la riga intera del mockup v1.1: 🌐 sempre · LIVE solo a show acceso · Pagar (l'unico pieno) dopo il primo invio, con l'importo
   const cons = consumoTel();
   /* v0.10.16 (Alberto: «header troppo grande»): il saluto e l'uscita del member sono UNA pillola sulla riga della mesa, non due righe in più */
-  const ati = (S.member ? '<button class="msal" data-a="memberSalir" aria-label="Member · ' + esc(T('Salir')) + '">' + (S.member.nombre ? T('Hola') + ' <strong>' + esc(String(S.member.nombre).split(' ')[0]) + '</strong>' : 'Member') + ' ✕</button>' : '') + (CANAL === '' || !MESA || !S.atiende ? '' : '<em class="ati">' + T('te atiende') + ' <b>' + esc(S.atiende) + '</b></em>');
+  const ati = (S.member ? '<span class="msal mhola">' + (S.member.nombre ? T('Hola') + ' <strong>' + esc(String(S.member.nombre).split(' ')[0]) + '</strong>' : 'Member') + '</span>' : '')   /* v0.10.16 (Alberto 12-nov: «il telefono di un member si ricorda sempre; disattivarsi sì, ma dentro al menu del member, non lì»): un saluto, non un'uscita. L'uscita/riattivazione vivrà in «Tu espacio Member» (passo dopo); memberSalir() resta, senza bottone */ + (CANAL === '' || !MESA || !S.atiende ? '' : '<em class="ati">' + T('te atiende') + ' <b>' + esc(S.atiende) + '</b></em>');
   return casa + '<div class="chi"><b class="mrc">' + esc(brand) + '</b><span' + (CANAL ? ' class="pst"' : '') + '>' + sotto + '</span>' + ati + '</div>' +
     (inPalco() || (S.busca !== null && S.busca !== undefined) ? '' : '<button class="bsc" data-a="abreBusca" aria-label="' + esc(T('Buscar')) + '" title="' + esc(T('Buscar')) + '">🔍</button>') +   // v0.10.15: fuori dalla riga in basso
     '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
