@@ -2028,9 +2028,9 @@ async function cartaRilegge() {
   try {
     const [rc, rk] = await Promise.all([leggi(BORDO + '/estado/' + LOCAL + '?seccion=menu_config&t=' + TOKEN_LETTURA), leggi(BORDO + '/carta/' + LOCAL + '?t=' + TOKEN_LETTURA)]);
     const jc = await rc.json(), cfg = jc && jc.datos && jc.datos.datos && jc.datos.datos.config;
-    const testo = await rk.text(), salvaSm = PROD_SM.slice(); PROD_SM.length = 0;
+    const testo = await rk.text(), salvaSm = PROD_SM.slice(), salvaRef = REF_TUTTI; PROD_SM.length = 0;   // v0.10.18 · C3 di 💵: anche REF_TUTTI
     const np = prodotti(testo);
-    if (!np.length) { PROD_SM.push(...salvaSm); return; }   // una carta vuota non sostituisce quella buona
+    if (!np.length) { PROD_SM.push(...salvaSm); REF_TUTTI = salvaRef; return; }   // una carta vuota non sostituisce quella buona
     np.forEach((p) => { if (FF[p.id]) { p.img = FF[p.id].img; p.fy = FF[p.id].fy; } });
     PROD_SM.forEach((p) => { if (FF[p.id]) { p.img = FF[p.id].img; p.fy = FF[p.id].fy; } });
     if (cfg && typeof cfg === 'object' && Object.keys(cfg).length) S.cfg = cfg;
