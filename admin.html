@@ -192,7 +192,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.1.1</div>
+  <div id="ver">admin v1.1.2</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -355,6 +355,12 @@ function cartaPinta(){
     '<div class="cbar"><input type="search" id="cq" placeholder="Buscar producto…" value="' + esc(C.q) + '"></div>' +
     '<div class="fil">' + ['todas'].concat(cats).map((c) => '<button class="fc' + (C.cat === c ? ' on' : '') + '" data-ca="cat" data-k="' + esc(c) + '">' + esc(c === 'todas' ? 'Todas' : c.charAt(0).toUpperCase() + c.slice(1)) + '</button>').join('') + '</div>' +
     (C.sel ? cartaDettaglio() : '') +
+    (LO.length ? '<div class="pbox" id="cOff"><h2>Apagados · ' + LO.length + '</h2><div class="cgrp">' + LO.sort((a, b) => (b.id_producto === C.recien) - (a.id_producto === C.recien) || String(a.nombre).localeCompare(String(b.nombre), 'es')).map((p) =>
+        '<div class="crow off' + (p.id_producto === C.recien ? ' nuovo' : '') + '"><span class="cn">' + esc(p.nombre) + '<small>' + esc((p.categoria || 'otros') + ' · apagado: no se ve ni se vende') + '</small></span>' +
+        '<span class="ch2"></span><span class="cp">' + (p.sin_precio ? 'sin precio' : clp(p.precio)) + '</span>' +
+        (scrive ? '<button class="pbt peq" data-ca="enciende" data-k="' + esc(p.id_producto) + '">Encender</button>' : '<span></span>') + '</div>').join('') +
+      '</div><div class="nota">Al encenderlo vuelve a la carta con su precio de antes. Si el precio cambia, ábrelo arriba y cámbialo.</div></div>' : '') +
+    (C.off && !LO.length ? '<div class="pbox vuoto" id="cOff">Ningún producto apagado' + (C.cat !== 'todas' ? ' en ' + esc(C.cat) : '') + (q ? ' con ese filtro' : '') + '.</div>' : '') +   // v1.1.2 (Alberto: «il filtro non funziona»): accesa senza righe, lo dice
     (L.length ? Object.keys(grp).sort((a, b) => a.localeCompare(b, 'es')).map((c) => '<div class="pbox"><h2>' + esc(c) + ' · ' + grp[c].length + '</h2><div class="cgrp">' +
       grp[c].sort((a, b) => (a.orden == null ? 1e9 : a.orden) - (b.orden == null ? 1e9 : b.orden) || String(a.nombre).localeCompare(String(b.nombre), 'es')).map((p) =>
         '<div class="crow' + (C.sel === p.id_producto ? ' sel' : '') + '" data-ca="apri" data-k="' + esc(p.id_producto) + '" role="button" tabindex="0">' +
@@ -362,11 +368,6 @@ function cartaPinta(){
         '<span class="ch2">' + esc(ora(p)) + '</span><span class="cp">' + (p.sin_precio ? 'sin precio' : clp(p.precio)) + '</span>' +
         '<span class="swl"><em>En carta</em><button class="sw' + (p.menu_visible !== false ? ' on' : '') + '" data-ca="visibile" data-k="' + esc(p.id_producto) + '" aria-label="En la carta" aria-pressed="' + (p.menu_visible !== false) + '"' + (scrive ? '' : ' disabled') + '></button></span></div>').join('') +
       '</div></div>').join('') : (LO.length ? '' : '<div class="pbox vuoto">Nada con ese filtro.</div>')) +
-    (LO.length ? '<div class="pbox" id="cOff"><h2>Apagados · ' + LO.length + '</h2><div class="cgrp">' + LO.sort((a, b) => (b.id_producto === C.recien) - (a.id_producto === C.recien) || String(a.nombre).localeCompare(String(b.nombre), 'es')).map((p) =>
-        '<div class="crow off' + (p.id_producto === C.recien ? ' nuovo' : '') + '"><span class="cn">' + esc(p.nombre) + '<small>' + esc((p.categoria || 'otros') + ' · apagado: no se ve ni se vende') + '</small></span>' +
-        '<span class="ch2"></span><span class="cp">' + (p.sin_precio ? 'sin precio' : clp(p.precio)) + '</span>' +
-        (scrive ? '<button class="pbt peq" data-ca="enciende" data-k="' + esc(p.id_producto) + '">Encender</button>' : '<span></span>') + '</div>').join('') +
-      '</div><div class="nota">Al encenderlo vuelve a la carta con su precio de antes. Si el precio cambia, ábrelo arriba y cámbialo.</div></div>' : '') +
     '<div class="nota">El interruptor dice si el producto se ve en la carta (QR y mesero). Cada cambio es una versión nueva en Postgres, con quién y cuándo.</div>';
 }
 /* ═══ v1.1.0 · «+ Producto» · il gesto `crear` del bordo (D-498, CONTRATTO_CREAR_PRODUCTO_11NOV2026). Solo il gerente (il bordo lo dice in
@@ -500,7 +501,7 @@ document.getElementById('cartaApp').addEventListener('click', async (ev) => {
   if (a === 'chiudi') { C.sel = null; C.err = ''; C.conf = null; cartaPinta(); return; }
   if (a === 'salva') { el.disabled = true; try { await cartaSalva(); } finally { el.disabled = false; } return; }
   if (a === 'cat') { C.cat = k; cartaPinta(); return; }
-  if (a === 'veroff') { C.off = !C.off; cartaPinta(); return; }
+  if (a === 'veroff') { C.off = !C.off; cartaPinta(); if (C.off) { const o = document.getElementById('cOff'); if (o) o.scrollIntoView({ behavior:'smooth', block:'start' }); } return; }   // v1.1.2
   if (a === 'nuevo') { creaApri(); cartaPinta(); const d = document.getElementById('cNew'); if (d) d.scrollIntoView({ behavior:'smooth', block:'start' }); return; }   // v1.1.0
   if (a === 'nuevoNo') { C.nuevo = null; cartaPinta(); return; }
   if (a === 'nuevoSi') { await creaInvia(); return; }
@@ -838,7 +839,23 @@ setInterval(() => {
 /* ═══ AVVIO ═══ */
 document.getElementById('pinLocal').textContent = LOCAL; document.getElementById('topLocal').textContent = LOCAL;
 try { const s = JSON.parse(sessionStorage.getItem(SES_KEY) || 'null'); if (s && s.pin && s.quien && Date.now() - s.ts < SES_TTL_MS) SES = s; } catch (e) { SES = null; }
-if (SES) entra();
+if (SES) { entra(); sesRinfresca(); }
+/* v1.1.2 · il PIN della sessione rifà il login in silenzio: cargo e permessi di ADESSO. Un PIN che non vale più ⇒ fuori (come Salir).
+   Rete giù ⇒ si resta con quelli di prima. Una volta per apertura della pagina (il tetto del bordo è 30 al minuto per IP). */
+async function sesRinfresca(){
+  if (!SES || !SES.pin) return;
+  let dev = ''; try { dev = localStorage.getItem('pinsita_dispositivo') || ''; } catch (e) { dev = ''; }
+  const r = await post('/adminLogin/' + encodeURIComponent(LOCAL), dev ? { pin: SES.pin, dispositivo_id: dev } : { pin: SES.pin }, 8000);
+  const j = r.j || {};
+  if (r.status === 200 && j.ok === true && j.quien) {
+    const prima = JSON.stringify([SES.cargo, SES.puede]);
+    SES = Object.assign({}, SES, { quien: j.quien, cargo: j.cargo || null, puede: j.puede || {}, ts: Date.now() });
+    try { sessionStorage.setItem(SES_KEY, JSON.stringify(SES)); } catch (e) { /* solo memoria */ }
+    if (JSON.stringify([SES.cargo, SES.puede]) !== prima) { document.getElementById('who').innerHTML = '<b>' + esc(SES.quien) + '</b> · ' + esc(SES.cargo === 'gerente' ? 'gerente' : SES.cargo === 'jl' ? 'jefe de local' : 'sin cargo'); if (TAB === 'carta') cartaPinta(); else propPinta(); }
+    return;
+  }
+  if (r.status === 401 || r.status === 403) { esci(); pinMsg('Tu PIN cambió · vuelve a entrar', true); }
+}
 </script>
 </body>
 </html>
