@@ -564,7 +564,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.17</div>
+<div class="ver" id="ver">menu v0.10.18</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -702,12 +702,16 @@ function parseCSV(t) {
 }
 const prezzo = (s) => Number(String(s || '').replace(/[^0-9]/g, '')) || 0;
 const oraDec = (s, def) => { const m = String(s || '').trim().match(/^(\d{1,2})\s*:?\s*(\d{1,2})?/); return m ? (+m[1]) + (m[2] ? (+m[2]) / 60 : 0) : def; };
+/* v0.10.18 (🎛 BKP 12-nov): il `ref` di un'opzione di contenitore può essere un prodotto «Solo en menú» (menu_visible FALSE, $0): non è in
+   S.prod, che è la VETRINA. La riga di barra la cerca qui, fra tutte le righe della carta. Una riga mai: la barra deve vedere ciò che il cliente ha scelto. */
+let REF_TUTTI = new Map();
+const refProd = (id) => S.prod.concat(PROD_SM).find((x) => x.id === id) || REF_TUTTI.get(id) || null;
 let PROD_SM = [];   // v0.10.1: i Solo_Member, fuori carta finché il member non li rivela
 function prodotti(csv) {
   const rows = parseCSV(csv); const h = rows[0] || []; const ix = (n) => h.indexOf(n);
   // v0.8: tutte le descrizioni della carta restano nel telefono (`dl`), così il 🌐 cambia lingua senza rileggere la carta
   const dCols = LANGS.map((x) => [x[0], ix('Descripcion_' + x[0].toUpperCase())]).filter((x) => x[0] !== 'es' && x[1] >= 0);
-  return rows.slice(1).filter((r) => r[ix('ID_Producto')]).map((r) => ({
+  const tutti = rows.slice(1).filter((r) => r[ix('ID_Producto')]).map((r) => ({
     id: r[ix('ID_Producto')], n: r[ix('Nombre')], c: String(r[ix('Categoria')] || '').toLowerCase(),
     d: r[ix('Descripcion')], dl: dCols.reduce((o, x) => { if (r[x[1]]) o[x[0]] = r[x[1]]; return o; }, {}), p: prezzo(r[ix('Precio')]), img: r[ix('Imagen_URL')] || '',
     activo: r[ix('Activo')] === 'TRUE', agotado: r[ix('Agotado')] === 'TRUE', visible: r[ix('Menu_Visible')] !== 'FALSE',
@@ -718,7 +722,9 @@ function prodotti(csv) {
     // PINSA: lo sconto del canale depto non tocca chi porta `Sin_Descuento` (le Promociones) · le domande dai mod_* di Postgres
     sinDesc: String(r[ix('Sin_Descuento')] || '').trim().toUpperCase() === 'TRUE', mods: modsJSON(r[ix('Modificadores_JSON')]),
   // Solo_Member: il piatto non esiste per nessuno tranne chi porta quel tag (come il vivo). Rientra col member, passo dopo.
-  })).filter((p) => p.activo && p.visible && (p.p > 0 || (p.sm && p.sp))).filter((p) => { if (p.sm) { PROD_SM.push(p); return false; } return true; });   // v0.10.3 (Alberto 11-nov): i piatti FAM costano $0 con Sin_Precio: per il member passano
+  }));
+  REF_TUTTI = new Map(tutti.map((p) => [p.id, p]));   // v0.10.18
+  return tutti.filter((p) => p.activo && p.visible && (p.p > 0 || (p.sm && p.sp))).filter((p) => { if (p.sm) { PROD_SM.push(p); return false; } return true; });   // v0.10.3 (Alberto 11-nov): i piatti FAM costano $0 con Sin_Precio: per il member passano
 }
 
 /* ═══ il tick: la stessa foto che il menù vivo chiede a Google ogni 60", qui letta dal bordo (sec menu_tick) ═══
@@ -775,7 +781,7 @@ const SCELTE_ON = false;
 /* v0.10.5 (Alberto 11-nov: «il Menú del día funziona come il Menú de la Noche, già fatto»): un menú-contenitore con le sue domande da PG
    si ordina come la Pinsa. MA solo se le opzioni portano `ref` (il prodotto vero, ramo bkp-allaccio di 🎛 BKP): è il `ref` che manda la
    bebida in barra come riga a $0 (la cura di 🍳 COCINA del 24-set, «57 perse su 64», e della mesa 54 in sala). Senza ref resta «pronto». */
-const contOk = (p) => !!(p.mods && p.mods.some((g) => g.ops.some((o) => o.ref)) && p.mods.every((g) => { const bc = barraCats(), inB = (o) => { const x = S.prod.find((y) => y.id === o.ref); return !!(x && bc.indexOf(String(x.c).toLowerCase()) >= 0); };
+const contOk = (p) => !!(p.mods && p.mods.some((g) => g.ops.some((o) => o.ref)) && p.mods.every((g) => { const bc = barraCats(), inB = (o) => { const x = refProd(o.ref); return !!(x && bc.indexOf(String(x.c).toLowerCase()) >= 0); };
   return g.mc === 'bebida' ? g.ops.every((o) => o.ref) : (!g.ops.some(inB) || g.ops.every((o) => o.ref));   // un gruppo che ha bebidas di barra le deve avere TUTTE col ref: una senza finirebbe in cocina
 }));
 const chiedeScelta = (p) => (p.c === 'menu_contenitore' && !contOk(p)) || (!SCELTE_ON && !p.mods && !!(p.mt || p.carne));
@@ -1540,7 +1546,7 @@ const contMods = (r) => { const m = contScelte(r).map(({ ref, mc, ...x }) => x);
 function bebideMenu(rr) {
   const bc = barraCats(), out = {};
   rr.forEach((r) => contScelte(r).forEach((m) => {
-    if (!m.ref) return; const pb = S.prod.concat(PROD_SM).find((x) => x.id === m.ref) || null;
+    if (!m.ref) return; const pb = refProd(m.ref);   // v0.10.18: anche un «Solo en menú»
     const cat = pb ? pb.c : ''; if (!pb) return;
     // v0.10.9 (🎛 BKP 061557e porta mc): la bebida è il gruppo con mc = bebida, come la sala viva; senza mc nei dati, il prodotto di barra (v0.10.5)
     const conMc = (r.p.mods || []).some((g) => g.mc); if (conMc ? m.mc !== 'bebida' : bc.indexOf(String(cat).toLowerCase()) < 0) return;
