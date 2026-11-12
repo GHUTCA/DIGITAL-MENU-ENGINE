@@ -156,6 +156,8 @@
   .swl { display:flex; align-items:center; gap:6px; } .swl em { font-style:normal; font-size:11.5px; color:var(--text-muted); white-space:nowrap; }   /* v1.0.2 · l'interruttore dice cosa fa */
   .capa { margin-top:14px; padding-top:12px; border-top:1px solid var(--surface-3); display:flex; flex-wrap:wrap; gap:8px; align-items:center; }   /* v1.0.2 · «Apagar» */
   .capa .pbt.dan { border-color:#c0392b; color:#c0392b; } .capa .pbt.dan.pie { background:#c0392b; color:#fff; }
+  .cnew { border-color:var(--success); } .cnew textarea { background:var(--surface-2); border:1px solid var(--border-strong); border-radius:8px; padding:7px 9px; min-height:60px; resize:vertical; font:inherit; color:inherit; }   /* v1.1.0 · «+ Producto» */
+  .crow.nuovo { box-shadow:0 0 0 2px var(--success); }
   .crow .ch2 { font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-muted); white-space:nowrap; }
   @media (max-width:560px){ .crow { grid-template-columns:minmax(0,1fr) auto auto; } .crow .ch2 { display:none; } }
   .cdet { border-color:var(--success); }
@@ -190,7 +192,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.0.2</div>
+  <div id="ver">admin v1.1.0</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -302,10 +304,11 @@ function apriTab(t){
 document.querySelector('.tabs').addEventListener('click', (ev) => { const b = ev.target.closest('.tab'); if (b) apriTab(b.dataset.tab); });
 
 /* ═══ LA CARTA (GET/POST /cartaAdmin) — anche le Propuestas la usano per i nomi ═══ */
-const C = { list:null, all:null, off:false, at:0, stato:'', q:'', cat:'todas', sel:null, err:'', busy:false, conf:null };   // v1.0.1: `all` anche gli apagados, `off` = «Ver apagados» (spento di base: ordine di Alberto 8-nov)
+const C = { list:null, all:null, off:false, at:0, stato:'', q:'', cat:'todas', sel:null, err:'', busy:false, conf:null, nuevo:null, recien:null };   // v1.1.0: `nuevo` = il modulo «+ Producto» aperto, `recien` = l'ultimo creato (in cima agli apagados)   // v1.0.1: `all` anche gli apagados, `off` = «Ver apagados» (spento di base: ordine di Alberto 8-nov)
 const CARTA_ERR = { version_cambiata:'Otro cambió este producto · recargué', firmante_no_autorizado:'Tu PIN no puede cambiar la carta', pin_jl_invalido:'PIN incorrecto · vuelve a entrar',
   pin_jl_bloqueado:'PIN bloqueado · espera', producto_desconocido:'El producto no está en la carta', pg_no_responde:'La carta no responde · reintenta', precio_invalido:'Precio inválido', hora_invalida:'Hora inválida',
-  ruta_apagada:'La carta aún no está activa', gesto_id_ajeno:'Error del panel · recarga la página', token_invalido:'Sin acceso al servidor' };
+  ruta_apagada:'La carta aún no está activa', nombre_invalido:'El nombre va de 2 a 60 letras, sin espacios al inicio ni al final', categoria_desconocida:'Esa categoría no está en la carta',
+  descripcion_invalida:'La descripción va hasta 300 letras', id_producto_invalido:'El código no es válido (ej. BKS-MOJ-012)', id_en_uso:'Ese código ya existe', valor_invalido:'Revisa los datos', gesto_id_ajeno:'Error del panel · recarga la página', token_invalido:'Sin acceso al servidor' };
 const PRODUCTS = () => (C.list || []);
 const nome = (id) => { const p = PRODUCTS().find((x) => x.id_producto === id); return p ? p.nombre : id; };
 async function cartaCarica(){
@@ -347,7 +350,8 @@ function cartaPinta(){
   app.innerHTML =
     (C.stato ? '<div class="pban err">Lo que ves puede estar viejo: no pude recargar (' + esc(CARTA_ERR[C.stato] || C.stato) + ').</div>' : '') +
     (!scrive ? '<div class="pban">Tu PIN puede ver la carta, pero no cambiarla.</div>' : '') +
-    '<div class="ptop"><h1>Carta · ' + C.list.length + ' productos</h1><div class="row">' + (OFF.length ? '<button class="pbt peq" data-ca="veroff" aria-pressed="' + C.off + '">' + (C.off ? 'Ocultar apagados' : 'Ver apagados · ' + OFF.length) + '</button>' : '') + '<button class="pbt peq" data-ca="recarga">Recargar</button></div></div>' +
+    '<div class="ptop"><h1>Carta · ' + C.list.length + ' productos</h1><div class="row">' + (puedeCrear() && !C.nuevo ? '<button class="pbt peq pri" data-ca="nuevo">+ Producto</button>' : '') + (OFF.length ? '<button class="pbt peq" data-ca="veroff" aria-pressed="' + C.off + '">' + (C.off ? 'Ocultar apagados' : 'Ver apagados · ' + OFF.length) + '</button>' : '') + '<button class="pbt peq" data-ca="recarga">Recargar</button></div></div>' +
+    (C.nuevo ? cartaNuovoModulo() : '') +
     '<div class="cbar"><input type="search" id="cq" placeholder="Buscar producto…" value="' + esc(C.q) + '"></div>' +
     '<div class="fil">' + ['todas'].concat(cats).map((c) => '<button class="fc' + (C.cat === c ? ' on' : '') + '" data-ca="cat" data-k="' + esc(c) + '">' + esc(c === 'todas' ? 'Todas' : c.charAt(0).toUpperCase() + c.slice(1)) + '</button>').join('') + '</div>' +
     (C.sel ? cartaDettaglio() : '') +
@@ -358,12 +362,81 @@ function cartaPinta(){
         '<span class="ch2">' + esc(ora(p)) + '</span><span class="cp">' + (p.sin_precio ? 'sin precio' : clp(p.precio)) + '</span>' +
         '<span class="swl"><em>En carta</em><button class="sw' + (p.menu_visible !== false ? ' on' : '') + '" data-ca="visibile" data-k="' + esc(p.id_producto) + '" aria-label="En la carta" aria-pressed="' + (p.menu_visible !== false) + '"' + (scrive ? '' : ' disabled') + '></button></span></div>').join('') +
       '</div></div>').join('') : (LO.length ? '' : '<div class="pbox vuoto">Nada con ese filtro.</div>')) +
-    (LO.length ? '<div class="pbox"><h2>Apagados · ' + LO.length + '</h2><div class="cgrp">' + LO.sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es')).map((p) =>
-        '<div class="crow off"><span class="cn">' + esc(p.nombre) + '<small>' + esc((p.categoria || 'otros') + ' · apagado: no se ve ni se vende') + '</small></span>' +
+    (LO.length ? '<div class="pbox" id="cOff"><h2>Apagados · ' + LO.length + '</h2><div class="cgrp">' + LO.sort((a, b) => (b.id_producto === C.recien) - (a.id_producto === C.recien) || String(a.nombre).localeCompare(String(b.nombre), 'es')).map((p) =>
+        '<div class="crow off' + (p.id_producto === C.recien ? ' nuovo' : '') + '"><span class="cn">' + esc(p.nombre) + '<small>' + esc((p.categoria || 'otros') + ' · apagado: no se ve ni se vende') + '</small></span>' +
         '<span class="ch2"></span><span class="cp">' + (p.sin_precio ? 'sin precio' : clp(p.precio)) + '</span>' +
         (scrive ? '<button class="pbt peq" data-ca="enciende" data-k="' + esc(p.id_producto) + '">Encender</button>' : '<span></span>') + '</div>').join('') +
       '</div><div class="nota">Al encenderlo vuelve a la carta con su precio de antes. Si el precio cambia, ábrelo arriba y cámbialo.</div></div>' : '') +
     '<div class="nota">El interruptor dice si el producto se ve en la carta (QR y mesero). Cada cambio es una versión nueva en Postgres, con quién y cuándo.</div>';
+}
+/* ═══ v1.1.0 · «+ Producto» · il gesto `crear` del bordo (D-498, CONTRATTO_CREAR_PRODUCTO_11NOV2026). Solo il gerente (il bordo lo dice in
+   `puede.carta_crear`, e lo ricontrolla sul PIN). Il prodotto NASCE SPENTO: compare in «Ver apagados» e lo mette in vendita «Encender».
+   L'ID lo propone il vetro (il prefisso più usato della categoria + il numero dopo il più alto), lo verifica il bordo: `id_en_uso` ⇒ il
+   numero dopo e una chiave NUOVA (è un altro gesto). Il ritento di rete riusa lo stesso corpo e la stessa chiave. */
+const puedeCrear = () => !!(SES && SES.puede && SES.puede.carta_crear);
+const CREA_ID_RE = /^[A-Z0-9][A-Z0-9_-]{1,59}$/;
+function creaCats(){ return [...new Set((C.all || []).map((p) => p.categoria).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')); }
+/* il prefisso più usato fra gli ID della categoria, e il numero dopo il più alto con quel prefisso in tutto il local (larghezza uguale) */
+function creaIdPropone(cat, salto){
+  const tutti = (C.all || []).map((p) => String(p.id_producto || ''));
+  const conta = {};
+  (C.all || []).filter((p) => p.categoria === cat).forEach((p) => { const m = String(p.id_producto || '').match(/^(.*?)(\d+)$/); if (m) conta[m[1]] = (conta[m[1]] || 0) + 1; });
+  const pre = Object.keys(conta).sort((a, b) => conta[b] - conta[a] || a.localeCompare(b))[0];
+  if (!pre) return '';
+  let max = 0, larg = 3;
+  tutti.forEach((id) => { if (id.startsWith(pre)) { const r = id.slice(pre.length); if (/^\d+$/.test(r)) { max = Math.max(max, Number(r)); larg = Math.max(larg, r.length); } } });
+  return pre + String(max + 1 + (salto || 0)).padStart(larg, '0');
+}
+function creaApri(){ const cats = creaCats(); const cat = cats[0] || ''; C.nuevo = { nombre:'', categoria:cat, precio:'', descripcion:'', id: creaIdPropone(cat), idTocco:false, err:'', busy:false }; C.sel = null; C.conf = null; }
+function creaLeggi(){ const N = C.nuevo; if (!N) return; const v = (id) => (document.getElementById(id) || {}).value;
+  const nom = v('cn_nombre'); if (nom != null) N.nombre = nom; const pr = v('cn_precio'); if (pr != null) N.precio = pr;
+  const ds = v('cn_desc'); if (ds != null) N.descripcion = ds; const id = v('cn_id'); if (id != null) N.id = id.toUpperCase(); }
+function cartaNuovoModulo(){
+  const N = C.nuevo; const cats = creaCats();
+  return '<div class="pbox cnew" id="cNew"><div class="ptop"><h1>Nuevo producto</h1><div class="row"><button class="pbt" data-ca="nuevoNo"' + (N.busy ? ' disabled' : '') + '>Cancelar</button>' +
+    '<button class="pbt pri" data-ca="nuevoSi"' + (N.busy ? ' disabled' : '') + '>' + (N.busy ? 'Creando…' : 'Crear') + '</button></div></div>' +
+    (N.err ? '<div class="perr">' + esc(N.err) + '</div>' : '') +
+    '<div class="fld"><label>Nombre</label><input id="cn_nombre" maxlength="60" value="' + esc(N.nombre) + '" placeholder="Mojito Maracuyá"></div>' +
+    '<div class="row"><div class="fld"><label>Categoría</label><select id="cn_cat">' + cats.map((c) => '<option value="' + esc(c) + '"' + (c === N.categoria ? ' selected' : '') + '>' + esc(c.charAt(0).toUpperCase() + c.slice(1)) + '</option>').join('') + '</select></div>' +
+    '<div class="fld"><label>Precio (CLP)</label><input type="number" inputmode="numeric" min="1" step="1" id="cn_precio" value="' + esc(N.precio) + '" style="width:130px"></div>' +
+    '<div class="fld"><label>Código</label><input id="cn_id" maxlength="60" value="' + esc(N.id) + '" style="width:150px;text-transform:uppercase" class="mono"></div></div>' +
+    '<div class="fld"><label>Descripción (opcional)</label><textarea id="cn_desc" maxlength="300">' + esc(N.descripcion) + '</textarea></div>' +
+    '<div class="nota">Nace <b>apagado</b>: no se ve ni se vende hasta que lo revises en «Ver apagados» y toques «Encender». Sin foto ni traducciones por ahora: sale en español en todos los idiomas.</div></div>';
+}
+async function creaInvia(){
+  const N = C.nuevo; if (!N || N.busy) return; creaLeggi();
+  const e = [];
+  if (N.nombre !== N.nombre.trim()) N.nombre = N.nombre.trim();
+  if (N.nombre.length < 2 || N.nombre.length > 60) e.push('El nombre va de 2 a 60 letras.');
+  const n = Number(N.precio); if (N.precio === '' || !Number.isInteger(n) || n <= 0) e.push('El precio es un número entero mayor que cero.');
+  if (!N.categoria) e.push('Elige una categoría.');
+  if (!CREA_ID_RE.test(N.id)) e.push('El código no es válido (ej. BKS-MOJ-012).');
+  if (N.descripcion.length > 300) e.push('La descripción va hasta 300 letras.');
+  if (e.length) { N.err = e.join(' '); cartaPinta(); return; }
+  N.err = ''; N.busy = true; cartaPinta();
+  let id = N.id, salto = 0, j = null;
+  for (let giro = 0; giro < 4; giro++) {
+    const body = { pin: SES.pin, gesto:'crear', gesto_id: uuid(), id_producto: id, valor:{ nombre: N.nombre, categoria: N.categoria, precio: n, descripcion: N.descripcion.trim() } };
+    let r = await post('/cartaAdmin/' + encodeURIComponent(LOCAL), body, 8000);
+    if (r.status === 0) r = await post('/cartaAdmin/' + encodeURIComponent(LOCAL), body, 8000);   // stesso corpo, stessa chiave
+    j = r.j || {};
+    if (r.status === 0) { j = { error:'red' }; break; }
+    if (j.ok === true) break;
+    if (j.error !== 'id_en_uso' || N.idTocco) break;   // un codice scritto a mano non si cambia da solo: lo dice e si ferma
+    salto++; id = creaIdPropone(N.categoria, salto); if (!id) break;   // il numero dopo, e una chiave nuova al giro dopo
+  }
+  N.busy = false;
+  if (j && j.ok === true) {
+    C.recien = id; C.cat = N.categoria; C.q = ''; C.nuevo = null; C.off = true;   // la sua categoria, e gli apagados in vista: il nuovo è in cima
+    toast('ok', 'Creado apagado · revísalo y enciéndelo');
+    await cartaCarica(); cartaPinta();
+    const o = document.getElementById('cOff'); if (o) o.scrollIntoView({ behavior:'smooth', block:'start' });
+    return;
+  }
+  N.id = id;
+  N.err = j.error === 'red' ? 'Sin conexión · reintenta' : (CARTA_ERR[j.error] || j.error || 'No se pudo crear');
+  if (j.error === 'firmante_no_autorizado') N.err = 'Solo el gerente puede crear productos';
+  cartaPinta();
 }
 function cartaDettaglio(){
   const p = C.list.find((x) => x.id_producto === C.sel); if (!p) return '';
@@ -405,6 +478,15 @@ async function cartaSalva(){
   }
   toast('ok', 'Guardado'); C.sel = null; cartaPinta();
 }
+document.getElementById('cartaApp').addEventListener('change', (ev) => {   // v1.1.0 · il modulo «+ Producto»
+  if (!C.nuevo || !ev.target) return;
+  if (ev.target.id === 'cn_cat') { creaLeggi(); C.nuevo.categoria = ev.target.value; if (!C.nuevo.idTocco) C.nuevo.id = creaIdPropone(C.nuevo.categoria); cartaPinta(); }
+});
+document.getElementById('cartaApp').addEventListener('input', (ev) => {
+  if (!C.nuevo || !ev.target) return;
+  if (ev.target.id === 'cn_id') C.nuevo.idTocco = true;
+  if (/^cn_/.test(ev.target.id)) creaLeggi();
+});
 document.getElementById('cartaApp').addEventListener('click', async (ev) => {
   const el = ev.target.closest('[data-ca]'); if (!el || el.disabled) return;
   const a = el.dataset.ca, k = el.dataset.k;
@@ -417,6 +499,9 @@ document.getElementById('cartaApp').addEventListener('click', async (ev) => {
   if (a === 'salva') { el.disabled = true; try { await cartaSalva(); } finally { el.disabled = false; } return; }
   if (a === 'cat') { C.cat = k; cartaPinta(); return; }
   if (a === 'veroff') { C.off = !C.off; cartaPinta(); return; }
+  if (a === 'nuevo') { creaApri(); cartaPinta(); const d = document.getElementById('cNew'); if (d) d.scrollIntoView({ behavior:'smooth', block:'start' }); return; }   // v1.1.0
+  if (a === 'nuevoNo') { C.nuevo = null; cartaPinta(); return; }
+  if (a === 'nuevoSi') { await creaInvia(); return; }
   if (a === 'apaga') { C.conf = C.sel; cartaPinta(); return; }   // v1.0.2 · primo tocco: solo la domanda, niente scritto
   if (a === 'apagaNo') { C.conf = null; cartaPinta(); return; }
   if (a === 'apagaSi') { const p = (C.list || []).find((x) => x.id_producto === C.conf); if (!p) { C.conf = null; cartaPinta(); return; } el.disabled = true;
