@@ -148,6 +148,16 @@ button{font-family:inherit}
 .mini .cd .pz .emd{margin:0 0 1px}
 .mini .cd .addb{min-height:30px;font-size:12.5px;margin-top:2px}
 .mini .cd .qn{min-height:30px;margin-top:2px}
+.mini .cd .opc{margin-top:2px}
+/* v0.10.20 (Alberto 15:11, foto mesa 54: «il prezzo va in basso, ma sopra ORDINA o PEDIR, così rimane sempre tutto ordinato»): anche nella card
+   scelta (VER ▲) il prezzo, che nell'HTML viene DOPO il bottone, sale subito sopra «＋ PEDIR». Nome · prezzo · bottone, in ogni card della striscia. */
+.mini .cd.ver .vnm{order:0}
+.mini .cd.ver .vsc{order:1}
+.mini .cd.ver .vpz{order:2;margin-top:auto;font-size:14px}
+.mini .cd.ver .vpd,.mini .cd.ver .vst{order:3;margin-top:2px}
+.mini .cd.ver .vpd{height:30px;min-height:30px;display:flex;align-items:center;justify-content:center;box-sizing:border-box}   /* anche «Elige arriba ↑»: stessa altezza di «＋ ORDINA», o il prezzo sale */
+.mini .cd.ver.dentro .vst{margin-top:auto}
+.mini .cd.ora.ver{padding-bottom:6px}   /* misurato: col 4 px della card d'oro prezzo e bottone stavano 2 px sotto le vicine */
 /* la card del piatto aperto: il tasto stesso, in oro, col segno VER a cavallo del bordo (la linea si interrompe) */
 .mini .cd.ora{overflow:visible;background:rgba(255,197,61,.20);border:2.5px solid var(--oro);box-shadow:0 0 0 3px rgba(255,197,61,.22),0 6px 18px rgba(0,0,0,.45);
   justify-content:center;align-items:stretch;text-align:center;gap:3px;padding:9px 6px 4px}
@@ -568,7 +578,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.19</div>
+<div class="ver" id="ver">menu v0.10.20</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
