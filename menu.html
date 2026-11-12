@@ -80,9 +80,9 @@ button{font-family:inherit}
 .cd .tg{width:100%;height:auto;aspect-ratio:4/3;   /* v0.9.12 (Alberto: «le card della stessa misura anche senza foto»): come .th */
   border-radius:8px;background:var(--tgbg);color:var(--oro);display:flex;align-items:center;justify-content:center;
   text-align:center;padding:4px;font-family:Fraunces,Georgia,serif;font-size:12px;line-height:1.15}
-.cd .nm{font-size:12.5px;font-weight:400;line-height:1.22;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px}
-.cd .pz{font-size:12.5px;font-weight:700;color:var(--oro);font-variant-numeric:tabular-nums}
-.addb{margin-top:auto;width:100%;background:transparent;color:var(--ok-chiaro);border:1px solid var(--addbordo);border-radius:8px;font-weight:600;font-size:11px;min-height:30px;cursor:pointer;
+.cd .nm{font-size:14px;font-weight:400;line-height:1.22;   /* v0.10.15 · la A (Alberto 13-nov): 12,5→14 */ overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:34px}
+.cd .pz{font-size:14px;font-weight:700;color:var(--oro);font-variant-numeric:tabular-nums}
+.addb{margin-top:auto;width:100%;background:transparent;color:var(--ok-chiaro);border:1px solid var(--addbordo);border-radius:8px;font-weight:600;font-size:12.5px;min-height:32px;cursor:pointer;
   /* v0.8.3 (Alberto: in francese «COMMANDER» sfonda il bottone): una riga sola, e se una lingua non ci sta si tronca, mai fuori dalla card */
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 3px}
 .cd.dentro{border-color:var(--ok)}
@@ -125,20 +125,20 @@ button{font-family:inherit}
 /* v0.6.2: nome e prezzo sulla stessa riga, la descrizione sotto: ~40px restituiti alla foto */
 .det .bd{flex:0 0 auto;padding:6px 13px 7px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n p" "d d";column-gap:10px;align-items:baseline}
 .det .bd h2{grid-area:n}.det .bd .pz{grid-area:p;text-align:right}.det .bd .ds{grid-area:d}
-.det h2{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:20px;margin:0;letter-spacing:-.3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.det h2{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:24px;margin:0;letter-spacing:-.3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .det .ds{font-size:13px;font-weight:500;color:var(--suave);line-height:1.4;   /* v0.10.2 (Alberto 11-nov: «troppo sottile»): 12→13px, 400→500 */ margin:3px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.det .pz{font-size:19px;font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
+.det .pz{font-size:22px;font-weight:800;color:var(--oro);font-variant-numeric:tabular-nums}
 .mini{flex:0 0 auto;border-top:1px solid var(--linea2);background:var(--velo);padding:9px 8px 5px;display:flex;gap:8px;
   overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-padding-inline:8px}
 .mini::-webkit-scrollbar{height:0}
 .mini .pag{flex:0 0 100%;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:7px 6px;scroll-snap-align:start}
-.mini .cd{min-height:0;height:96px;padding:7px;gap:3px;position:relative}
+.mini .cd{min-height:0;height:108px;   /* v0.10.15: 96→108 per nome e prezzo a 14 */ padding:7px;gap:3px;position:relative}
 /* v0.6.3 (Alberto: «la seconda riga viene tagliata»): il nome non si schiaccia mai, chi cede è il riquadro «Con opciones» */
-.mini .cd .nm{-webkit-line-clamp:2;font-size:12px;line-height:1.2;min-height:0;flex:0 0 auto}
+.mini .cd .nm{-webkit-line-clamp:2;font-size:14px;line-height:1.2;min-height:0;flex:0 0 auto}
 .mini .cd .pz{flex:0 0 auto}
 .mini .cd .opc{font-size:9.5px;line-height:1.15;padding:3px 3px;flex:0 1 auto;min-height:0;overflow:hidden}
-.mini .cd .pz{font-size:12.5px}
-.mini .cd .addb{min-height:30px;font-size:12px;margin-top:auto}
+.mini .cd .pz{font-size:14px}
+.mini .cd .addb{min-height:30px;font-size:12.5px;margin-top:auto}
 .mini .cd .qn{min-height:30px;margin-top:auto}
 /* la card del piatto aperto: il tasto stesso, in oro, col segno VER a cavallo del bordo (la linea si interrompe) */
 .mini .cd.ora{overflow:visible;background:rgba(255,197,61,.20);border:2.5px solid var(--oro);box-shadow:0 0 0 3px rgba(255,197,61,.22),0 6px 18px rgba(0,0,0,.45);
@@ -165,7 +165,8 @@ button{font-family:inherit}
 .z2{flex:0 0 auto;border-top:1px solid var(--linea);background:var(--sup);padding:6px 8px 8px}
 .r{display:flex;gap:6px;overflow-x:auto;padding:2px 0}
 .r::-webkit-scrollbar{height:0}
-.fam,.cat{flex:0 0 auto;border:1px solid var(--linea2);background:transparent;color:var(--txt);border-radius:99px;padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.z2 .r{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 22px),transparent);padding-right:18px}   /* v0.10.15 (🎨 ③): una categoria che non entra si legge come «scorri», non come un taglio */
+.fam,.cat{flex:0 0 auto;border:1px solid var(--linea2);background:transparent;color:var(--txt);border-radius:99px;padding:0 13px;min-height:36px;display:inline-flex;align-items:center;font-size:13.5px;   /* v0.10.15 (Alberto 13-nov, foto 16): 12,5→13,5, alti 36 */ font-weight:700;cursor:pointer;white-space:nowrap}
 .fam.on{background:var(--card);border-color:var(--oro)}
 .cat.on{background:var(--oro);color:#1a1408;border-color:var(--oro)}
 .cartp{flex:0 0 auto;margin-left:auto;border:0;border-radius:99px;background:var(--ok);color:var(--ok-txt);padding:7px 12px;font-weight:800;font-size:12.5px;cursor:pointer;white-space:nowrap}
@@ -274,14 +275,14 @@ button{font-family:inherit}
 .sigue2 .s2t small{font-size:11.5px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sigue2 .s2v{flex:0 0 auto;background:var(--oro);color:#1a1408;font-weight:800;font-size:13px;padding:8px 12px;border-radius:999px}
 /* Buscar: la lente resta ancorata a destra mentre le categorie scorrono; aperta, il campo nasce dentro la barra */
-.cat.lupa{position:sticky;right:0;z-index:2;background:var(--sup);border-color:var(--linea2);box-shadow:-8px 0 10px -6px var(--sup)}
+.bsc{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 11px;border-radius:99px;border:1px solid var(--linea2);background:transparent;color:var(--txt);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}   /* v0.10.15 · «Buscar» in alto (🎨, foto 16) */
 .rbusca{align-items:center;gap:7px;overflow:visible}
 .rbusca .lup{flex:0 0 auto;font-size:14px}
 .rbusca .bin{flex:1;min-width:0;background:var(--card);border:1px solid var(--linea2);color:var(--txt);border-radius:10px;padding:9px 11px;font:inherit;font-size:16px;min-height:38px}
 .rbusca .bin::placeholder{color:var(--suave)}
 .rbusca .bin::-webkit-search-cancel-button{display:none}
 .rbusca .bx{flex:0 0 auto;background:transparent;border:0;color:var(--suave);font-size:16px;padding:6px 6px;cursor:pointer;min-height:38px}
-.bell{flex:0 0 auto;width:36px;height:34px;border-radius:50%;border:0;background:var(--oro);font-size:16px;cursor:pointer}
+.bell{flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:0;background:var(--oro);font-size:16px;cursor:pointer}
 .cmp{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card);border:1px solid var(--linea);border-radius:12px;padding:11px 12px;margin-top:7px;color:var(--txt);cursor:pointer}
 .cmp .sn{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .cmp .sn b{font-size:14px}
@@ -559,7 +560,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.13</div>
+<div class="ver" id="ver">menu v0.10.15</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -869,6 +870,7 @@ function z1() {
   const cons = consumoTel();
   const ati = (S.member && S.member.nombre ? '<em class="ati">' + T('Hola') + ' <b>' + esc(String(S.member.nombre).split(' ')[0]) + '</b></em>' : '') + (S.member ? '<button class="msal" data-a="memberSalir">Member · ' + esc(T('Salir')) + ' ✕</button>' : '') + (CANAL === '' || !MESA || !S.atiende ? '' : '<em class="ati">' + T('te atiende') + ' <b>' + esc(S.atiende) + '</b></em>');
   return casa + '<div class="chi"><b class="mrc">' + esc(brand) + '</b><span' + (CANAL ? ' class="pst"' : '') + '>' + sotto + '</span>' + ati + '</div>' +
+    (inPalco() || (S.busca !== null && S.busca !== undefined) ? '' : '<button class="bsc" data-a="abreBusca">🔍 ' + esc(T('Buscar')) + '</button>') +   // v0.10.15: fuori dalla riga in basso
     '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
     (showAcceso() ? '<button class="live" data-a="djApri"><i></i>LIVE</button>' : '') +
     (MESA && cons > 0 && pagoMesaOn() ? '<button class="paga1" data-a="cuentaApri" aria-label="' + esc(T('Pagar')) + '">🧾 <b>' + pagoPill() + '</b></button>' : '');   // v0.9.23 (Alberto): un simbolo che si capisce in ogni lingua, non una parola che allunga la pillola
@@ -1431,8 +1433,7 @@ function z2() {
   return barra + '<div class="r">' + G.map((x) => '<button class="fam' + (x.k === f.k ? ' on' : '') + '" data-a="fam" data-k="' + esc(x.k) + '" title="' + esc(nomeGruppo(x.k)) + '">' + x.emoji + ' ' + esc(nomeGruppo(x.k)) + '</button>').join('') + '</div>' +
     (S.busca !== null && S.busca !== undefined
       ? '<div class="r rbusca"><span class="lup">🔍</span><input class="bin" type="search" enterkeyhint="search" autocomplete="off" placeholder="escribe lo que buscas…" value="' + esc(S.busca) + '" data-a="binput"><button class="bx" data-a="cierraBusca" aria-label="Cerrar búsqueda">✕</button></div>'
-      : '<div class="r">' + (envioOn() ? '<button class="bell" data-a="campana" aria-label="Llamar al mesero">🔔</button>' : '') + f.cats.map((c) => '<button class="cat' + (c === S.cat ? ' on' : '') + '" data-a="cat" data-k="' + esc(c) + '">' + esc(nomeCat(c)) + '</button>').join('') +
-        '<button class="cat lupa" data-a="abreBusca">🔍 ' + T('Buscar') + '</button></div>');
+      : '<div class="r">' + (envioOn() ? '<button class="bell" data-a="campana" aria-label="Llamar al mesero">🔔</button>' : '') + f.cats.map((c) => '<button class="cat' + (c === S.cat ? ' on' : '') + '" data-a="cat" data-k="' + esc(c) + '">' + esc(nomeCat(c)) + '</button>').join('') + '</div>');
 }
 let ULTIMA_VER = null;
 function pinta() {
