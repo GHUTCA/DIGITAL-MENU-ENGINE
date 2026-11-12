@@ -62,6 +62,7 @@ button{font-family:inherit}
 .chi b.mrc{font-family:Fraunces,Georgia,serif;font-weight:400;font-size:20px;letter-spacing:3px;line-height:1.05}
 .chi em.ati{display:inline-block;margin-left:7px;font-style:normal;font-size:11.5px;color:var(--suave);white-space:nowrap}
 .chi em.ati b{color:var(--txt)}
+.chi .msal strong{font-weight:800}   /* v0.10.16: non <b>, che in .chi è display:block e spezzava la pillola */
 .chi .msal{display:inline-block;margin-left:7px;padding:2px 9px;border:1px solid var(--suave);border-radius:999px;background:none;color:var(--txt);font:inherit;font-size:11.5px;white-space:nowrap;cursor:pointer}
 .chi span.pst{display:inline-block;margin-top:4px;font-size:12px;font-weight:800;color:var(--txt);border:1px solid var(--linea2);border-radius:99px;padding:1px 9px;letter-spacing:.05em;text-transform:uppercase;max-width:100%}
 .chi span{display:block;font-size:11px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -132,6 +133,8 @@ button{font-family:inherit}
   overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-padding-inline:8px}
 .mini::-webkit-scrollbar{height:0}
 .mini .pag{flex:0 0 100%;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:7px 6px;scroll-snap-align:start}
+.split.conq .mini .pag{grid-template-rows:minmax(0,1fr)}   /* v0.10.16: una riga sola con le domande */
+.split.conq .det .fo{min-height:42vw}   /* e la foto ha un pavimento: mai più una striscia */
 .mini .cd{min-height:0;height:108px;   /* v0.10.15: 96→108 per nome e prezzo a 14 */ padding:7px;gap:3px;position:relative}
 /* v0.6.3 (Alberto: «la seconda riga viene tagliata»): il nome non si schiaccia mai, chi cede è il riquadro «Con opciones» */
 .mini .cd .nm{-webkit-line-clamp:2;font-size:14px;line-height:1.2;min-height:0;flex:0 0 auto}
@@ -275,7 +278,7 @@ button{font-family:inherit}
 .sigue2 .s2t small{font-size:11.5px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sigue2 .s2v{flex:0 0 auto;background:var(--oro);color:#1a1408;font-weight:800;font-size:13px;padding:8px 12px;border-radius:999px}
 /* Buscar: la lente resta ancorata a destra mentre le categorie scorrono; aperta, il campo nasce dentro la barra */
-.bsc{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 11px;border-radius:99px;border:1px solid var(--linea2);background:transparent;color:var(--txt);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}   /* v0.10.15 · «Buscar» in alto (🎨, foto 16) */
+.bsc{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border-radius:50%;   /* v0.10.16 (Alberto: «header troppo grande»): un tondo come il 🌐 */ border:1px solid var(--linea2);background:transparent;color:var(--txt);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}   /* v0.10.15 · «Buscar» in alto (🎨, foto 16) */
 .rbusca{align-items:center;gap:7px;overflow:visible}
 .rbusca .lup{flex:0 0 auto;font-size:14px}
 .rbusca .bin{flex:1;min-width:0;background:var(--card);border:1px solid var(--linea2);color:var(--txt);border-radius:10px;padding:9px 11px;font:inherit;font-size:16px;min-height:38px}
@@ -560,7 +563,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.15</div>
+<div class="ver" id="ver">menu v0.10.16</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -880,9 +883,10 @@ function z1() {
   const casa = inPalco() ? '' : '<button class="casa" data-a="inicio" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>';
   // v0.8 · la riga intera del mockup v1.1: 🌐 sempre · LIVE solo a show acceso · Pagar (l'unico pieno) dopo il primo invio, con l'importo
   const cons = consumoTel();
-  const ati = (S.member && S.member.nombre ? '<em class="ati">' + T('Hola') + ' <b>' + esc(String(S.member.nombre).split(' ')[0]) + '</b></em>' : '') + (S.member ? '<button class="msal" data-a="memberSalir">Member · ' + esc(T('Salir')) + ' ✕</button>' : '') + (CANAL === '' || !MESA || !S.atiende ? '' : '<em class="ati">' + T('te atiende') + ' <b>' + esc(S.atiende) + '</b></em>');
+  /* v0.10.16 (Alberto: «header troppo grande»): il saluto e l'uscita del member sono UNA pillola sulla riga della mesa, non due righe in più */
+  const ati = (S.member ? '<button class="msal" data-a="memberSalir" aria-label="Member · ' + esc(T('Salir')) + '">' + (S.member.nombre ? T('Hola') + ' <strong>' + esc(String(S.member.nombre).split(' ')[0]) + '</strong>' : 'Member') + ' ✕</button>' : '') + (CANAL === '' || !MESA || !S.atiende ? '' : '<em class="ati">' + T('te atiende') + ' <b>' + esc(S.atiende) + '</b></em>');
   return casa + '<div class="chi"><b class="mrc">' + esc(brand) + '</b><span' + (CANAL ? ' class="pst"' : '') + '>' + sotto + '</span>' + ati + '</div>' +
-    (inPalco() || (S.busca !== null && S.busca !== undefined) ? '' : '<button class="bsc" data-a="abreBusca">🔍 ' + esc(T('Buscar')) + '</button>') +   // v0.10.15: fuori dalla riga in basso
+    (inPalco() || (S.busca !== null && S.busca !== undefined) ? '' : '<button class="bsc" data-a="abreBusca" aria-label="' + esc(T('Buscar')) + '" title="' + esc(T('Buscar')) + '">🔍</button>') +   // v0.10.15: fuori dalla riga in basso
     '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
     (showAcceso() ? '<button class="live" data-a="djApri"><i></i>LIVE</button>' : '') +
     (MESA && cons > 0 && pagoMesaOn() ? '<button class="paga1" data-a="cuentaApri" aria-label="' + esc(T('Pagar')) + '">🧾 <b>' + pagoPill() + '</b></button>' : '');   // v0.9.23 (Alberto): un simbolo che si capisce in ogni lingua, non una parola che allunga la pillola
@@ -964,10 +968,11 @@ let PAG = 0;
    e nessun punto di taglio la salva. v0.6.2 (Alberto: «6 card trovano il prodotto il doppio più in fretta»): le 6 card restano,
    ma più basse (96 px), e nome e prezzo della scheda stanno su una riga: lo spazio ripreso va alla foto. */
 const PER_PAG = 6;
-function pagine(L) {
-  const i = L.findIndex((x) => x.id === S.abierta); PAG = i >= 0 ? Math.floor(i / PER_PAG) : 0;
-  let h = ''; for (let k = 0; k < L.length; k += PER_PAG) h += '<div class="pag">' + L.slice(k, k + PER_PAG).map((p) => card(p, false)).join('') + '</div>';
-  const n = Math.ceil(L.length / PER_PAG);
+function pagine(L, per) {
+  const PP = per || PER_PAG;   // v0.10.16: 3 con le domande (una riga), 6 senza
+  const i = L.findIndex((x) => x.id === S.abierta); PAG = i >= 0 ? Math.floor(i / PP) : 0;
+  let h = ''; for (let k = 0; k < L.length; k += PP) h += '<div class="pag">' + L.slice(k, k + PP).map((p) => card(p, false)).join('') + '</div>';
+  const n = Math.ceil(L.length / PP);
   let pu = ''; if (n > 1) { for (let j = 0; j < n; j++) pu += '<i' + (j === PAG ? ' class="on"' : '') + '></i>'; pu = '<div class="punti">' + pu + '</div>'; }
   /* v0.9.10 (Alberto in prova: «avevamo una freccia che diceva che c'erano ancora prodotti a destra o a sinistra, non la vedo più»): ‹ e ›
      sui bordi della striscia, solo dal lato dove c'è altro; si toccano o si scorre col dito. I punti sotto restano. */
@@ -985,11 +990,12 @@ function z3() {
     const p = S.prod.find((x) => x.id === S.abierta);
     // senza foto non un rettangolo grigio (si leggerebbe come un guasto): una targa col nome
     const fo = p.img ? '<div class="fo" style="--f:url(\'' + esc(p.img) + '\')' + (p.fy != null ? ';--fy:' + p.fy + '%' : '') + '">' : '<div class="fo tg">' + esc(p.n);
-    return '<div class="split"><div class="det">' + fo + '<button class="x" data-a="cierra">✕</button></div>' +
+    const conQ = domande(p).length > 0;   // v0.10.16 (Alberto 12-nov): con le domande la foto non si schiaccia, cede la striscia
+    return '<div class="split' + (conQ ? ' conq' : '') + '"><div class="det">' + fo + '<button class="x" data-a="cierra">✕</button></div>' +
       '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(descP(p)) + '</div><div class="pz">' + pzHTML(p) + '</div>' +
       // v0.7: il regalo sta su ogni trago, dove nasce la voglia (solo coi tragos che si mettono senza domande: il regalo non chiede)
       (envioOn() && esTrago(p) && ordinabile(p) && !domande(p).length ? '<button class="dono-in" data-a="donoApri" data-k="' + esc(p.id) + '">🎁 Invítale este trago a otra mesa</button>' : '') + '</div>' +
-      domandeHTML(p) + pedGrande(p) + '</div>' + pagine(daMostrare()) + '</div>';
+      domandeHTML(p) + pedGrande(p) + '</div>' + pagine(daMostrare(), conQ ? 3 : PER_PAG) + '</div>';
   }
   if (S.busca !== null && S.busca !== undefined && !cercando()) return '<div class="msg busca"><b>¿Qué se te antoja?</b>Escribe un plato, un trago o un ingrediente.</div>';
   const L = daMostrare();
