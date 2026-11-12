@@ -1896,7 +1896,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'pagoProp' && /^(10|15|otro|sin)$/.test(k)) { S.pagoProp = k; pinta(); return; }
   if (a === 'pagoPropCampo' || a === 'payWa' || a === 'nada') return;
   if (a === 'waFalta') { const i = document.querySelector('[data-a=payWa]'); if (i) { i.classList.add('male'); i.focus(); } return; }
-  if (a === 'waCambia') { S.payWa = ''; S.waNoto = false; S.noWa = false; pinta(); return; }
+  if (a === 'waCambia') { S.payWa = ''; S.waNoto = false; S.noWa = false; try { localStorage.removeItem(WA_K); } catch (e) { /* niente */ } pinta(); return; }   // v0.10.13 · AUT-0976: «Cambiar» toglie il numero anche dal telefono, non solo dalla pagina
   if (a === 'waNo') { S.noWa = true; pinta(); return; }
   if (a === 'pagoExpress') { S.pagoPaso = 'fintoc'; S.fintocProc = ''; if (waOk(S.payWa)) { S.waNoto = true; try { localStorage.setItem(WA_K, S.payWa); } catch (e) { /* solo memoria */ } } pinta(); return; }
   if (a === 'fintocMet' && !S.fintocProc && /^(tarjeta|apple|google|transf)$/.test(k)) { S.fintocProc = k; pinta(); setTimeout(() => { pagoRegistra(k); pinta(); }, 1400); return; }
