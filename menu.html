@@ -62,6 +62,7 @@ button{font-family:inherit}
 .chi b.mrc{font-family:Fraunces,Georgia,serif;font-weight:400;font-size:20px;letter-spacing:3px;line-height:1.05}
 .chi em.ati{display:inline-block;margin-left:7px;font-style:normal;font-size:11.5px;color:var(--suave);white-space:nowrap}
 .chi em.ati b{color:var(--txt)}
+.chi .msal{display:inline-block;margin-left:7px;padding:2px 9px;border:1px solid var(--suave);border-radius:999px;background:none;color:var(--txt);font:inherit;font-size:11.5px;white-space:nowrap;cursor:pointer}
 .chi span.pst{display:inline-block;margin-top:4px;font-size:12px;font-weight:800;color:var(--txt);border:1px solid var(--linea2);border-radius:99px;padding:1px 9px;letter-spacing:.05em;text-transform:uppercase;max-width:100%}
 .chi span{display:block;font-size:11px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .z3{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
@@ -558,7 +559,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.11</div>
+<div class="ver" id="ver">menu v0.10.12</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -866,7 +867,7 @@ function z1() {
   const casa = inPalco() ? '' : '<button class="casa" data-a="inicio" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>';
   // v0.8 · la riga intera del mockup v1.1: 🌐 sempre · LIVE solo a show acceso · Pagar (l'unico pieno) dopo il primo invio, con l'importo
   const cons = consumoTel();
-  const ati = (S.member && S.member.nombre ? '<em class="ati">' + T('Hola') + ' <b>' + esc(String(S.member.nombre).split(' ')[0]) + '</b></em>' : '') + (CANAL === '' || !MESA || !S.atiende ? '' : '<em class="ati">' + T('te atiende') + ' <b>' + esc(S.atiende) + '</b></em>');
+  const ati = (S.member && S.member.nombre ? '<em class="ati">' + T('Hola') + ' <b>' + esc(String(S.member.nombre).split(' ')[0]) + '</b></em>' : '') + (S.member ? '<button class="msal" data-a="memberSalir">Member · ' + esc(T('Salir')) + ' ✕</button>' : '') + (CANAL === '' || !MESA || !S.atiende ? '' : '<em class="ati">' + T('te atiende') + ' <b>' + esc(S.atiende) + '</b></em>');
   return casa + '<div class="chi"><b class="mrc">' + esc(brand) + '</b><span' + (CANAL ? ' class="pst"' : '') + '>' + sotto + '</span>' + ati + '</div>' +
     '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
     (showAcceso() ? '<button class="live" data-a="djApri"><i></i>LIVE</button>' : '') +
@@ -1871,6 +1872,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
   S.llama = false;   // ogni tocco spegne la pillola che chiama: il timer riparte da qui
   // v0.7 · IL PALCO: famiglia, categoria, piatto e Buscar lo lasciano; la casetta lo riporta
   if (a === 'fam' || a === 'cat' || a === 'abre' || a === 'abreBusca') S.palco = false;
+  if (a === 'memberSalir') { memberSalir(); return; }   // v0.10.12 · AUT-0975
   if (a === 'palcoVai') { S.slide = Number(k) || 0; S.finVid = false; palcoRidisegna(); return; }
   if (a === 'palcoRe') { S.finVid = false; palcoRidisegna(); return; }
   if (a === 'palcoTap' || a === 'palcoPlato') {
@@ -2200,7 +2202,19 @@ function memberRivela() {
   const miei = PROD_SM.filter((p) => p.sm.toLowerCase().split(',').map((t) => t.trim()).some((t) => yo.indexOf(t) >= 0) && !S.prod.some((x) => x.id === p.id));
   miei.forEach((p) => S.prod.push(p)); return miei.length > 0;
 }
-function memberPinta(d) { S.member = d; memberRivela(); if (S.prod) pinta(); }
+function memberPinta(d) { if (MEMBER_FUORI) return; S.member = d; memberRivela(); if (S.prod) pinta(); }
+/* v0.10.12 · AUT-0975 (Alberto 11-nov, strada b): il member resta nel telefono, ma si vede e si toglie. Prima un link member apriva per sempre
+   i piatti FAM su ogni QR di quel telefono, senza uscita. «Member · Salir» toglie le due chiavi, il ?member= dal link, i piatti Solo_Member
+   dalla carta e dal carrello (carrelloRivedi), e i prezzi member (prezzoOra legge S.member a ogni disegno). */
+let MEMBER_FUORI = false;
+function memberSalir() {
+  MEMBER_FUORI = true;
+  try { localStorage.removeItem('menu_member_' + (LOCAL || 'X')); if (MEMBER_ID) localStorage.removeItem('pinsita_member_' + MEMBER_ID); } catch (e) { /* niente */ }
+  try { const u = new URL(location.href); if (u.searchParams.has('member')) { u.searchParams.delete('member'); history.replaceState(history.state, '', u.pathname + u.search + u.hash); } } catch (e) { /* niente */ }
+  S.member = null;
+  if (S.prod) { const sm = new Set(PROD_SM.map((p) => p.id)); S.prod = S.prod.filter((p) => !sm.has(p.id)); if (S.abierta && sm.has(S.abierta)) S.abierta = null; carrelloRivedi(); }
+  pinta();
+}
 async function memberCarica() {
   if (!MEMBER_ID) return;
   const ck = 'pinsita_member_' + MEMBER_ID; let ottimista = false;
