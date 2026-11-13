@@ -578,7 +578,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.23</div>
+<div class="ver" id="ver">menu v0.10.24</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -693,9 +693,9 @@ function clp(n) { const c = S.cfg || {}; return (c.currency_symbol || '$') + Mat
 
 /* ═══ i nomi: dalla config del locale; finché la config non li porta, un default GENERICO (non di un locale) ═══ */
 const NOMI_CAT_DEFAULT = { entradas: 'Para compartir', fondos: 'Platos', pastas: 'Pastas', sushi: 'Sushi', acompanamientos: 'Acompañamientos',
-  menu_contenitore: 'Promo', pizzas: 'Pizzas', pizzas_burger: 'Burgers', nino: 'Niños', bar: 'Coctelería', sour: 'Sour', mojitos: 'Mojitos', spritz: 'Spritz',
+  menu_contenitore: 'Menús', pizzas: 'Pizzas', pizzas_burger: 'Burgers', nino: 'Niños', bar: 'Coctelería', sour: 'Sour', mojitos: 'Mojitos', spritz: 'Spritz',
   cervezas: 'Cervezas', vinos: 'Vinos', jarras: 'Jarras', destilados: 'Destilados', bebidas: 'Bebidas', jugos: 'Jugos', postres: 'Postres', cafes: 'Cafés' };
-const NOMI_GRUPPO_DEFAULT = { Comida: 'Comer', Barra: 'Barra', Dolci: 'Postres' };
+const NOMI_GRUPPO_DEFAULT = { Promo: 'Promo', Comida: 'Comer', Barra: 'Barra', Dolci: 'Postres' };
 function nomeCat(k) { const m = (S.cfg && S.cfg.nombres_categorias) || {}; return T(m[k] || NOMI_CAT_DEFAULT[k] || (k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '))); }
 function nomeGruppo(k) { const m = (S.cfg && S.cfg.nombres_grupos) || {}; return T(m[k] || NOMI_GRUPPO_DEFAULT[k] || k); }
 const descP = (p) => (p.dl && p.dl[S.lang]) || p.d || '';   // v0.8: la descrizione nella lingua del menù, se la carta ce l'ha
@@ -913,8 +913,12 @@ function gruppi() {
   /* v0.10.21 (Alberto 13-nov: «il menu del día è nella categoria mojitos, dovrebbe essere in PROMO»): i menú-contenitore (Menú del día,
      Menú 3 Tiempos) non stanno in nessuna famiglia della config ⇒ niente chip. Se la config non li mette da nessuna parte, vanno nel chip
      «Promo», PRIMO della prima famiglia: è quello che vende a pranzo. Il giorno che la config li nomina, vince la config. */
-  const k0 = Object.keys(g)[0], giaDentro = Object.keys(g).some((k) => (g[k].cats || []).indexOf('menu_contenitore') >= 0);
-  return Object.keys(g).map((k) => ({ k, emoji: g[k].emoji || '', cats: ((k === k0 && !giaDentro ? ['menu_contenitore'] : []).concat(g[k].cats || [])).filter((c) => conProd.has(c)) })).filter((x) => x.cats.length);
+  /* v0.10.24 (Alberto 13-nov: «il chip Promo deve andare nella riga di sopra, insieme a Comer»): non più un chip DENTRO Comer, ma una
+     FAMIGLIA sua, prima di tutte, con la categoria «Menús». Le promo da bere (il 2x1) ci entrano col passo dopo (dom 15). */
+  const giaDentro = Object.keys(g).some((k) => (g[k].cats || []).indexOf('menu_contenitore') >= 0);
+  const fam = Object.keys(g).map((k) => ({ k, emoji: g[k].emoji || '', cats: (g[k].cats || []).filter((c) => conProd.has(c)) }));
+  if (!giaDentro && !g.Promo) fam.unshift({ k: 'Promo', emoji: '🏷️', cats: ['menu_contenitore'].filter((c) => conProd.has(c)) });
+  return fam.filter((x) => x.cats.length);
 }
 
 /* ═══ il disegno ═══ */
