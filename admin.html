@@ -158,6 +158,7 @@
   .capa .pbt.dan { border-color:#c0392b; color:#c0392b; } .capa .pbt.dan.pie { background:#c0392b; color:#fff; }
   .cnew { border-color:var(--success); } .cnew textarea { background:var(--surface-2); border:1px solid var(--border-strong); border-radius:8px; padding:7px 9px; min-height:60px; resize:vertical; font:inherit; color:inherit; }   /* v1.1.0 · «+ Producto» */
   .crow.nuovo { box-shadow:0 0 0 2px var(--success); }
+  .ckl { display:flex; gap:9px; align-items:flex-start; margin-top:12px; cursor:pointer; } .ckl input { width:18px; height:18px; margin-top:2px; flex:0 0 auto; } .ckl span { font-size:13px; } .ckl small { display:block; color:var(--text-muted); font-size:11.5px; }
   .crow .ch2 { font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-muted); white-space:nowrap; }
   @media (max-width:560px){ .crow { grid-template-columns:minmax(0,1fr) auto auto; } .crow .ch2 { display:none; } }
   .cdet { border-color:var(--success); }
@@ -192,7 +193,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.1.2</div>
+  <div id="ver">admin v1.2.0</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -310,6 +311,12 @@ const CARTA_ERR = { version_cambiata:'Otro cambió este producto · recargué', 
   ruta_apagada:'La carta aún no está activa', nombre_invalido:'El nombre va de 2 a 60 letras, sin espacios al inicio ni al final', categoria_desconocida:'Esa categoría no está en la carta',
   descripcion_invalida:'La descripción va hasta 300 letras', id_producto_invalido:'El código no es válido (ej. BKS-MOJ-012)', id_en_uso:'Ese código ya existe', valor_invalido:'Revisa los datos', gesto_id_ajeno:'Error del panel · recarga la página', token_invalido:'Sin acceso al servidor' };
 const PRODUCTS = () => (C.list || []);
+/* v1.2 · cosa dice la riga sotto il nome. I contenitori (Menú del día…) li accende e spegne il JL dalla sua app, nella fascia del menú. */
+function statoRiga(p){
+  if (p.categoria === 'menu_contenitore') return 'Lo enciende el JL en su app · ' + (p.vendible ? 'se vende ahora' : 'no se vende ahora');
+  if (p.menu_visible === false) return 'Solo en menú · no sale en la carta';   // la parola sta nella riga piccola: accanto al nome l'ellissi la tagliava
+  return p.vendible ? 'Se vende ahora' : 'No se vende ahora';
+}
 const nome = (id) => { const p = PRODUCTS().find((x) => x.id_producto === id); return p ? p.nombre : id; };
 async function cartaCarica(){
   if (C.busy) return; C.busy = true;
@@ -350,25 +357,25 @@ function cartaPinta(){
   app.innerHTML =
     (C.stato ? '<div class="pban err">Lo que ves puede estar viejo: no pude recargar (' + esc(CARTA_ERR[C.stato] || C.stato) + ').</div>' : '') +
     (!scrive ? '<div class="pban">Tu PIN puede ver la carta, pero no cambiarla.</div>' : '') +
-    '<div class="ptop"><h1>Carta · ' + C.list.length + ' productos</h1><div class="row">' + (puedeCrear() && !C.nuevo ? '<button class="pbt peq pri" data-ca="nuevo">+ Producto</button>' : '') + (OFF.length ? '<button class="pbt peq" data-ca="veroff" aria-pressed="' + C.off + '">' + (C.off ? 'Ocultar apagados' : 'Ver apagados · ' + OFF.length) + '</button>' : '') + '<button class="pbt peq" data-ca="recarga">Recargar</button></div></div>' +
+    '<div class="ptop"><h1>Carta · ' + C.list.length + ' productos</h1><div class="row">' + (puedeCrear() && !C.nuevo ? '<button class="pbt peq pri" data-ca="nuevo">+ Producto</button>' : '') + (OFF.length ? '<button class="pbt peq" data-ca="veroff" aria-pressed="' + C.off + '">' + (C.off ? 'Ocultar desactivados' : 'Ver desactivados · ' + OFF.length) + '</button>' : '') + '<button class="pbt peq" data-ca="recarga">Recargar</button></div></div>' +
     (C.nuevo ? cartaNuovoModulo() : '') +
     '<div class="cbar"><input type="search" id="cq" placeholder="Buscar producto…" value="' + esc(C.q) + '"></div>' +
     '<div class="fil">' + ['todas'].concat(cats).map((c) => '<button class="fc' + (C.cat === c ? ' on' : '') + '" data-ca="cat" data-k="' + esc(c) + '">' + esc(c === 'todas' ? 'Todas' : c.charAt(0).toUpperCase() + c.slice(1)) + '</button>').join('') + '</div>' +
     (C.sel ? cartaDettaglio() : '') +
-    (LO.length ? '<div class="pbox" id="cOff"><h2>Apagados · ' + LO.length + '</h2><div class="cgrp">' + LO.sort((a, b) => (b.id_producto === C.recien) - (a.id_producto === C.recien) || String(a.nombre).localeCompare(String(b.nombre), 'es')).map((p) =>
-        '<div class="crow off' + (p.id_producto === C.recien ? ' nuovo' : '') + '"><span class="cn">' + esc(p.nombre) + '<small>' + esc((p.categoria || 'otros') + ' · apagado: no se ve ni se vende') + '</small></span>' +
+    (LO.length ? '<div class="pbox" id="cOff"><h2>Desactivados · ' + LO.length + '</h2><div class="cgrp">' + LO.sort((a, b) => (b.id_producto === C.recien) - (a.id_producto === C.recien) || String(a.nombre).localeCompare(String(b.nombre), 'es')).map((p) =>
+        '<div class="crow off' + (p.id_producto === C.recien ? ' nuovo' : '') + '"><span class="cn">' + esc(p.nombre) + '<small>' + esc((p.categoria || 'otros') + (p.menu_visible === false ? ' · solo en menú' : '') + ' · desactivado: no se ve ni se vende') + '</small></span>' +
         '<span class="ch2"></span><span class="cp">' + (p.sin_precio ? 'sin precio' : clp(p.precio)) + '</span>' +
-        (scrive ? '<button class="pbt peq" data-ca="enciende" data-k="' + esc(p.id_producto) + '">Encender</button>' : '<span></span>') + '</div>').join('') +
-      '</div><div class="nota">Al encenderlo vuelve a la carta con su precio de antes. Si el precio cambia, ábrelo arriba y cámbialo.</div></div>' : '') +
-    (C.off && !LO.length ? '<div class="pbox vuoto" id="cOff">Ningún producto apagado' + (C.cat !== 'todas' ? ' en ' + esc(C.cat) : '') + (q ? ' con ese filtro' : '') + '.</div>' : '') +   // v1.1.2 (Alberto: «il filtro non funziona»): accesa senza righe, lo dice
+        '<span class="swl"><em>Desactivado</em><button class="sw" data-ca="enciende" data-k="' + esc(p.id_producto) + '" aria-label="Desactivado: toca para activar" aria-pressed="false"' + (scrive ? '' : ' disabled') + '></button></span></div>').join('') +
+      '</div><div class="nota">Al activarlo vuelve como estaba, con su precio de antes: a la carta, o «Solo en menú» si lo era. Si el precio cambia, ábrelo arriba y cámbialo.</div></div>' : '') +
+    (C.off && !LO.length ? '<div class="pbox vuoto" id="cOff">Ningún producto desactivado' + (C.cat !== 'todas' ? ' en ' + esc(C.cat) : '') + (q ? ' con ese filtro' : '') + '.</div>' : '') +   // v1.1.2 (Alberto: «il filtro non funziona»): accesa senza righe, lo dice
     (L.length ? Object.keys(grp).sort((a, b) => a.localeCompare(b, 'es')).map((c) => '<div class="pbox"><h2>' + esc(c) + ' · ' + grp[c].length + '</h2><div class="cgrp">' +
       grp[c].sort((a, b) => (a.orden == null ? 1e9 : a.orden) - (b.orden == null ? 1e9 : b.orden) || String(a.nombre).localeCompare(String(b.nombre), 'es')).map((p) =>
         '<div class="crow' + (C.sel === p.id_producto ? ' sel' : '') + '" data-ca="apri" data-k="' + esc(p.id_producto) + '" role="button" tabindex="0">' +
-        '<span class="cn">' + esc(p.nombre) + '<small>' + esc(p.menu_visible === false ? 'Oculto de la carta' : p.vendible ? 'Se vende ahora' : 'No se vende ahora') + '</small></span>' +
+        '<span class="cn">' + esc(p.nombre) + '<small>' + esc(statoRiga(p)) + '</small></span>' +
         '<span class="ch2">' + esc(ora(p)) + '</span><span class="cp">' + (p.sin_precio ? 'sin precio' : clp(p.precio)) + '</span>' +
-        '<span class="swl"><em>En carta</em><button class="sw' + (p.menu_visible !== false ? ' on' : '') + '" data-ca="visibile" data-k="' + esc(p.id_producto) + '" aria-label="En la carta" aria-pressed="' + (p.menu_visible !== false) + '"' + (scrive ? '' : ' disabled') + '></button></span></div>').join('') +
+        '<span class="swl"><em>Activado</em><button class="sw on" data-ca="spegni" data-k="' + esc(p.id_producto) + '" aria-label="Activado: toca para desactivar" aria-pressed="true"' + (scrive ? '' : ' disabled') + '></button></span></div>').join('') +
       '</div></div>').join('') : (LO.length ? '' : '<div class="pbox vuoto">Nada con ese filtro.</div>')) +
-    '<div class="nota">El interruptor dice si el producto se ve en la carta (QR y mesero). Cada cambio es una versión nueva en Postgres, con quién y cuándo.</div>';
+    '<div class="nota"><b>Activado</b>: se vende. <b>Desactivado</b>: sale de la carta y de los menús hasta que lo actives. <b>Solo en menú</b>: no sale en la carta, solo dentro de un menú (Menú del día…) al precio del menú; se cambia dentro del producto. Para el turno, el 86 sigue en la app del JL. Cada cambio es una versión nueva en Postgres, con quién y cuándo.</div>';
 }
 /* ═══ v1.1.0 · «+ Producto» · il gesto `crear` del bordo (D-498, CONTRATTO_CREAR_PRODUCTO_11NOV2026). Solo il gerente (il bordo lo dice in
    `puede.carta_crear`, e lo ricontrolla sul PIN). Il prodotto NASCE SPENTO: compare in «Ver apagados» e lo mette in vendita «Encender».
@@ -389,10 +396,11 @@ function creaIdPropone(cat, salto){
   tutti.forEach((id) => { if (id.startsWith(pre)) { const r = id.slice(pre.length); if (/^\d+$/.test(r)) { max = Math.max(max, Number(r)); larg = Math.max(larg, r.length); } } });
   return pre + String(max + 1 + (salto || 0)).padStart(larg, '0');
 }
-function creaApri(){ const cats = creaCats(); const cat = cats[0] || ''; C.nuevo = { nombre:'', categoria:cat, precio:'', descripcion:'', id: creaIdPropone(cat), idTocco:false, err:'', busy:false }; C.sel = null; C.conf = null; }
+function creaApri(){ const cats = creaCats(); const cat = cats[0] || ''; C.nuevo = { nombre:'', categoria:cat, precio:'', descripcion:'', id: creaIdPropone(cat), idTocco:false, soloMenu:false, err:'', busy:false }; C.sel = null; C.conf = null; }
 function creaLeggi(){ const N = C.nuevo; if (!N) return; const v = (id) => (document.getElementById(id) || {}).value;
   const nom = v('cn_nombre'); if (nom != null) N.nombre = nom; const pr = v('cn_precio'); if (pr != null) N.precio = pr;
-  const ds = v('cn_desc'); if (ds != null) N.descripcion = ds; const id = v('cn_id'); if (id != null) N.id = id.toUpperCase(); }
+  const ds = v('cn_desc'); if (ds != null) N.descripcion = ds; const id = v('cn_id'); if (id != null) N.id = id.toUpperCase();
+  const sm = document.getElementById('cn_sm'); if (sm) N.soloMenu = !!sm.checked; }
 function cartaNuovoModulo(){
   const N = C.nuevo; const cats = creaCats();
   return '<div class="pbox cnew" id="cNew"><div class="ptop"><h1>Nuevo producto</h1><div class="row"><button class="pbt" data-ca="nuevoNo"' + (N.busy ? ' disabled' : '') + '>Cancelar</button>' +
@@ -403,7 +411,8 @@ function cartaNuovoModulo(){
     '<div class="fld"><label>Precio (CLP)</label><input type="number" inputmode="numeric" min="1" step="1" id="cn_precio" value="' + esc(N.precio) + '" style="width:130px"></div>' +
     '<div class="fld"><label>Código</label><input id="cn_id" maxlength="60" value="' + esc(N.id) + '" style="width:150px;text-transform:uppercase" class="mono"></div></div>' +
     '<div class="fld"><label>Descripción (opcional)</label><textarea id="cn_desc" maxlength="300">' + esc(N.descripcion) + '</textarea></div>' +
-    '<div class="nota">Nace <b>apagado</b>: no se ve ni se vende hasta que lo revises en «Ver apagados» y toques «Encender». Sin foto ni traducciones por ahora: sale en español en todos los idiomas.</div></div>';
+    '<label class="ckl"><input type="checkbox" id="cn_sm"' + (N.soloMenu ? ' checked' : '') + '><span><b>Solo en menú</b><small>Como «Tiramisú menú»: no sale en la carta, solo como opción dentro de un menú, al precio del menú. El precio de arriba es el de referencia.</small></span></label>' +
+    '<div class="nota">Nace <b>desactivado</b>: no se ve ni se vende hasta que lo revises en «Ver desactivados» y lo actives. Sin foto ni traducciones por ahora: sale en español en todos los idiomas.</div></div>';
 }
 async function creaInvia(){
   const N = C.nuevo; if (!N || N.busy) return; creaLeggi();
@@ -429,9 +438,16 @@ async function creaInvia(){
   }
   N.busy = false;
   if (j && j.ok === true) {
+    const soloMenu = !!N.soloMenu;
     C.recien = id; C.cat = N.categoria; C.q = ''; C.nuevo = null; C.off = true;   // la sua categoria, e gli apagados in vista: il nuovo è in cima
-    toast('ok', 'Creado apagado · revísalo y enciéndelo');
-    await cartaCarica(); cartaPinta();
+    await cartaCarica();
+    if (soloMenu) {   // v1.2 · il secondo gesto, sulla versione appena nata (il suo ts viene dalla rilettura)
+      const nato = (C.all || []).find((x) => x.id_producto === id);
+      const ok2 = nato ? await cartaGesto(nato, 'menu_visible', false) : false;
+      if (ok2) await cartaCarica();
+      toast(ok2 ? 'ok' : 'err', ok2 ? 'Creado desactivado, solo en menú · revísalo y actívalo' : 'Creado, pero no quedó «solo en menú»: ábrelo y márcalo');
+    } else toast('ok', 'Creado desactivado · revísalo y actívalo');
+    cartaPinta();
     const o = document.getElementById('cOff'); if (o) o.scrollIntoView({ behavior:'smooth', block:'start' });
     return;
   }
@@ -454,10 +470,11 @@ function cartaDettaglio(){
     '</div>' +
     '<div class="nota">Horas de 24 h: <b class="mono">03:00</b> es de madrugada, <b class="mono">15:00</b> de tarde. Puedes escribir solo los números (<b class="mono">330</b> → 03:30). Vacío en «Desde» = desde que abre; vacío en «Hasta» = cierra con su estación.</div>' +
     (p.sin_precio ? '<div class="nota" style="margin-top:6px">Este producto está «sin precio» por decisión: no se cambia desde aquí.</div>' : '') +
+    (p.categoria === 'menu_contenitore' ? '' : '<label class="ckl"><input type="checkbox" id="cf_sm"' + (p.menu_visible === false ? ' checked' : '') + (dis ? ' disabled' : '') + '><span><b>Solo en menú</b><small>No sale en la carta: solo como opción dentro de un menú (Menú del día…), al precio del menú. Se guarda con «Guardar».</small></span></label>') +
     (dis ? '' : (C.conf === p.id_producto
-      ? '<div class="capa"><span>¿Apagar <b>' + esc(p.nombre) + '</b>? No se verá ni se venderá, en el QR ni en el mesero.</span>' +
-        '<button class="pbt dan pie" data-ca="apagaSi">Sí, apagar</button><button class="pbt" data-ca="apagaNo">No</button></div>'
-      : '<div class="capa"><button class="pbt dan" data-ca="apaga">Apagar producto</button><span class="nota">Lo puedes volver a encender desde «Ver apagados».</span></div>')) +
+      ? '<div class="capa"><span>¿Desactivar <b>' + esc(p.nombre) + '</b>? No se verá ni se venderá: ni en la carta, ni en los menús, ni en el mesero.</span>' +
+        '<button class="pbt dan pie" data-ca="apagaSi">Sí, desactivar</button><button class="pbt" data-ca="apagaNo">No</button></div>'
+      : '<div class="capa"><button class="pbt dan" data-ca="apaga">Desactivar producto</button><span class="nota">Lo puedes volver a activar desde «Ver desactivados».</span></div>')) +
   '</div>';
 }
 async function cartaSalva(){
@@ -471,6 +488,8 @@ async function cartaSalva(){
     if (ini !== (hhNorm(p.hora_inicio) || '')) gesti.push(['hora_inicio', ini]);
     if (fin !== (hhNorm(p.hora_fin) || '')) gesti.push(['hora_fin', fin]);
   }
+  const sm = document.getElementById('cf_sm');   // v1.2 · «Solo en menú» = menu_visible false
+  if (sm && sm.checked !== (p.menu_visible === false)) gesti.push(['menu_visible', !sm.checked]);
   if (e.length) { C.err = e.join(' '); cartaPinta(); return; }
   if (!gesti.length) { C.err = 'No hay cambios que guardar.'; cartaPinta(); return; }
   C.err = '';
@@ -493,9 +512,8 @@ document.getElementById('cartaApp').addEventListener('input', (ev) => {
 document.getElementById('cartaApp').addEventListener('click', async (ev) => {
   const el = ev.target.closest('[data-ca]'); if (!el || el.disabled) return;
   const a = el.dataset.ca, k = el.dataset.k;
-  if (a === 'visibile') { ev.stopPropagation(); const p = C.list.find((x) => x.id_producto === k); if (!p) return; el.disabled = true;
-    const vis = p.menu_visible !== false;
-    if (await cartaGesto(p, 'menu_visible', !vis)) toast('ok', vis ? 'Oculto de la carta: ' + p.nombre : 'De vuelta en la carta: ' + p.nombre);
+  if (a === 'spegni') { ev.stopPropagation(); const p = C.list.find((x) => x.id_producto === k); if (!p) return; el.disabled = true;   // v1.2 · Activado → Desactivado (il gesto activo)
+    if (await cartaGesto(p, 'activo', false)) toast('ok', 'Desactivado: ' + p.nombre + ' · está en «Ver desactivados»'); else el.disabled = false;
     await cartaCarica(); return; }
   if (a === 'apri') { C.sel = k; C.err = ''; C.conf = null; cartaPinta(); const d = document.getElementById('cDet'); if (d) d.scrollIntoView({ behavior:'smooth', block:'start' }); return; }
   if (a === 'chiudi') { C.sel = null; C.err = ''; C.conf = null; cartaPinta(); return; }
@@ -509,10 +527,10 @@ document.getElementById('cartaApp').addEventListener('click', async (ev) => {
   if (a === 'apagaNo') { C.conf = null; cartaPinta(); return; }
   if (a === 'apagaSi') { const p = (C.list || []).find((x) => x.id_producto === C.conf); if (!p) { C.conf = null; cartaPinta(); return; } el.disabled = true;
     const ok = await cartaGesto(p, 'activo', false);   // lo stesso gesto del bordo, col PIN e il base_ts della versione vista
-    if (ok) { toast('ok', 'Apagado: ' + p.nombre); C.conf = null; C.sel = null; await cartaCarica(); } else el.disabled = false;
+    if (ok) { toast('ok', 'Desactivado: ' + p.nombre); C.conf = null; C.sel = null; await cartaCarica(); } else el.disabled = false;
     return; }
   if (a === 'enciende') { const p = (C.all || []).find((x) => x.id_producto === k); if (!p) return; el.disabled = true;   // v1.0.1 · lo stesso gesto `activo` del bordo, col PIN e la versione vista
-    if (await cartaGesto(p, 'activo', true)) toast('ok', 'Encendido: ' + p.nombre); else el.disabled = false;
+    if (await cartaGesto(p, 'activo', true)) toast('ok', 'Activado: ' + p.nombre + (p.menu_visible === false ? ' · solo en menú' : '')); else el.disabled = false;
     await cartaCarica(); return; }
   if (a === 'recarga') { cartaCarica(); return; }
 });
