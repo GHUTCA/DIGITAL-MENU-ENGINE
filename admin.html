@@ -193,7 +193,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.2.1</div>
+  <div id="ver">admin v1.2.2</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -312,8 +312,27 @@ const CARTA_ERR = { version_cambiata:'Otro cambió este producto · recargué', 
   descripcion_invalida:'La descripción va hasta 300 letras', id_producto_invalido:'El código no es válido (ej. BKS-MOJ-012)', id_en_uso:'Ese código ya existe', valor_invalido:'Revisa los datos', gesto_id_ajeno:'Error del panel · recarga la página', token_invalido:'Sin acceso al servidor' };
 const PRODUCTS = () => (C.list || []);
 /* v1.2 · cosa dice la riga sotto il nome. I contenitori (Menú del día…) li accende e spegne il JL dalla sua app, nella fascia del menú. */
+/* v1.2.2 · l'orario del prodotto adesso, a Santiago, anche oltre la mezzanotte (la stessa regola di inOrario del QR). Senza orario ⇒ dentro. */
+function dentroHorario(p){
+  const dec = (s) => { const m = String(s || '').match(/^(\d{1,2}):(\d{2})/); return m ? +m[1] + (+m[2]) / 60 : null; };
+  const a = dec(p.hora_inicio), b = dec(p.hora_fin);
+  if (a === null && b === null) return true;
+  const i = a === null ? 0 : a, f = b === null ? 24 : b;
+  if (i === f) return true;
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Santiago' })), h = d.getHours() + d.getMinutes() / 60;
+  return f > i ? (h >= i && h < f) : (h >= i || h < f);
+}
 function statoRiga(p){
-  if (p.categoria === 'menu_contenitore') return 'Lo enciende el JL en su app · ' + (p.vendible ? 'se vende ahora' : 'no se vende ahora');
+  /* v1.2.2 (13-nov · 🎛 CONTROLLER: «una scritta che dice il falso ha prodotto il loop»): alle 17:00 diceva «se vende ahora» a un
+     Menú del día fuori orario e spento dal JL. `vendible` di producto_carta non guarda né l'orario né lo strumento. Ora si dice solo ciò
+     che si sa: lo strumento del JL (che lo punta con id_contenitore) e l'orario del prodotto, con l'ora di Santiago. Senza la lettura
+     delle propuestas non si afferma che si vende. */
+  if (p.categoria === 'menu_contenitore') {
+    const st = (P.d && P.d.strumenti) ? P.d.strumenti.filter((r) => r.id_contenitore === p.id_producto) : null;
+    if (st && st.length && !st.some((r) => r.activo)) return 'Desactivado por el JL en su app';
+    if (!dentroHorario(p)) return 'Fuera de horario' + (p.hora_inicio && p.hora_fin ? ' (' + hhShow(p.hora_inicio) + '–' + hhShow(p.hora_fin) + ')' : '') + ' · no se vende ahora';
+    return st && st.length ? 'Activado por el JL · se vende ahora' : 'Lo enciende el JL en su app';
+  }
   if (p.menu_visible === false) return 'Solo en menú · no sale en la carta';   // la parola sta nella riga piccola: accanto al nome l'ellissi la tagliava
   return p.vendible ? 'Se vende ahora' : 'No se vende ahora';
 }
@@ -324,7 +343,7 @@ async function cartaCarica(){
   C.busy = false;
   if (r.j && r.j.ok === true && Array.isArray(r.j.productos)) { C.all = r.j.productos; C.list = C.all.filter((p) => p.activo !== false); C.at = Date.now(); C.stato = ''; }
   else C.stato = r.status === 0 ? 'red' : ((r.j && r.j.error) || 'http_' + r.status);
-  if (TAB === 'carta') cartaPinta();
+  if (TAB === 'carta') { cartaPinta(); if (!P.d && !P.busy && P.stato !== 'ruta') propCarica(); }   // v1.2.2: lo stato del Menú del día vuole lo strumento del JL
   else if (P.d) propPinta();   // i nomi dei prodotti nelle propuestas
 }
 async function cartaGesto(p, gesto, valor){
@@ -590,6 +609,7 @@ async function propCarica(){
   else P.stato = r.red ? 'red' : ((r.j && r.j.error) || ('http_' + r.status));
   if (!C.list && !C.busy) cartaCarica();   // i nomi dei prodotti
   if (TAB === 'prop') propPinta();
+  else if (TAB === 'carta' && C.list) cartaPinta();   // v1.2.2: la riga del Menú del día con lo stato vero
 }
 async function propScrivi(tabla, fila, baseTs){
   if (!propLevaOn()) { toast('warn', PROP_ERR.apagado); return { ok:false, error:'apagado' }; }
