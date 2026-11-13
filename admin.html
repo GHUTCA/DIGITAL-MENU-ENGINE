@@ -193,7 +193,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.2.0</div>
+  <div id="ver">admin v1.2.1</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -373,7 +373,8 @@ function cartaPinta(){
         '<div class="crow' + (C.sel === p.id_producto ? ' sel' : '') + '" data-ca="apri" data-k="' + esc(p.id_producto) + '" role="button" tabindex="0">' +
         '<span class="cn">' + esc(p.nombre) + '<small>' + esc(statoRiga(p)) + '</small></span>' +
         '<span class="ch2">' + esc(ora(p)) + '</span><span class="cp">' + (p.sin_precio ? 'sin precio' : clp(p.precio)) + '</span>' +
-        '<span class="swl"><em>Activado</em><button class="sw on" data-ca="spegni" data-k="' + esc(p.id_producto) + '" aria-label="Activado: toca para desactivar" aria-pressed="true"' + (scrive ? '' : ' disabled') + '></button></span></div>').join('') +
+        (p.categoria === 'menu_contenitore' ? '<span class="swl"><em>Lo controla el JL</em></span></div>' :   /* v1.2.0 (🟡 di EL GIRO): il contenitore non si spegne con un tocco dalla riga; se serve, «Desactivar producto» nella scheda, con la domanda */
+        '<span class="swl"><em>Activado</em><button class="sw on" data-ca="spegni" data-k="' + esc(p.id_producto) + '" aria-label="Activado: toca para desactivar" aria-pressed="true"' + (scrive ? '' : ' disabled') + '></button></span></div>')).join('') +
       '</div></div>').join('') : (LO.length ? '' : '<div class="pbox vuoto">Nada con ese filtro.</div>')) +
     '<div class="nota"><b>Activado</b>: se vende. <b>Desactivado</b>: sale de la carta y de los menús hasta que lo actives. <b>Solo en menú</b>: no sale en la carta, solo dentro de un menú (Menú del día…) al precio del menú; se cambia dentro del producto. Para el turno, el 86 sigue en la app del JL. Cada cambio es una versión nueva en Postgres, con quién y cuándo.</div>';
 }
