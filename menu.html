@@ -1423,7 +1423,7 @@ function ccVisibile(cons) {
 }
 function ccPill(cons) {
   const m = S.cuentaMesa;
-  if (m && !m.cerrada) { if (!m.resta_ignota && Number(m.total) > 0 && Number(m.resta) <= 0) return '✓'; return clp(m.resta_ignota ? m.total : m.resta); }
+  if (m && !m.cerrada && m.righe.length) { if (!m.resta_ignota && Number(m.total) > 0 && Number(m.resta) <= 0) return '✓'; return clp(m.resta_ignota ? m.total : m.resta); }
   return cons > 0 ? clp(cons) : '';
 }
 async function ccLeggi() {
@@ -1443,7 +1443,11 @@ async function ccLeggi() {
     if (st === 404 || (r && (r.error === 'ruta_apagada' || r.error === 'token_invalid'))) { S.ccRuta = false; S.cuentaMesa = null; S.ccNota = ''; S.ccAgg = ''; return; }
     if (!r || st === 0 || st >= 500 || r.reintenta) { S.ccAgg = 'reintenta'; if (r && r.ok === false) S.ccRuta = true; return; }   // non un esito: resta l'ultimo conto visto
     S.ccRuta = true; S.ccAgg = '';
-    if (r.ok === true && r.cerrada) { S.cuentaMesa = { cerrada: true, righe: [], ts: Date.now() }; S.ccNota = ''; return; }
+    /* 🔴 GO/NO-GO del 🎛 (13-nov, «ESTA CUENTA YA SE CERRÓ» SU UN CONTO VIVO): il bordo e7dc295 dice `cerrada` in due casi, con due forme.
+       Conto MORTO (pagado, anulado…) ⇒ `{ ok, cerrada }` senza righe, PRIMA di leggere PG. Conto VIVO senza pedidos in PG (`sin_pedidos`:
+       appena aperto dall'embajador) ⇒ `{ ok, cerrada, mesa, total: 0, items: [] }`. Il secondo NON è chiuso: si legge come un conto vuoto
+       («Todavía no hay pedidos en esta cuenta»). «se cerró» solo se il bordo non manda le righe. Forma fissata col ⚙️ ARQ in bacheca. */
+    if (r.ok === true && r.cerrada && !Array.isArray(r.items)) { S.cuentaMesa = { cerrada: true, righe: [], ts: Date.now() }; S.ccNota = ''; return; }
     if (r.ok === true && Array.isArray(r.items)) {
       S.cuentaMesa = { righe: r.items.map((it) => ({ nome: String(it.n || ''), q: Number(it.q) || 0, pr: Number(it.pu) || 0 })),
         total: Number(r.total) || 0, pagado: Number(r.pagado) || 0, resta: r.resta === null || r.resta === undefined ? null : Number(r.resta),
