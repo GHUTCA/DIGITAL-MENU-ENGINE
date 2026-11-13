@@ -578,7 +578,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.20</div>
+<div class="ver" id="ver">menu v0.10.21</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -693,7 +693,7 @@ function clp(n) { const c = S.cfg || {}; return (c.currency_symbol || '$') + Mat
 
 /* ═══ i nomi: dalla config del locale; finché la config non li porta, un default GENERICO (non di un locale) ═══ */
 const NOMI_CAT_DEFAULT = { entradas: 'Para compartir', fondos: 'Platos', pastas: 'Pastas', sushi: 'Sushi', acompanamientos: 'Acompañamientos',
-  pizzas: 'Pizzas', pizzas_burger: 'Burgers', nino: 'Niños', bar: 'Coctelería', sour: 'Sour', mojitos: 'Mojitos', spritz: 'Spritz',
+  menu_contenitore: 'Promo', pizzas: 'Pizzas', pizzas_burger: 'Burgers', nino: 'Niños', bar: 'Coctelería', sour: 'Sour', mojitos: 'Mojitos', spritz: 'Spritz',
   cervezas: 'Cervezas', vinos: 'Vinos', jarras: 'Jarras', destilados: 'Destilados', bebidas: 'Bebidas', jugos: 'Jugos', postres: 'Postres', cafes: 'Cafés' };
 const NOMI_GRUPPO_DEFAULT = { Comida: 'Comer', Barra: 'Barra', Dolci: 'Postres' };
 function nomeCat(k) { const m = (S.cfg && S.cfg.nombres_categorias) || {}; return T(m[k] || NOMI_CAT_DEFAULT[k] || (k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '))); }
@@ -893,7 +893,11 @@ const hhmm = (x) => String(Math.floor(x)).padStart(2, '0') + ':' + String(Math.r
 function gruppi() {
   let g = {}; try { g = JSON.parse((S.cfg && S.cfg.category_groups) || '{}'); } catch (e) { g = {}; }
   const conProd = new Set(S.prod.filter(visibile).map((p) => p.c));
-  return Object.keys(g).map((k) => ({ k, emoji: g[k].emoji || '', cats: (g[k].cats || []).filter((c) => conProd.has(c)) })).filter((x) => x.cats.length);
+  /* v0.10.21 (Alberto 13-nov: «il menu del día è nella categoria mojitos, dovrebbe essere in PROMO»): i menú-contenitore (Menú del día,
+     Menú 3 Tiempos) non stanno in nessuna famiglia della config ⇒ niente chip. Se la config non li mette da nessuna parte, vanno nel chip
+     «Promo», PRIMO della prima famiglia: è quello che vende a pranzo. Il giorno che la config li nomina, vince la config. */
+  const k0 = Object.keys(g)[0], giaDentro = Object.keys(g).some((k) => (g[k].cats || []).indexOf('menu_contenitore') >= 0);
+  return Object.keys(g).map((k) => ({ k, emoji: g[k].emoji || '', cats: ((k === k0 && !giaDentro ? ['menu_contenitore'] : []).concat(g[k].cats || [])).filter((c) => conProd.has(c)) })).filter((x) => x.cats.length);
 }
 
 /* ═══ il disegno ═══ */
@@ -985,6 +989,7 @@ function risultati() {
 }
 const daMostrare = () => cercando() ? risultati() : S.prod.filter((x) => x.c === S.cat && visibile(x));
 let PAG = 0;
+let DOPO_SCELTA = null;   // v0.10.21: la domanda appena risposta (indice), per portare in vista la prossima
 /* v0.6.1 (Alberto 28-ott, Coco Jengibre: «la foto non si vede intera»): una copa col gambo occupa l'85% dell'altezza della foto,
    e nessun punto di taglio la salva. v0.6.2 (Alberto: «6 card trovano il prodotto il doppio più in fretta»): le 6 card restano,
    ma più basse (96 px), e nome e prezzo della scheda stanno su una riga: lo spazio ripreso va alla foto. */
@@ -1485,7 +1490,16 @@ function pinta() {
   const z = document.getElementById('z3'), pal = inPalco(), mVec = z.querySelector('.mini'), slVec = mVec ? mVec.scrollLeft : null; z.classList.remove('basso'); z.classList.toggle('aperta', !!S.abierta || pal);   // v0.9.13: col carrello sopra, la scheda aperta resta disegnata sotto
   // v0.7: sul palco si ridisegna SOLO la striscia dei destacados (un ＋, il tick dei 60"): rifare il palco ricomincerebbe il video
   if (pal && z.querySelector('.pal-split') && z.dataset.pk === palKey()) { const ds = z.querySelector('.destrip'); if (ds) { const sl = ds.scrollLeft; ds.innerHTML = destCards(); ds.scrollLeft = sl; } }
-  else { z.innerHTML = z3(); z.dataset.pk = pal ? palKey() : ''; if (pal) palcoGira(); else palcoStop(); }
+  else { const dv = z.querySelector('.det'), stDet = dv ? dv.scrollTop : 0;   // v0.10.21
+    z.innerHTML = z3(); z.dataset.pk = pal ? palKey() : ''; if (pal) palcoGira(); else palcoStop();
+    const dn = z.querySelector('.det');
+    if (dn && S.abierta && S.abierta === ULTIMA_VER) {
+      dn.scrollTop = stDet;
+      if (DOPO_SCELTA) { const pr = [].slice.call(dn.querySelectorAll('.prep')), i = DOPO_SCELTA.i, nx = pr.slice(i + 1).find((x) => x.querySelector('.mreq')) || null;
+        const dest = nx;   // l'ultima risposta non sposta niente: il PEDIR sta nella card VER della striscia (o nel bottone, se la VER non si vede)
+        if (dest) { const a = dn.getBoundingClientRect(), b = dest.getBoundingClientRect(); if (b.bottom > a.bottom || b.top < a.top) dn.scrollTop = dn.scrollTop + (b.top - a.top) - 8; } }   // diretto, non smooth: un ridisegno subito dopo lo annullerebbe a metà
+    }
+    DOPO_SCELTA = null; }
   // la striscia resta sulla pagina del piatto aperto; il passo è pagina + spazio, non la larghezza della striscia
   const m = z.querySelector('.mini');
   if (m) {
@@ -1987,7 +2001,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
   // ＋ e − su una RIGA del carrello (la chiave intera): stessa scelta, una in più o una in meno
   else if (a === 'masK' && S.cart[k] && !S.inviando && !S.inviaStato) { const pp = S.prod.find((x) => x.id === k.split('§')[0]); if (ordinabile(pp)) { S.cart[k]++; S.errore = ''; S.need = ''; } }
   else if (a === 'meno' && S.cart[k] && !S.inviando && !S.inviaStato) { S.cart[k]--; if (!S.cart[k]) delete S.cart[k]; S.errore = ''; S.need = ''; if (!Object.keys(S.cart).length) S.pedido = false; }
-  else if (a === 'sceglie') { const [pid, qk, ...ov] = k.split('|'); const pp = S.prod.find((x) => x.id === pid); if (pp) selDi(pp)[qk] = ov.join('|'); }
+  else if (a === 'sceglie') { const [pid, qk, ...ov] = k.split('|'); const pp = S.prod.find((x) => x.id === pid); if (pp) { selDi(pp)[qk] = ov.join('|'); DOPO_SCELTA = { i: domande(pp).findIndex((q) => q.k === qk) }; } }
   else if (a === 'verPed') { S.pedido = true; S.campana = false; }
   else if (a === 'chiudiPed') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.listo = null; }
   else if (a === 'inicio') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.campana = false; S.listo = null; S.abierta = null; S.busca = null; const g = gruppi()[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; }
