@@ -1448,6 +1448,9 @@ async function ccLeggi() {
        appena aperto dall'embajador) ⇒ `{ ok, cerrada, mesa, total: 0, items: [] }`. Il secondo NON è chiuso: si legge come un conto vuoto
        («Todavía no hay pedidos en esta cuenta»). «se cerró» solo se il bordo non manda le righe. Forma fissata col ⚙️ ARQ in bacheca. */
     if (r.ok === true && r.cerrada && !Array.isArray(r.items)) { S.cuentaMesa = { cerrada: true, righe: [], ts: Date.now() }; S.ccNota = ''; return; }
+    /* conto vivo senza righe in PG MA questo telefono ha già mandato qualcosa ⇒ PG non è ancora al passo: è un «non so», non «no hay pedidos»
+       (ARQ ha ritirato 1af1b81 e spedisce e7dc295: la cura la porta il vetro, CONTROLLER «LE DUE CURE SI SONO INCROCIATE») */
+    if (r.ok === true && r.cerrada && Array.isArray(r.items) && !r.items.length && righeMie().length) { S.ccAgg = 'reintenta'; return; }
     if (r.ok === true && Array.isArray(r.items)) {
       S.cuentaMesa = { righe: r.items.map((it) => ({ nome: String(it.n || ''), q: Number(it.q) || 0, pr: Number(it.pu) || 0 })),
         total: Number(r.total) || 0, pagado: Number(r.pagado) || 0, resta: r.resta === null || r.resta === undefined ? null : Number(r.resta),
