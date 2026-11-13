@@ -136,6 +136,7 @@ button{font-family:inherit}
 .mini .pag{flex:0 0 100%;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:7px 6px;scroll-snap-align:start}
 .split.conq .mini .pag{grid-template-rows:minmax(0,1fr)}   /* v0.10.16: una riga sola con le domande */
 .split.conq .det .fo{min-height:42vw}   /* e la foto ha un pavimento: mai più una striscia */
+.split.cont .det .fo{flex:0 0 auto;min-height:0;height:min(30vw,150px);max-height:none}   /* v0.10.24 (Alberto 13-nov, mesa 999: «le domande con i prodotti sono ancora nascoste»): un menú-contenitore non ha una foto che vende, ha 13+8 scelte. Il disegno resta, basso, e le domande salgono */
 .mini .cd{min-height:108px;height:auto;   /* v0.10.15: 96→108 per nome e prezzo a 14 · v0.10.19: 108 è il pavimento, non il tetto: nome di due righe + «En Menú del día» non esce dalla card, e la griglia porta tutte le card della pagina all'altezza della più alta */ padding:7px;gap:3px;position:relative}
 /* v0.6.3 (Alberto: «la seconda riga viene tagliata»): il nome non si schiaccia mai, chi cede è il riquadro «Con opciones» */
 .mini .cd .nm{-webkit-line-clamp:2;font-size:14px;line-height:1.2;min-height:0;flex:0 0 auto}
@@ -1038,7 +1039,7 @@ function z3() {
     // senza foto non un rettangolo grigio (si leggerebbe come un guasto): una targa col nome
     const fo = p.img ? '<div class="fo" style="--f:url(\'' + esc(p.img) + '\')' + (p.fy != null ? ';--fy:' + p.fy + '%' : '') + '">' : '<div class="fo tg">' + esc(p.n);
     const conQ = domande(p).length > 0;   // v0.10.16 (Alberto 12-nov): con le domande la foto non si schiaccia, cede la striscia
-    return '<div class="split' + (conQ ? ' conq' : '') + '"><div class="det">' + fo + '<button class="x" data-a="cierra">✕</button></div>' +
+    return '<div class="split' + (conQ ? ' conq' : '') + (p.c === 'menu_contenitore' ? ' cont' : '') + '"><div class="det">' + fo + '<button class="x" data-a="cierra">✕</button></div>' +
       '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(descP(p)) + '</div><div class="pz">' + pzHTML(p) + '</div>' +
       // v0.7: il regalo sta su ogni trago, dove nasce la voglia (solo coi tragos che si mettono senza domande: il regalo non chiede)
       (envioOn() && esTrago(p) && ordinabile(p) && !domande(p).length ? '<button class="dono-in" data-a="donoApri" data-k="' + esc(p.id) + '">🎁 Invítale este trago a otra mesa</button>' : '') + '</div>' +
