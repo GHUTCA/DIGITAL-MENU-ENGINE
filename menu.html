@@ -1054,7 +1054,7 @@ function pzHTML(p) { const z = prezzoOra(p), sx = strumP(p.id); return (z.orig ?
 /* ═══ il passo dopo (mockup 23-ott): chi ha chiesto dalla prima famiglia (il cibo) atterra sull'ultima (il dolce);
    chi ha chiesto altro atterra sulla prima. Le famiglie e il loro ordine vengono dalla config del locale. ═══ */
 function dopoQuesto(prods) {
-  const G = gruppi(); if (!G.length) return null;
+  const G = gruppi().filter((g) => g.k !== 'Promo'); if (!G.length) return null;   // v0.10.24 (🟡 di EL GIRO): «Sigue con…» resta fra le famiglie della carta, com'era prima della famiglia Promo
   const fams = new Set(prods.map((p) => { const g = p && G.find((x) => x.cats.indexOf(p.c) >= 0); return g ? g.k : ''; }));
   const d = fams.has(G[0].k) && G.length > 1 ? G[G.length - 1] : G[0];
   return { fam: d.k, cat: d.cats[0], txt: 'Sigue con ' + nomeGruppo(d.k).toLowerCase() };
