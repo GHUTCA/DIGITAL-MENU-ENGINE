@@ -331,7 +331,12 @@ function statoRiga(p){
     const st = (P.d && P.d.strumenti) ? P.d.strumenti.filter((r) => r.id_contenitore === p.id_producto) : null;
     if (st && st.length && !st.some((r) => r.activo)) return 'Desactivado por el JL en su app';
     if (!dentroHorario(p)) return 'Fuera de horario' + (p.hora_inicio && p.hora_fin ? ' (' + hhShow(p.hora_inicio) + '–' + hhShow(p.hora_fin) + ')' : '') + ' · no se vende ahora';
-    return st && st.length ? 'Activado por el JL · se vende ahora' : 'Lo enciende el JL en su app';
+    /* 🔴 ② di EL GIRO: acceso non vuol dire «adesso» (lo strumento ha dias/desde/hasta/fecha). Si afferma la vendita solo se il bordo
+       dice visible ADESSO; con la simulazione accesa (P.sim) `adesso` è un altro istante ⇒ non si afferma niente. */
+    if (!st || !st.length || P.sim) return 'Lo enciende el JL en su app';
+    const ad = (P.d.adesso && P.d.adesso.strumenti) || [];   // lo stesso dato di propAdesso(): «● Visible ahora» della tab Propuestas
+    if (st.some((r) => r.activo && (ad.find((s) => s.id === r.id_strumento) || {}).visible)) return 'Activado por el JL · se vende ahora';
+    return 'Encendido por el JL · fuera de su horario';
   }
   if (p.menu_visible === false) return 'Solo en menú · no sale en la carta';   // la parola sta nella riga piccola: accanto al nome l'ellissi la tagliava
   return p.vendible ? 'Se vende ahora' : 'No se vende ahora';
@@ -343,7 +348,7 @@ async function cartaCarica(){
   C.busy = false;
   if (r.j && r.j.ok === true && Array.isArray(r.j.productos)) { C.all = r.j.productos; C.list = C.all.filter((p) => p.activo !== false); C.at = Date.now(); C.stato = ''; }
   else C.stato = r.status === 0 ? 'red' : ((r.j && r.j.error) || 'http_' + r.status);
-  if (TAB === 'carta') { cartaPinta(); if (!P.d && !P.busy && P.stato !== 'ruta') propCarica(); }   // v1.2.2: lo stato del Menú del día vuole lo strumento del JL
+  if (TAB === 'carta') { cartaPinta(); if (C.list && !P.d && !P.busy && P.stato !== 'ruta') propCarica(); }   // v1.2.2: lo stato del Menú del día vuole lo strumento del JL · 🔴 ① di EL GIRO: solo a carta arrivata, sennò propCarica→cartaCarica è un anello
   else if (P.d) propPinta();   // i nomi dei prodotti nelle propuestas
 }
 async function cartaGesto(p, gesto, valor){
