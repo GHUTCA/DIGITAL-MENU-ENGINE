@@ -892,7 +892,9 @@ const hhmm = (x) => String(Math.floor(x)).padStart(2, '0') + ':' + String(Math.r
 /* ═══ i gruppi (famiglie) dalla config del locale ═══ */
 function gruppi() {
   let g = {}; try { g = JSON.parse((S.cfg && S.cfg.category_groups) || '{}'); } catch (e) { g = {}; }
-  const conProd = new Set(S.prod.filter(visibile).map((p) => p.c));
+  /* v0.10.21 (🟡 di EL GIRO): un menú-contenitore fuori dal suo orario non tiene acceso il chip: a cena il QR non si apre su «Promo»
+     col Menú del día grigio. Il chip c'è solo quando almeno un menú si può ordinare adesso (alle 15:00 sparisce da solo, ri-disegno del minuto). */
+  const conProd = new Set(S.prod.filter((p) => visibile(p) && (p.c !== 'menu_contenitore' || inOrario(p))).map((p) => p.c));
   /* v0.10.21 (Alberto 13-nov: «il menu del día è nella categoria mojitos, dovrebbe essere in PROMO»): i menú-contenitore (Menú del día,
      Menú 3 Tiempos) non stanno in nessuna famiglia della config ⇒ niente chip. Se la config non li mette da nessuna parte, vanno nel chip
      «Promo», PRIMO della prima famiglia: è quello che vende a pranzo. Il giorno che la config li nomina, vince la config. */
