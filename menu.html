@@ -1417,8 +1417,9 @@ function fiduciaHTML() {
 const CC_POLL_MS = 20000;
 let CC_POLL = null, CC_VOLO = null;
 function ccVisibile(cons) {
-  if (!MESA || !(cuentaLeer() || cons > 0)) return false;
-  return pagoMesaOn() || S.ccRuta === true;
+  if (!MESA) return false;
+  if (pagoMesaOn()) return cons > 0;   // pago acceso: identico alla v0.10.24 (R3 di 💵 EL GIRO)
+  return !!(cuentaLeer() || cons > 0) && S.ccRuta === true;
 }
 function ccPill(cons) {
   const m = S.cuentaMesa;
@@ -1799,9 +1800,6 @@ async function inviaOra(confirmado) {
   S.inviaStato = '';
   if (r && r.ok === true) {
     atiendeSalva(r);
-    /* v0.10.26 · AUT-1015: la llave arriva anche dal pedido accettato (bordo r.7711 di master, AUT-0704: «il telefono SOSTITUISCE la sua
-       con questa»). Fino alla v0.10.24 il telefono la prendeva solo da /pedido-estado: dopo un separar restava con la llave del conto vecchio. */
-    if (!r.por_confirmar && r.conto_id && r.conto_llave) { cuentaGuardar(r.conto_id, r.conto_llave); ccLeggi().then(() => { if (!scrivendo()) pinta(); }); }
     S.listo = { righe: righe().map((r) => ({ nome: nomeRiga(r), q: r.q, p: r.p })), dove: adove(righe().map((r) => r.p)) };
     histAggiungi(Object.keys(S.cart));
     const rr = righe().map((x) => ({ id: x.p.id, nome: nomeRiga(x), q: x.q, pr: prezzoRiga(x) }));
