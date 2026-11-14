@@ -579,7 +579,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.26</div>
+<div class="ver" id="ver">menu v0.10.27</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -860,6 +860,14 @@ function righe() { return Object.keys(S.cart).map((k) => { const [id, t, m] = k.
   return { k, p, t, m: sc.m, q: S.cart[k], d: sc.d }; }).filter((r) => r.p); }
 const qtyDi = (p) => righe().filter((r) => r.p.id === p.id).reduce((s, r) => s + r.q, 0);
 const prezzoRiga = (r) => prezzoOra(r.p).v + r.d;
+/* v0.10.27 · IL 2x1 DEL QR (🎛 CONTROLLER V34 ven 13-nov 22:45 «IL QR NON APPLICA IL 2x1»: 52 carte QR, zero 2x1 — il cliente pagava ogni unità).
+   La fonte è lo strumento `multiplo` della regola del bordo (strumP, la stessa da cui il catalogo del mesero fa `promo`), solo a leva
+   `strumenti_conto_on` accesa: spenta ⇒ nessun 2x1, come ieri. Solo paga 1 · lleva 2 (gli altri multiplo NON si applicano: oggi non esistono).
+   Mai un menú-contenitore, mai il canale con checkout (depto/kiosco: lì il conto lo rifà il bordo). La riga nasce come quella del mesero
+   (sala.html r.7788): qty = pagate · llevar = 2×qty · promo «2x1» · nombre «… · 2x1 (llevar N)» (la cucina lo riscrive, bordo r.1415). */
+const promo2x1 = (p) => { if (CHECKOUT || !p || p.c === 'menu_contenitore') return false; const m = (strumP(p.id) || {}).multiplo;
+  return !!(m && +m.paga === 1 && +m.lleva === 2); };
+const lleva2x1 = (r) => (promo2x1(r.p) ? ' · 2x1 · ' + T('llevas') + ' ' + (r.q * 2) : '');
 const nomeRiga = (r) => r.p.n + (r.m ? ' · ' + r.m : '') + (r.t ? ' · ' + r.t : '');
 // la scelta in corso del piatto aperto: completa quando ogni domanda ha una risposta
 const selDi = (p) => (S.sel[p.id] = S.sel[p.id] || {});
@@ -1050,7 +1058,7 @@ function z3() {
   if (cercando() && !L.length) return '<div class="msg busca"><b>Nada con «' + esc(S.busca.trim()) + '»</b>Prueba con otra palabra.</div>';
   return (cercando() ? '' : ripHTML()) + '<div class="sei">' + L.map((p) => card(p, true)).join('') + '</div>';
 }
-function pzHTML(p) { const z = prezzoOra(p), sx = strumP(p.id); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : sx && sx.badge ? '<span class="emd">' + esc(sx.badge) + '</span>' : ''); }
+function pzHTML(p) { const z = prezzoOra(p), sx = strumP(p.id); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : promo2x1(p) ? '<span class="emd">' + esc((sx && sx.badge) || '🎁 ' + T('En 2x1 ahora')) + '</span>' : sx && sx.badge ? '<span class="emd">' + esc(sx.badge) + '</span>' : ''); }
 /* ═══ il passo dopo (mockup 23-ott): chi ha chiesto dalla prima famiglia (il cibo) atterra sull'ultima (il dolce);
    chi ha chiesto altro atterra sulla prima. Le famiglie e il loro ordine vengono dalla config del locale. ═══ */
 function dopoQuesto(prods) {
@@ -1100,7 +1108,8 @@ function pedidoHTML() {
   }
   // ogni riga col suo ＋/− sulla SUA chiave: il ＋ della riga «Filete · A punto» aggiunge un altro a punto, non un filete qualsiasi
   const lineeH = righe().map((r) => '<div class="lin">' + (r.p.img ? '<img src="' + esc(r.p.img) + '" alt="">' : '<div class="lth"></div>') +
-    '<div class="lnm">' + esc(r.p.n) + ((r.m || r.t) ? '<span class="lsc">' + esc([r.m, r.t].filter(Boolean).join(' · ')) + (r.d ? ' · +' + clp(r.d) : '') + '</span>' : '') + '</div>' +
+    '<div class="lnm">' + esc(r.p.n) + ((r.m || r.t) ? '<span class="lsc">' + esc([r.m, r.t].filter(Boolean).join(' · ')) + (r.d ? ' · +' + clp(r.d) : '') + '</span>' : '') +
+    (promo2x1(r.p) ? '<span class="lsc">🎁 2x1 · ' + esc(T('pagas')) + ' ' + r.q + ' · ' + esc(T('llevas')) + ' ' + (r.q * 2) + '</span>' : '') + '</div>' +
     '<div class="lq"><i data-a="meno" data-k="' + esc(r.k) + '">−</i>' + r.q + '<i data-a="masK" data-k="' + esc(r.k) + '">+</i></div><div class="lpz">' + clp(prezzoRiga(r) * r.q) + '</div></div>').join('');
   const t = totale();
   let bot;
@@ -1701,8 +1710,9 @@ function payloadPedido(confirmado) {
   // contratto del vivo (_enviarPedidoDigitalInner): `nombre` composto per gli umani (piatto · modo · término), i CAMPI per le
   // macchine: `op` = il modo scelto (senza l'etichetta del prezzo), `termino`; `precio` porta DENTRO il sovrapprezzo
   // (Σ precio×qty resta vero ovunque) e `precio_base` dice il listino nudo quando c'è un sovrapprezzo.
-  const items = righe().map((r) => Object.assign({ id: r.p.id, nombre: nomeRiga(r), precio: prezzoRiga(r), qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '',
-    es_menu: false, promo: '', cat: r.p.c, precio_base: r.d ? prezzoOra(r.p).v : undefined }, contMods(r)));
+  const items = righe().map((r) => { const cm = contMods(r), es2 = promo2x1(r.p) && !cm.mods;   // v0.10.27 · il 2x1 come il mesero (sala r.7788)
+    return Object.assign({ id: r.p.id, nombre: nomeRiga(r) + (es2 ? ' · 2x1 (llevar ' + (r.q * 2) + ')' : ''), precio: prezzoRiga(r), qty: r.q, llevar: es2 ? r.q * 2 : r.q,
+      op: r.m || '', termino: r.t || '', es_menu: false, promo: es2 ? '2x1' : '', cat: r.p.c, precio_base: r.d ? prezzoOra(r.p).v : undefined }, cm); });
   items.push(...bebideMenu(righe()));
   const itemsJson = JSON.stringify(items);
   if (S.uuidFirma !== itemsJson) { S.uuid = _uuid(); S.uuidFirma = itemsJson; }
@@ -1807,9 +1817,9 @@ async function inviaOra(confirmado) {
   S.inviaStato = '';
   if (r && r.ok === true) {
     atiendeSalva(r);
-    S.listo = { righe: righe().map((r) => ({ nome: nomeRiga(r), q: r.q, p: r.p })), dove: adove(righe().map((r) => r.p)) };
+    S.listo = { righe: righe().map((r) => ({ nome: nomeRiga(r) + lleva2x1(r), q: r.q, p: r.p })), dove: adove(righe().map((r) => r.p)) };
     histAggiungi(Object.keys(S.cart));
-    const rr = righe().map((x) => ({ id: x.p.id, nome: nomeRiga(x), q: x.q, pr: prezzoRiga(x) }));
+    const rr = righe().map((x) => ({ id: x.p.id, nome: nomeRiga(x) + (promo2x1(x.p) ? ' · 2x1' : ''), q: x.q, pr: prezzoRiga(x) }));   // senza il numero: righeMie fonde per nome
     // v0.9.6 · D-431: mesa libera ⇒ il bordo lo tiene finché il mesero conferma. Non entra nel conto del telefono finché non è confermato.
     if (r.por_confirmar) { pcSegna(); S.listo.pc = true; S.listo.mot = r.motivo || ''; S.listo.uuid = pl.uuid; esperaInizia({ uuid: pl.uuid, ts: Date.now(), mot: r.motivo || '', righe: rr }); }
     else envAggiungi(rr);   // v0.8: il conto di questo telefono (il Pagar in alto)   // v0.7 «Otra vez»: ciò che è PARTITO, non ciò che è stato solo messo nel carrello
