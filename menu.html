@@ -1810,7 +1810,7 @@ async function inviaOra(confirmado) {
   /* v0.9.9 (Alberto in prova, 2-nov: «la conversione deve andare liscia, senza intoppi né domande: abbiamo già il cancelar di 4 secondi»):
      il pedido parte SEMPRE confermato. La domanda «¿Sigues en la mesa?» del bordo era la guardia della mesa fantasma, che oggi fa D-431
      (il QR ordina solo dentro un conto confermato dal mesero). Il ramo `need:'mesa_confirmar'` qui sotto resta come rete, non come domanda. */
-  const pl = payloadPedido(true);
+  const pl = payloadPedido(true), RS = righe();   // S5 di 💵: le righe di QUESTO invio, fotografate insieme a pl (stesso ordine di items)
   let r = null;
   for (let i = 0; i < 3; i++) {
     if (i) await new Promise((ok) => setTimeout(ok, i === 1 ? 2000 : 5000));
@@ -1822,9 +1822,9 @@ async function inviaOra(confirmado) {
     atiendeSalva(r);
     // S1 di 💵: il 2x1 e il prezzo si leggono da ciò che è PARTITO (pl), non dal carrello ricalcolato dopo la risposta (alle 21:00 cambierebbero)
     const PL = JSON.parse(pl.items_json);
-    S.listo = { righe: righe().map((r, i) => ({ nome: nomeRiga(r) + lleva2x1(r, !!(PL[i] && PL[i].promo === '2x1')), q: r.q, p: r.p })), dove: adove(righe().map((r) => r.p)) };
+    S.listo = { righe: RS.map((r, i) => ({ nome: nomeRiga(r) + lleva2x1(r, !!(PL[i] && PL[i].promo === '2x1')), q: r.q, p: r.p })), dove: adove(RS.map((r) => r.p)) };
     histAggiungi(Object.keys(S.cart));
-    const rr = righe().map((x, i) => ({ id: x.p.id, nome: nomeRiga(x) + (PL[i] && PL[i].promo === '2x1' ? ' · 2x1' : ''), q: x.q, pr: PL[i] ? PL[i].precio : prezzoRiga(x) }));   // senza il numero: righeMie fonde per nome
+    const rr = RS.map((x, i) => ({ id: x.p.id, nome: nomeRiga(x) + (PL[i] && PL[i].promo === '2x1' ? ' · 2x1' : ''), q: x.q, pr: PL[i] ? PL[i].precio : prezzoRiga(x) }));   // senza il numero: righeMie fonde per nome
     // v0.9.6 · D-431: mesa libera ⇒ il bordo lo tiene finché il mesero conferma. Non entra nel conto del telefono finché non è confermato.
     if (r.por_confirmar) { pcSegna(); S.listo.pc = true; S.listo.mot = r.motivo || ''; S.listo.uuid = pl.uuid; esperaInizia({ uuid: pl.uuid, ts: Date.now(), mot: r.motivo || '', righe: rr }); }
     else envAggiungi(rr);   // v0.8: il conto di questo telefono (il Pagar in alto)   // v0.7 «Otra vez»: ciò che è PARTITO, non ciò che è stato solo messo nel carrello
