@@ -769,6 +769,9 @@ function visibile(p) { return (tickP().ocultos || []).indexOf(p.id) < 0 && !esau
    Il menú si vende dal carosello e dalle promo, come prodotto a sé. ⇒ la regla `almuerzo` non riprezza il piatto. */
 const inMenuDia = (p) => ((tickP().reglas || {})[p.id] || {}).tipo === 'almuerzo';
 function prezzoOra(p) {
+  /* v0.10.27 (S3 e S4 di 💵 EL GIRO su 3d41f5e): sulla riga in 2x1 il prezzo è quello del catalogo del mesero con gli strumenti accesi
+     (catalogo_pg.js r.360: lo strumento, poi il listino) — niente regla del tick, niente Precio_Member, niente depto sommati al regalo. */
+  if (promo2x1(p)) { const s2 = strumP(p.id); return { v: s2 && s2.precio > 0 ? s2.precio : p.p, orig: 0 }; }
   const r = inMenuDia(p) ? null : (tickP().reglas || {})[p.id];
   // priorità del vivo: regla-fascia > base; il barrato solo se la regola ABBASSA
   let z = { v: p.p, orig: 0 };
@@ -865,9 +868,9 @@ const prezzoRiga = (r) => prezzoOra(r.p).v + r.d;
    `strumenti_conto_on` accesa: spenta ⇒ nessun 2x1, come ieri. Solo paga 1 · lleva 2 (gli altri multiplo NON si applicano: oggi non esistono).
    Mai un menú-contenitore, mai il canale con checkout (depto/kiosco: lì il conto lo rifà il bordo). La riga nasce come quella del mesero
    (sala.html r.7788): qty = pagate · llevar = 2×qty · promo «2x1» · nombre «… · 2x1 (llevar N)» (la cucina lo riscrive, bordo r.1415). */
-const promo2x1 = (p) => { if (CHECKOUT || !p || p.c === 'menu_contenitore') return false; const m = (strumP(p.id) || {}).multiplo;
-  return !!(m && +m.paga === 1 && +m.lleva === 2); };
-const lleva2x1 = (r) => (promo2x1(r.p) ? ' · 2x1 · ' + T('llevas') + ' ' + (r.q * 2) : '');
+function promo2x1(p) { if (CHECKOUT || !p || p.c === 'menu_contenitore') return false; const m = (strumP(p.id) || {}).multiplo;
+  return !!(m && +m.paga === 1 && +m.lleva === 2); }
+const lleva2x1 = (r, es2) => ((es2 === undefined ? promo2x1(r.p) : es2) ? ' · 2x1 · ' + T('llevas') + ' ' + (r.q * 2) : '');
 const nomeRiga = (r) => r.p.n + (r.m ? ' · ' + r.m : '') + (r.t ? ' · ' + r.t : '');
 // la scelta in corso del piatto aperto: completa quando ogni domanda ha una risposta
 const selDi = (p) => (S.sel[p.id] = S.sel[p.id] || {});
@@ -1817,9 +1820,11 @@ async function inviaOra(confirmado) {
   S.inviaStato = '';
   if (r && r.ok === true) {
     atiendeSalva(r);
-    S.listo = { righe: righe().map((r) => ({ nome: nomeRiga(r) + lleva2x1(r), q: r.q, p: r.p })), dove: adove(righe().map((r) => r.p)) };
+    // S1 di 💵: il 2x1 e il prezzo si leggono da ciò che è PARTITO (pl), non dal carrello ricalcolato dopo la risposta (alle 21:00 cambierebbero)
+    const PL = JSON.parse(pl.items_json);
+    S.listo = { righe: righe().map((r, i) => ({ nome: nomeRiga(r) + lleva2x1(r, !!(PL[i] && PL[i].promo === '2x1')), q: r.q, p: r.p })), dove: adove(righe().map((r) => r.p)) };
     histAggiungi(Object.keys(S.cart));
-    const rr = righe().map((x) => ({ id: x.p.id, nome: nomeRiga(x) + (promo2x1(x.p) ? ' · 2x1' : ''), q: x.q, pr: prezzoRiga(x) }));   // senza il numero: righeMie fonde per nome
+    const rr = righe().map((x, i) => ({ id: x.p.id, nome: nomeRiga(x) + (PL[i] && PL[i].promo === '2x1' ? ' · 2x1' : ''), q: x.q, pr: PL[i] ? PL[i].precio : prezzoRiga(x) }));   // senza il numero: righeMie fonde per nome
     // v0.9.6 · D-431: mesa libera ⇒ il bordo lo tiene finché il mesero conferma. Non entra nel conto del telefono finché non è confermato.
     if (r.por_confirmar) { pcSegna(); S.listo.pc = true; S.listo.mot = r.motivo || ''; S.listo.uuid = pl.uuid; esperaInizia({ uuid: pl.uuid, ts: Date.now(), mot: r.motivo || '', righe: rr }); }
     else envAggiungi(rr);   // v0.8: il conto di questo telefono (il Pagar in alto)   // v0.7 «Otra vez»: ciò che è PARTITO, non ciò che è stato solo messo nel carrello
