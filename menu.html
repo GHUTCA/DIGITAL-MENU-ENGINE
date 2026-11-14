@@ -579,7 +579,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.29</div>
+<div class="ver" id="ver">menu v0.10.30</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -2255,7 +2255,12 @@ async function strumCarica() {
     const j = r.ok ? await r.json() : null;
     if (!j || !j.ok || String(j.strumenti_conto_on || '') !== '1' || !Array.isArray(j.strumenti)) { STRUM = null; S._sr = null; return; }
     if (!STRUM_FN) STRUM_FN = await import('./propuestas/regla.js');
-    STRUM = { strumenti: j.strumenti, parti: j.parti || [], gesti: j.gesti_hoy || [], ts: Date.now() }; S._sr = null;
+    /* v0.10.30 · AUT-1048 (verifica sul vivo, 14-nov 13:2x): `gesti_hoy` del bordo sono SOLO quelli del giorno operativo (propuestas_admin.js
+       r.213, fecha_op=eq.oggi) ma escono SENZA `fecha_op` (r.229) ⇒ `strumentiAdesso` (ultimoGesto) li scartava tutti: la leva B del Menú del
+       día non arrivava al QR. Si timbra il giorno operativo AL MOMENTO DELLA LETTURA: dopo il taglio delle 06:00 smettono di valere da soli. */
+    const fop = STRUM_FN.giornoOperativo(Date.now()).fecha;
+    const gesti = (j.gesti_hoy || []).map((g) => (g && g.fecha_op ? g : Object.assign({}, g, { fecha_op: fop })));
+    STRUM = { strumenti: j.strumenti, parti: j.parti || [], gesti: gesti, ts: Date.now() }; S._sr = null;
   } catch (e) { /* bordo muto: resta lo stato di prima (spento al primo giro) */ }
 }
 const strumVig = (rows, key) => { const m = {}; for (const r of rows || []) m[key(r)] = r; return Object.values(m).filter((r) => !r.borrado); };
