@@ -581,7 +581,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.33</div>
+<div class="ver" id="ver">menu v0.10.34</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1865,12 +1865,24 @@ async function inviaOra(confirmado) {
   /* v0.9.9 (Alberto in prova, 2-nov: «la conversione deve andare liscia, senza intoppi né domande: abbiamo già il cancelar di 4 secondi»):
      il pedido parte SEMPRE confermato. La domanda «¿Sigues en la mesa?» del bordo era la guardia della mesa fantasma, che oggi fa D-431
      (il QR ordina solo dentro un conto confermato dal mesero). Il ramo `need:'mesa_confirmar'` qui sotto resta come rete, non come domanda. */
-  const pl = payloadPedido(true), RS = righe();   // S5 di 💵: le righe di QUESTO invio, fotografate insieme a pl (stesso ordine di items)
-  let r = null;
-  for (let i = 0; i < 3; i++) {
-    if (i) await new Promise((ok) => setTimeout(ok, i === 1 ? 2000 : 5000));
-    try { r = await postBordo('/pedido/', pl, 6000); } catch (e) { r = null; }
-    if (r && (r.ok === true || r.need || DEFINITIVI.indexOf(r.error) >= 0)) break;
+  let pl = payloadPedido(true); const RS = righe();   // S5 di 💵: le righe di QUESTO invio, fotografate insieme a pl (stesso ordine di items)
+  const manda = async (P) => { let x = null;
+    for (let i = 0; i < 3; i++) {
+      if (i) await new Promise((ok) => setTimeout(ok, i === 1 ? 2000 : 5000));
+      try { x = await postBordo('/pedido/', P, 6000); } catch (e) { x = null; }
+      if (x && (x.ok === true || x.need || DEFINITIVI.indexOf(x.error) >= 0)) break;
+    }
+    return x; };
+  let r = await manda(pl);
+  /* v0.10.34 (prova di Alberto 15-nov, AUT-1057 passo 1: «il bottone verde può far credere al cliente che sia già spedito»). La llave di un conto
+     chiuso ⇒ il bordo risponde `llave_muerta` SENZA scrivere niente per quell'uuid (né `ped:` né `qrc:`, index.js `_qrcAspetta`). Prima il menù
+     dimenticava la llave e chiedeva al cliente un secondo tocco su «REINTENTAR ENVÍO». Ora lo rimanda da solo, UNA volta, senza llave e con lo
+     STESSO uuid (stesso carrello ⇒ stessa firma): il pedido va nell'attesa del mesero come quello di un telefono nuovo. Se il carrello fosse
+     cambiato in mezzo (firma diversa) non parte niente: resta la frase di prima. */
+  if (r && r.need === 'llave_muerta') {
+    cuentaOlvidar(); pcSegna();
+    const p2 = payloadPedido(true);
+    if (p2.uuid === pl.uuid && p2.items_json === pl.items_json && !p2.conto_llave) { pl = p2; r = await manda(pl); }
   }
   S.inviaStato = '';
   if (r && r.ok === true) {
@@ -2185,7 +2197,10 @@ document.getElementById('app').addEventListener('click', (ev) => {
   else if (a === 'meno' && S.cart[k] && !S.inviando && !S.inviaStato) { S.cart[k]--; if (!S.cart[k]) delete S.cart[k]; S.errore = ''; S.need = ''; if (!Object.keys(S.cart).length) S.pedido = false; }
   else if (a === 'sceglie') { const [pid, qk, ...ov] = k.split('|'); const pp = S.prod.find((x) => x.id === pid); if (pp) { selDi(pp)[qk] = ov.join('|'); DOPO_SCELTA = { i: domande(pp).findIndex((q) => q.k === qk) }; } }
   else if (a === 'verPed') { S.pedido = true; S.campana = false; }
-  else if (a === 'chiudiPed') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.listo = null; }
+  else if (a === 'chiudiPed') { if (S.inviando || S.inviaStato) return;
+    /* v0.10.34 (Alberto 15-nov: «l'ho già chiesta, dovrei andare alla scheda che mi manda quando confermo»): pedido già partito ⇒ la X fa come «Seguir» */
+    if (S.listo) { const d = dopoQuesto((S.listo.righe || []).map((r) => r.p)); S.abierta = null; S.palco = false; if (d) { S.fam = d.fam; S.cat = d.cat; } }
+    S.pedido = false; S.listo = null; }
   else if (a === 'inicio') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.campana = false; S.listo = null; S.abierta = null; S.busca = null; const g = gruppi()[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; }
     S.palco = true; S.slide = 0; S.finVid = false; }   // v0.7: la casetta riporta all'inizio, dallo show
   else if (a === 'env' && envioOn() && !S.inviando && !S.inviaStato && Object.keys(S.cart).length) {
