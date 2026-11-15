@@ -581,7 +581,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.32</div>
+<div class="ver" id="ver">menu v0.10.33</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1778,7 +1778,7 @@ async function postBordo(ruta, body, ms, hdr) {
    Le attese vivono in sessionStorage (stessa vita del conto del telefono): una ricarica le riprende. */
 const ESPERA_K = () => 'pinsita_qrc_' + LOCAL + '_' + MESA;
 /* v0.9.24 · ① LA CHIAVE DEL CONTO (D-444): sta nel telefono, per locale e mesa, mai nei log. Stessa chiave di menu_digital v2.116.0. */
-/* v0.10.32 · AUT-1056 · contratto di ⚙️ ARQ «LA LLAVE PER LOCALE: SÌ, E IL BORDO NON CAMBIA» (15-nov): la llave del conto sta nel TELEFONO, una per
+/* v0.10.33 · AUT-1056 · contratto di ⚙️ ARQ «LA LLAVE PER LOCALE: SÌ, E IL BORDO NON CAMBIA» (15-nov): la llave del conto sta nel TELEFONO, una per
    locale, non per mesa del QR (Alberto: «la mesa per noi non conta nulla, è solo un posto dove risiede in questo momento il conto»). Prima era
    `pinsita_cuenta_<L>_<MESA>`: il cliente spostato 997 → 998 che scansionava la 998 non trovava il suo conto e ripartiva dalla conferma del mesero.
    ⓐ una chiave sola `pinsita_cuenta_<L>` = {id, llave, ts, dia, mesa} (la mesa è solo da leggere: la decide il bordo) · ⓑ `dia` ≠ oggi ⇒ si scarta
