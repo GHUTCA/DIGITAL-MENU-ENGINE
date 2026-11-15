@@ -1496,6 +1496,7 @@ async function ccLeggi() {
         mesa: /^[A-Za-z0-9 _-]{1,12}$/.test(String(r.mesa == null ? '' : r.mesa).trim()) ? String(r.mesa).trim() : '',   // v0.10.32: la mesa del conto, dal bordo
         total: Number(r.total) || 0, pagado: Number(r.pagado) || 0, resta: r.resta === null || r.resta === undefined ? null : Number(r.resta),
         resta_ignota: !!r.resta_ignota || r.resta === null || r.resta === undefined, ts: Date.now() };
+      if (S.cuentaMesa.mesa) cuentaMesaNota(S.cuentaMesa.mesa);
       S.ccNota = ''; return;
     }
     S.cuentaMesa = null; S.ccNota = 'solo_tel';   // conto_cambiado · conto_desconocido · conto_vencido · llave_ko: le righe del telefono, con la nota
@@ -1777,9 +1778,29 @@ async function postBordo(ruta, body, ms, hdr) {
    Le attese vivono in sessionStorage (stessa vita del conto del telefono): una ricarica le riprende. */
 const ESPERA_K = () => 'pinsita_qrc_' + LOCAL + '_' + MESA;
 /* v0.9.24 · ① LA CHIAVE DEL CONTO (D-444): sta nel telefono, per locale e mesa, mai nei log. Stessa chiave di menu_digital v2.116.0. */
-const CUENTA_K = () => 'pinsita_cuenta_' + LOCAL + '_' + MESA;
-function cuentaLeer() { try { const c = JSON.parse(localStorage.getItem(CUENTA_K()) || 'null'); return c && c.id && c.llave ? c : null; } catch (e) { return null; } }
-function cuentaGuardar(id, llave) { if (!id || !llave) return; try { localStorage.setItem(CUENTA_K(), JSON.stringify({ id: String(id), llave: String(llave), ts: Date.now() })); } catch (e) { /* solo memoria */ } }
+/* v0.10.32 · AUT-1056 · contratto di ⚙️ ARQ «LA LLAVE PER LOCALE: SÌ, E IL BORDO NON CAMBIA» (15-nov): la llave del conto sta nel TELEFONO, una per
+   locale, non per mesa del QR (Alberto: «la mesa per noi non conta nulla, è solo un posto dove risiede in questo momento il conto»). Prima era
+   `pinsita_cuenta_<L>_<MESA>`: il cliente spostato 997 → 998 che scansionava la 998 non trovava il suo conto e ripartiva dalla conferma del mesero.
+   ⓐ una chiave sola `pinsita_cuenta_<L>` = {id, llave, ts, dia, mesa} (la mesa è solo da leggere: la decide il bordo) · ⓑ `dia` ≠ oggi ⇒ si scarta
+   prima di mandarla · ⓒ `llave_muerta` ⇒ si scarta (cuentaOlvidar). La vecchia chiave per mesa si legge UNA volta come ripiego e si cancella:
+   nessun telefono perde il conto del giorno della spedizione. Prezzo dichiarato da ARQ: un conto solo per telefono e per locale. */
+const CUENTA_K = () => 'pinsita_cuenta_' + LOCAL;
+const CUENTA_K_MESA = () => 'pinsita_cuenta_' + LOCAL + '_' + MESA;   // la forma fino alla v0.10.31: solo ripiego
+function cuentaLeer() {
+  try {
+    let c = JSON.parse(localStorage.getItem(CUENTA_K()) || 'null');
+    if (!(c && c.id && c.llave) && MESA) {
+      const v = JSON.parse(localStorage.getItem(CUENTA_K_MESA()) || 'null');
+      if (v && v.id && v.llave) { c = { id: String(v.id), llave: String(v.llave), ts: Number(v.ts) || 0, dia: giornoOp(Number(v.ts) || 0), mesa: MESA }; localStorage.setItem(CUENTA_K(), JSON.stringify(c)); }
+      localStorage.removeItem(CUENTA_K_MESA());
+    }
+    if (!(c && c.id && c.llave)) return null;
+    if ((c.dia || giornoOp(Number(c.ts) || 0)) !== giornoOp(Date.now())) { localStorage.removeItem(CUENTA_K()); return null; }   // ⓑ la llave di ieri non parte
+    return c;
+  } catch (e) { return null; }
+}
+function cuentaGuardar(id, llave) { if (!id || !llave) return; try { localStorage.setItem(CUENTA_K(), JSON.stringify({ id: String(id), llave: String(llave), ts: Date.now(), dia: giornoOp(Date.now()), mesa: MESA })); } catch (e) { /* solo memoria */ } }
+function cuentaMesaNota(m) { try { const c = cuentaLeer(); if (c && m && c.mesa !== m) localStorage.setItem(CUENTA_K(), JSON.stringify(Object.assign({}, c, { mesa: m }))); } catch (e) { /* niente */ } }   // solo da leggere
 function cuentaOlvidar() { try { localStorage.removeItem(CUENTA_K()); } catch (e) { /* niente */ } }
 /* il telefono ha visto che QUI il primo pedido si conferma: da lì ENVIAR lo dice prima del tocco */
 const PCV_K = () => 'pinsita_qrpc_' + LOCAL + '_' + MESA;
