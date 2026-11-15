@@ -581,7 +581,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.34</div>
+<div class="ver" id="ver">menu v0.10.35</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1343,7 +1343,12 @@ function atiendeSalva(r) { const n = r && typeof r.atiende === 'string' ? r.atie
   S.atiende = n; try { sessionStorage.setItem(ATI_K(), JSON.stringify({ n, g: giornoOp(Date.now()) })); } catch (e) { /* solo memoria */ } }
 function atiendeLeggi() { try { const v = JSON.parse(sessionStorage.getItem(ATI_K()) || 'null'); S.atiende = v && v.g === giornoOp(Date.now()) ? String(v.n || '') : ''; } catch (e) { S.atiende = ''; } }
 function envLeggi() { try { const v = JSON.parse(sessionStorage.getItem(ENV_K()) || '[]'); S.enviados = Array.isArray(v) ? v : []; } catch (e) { S.enviados = []; } }
-function envAggiungi(rr) { S.enviados.push({ ts: Date.now(), righe: rr }); try { sessionStorage.setItem(ENV_K(), JSON.stringify(S.enviados)); } catch (e) { /* solo memoria */ } }
+/* v0.10.35 (prova AUT-1057 di Alberto, 15-nov, 🛎 SALA «IL FOGLIO DEL TEL 1 MESCOLA I CONTI»): quando il bordo non dà il conto (`conto_cambiado`…)
+   il foglio mostra «Desde este teléfono», cioè gli invii di questo telefono alla mesa di oggi, e sommava anche quelli di un conto di stamattina
+   (2 × Agua + Ristretto = $7.570 invece di $2.190). Ogni invio porta ora il conto in cui è entrato (`c`, l'id della llave in quel momento) e il
+   foglio conta solo quelli del conto della llave di adesso. Gli invii senza `c` (prima della v0.10.35) contano solo per un telefono senza llave. */
+const envConto = () => (cuentaLeer() || {}).id || '';
+function envAggiungi(rr) { S.enviados.push({ ts: Date.now(), righe: rr, c: envConto() }); try { sessionStorage.setItem(ENV_K(), JSON.stringify(S.enviados)); } catch (e) { /* solo memoria */ } }
 /* v0.8.1 (giallo di 💵 EL GIRO: «il conto del telefono non ha un giorno»): conta solo gli invii del giorno OPERATIVO di oggi (taglio 06:00,
    Santiago). Chi lascia la scheda aperta e torna il giorno dopo alla stessa mesa non vede il Pagar di ieri. Muore col conto vero della mesa. */
 const giornoOp = (ts) => { const d = new Date(new Date(ts - 6 * 3600 * 1000).toLocaleString('en-US', { timeZone: 'America/Santiago' })); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); };
@@ -1365,7 +1370,7 @@ const consumoTel = () => envOggi().reduce((s, e) => s + (e.righe || []).reduce((
    Finché `pago_mesa_on` è vuota tutto SI SIMULA e lo dice. Nel vero: il pannello è il widget di Fintoc, e i pagos degli altri arrivano dal bordo. */
 const PAGO_PASSI = ['cuenta', 'fintoc', 'pos', 'ok'];
 const pagoMesaOn = () => !!String((S.cfg && S.cfg.pago_mesa_on) || '').trim();
-const righeMie = () => { const L = []; envOggi().forEach((e) => (e.righe || []).forEach((r) => { const x = L.find((y) => y.nome === r.nome && y.pr === r.pr); if (x) x.q += r.q; else L.push(Object.assign({ chi: 'tú' }, r)); })); return L; };
+const righeMie = () => { const L = [], cid = envConto(); envOggi().filter((e) => String(e.c || '') === cid).forEach((e) => (e.righe || []).forEach((r) => { const x = L.find((y) => y.nome === r.nome && y.pr === r.pr); if (x) x.q += r.q; else L.push(Object.assign({ chi: 'tú' }, r)); })); return L; };
 const righeMesa = () => (S.cuentaMesa && Array.isArray(S.cuentaMesa.righe) ? S.cuentaMesa.righe : righeMie());
 /* SALA DEMO (04-nov): sulla 998 la mesa ha anche un secondo telefono finto, «Ana», per provare Toda la mesa e le parti. Il menu.html vero non ce l'ha. */
 const DEMO_ANA = [{ nome: 'Gohan de Salmón', q: 1, pr: 18150, chi: 'Ana' }, { nome: 'Aperol Spritz', q: 1, pr: 6990, chi: 'Ana' }];
@@ -1464,7 +1469,7 @@ function ccPill(cons) {
   const m = S.cuentaMesa;
   if (m && m.cerrada) return '';   /* v0.10.28 · il conto è chiuso (pagado, anulado…): la pillola non mostra un importo, il foglio dice «se cerró» (🎛 «LA PILLOLA MENTE», 14-nov) */
   if (m && !m.cerrada && m.righe.length) { if (!m.resta_ignota && Number(m.total) > 0 && Number(m.resta) <= 0) return '✓'; return clp(m.resta_ignota ? m.total : m.resta); }
-  return cons > 0 ? clp(cons) : '';
+  const mie = sommaRighe(righeMie()); return mie > 0 ? clp(mie) : '';   // v0.10.35: la pillola dice lo stesso numero del foglio, solo il conto della llave di adesso
 }
 async function ccLeggi() {
   const k = cuentaLeer();
