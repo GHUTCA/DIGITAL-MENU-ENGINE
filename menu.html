@@ -581,7 +581,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.36</div>
+<div class="ver" id="ver">menu v0.10.37</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1146,9 +1146,9 @@ function pedidoHTML() {
     bot = '<button class="envG hold" data-a="annulla"><b>' + T('Enviando…') + ' ⟲ ' + T('Cancelar') + '</b><span>' + T('toca para corregir · sale en') + ' ' + Math.max(1, Math.ceil(rem / 1000)) + ' s</span>' +
       '<i class="barra" style="--da:' + (rem / ATTESA_INVIO * 100).toFixed(1) + '%;animation-duration:' + rem + 'ms"></i></button>'; }
   else if (S.inviaStato === 'volando') bot = '<button class="envG hold"><b>' + T('Enviando…') + '</b><span>' + T('no cierres esta pantalla') + '</span></button>';
-  else if (S.bloq) bot = '<div class="avv">🔒 ' + esc(BLOQ_TXT) + '</div>' +   // v0.10.36 · AUT-1067
-    (S.bloqCiego ? '<button class="envG spento" data-a="env"><b>Volver a intentar</b><span>si el mesero ya lo desbloqueó</span></button>'
-                 : '<div class="avvs">Cuando el mesero lo desbloquee, aquí vuelve el botón para enviar.</div>');
+  else if (S.bloq) bot = '<div class="avv">🔒 ' + esc(bloqTxt()) + '</div>' +   // v0.10.36 · AUT-1067
+    (S.bloqCiego ? '<button class="envG spento" data-a="env"><b>Volver a intentar</b><span>si ' + bloqChi() + ' ya lo desbloqueó</span></button>'
+                 : '<div class="avvs">Cuando ' + bloqChi() + ' lo desbloquee, aquí vuelve el botón para enviar.</div>');
   else bot = (S.errore ? '<div class="avv">' + esc(S.errore) + '</div>' : '') +
     '<button class="envG" data-a="env"><b>' + (S.errore ? 'REINTENTAR ENVÍO 🛎' : (!cuentaLeer() && pcVisto() ? T('ENVIAR AL MESERO') : T('ENVIAR PEDIDO')) + ' · ' + clp(t.s)) + '</b><span>' + (!cuentaLeer() && pcVisto() ? T('tu pedido lo confirma el mesero antes de ir a cocina') : t.n + ' ' + T(t.n > 1 ? 'productos' : 'producto') + ' · ' + T(adove(righe().map((r) => r.p)))) + '</span></button>' +
     /* v0.9.17 (Alberto: «una frase che chiarisca che se clicco non posso poi cambiare idea»): sotto ENVIAR, sempre, prima del tocco */
@@ -1838,13 +1838,20 @@ function esperaFine(e, esito) {
    ⓑ col blocco niente bottone verde, e ogni 15 s (schermo visibile) chiede lo stato di quell'uuid · ⓒ `bloqueado:false` ⇒ torna il bottone, con
    una nota; nessun invio da solo (il cliente può aver già chiesto al mesero) · ⓓ uuid sconosciuto o bordo senza il campo ⇒ un «Volver a intentar»
    piccolo e grigio. 🔴 POLL NUOVO, DICHIARATO: vive solo mentre il telefono è bloccato. Muore quando il bordo spingerà lo stato (N2). */
-const BLOQ_TXT = 'Este teléfono no puede pedir por el menú hoy. Pídele al mesero que lo desbloquee: tu pedido sigue aquí.';
+/* v0.10.37 (contratto di ⚙️ ARQ «IL BORDO TI DIRÀ QUALE BLOCCO È» + 👤 Alberto 16-nov «Sì, solo il JL», D-445 ①): due blocchi, due frasi.
+   `alcance:'mesa'` (un Rechazar su quella mesa) lo toglie il 🔓 del garzón · `alcance:'telefono'` (due rifiuti, tutte le mesas) solo il JL col PIN.
+   Il campo arriva dall'entrata (`telefono_bloqueado`, oggi solo per la mesa) e dal poll (dal ramo H3). Senza campo ⇒ la frase del mesero, come la v0.10.36.
+   Il poll continua in tutti e due i casi: lo sblocco del JL arriva come `bloqueado:false`, come quello del garzón. */
+const BLOQ_TXT_MESA = 'Este teléfono no puede pedir por el menú hoy. Pídele al mesero que lo desbloquee: tu pedido sigue aquí.';
+const BLOQ_TXT_TEL = 'Este teléfono quedó bloqueado por hoy. Pídele al encargado que lo desbloquee: tu pedido sigue aquí.';
+const bloqTxt = () => (S.bloqAlc === 'telefono' ? BLOQ_TXT_TEL : BLOQ_TXT_MESA);
+const bloqChi = () => (S.bloqAlc === 'telefono' ? 'el encargado' : 'el mesero');
 const RECH_K = () => 'pinsita_qrrech_' + LOCAL;
 function rechSalva(u) { try { if (u) localStorage.setItem(RECH_K(), JSON.stringify({ uuid: String(u), dia: giornoOp(Date.now()) })); } catch (x) { /* solo memoria */ } }
 function rechLeggi() { try { const v = JSON.parse(localStorage.getItem(RECH_K()) || 'null'); return v && v.uuid && v.dia === giornoOp(Date.now()) ? String(v.uuid) : ''; } catch (x) { return ''; } }
 let BLOQ_POLL = null;
-function bloqInizia() { S.bloq = true; S.errore = BLOQ_TXT; S.bloqCiego = !rechLeggi(); if (!S.bloqCiego && !BLOQ_POLL) BLOQ_POLL = setInterval(bloqGiro, 15000); }
-function bloqFine(msg) { S.bloq = false; S.bloqCiego = false; if (BLOQ_POLL) { clearInterval(BLOQ_POLL); BLOQ_POLL = null; } if (S.errore === BLOQ_TXT) S.errore = ''; if (msg) nota(msg); if (!scrivendo()) pinta(); }
+function bloqInizia(alc) { S.bloq = true; if (alc === 'mesa' || alc === 'telefono') S.bloqAlc = alc; S.errore = bloqTxt(); S.bloqCiego = !rechLeggi(); if (!S.bloqCiego && !BLOQ_POLL) BLOQ_POLL = setInterval(bloqGiro, 15000); }
+function bloqFine(msg) { S.bloq = false; S.bloqCiego = false; if (BLOQ_POLL) { clearInterval(BLOQ_POLL); BLOQ_POLL = null; } if (S.errore === BLOQ_TXT_MESA || S.errore === BLOQ_TXT_TEL) S.errore = ''; const chi = bloqChi(); if (msg) { S.bloqAlc = ''; nota(msg.replace('{chi}', chi)); } if (!scrivendo()) pinta(); }
 async function bloqGiro() {
   if (!S.bloq) return bloqFine('');
   if (document.hidden) return;
@@ -1854,7 +1861,8 @@ async function bloqGiro() {
   try { r = await (await fetch(BORDO + '/pedido-estado/' + encodeURIComponent(LOCAL) + '?uuid=' + encodeURIComponent(u),
     { headers: { 'X-Borde-Token': TOKEN_LETTURA }, signal: ctrl.signal })).json(); } catch (x) { r = null; } finally { clearTimeout(tid); }
   if (!S.bloq) return;
-  if (r && r.bloqueado === false) return bloqFine('🔓 Ya puedes pedir: el mesero desbloqueó este teléfono');
+  if (r && r.bloqueado === false) return bloqFine('🔓 Ya puedes pedir: {chi} desbloqueó este teléfono');
+  if (r && r.bloqueado === true && (r.alcance === 'mesa' || r.alcance === 'telefono') && r.alcance !== S.bloqAlc) { S.bloqAlc = r.alcance; S.errore = bloqTxt(); if (!scrivendo()) pinta(); }
   if (r && r.need === 'mesa_rechazada' && !('bloqueado' in r)) { S.bloqCiego = true; clearInterval(BLOQ_POLL); BLOQ_POLL = null; if (!scrivendo()) pinta(); }   // bordo senza il campo
 }
 async function esperaUno(e) {
@@ -1942,7 +1950,7 @@ async function inviaOra(confirmado) {
       nota('✓ ' + T('Tu pedido va') + ' ' + T(L.dove) + ' · ' + L.righe.map((x) => x.q + '× ' + x.nome).join(' · '));
     }
   } else if (r && r.need === 'llave_muerta') { cuentaOlvidar(); pcSegna(); S.errore = 'Tu cuenta de esta mesa se cerró. Para pedir de nuevo, el mesero tiene que confirmar: toca enviar.';   // v0.9.24 · D-444
-  } else if (r && r.need === 'telefono_bloqueado') { bloqInizia();   // v0.10.36 · AUT-1067: niente REINTENTAR verde, il menù aspetta lo sblocco   // v0.9.24 · D-445 ①
+  } else if (r && r.need === 'telefono_bloqueado') { bloqInizia(r.alcance);   // v0.10.36 · AUT-1067: niente REINTENTAR verde, il menù aspetta lo sblocco   // v0.9.24 · D-445 ①
   } else if (r && r.need === 'mesa_bloqueada') { S.errore = 'Esta mesa no está recibiendo pedidos por el menú. Pídele al mesero: tu pedido sigue aquí.';
   } else if (r && r.need === 'mesa_confirmar') { S.need = ''; S.errore = 'No pudimos enviar tu pedido. Tu pedido sigue aquí: reintenta o avísale a tu mesero.'; }
   else if (r && r.need === 'items_agotados') {
