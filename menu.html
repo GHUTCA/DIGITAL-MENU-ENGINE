@@ -581,7 +581,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.37</div>
+<div class="ver" id="ver">menu v0.10.38</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -681,6 +681,18 @@ const T = (w) => { const d = TR[S.lang]; return (d && d[w]) || w; };
   ['de', {"¿Cómo lo quieres?":"Wie möchtest du es?","elige uno":"wähle eins"}],
   ['fr', {"¿Cómo lo quieres?":"Comment le veux-tu ?","elige uno":"choisis-en un"}],
   ['ja', {"¿Cómo lo quieres?":"どのようにしますか？","elige uno":"1つ選んでください"}],
+].forEach(([l, d]) => { TR[l] = Object.assign(TR[l] || {}, d); });
+/* v0.10.38 (Alberto 16-nov: «Esta cuenta ya se cerró» in spagnolo col menù in inglese): il foglio del conto, nelle 8 lingue. «hace {n}» è un
+   modello: il tempo va dove lo mette la lingua. */
+[
+  ["en", {"actualizando…":"updating…","Esta cuenta ya se cerró":"This bill is already closed","Todavía no hay pedidos en esta cuenta":"No orders on this bill yet","Ya pagado":"Already paid","Por pagar":"To pay","Actualizado":"Updated","hace {n}":"{n} ago","no es boleta":"not a receipt","Desde este teléfono":"From this phone","Solo lo que pediste desde este teléfono · el mesero tiene la cuenta completa":"Only what you ordered from this phone · your waiter has the full bill","Pide la cuenta a tu mesero":"Ask your waiter for the bill","te la trae a la mesa":"brings it to your table","Volver al menú":"Back to the menu"}],
+  ["pt", {"actualizando…":"atualizando…","Esta cuenta ya se cerró":"Esta conta já foi fechada","Todavía no hay pedidos en esta cuenta":"Ainda não há pedidos nesta conta","Ya pagado":"Já pago","Por pagar":"A pagar","Actualizado":"Atualizado","hace {n}":"há {n}","no es boleta":"não é recibo fiscal","Desde este teléfono":"Deste celular","Solo lo que pediste desde este teléfono · el mesero tiene la cuenta completa":"Só o que você pediu deste celular · o garçom tem a conta completa","Pide la cuenta a tu mesero":"Peça a conta ao garçom","te la trae a la mesa":"traz até a sua mesa","Volver al menú":"Voltar ao cardápio"}],
+  ["it", {"actualizando…":"aggiornamento…","Esta cuenta ya se cerró":"Questo conto è già chiuso","Todavía no hay pedidos en esta cuenta":"Ancora nessun ordine su questo conto","Ya pagado":"Già pagato","Por pagar":"Da pagare","Actualizado":"Aggiornato","hace {n}":"{n} fa","no es boleta":"non è uno scontrino","Desde este teléfono":"Da questo telefono","Solo lo que pediste desde este teléfono · el mesero tiene la cuenta completa":"Solo ciò che hai ordinato da questo telefono · il cameriere ha il conto completo","Pide la cuenta a tu mesero":"Chiedi il conto al cameriere","te la trae a la mesa":"te lo porta al tavolo","Volver al menú":"Torna al menù"}],
+  ["zh", {"actualizando…":"正在更新…","Esta cuenta ya se cerró":"此账单已关闭","Todavía no hay pedidos en esta cuenta":"此账单还没有点单","Ya pagado":"已支付","Por pagar":"待支付","Actualizado":"已更新","hace {n}":"{n}前","no es boleta":"不是正式收据","Desde este teléfono":"来自此手机","Solo lo que pediste desde este teléfono · el mesero tiene la cuenta completa":"仅显示此手机点的菜 · 服务员有完整账单","Pide la cuenta a tu mesero":"请向服务员要账单","te la trae a la mesa":"会送到你的桌上","Volver al menú":"返回菜单"}],
+  ["ko", {"actualizando…":"업데이트 중…","Esta cuenta ya se cerró":"이 계산서는 이미 마감되었습니다","Todavía no hay pedidos en esta cuenta":"아직 이 계산서에 주문이 없습니다","Ya pagado":"이미 결제됨","Por pagar":"결제할 금액","Actualizado":"업데이트됨","hace {n}":"{n} 전","no es boleta":"영수증이 아닙니다","Desde este teléfono":"이 휴대폰에서","Solo lo que pediste desde este teléfono · el mesero tiene la cuenta completa":"이 휴대폰에서 주문한 것만 · 전체 계산서는 직원이 가지고 있습니다","Pide la cuenta a tu mesero":"직원에게 계산서를 요청하세요","te la trae a la mesa":"테이블로 가져다 드립니다","Volver al menú":"메뉴로 돌아가기"}],
+  ["de", {"actualizando…":"wird aktualisiert…","Esta cuenta ya se cerró":"Diese Rechnung ist bereits geschlossen","Todavía no hay pedidos en esta cuenta":"Noch keine Bestellungen auf dieser Rechnung","Ya pagado":"Bereits bezahlt","Por pagar":"Offen","Actualizado":"Aktualisiert","hace {n}":"vor {n}","no es boleta":"keine Quittung","Desde este teléfono":"Von diesem Handy","Solo lo que pediste desde este teléfono · el mesero tiene la cuenta completa":"Nur was du mit diesem Handy bestellt hast · die Bedienung hat die ganze Rechnung","Pide la cuenta a tu mesero":"Bitte die Bedienung um die Rechnung","te la trae a la mesa":"bringt sie an den Tisch","Volver al menú":"Zurück zur Karte"}],
+  ["fr", {"actualizando…":"mise à jour…","Esta cuenta ya se cerró":"Cette addition est déjà close","Todavía no hay pedidos en esta cuenta":"Pas encore de commandes sur cette addition","Ya pagado":"Déjà payé","Por pagar":"Reste à payer","Actualizado":"Mis à jour","hace {n}":"il y a {n}","no es boleta":"ce n’est pas un reçu","Desde este teléfono":"Depuis ce téléphone","Solo lo que pediste desde este teléfono · el mesero tiene la cuenta completa":"Seulement ce que tu as commandé depuis ce téléphone · ton serveur a l’addition complète","Pide la cuenta a tu mesero":"Demande l’addition à ton serveur","te la trae a la mesa":"te l’apporte à table","Volver al menú":"Retour au menu"}],
+  ["ja", {"actualizando…":"更新中…","Esta cuenta ya se cerró":"この会計はすでに締められています","Todavía no hay pedidos en esta cuenta":"この会計にはまだ注文がありません","Ya pagado":"支払い済み","Por pagar":"未払い","Actualizado":"更新","hace {n}":"{n}前","no es boleta":"領収書ではありません","Desde este teléfono":"この端末から","Solo lo que pediste desde este teléfono · el mesero tiene la cuenta completa":"この端末で注文した分のみ · 全体の会計はスタッフが持っています","Pide la cuenta a tu mesero":"スタッフに会計を頼んでください","te la trae a la mesa":"席までお持ちします","Volver al menú":"メニューに戻る"}],
 ].forEach(([l, d]) => { TR[l] = Object.assign(TR[l] || {}, d); });
 const S = { cfg: null, prod: [], tick: null, fam: null, cat: null, abierta: null, cart: {}, pedido: false,
   inviando: null, inviaStato: '', uuid: '', uuidFirma: '', listo: null, need: '', errore: '', agotLoc: [], campana: false, sel: {},
@@ -1466,7 +1478,10 @@ let CC_POLL = null, CC_VOLO = null;
 function ccVisibile(cons) {
   if (!MESA) return false;
   if (pagoMesaOn()) return cons > 0;   // pago acceso: identico alla v0.10.24 (R3 di 💵 EL GIRO)
-  return !!(cuentaLeer() || cons > 0) && S.ccRuta === true;
+  /* v0.10.38: un conto chiuso non tiene acceso il 🧾 · senza llave conta solo ciò che questo telefono ha mandato nel conto di adesso
+     (righeMie, v0.10.35), non tutto il giorno: prima `cons` = consumoTel() = ogni invio di oggi, anche dei conti già chiusi. */
+  if (S.cuentaMesa && S.cuentaMesa.cerrada && !cuentaLeer()) return false;
+  return !!(cuentaLeer() || sommaRighe(righeMie()) > 0) && S.ccRuta === true;
 }
 function ccPill(cons) {
   const m = S.cuentaMesa;
@@ -1495,7 +1510,10 @@ async function ccLeggi() {
        Conto MORTO (pagado, anulado…) ⇒ `{ ok, cerrada }` senza righe, PRIMA di leggere PG. Conto VIVO senza pedidos in PG (`sin_pedidos`:
        appena aperto dall'embajador) ⇒ `{ ok, cerrada, mesa, total: 0, items: [] }`. Il secondo NON è chiuso: si legge come un conto vuoto
        («Todavía no hay pedidos en esta cuenta»). «se cerró» solo se il bordo non manda le righe. Forma fissata col ⚙️ ARQ in bacheca. */
-    if (r.ok === true && r.cerrada && !Array.isArray(r.items)) { S.cuentaMesa = { cerrada: true, righe: [], ts: Date.now() }; S.ccNota = ''; return; }
+    if (r.ok === true && r.cerrada && !Array.isArray(r.items)) { S.cuentaMesa = { cerrada: true, righe: [], ts: Date.now() }; S.ccNota = '';
+      /* v0.10.38 (prova di Alberto 16-nov, bacheca «L ICONA DEL CONTO RESTA SU UN CONTO CHIUSO»): il conto è morto (pagado, anulado…) ⇒ la sua
+         llave non serve più a niente: il telefono la dimentica, come fa già su `llave_muerta`. Il prossimo pedido parte senza llave (v0.10.34). */
+      if ((cuentaLeer() || {}).id === k.id) cuentaOlvidar(); return; }
     /* conto vivo senza righe in PG MA questo telefono ha già mandato qualcosa ⇒ PG non è ancora al passo: è un «non so», non «no hay pedidos»
        (ARQ ha ritirato 1af1b81 e spedisce e7dc295: la cura la porta il vetro, CONTROLLER «LE DUE CURE SI SONO INCROCIATE») */
     if (r.ok === true && r.cerrada && Array.isArray(r.items) && !r.items.length && righeMie().length) { S.ccAgg = 'reintenta'; return; }
@@ -1517,7 +1535,7 @@ function ccPollSync() {
   if (on && !CC_POLL) CC_POLL = setInterval(ccGiro, CC_POLL_MS);
   else if (!on && CC_POLL) { clearInterval(CC_POLL); CC_POLL = null; }
 }
-const ccEta = (ts) => { const s = Math.max(0, Math.round((Date.now() - (Number(ts) || 0)) / 1000)); return s < 60 ? T('hace') + ' ' + s + ' s' : T('hace') + ' ' + Math.round(s / 60) + ' min'; };
+const ccEta = (ts) => { const s = Math.max(0, Math.round((Date.now() - (Number(ts) || 0)) / 1000)); return T('hace {n}').replace('{n}', s < 60 ? s + ' s' : Math.round(s / 60) + ' min'); };   // v0.10.38
 /* il foglio a pago spento: la precuenta della mesa, solo da leggere (niente scelta delle righe, niente PAGO EXPRESS) */
 function cuentaMesaHTML() {
   const m = S.cuentaMesa, X = '<button class="pedx" data-a="cuentaChiudi">✕</button>';
