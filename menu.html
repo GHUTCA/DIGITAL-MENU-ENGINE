@@ -581,7 +581,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.40</div>
+<div class="ver" id="ver">menu v0.10.41</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -781,7 +781,10 @@ function visibile(p) { return (tickP().ocultos || []).indexOf(p.id) < 0 && !esau
 /* MENÚ DEL DÍA (Alberto, 28-ott): il prezzo del menú NON è il prezzo del piatto. Il piatto ordinato da solo costa il suo
    prezzo, a qualsiasi ora; a pranzo sotto il piatto c'è solo l'informazione «En Menú del día» (senza prezzo, senza clic).
    Il menú si vende dal carosello e dalle promo, come prodotto a sé. ⇒ la regla `almuerzo` non riprezza il piatto. */
-const inMenuDia = (p) => ((tickP().reglas || {})[p.id] || {}).tipo === 'almuerzo';
+/* v0.10.41 (seguito di AUT-1099, elenco «IL QR LEGGE ANCORA DA GOOGLE»): il segno «En Menú del día» viene dallo strumento `menu` visibile adesso in PG
+   che ha il piatto fra le sue parti (strumentiAdesso), non più dalla regla `almuerzo` del foglio. Bordo muto ⇒ nessun segno (è solo un segno). */
+const inMenuDia = (p) => { const r = typeof strumR === 'function' ? strumR() : null; if (!r || !r.ok || !p) return false;
+  return (r.strumenti || []).some((x) => x && x.tipo === 'menu' && x.visible && (x.parti || []).some((q) => q && q.id_producto === p.id && q.vende !== false)); };
 function prezzoOra(p) {
   /* v0.10.27 (S3 e S4 di 💵 EL GIRO su 3d41f5e): sulla riga in 2x1 il prezzo è quello del catalogo del mesero con gli strumenti accesi
      (catalogo_pg.js r.360: lo strumento, poi il listino) — niente regla del tick, niente Precio_Member, niente depto sommati al regalo. */
@@ -1262,7 +1265,8 @@ function ripHTML() {
   if (!MESA || !envioOn()) return '';
   const g = gruppi().find((x) => x.k === S.fam), cats = g ? g.cats : [];
   const tus = tusIds().filter((id) => { const p = S.prod.find((x) => x.id === id); return p && visibile(p); });
-  const L = S.hist.filter((k) => { const p = S.prod.find((x) => x.id === k.split('§')[0]); return p && cats.indexOf(p.c) >= 0; }).slice(0, 2).map((k) => { const [id, t, m] = k.split('§'); const p = S.prod.find((x) => x.id === id); return p && visibile(p) && ordinabile(p) ? { k, p, lab: [m === 'Como viene' ? '' : m, t].filter(Boolean).join(' · ') } : null; }).filter(Boolean);
+  const nelConto = new Set(); { const cid = envConto(); envOggi().filter((e) => String(e.c || '') === cid).forEach((e) => (e.righe || []).forEach((r) => nelConto.add(r.id))); }   // v0.10.41
+  const L = S.hist.filter((k) => { const id = k.split('§')[0], p = S.prod.find((x) => x.id === id); return p && cats.indexOf(p.c) >= 0 && nelConto.has(id); }).slice(0, 2).map((k) => { const [id, t, m] = k.split('§'); const p = S.prod.find((x) => x.id === id); return p && visibile(p) && ordinabile(p) ? { k, p, lab: [m === 'Como viene' ? '' : m, t].filter(Boolean).join(' · ') } : null; }).filter(Boolean);
   if (!L.length && !tus.length) return '';
   const tuB = tus.length ? '<button class="rip-c tus" data-a="tusApri"><span><b>' + T('Tus pedidos') + ' (' + tus.length + ')</b></span><em>›</em></button>' : '';
   return '<div class="rip"><div class="rip-t">⟲ ' + T(L.length ? 'OTRA VEZ' : 'Tus pedidos') + '</div><div class="rip-l">' + L.map((x) => '<button class="rip-c" data-a="ripeti" data-k="' + esc(x.k) + '">' +
@@ -1850,7 +1854,7 @@ function esperaFine(e, esito) {
   if (!espere().length) { clearInterval(ESPERA_POLL); ESPERA_POLL = null; }
   const cosa = e.dono ? 'tu regalo' : 'tu pedido';
   const L = e.dono ? (S.dono && S.dono.uuid === e.uuid ? S.dono : null) : S.listo;
-  if (esito === 'ok') { if (!e.dono) envAggiungi(e.righe); if (L) L.pc = false; nota('✓ El mesero confirmó tu mesa — ' + cosa + (e.dono ? ' va en camino' : ' ya va a cocina y barra')); }
+  if (esito === 'ok') { if (!e.dono) { envAggiungi(e.righe); if (Array.isArray(e.hk)) histAggiungi(e.hk); }   /* v0.10.41 */ if (L) L.pc = false; nota('✓ El mesero confirmó tu mesa — ' + cosa + (e.dono ? ' va en camino' : ' ya va a cocina y barra')); }
   else if (esito === 'ciego') { if (L) L.pc = false; nota('🙋 Pregúntale a tu mesero si confirmó tu mesa'); }
   else if (esito === 'cancelado') { if (L) { L.pc = false; L.rech = 'cancelado'; } nota('✓ ' + T('Cancelaste') + ' ' + cosa + ' — no se preparó y no se cobra'); }
   else { if (esito === 'rechazada') rechSalva(e.uuid); if (L) { L.pc = false; L.rech = esito; } nota('🙋 ' + (esito === 'sin_respuesta' ? 'Nadie confirmó tu mesa a tiempo' : 'El mesero no confirmó tu mesa') + ' — ' + cosa + ' no se preparó'); }
@@ -1958,10 +1962,14 @@ async function inviaOra(confirmado) {
     // S1 di 💵: il 2x1 e il prezzo si leggono da ciò che è PARTITO (pl), non dal carrello ricalcolato dopo la risposta (alle 21:00 cambierebbero)
     const PL = JSON.parse(pl.items_json);
     S.listo = { righe: RS.map((r, i) => ({ nome: nomeRiga(r) + lleva2x1(r, !!(PL[i] && PL[i].promo === '2x1')), q: r.q, p: r.p })), dove: adove(RS.map((r) => r.p)) };
-    histAggiungi(Object.keys(S.cart));
+    /* v0.10.41 (Alberto 17-nov, mesa 997: «ho ricaricato 100 volte e OTRA VEZ mostra Fanta e Agua che non sono negli ordini»): prima «Otra vez»
+       si scriveva all invio, anche per un pedido che poi il mesero rifiutava, scadeva o il cliente cancellava. Ora: subito solo se il bordo lo
+       accetta; se aspetta la conferma, entra in «Otra vez» con la conferma (esperaFine 'ok'), come entra nel conto del telefono. */
+    const HK = Object.keys(S.cart);
+    if (!r.por_confirmar) histAggiungi(HK);
     const rr = RS.map((x, i) => ({ id: x.p.id, nome: nomeRiga(x) + (PL[i] && PL[i].promo === '2x1' ? ' · 2x1' : ''), q: x.q, pr: PL[i] ? PL[i].precio : prezzoRiga(x) }));   // senza il numero: righeMie fonde per nome
     // v0.9.6 · D-431: mesa libera ⇒ il bordo lo tiene finché il mesero conferma. Non entra nel conto del telefono finché non è confermato.
-    if (r.por_confirmar) { pcSegna(); S.listo.pc = true; S.listo.mot = r.motivo || ''; S.listo.uuid = pl.uuid; esperaInizia({ uuid: pl.uuid, ts: Date.now(), mot: r.motivo || '', righe: rr }); }
+    if (r.por_confirmar) { pcSegna(); S.listo.pc = true; S.listo.mot = r.motivo || ''; S.listo.uuid = pl.uuid; esperaInizia({ uuid: pl.uuid, ts: Date.now(), mot: r.motivo || '', righe: rr, hk: HK }); }
     else envAggiungi(rr);   // v0.8: il conto di questo telefono (il Pagar in alto)   // v0.7 «Otra vez»: ciò che è PARTITO, non ciò che è stato solo messo nel carrello
     S.cart = {}; S.uuid = ''; S.uuidFirma = '';
     /* v0.9.9 (Alberto, 2-nov: «perché far vedere questa schermata, vai subito al postre o dove dice il bottone, perché fargli fare clic?»):
