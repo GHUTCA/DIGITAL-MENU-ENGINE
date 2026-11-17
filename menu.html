@@ -581,7 +581,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.38</div>
+<div class="ver" id="ver">menu v0.10.39</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -2196,7 +2196,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
   }
   if (a === 'palcoFam') { const g = gruppi().find((x) => x.k === k); if (g) { S.palco = false; S.dj = false; S.fam = g.k; S.cat = g.cats[0]; S.abierta = null; } pinta(); return; }
   // v0.8 · la riga in alto: ognuna di queste schermate chiude le altre (una sola metà grande alla volta)
-  if (a === 'lingueApri' || a === 'djApri' || a === 'cuentaApri') { if (S.inviando || S.inviaStato) return; S.lingue = a === 'lingueApri'; S.dj = a === 'djApri'; S.cuenta = a === 'cuentaApri'; S.tus = false; S.pedido = false; S.campana = false; S.dono = null; pinta(); if (S.cuenta && !pagoMesaOn()) ccGiro(); return; }
+  if (a === 'lingueApri' || a === 'djApri' || a === 'cuentaApri') { if (S.inviando || S.inviaStato) return; S.lingue = a === 'lingueApri'; S.dj = a === 'djApri'; S.cuenta = a === 'cuentaApri'; S.busca = null; S.tus = false; S.pedido = false; S.campana = false; S.dono = null; pinta(); if (S.cuenta && !pagoMesaOn()) ccGiro(); return; }
   if (a === 'tusApri') { S.tus = true; S.abierta = null; S.pedido = false; S.palco = false; pinta(); return; }
   if (a === 'tusChiudi') { S.tus = false; pinta(); return; }
   if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; S.pagoPaso = 'cuenta'; pinta(); return; }
@@ -2239,7 +2239,9 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'fam') { const g = gruppi().find((x) => x.k === k); S.fam = k; S.cat = g.cats[0]; S.abierta = null; S.busca = null; }
   else if (a === 'cat') { S.cat = k; S.abierta = null; S.busca = null; }
   else if (a === 'va2x1') { const g = gruppi().find((x) => x.cats.indexOf(CAT2X1) >= 0); if (g) { S.fam = g.k; S.cat = CAT2X1; S.abierta = null; S.busca = null; S.palco = false; S.tus = false; } }   // v0.10.31: il bollino porta a Promo · 2x1
-  else if (a === 'abreBusca') { S.busca = ''; S.abierta = null; pinta(); const i = document.querySelector('.bin'); if (i) i.focus(); return; }
+  /* v0.10.39 (Alberto 17-nov, mesa 997: «tocco 🌐, poi 🔍, e resta sul foglio delle lingue»): la lente chiude i fogli in alto (lingue, DJ, cuenta)
+     e apre subito la ricerca; e un foglio in alto chiude la ricerca (sotto, lingueApri). Un posto alla volta. */
+  else if (a === 'abreBusca') { S.lingue = false; S.dj = false; S.cuenta = false; S.busca = ''; S.abierta = null; pinta(); const i = document.querySelector('.bin'); if (i) i.focus(); return; }
   else if (a === 'cierraBusca') { S.busca = null; S.abierta = null; }
   else if (a === 'binput') { return; }
   else if (a === 'abre') {
