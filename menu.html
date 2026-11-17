@@ -581,7 +581,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.39</div>
+<div class="ver" id="ver">menu v0.10.40</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -790,14 +790,16 @@ function prezzoOra(p) {
      prende il prezzo dal SUO strumento (leva_precio del giorno, se no precio_default), come il catalogo del mesero (catalogo_pg.js r.324-331).
      Il QR lo calcolava già in `contenitori` e non lo usava: mostrava (e mandava nel pedido) il Precio della carta. Senza strumento ⇒ la carta. */
   if (p.c === 'menu_contenitore') { const sc = strumC(p.id); if (sc && sc.precio > 0) return { v: sc.precio, orig: 0 }; }
-  const r = inMenuDia(p) ? null : (tickP().reglas || {})[p.id];
   // priorità del vivo: regla-fascia > base; il barrato solo se la regola ABBASSA
   let z = { v: p.p, orig: 0 };
   // v0.10.2 (🟡ⓐ di EL GIRO): col member riconosciuto vince Precio_Member, come nel vecchio menu_digital (r.10461). Fuori dal menú del día.
   if (S.member && S.member.ok && p.pm > 0 && !inMenuDia(p)) return { v: p.pm, orig: p.pm < p.p ? p.p : 0 };
-  if (r && r.precio > 0 && r.precio !== p.p) z = { v: r.precio, orig: r.precio < p.p ? p.p : 0 };
+  /* v0.10.40 · AUT-1099 (Alberto 17-nov: «Martes a $2.000» spento dall admin e il QR ancora a $2.000): il prezzo di fascia NON viene più dalla
+     regla del tick (`getPreciosRegla` del GAS sul foglio PRECIOS_REGLA, tampone del 30-ott): viene solo dallo STRUMENTO in PG (`strumP`, qui
+     sotto), come il catalogo del mesero (`escalon_fuente strumenti`). Un TRUE rimasto sul foglio non cambia più il prezzo del QR.
+     Il tick resta per ciò che non è prezzo: i nascosti, gli agotados, l epoch, e il segno «En Menú del día» (inMenuDia). */
   // PINSA: lo sconto del canale depto si confronta col prezzo di adesso e vince solo se è più basso (mai due sconti sommati)
-  const sx = strumP(p.id);   // SALA DEMO: il prezzo dello strumento (precio fijo, botellas, recargo), solo mostrato
+  const sx = strumP(p.id);   // il prezzo dello strumento (precio fijo, botellas, recargo): dalla v0.10.40 è l unica fascia
   if (sx && (sx.strumento || sx.recargo) && sx.precio > 0 && sx.precio !== z.v) z = { v: sx.precio, orig: sx.precio < p.p ? p.p : 0 };
   const dz = prezzoDepto(p);
   return dz && dz < z.v ? { v: dz, orig: p.p } : z;
