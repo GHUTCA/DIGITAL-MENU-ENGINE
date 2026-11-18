@@ -990,7 +990,7 @@ function z1() {
     ((S.busca !== null && S.busca !== undefined) ? '' : '<button class="bsc" data-a="abreBusca" aria-label="' + esc(T('Buscar')) + '" title="' + esc(T('Buscar')) + '">🔍</button>') +   // v0.10.15: fuori dalla riga in basso
     '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
     /* v0.10.44 (Alberto 18-nov: «LIVE non dovrebbe chiamarsi così, dovrebbe chiamarsi semplicemente DJ, e quando suonano andare LIVE») */
-    (S.vet && S.vet.dj ? '<button class="live' + (showAcceso() ? '' : ' dj') + '" data-a="djApri">' + (showAcceso() ? '<i></i>LIVE' : '🎧 DJ') + '</button>' : '') +
+    (djInfo() ? '<button class="live' + (showAcceso() ? '' : ' dj') + '" data-a="djApri">' + (showAcceso() ? '<i></i>LIVE' : '🎧 DJ') + '</button>' : '') +
     (ccVisibile(cons) ? '<button class="paga1" data-a="cuentaApri" aria-label="' + esc(T(pagoMesaOn() ? 'Pagar' : 'Tu cuenta')) + '">🧾 <b>' + (pagoMesaOn() ? pagoPill() : ccPill(cons)) + '</b></button>' : '');   // v0.10.26 · AUT-1015: il 🧾 si stacca dal pago (contratto §④)   // v0.9.23 (Alberto): un simbolo che si capisce in ogni lingua, non una parola che allunga la pillola
 }
 // la card. `lista` = la griglia intera (con foto); senza = la riga sotto la scheda (niente foto: la foto sta sopra)
@@ -1355,8 +1355,25 @@ async function inviaDono() {
 /* ═══ v0.8 · LO SHOW (mockup §⑫ ②: «lo show è il gancio»): le sere e le ore vengono dalla vetrina del locale (`show`).
    Il giorno è quello OPERATIVO (taglio 06:00, ora di Santiago): l'1 di notte del sabato è ancora il venerdì. ═══ */
 function oraSantiago() { const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Santiago' })); return d; }
-function giornoShow() { const sh = S.vet && S.vet.show; if (!sh || !Array.isArray(sh.dias)) return false; const d = oraSantiago(); d.setHours(d.getHours() - 6); return sh.dias.indexOf(d.getDay()) >= 0; }
+/* v0.10.45 · IL DJ DALL ADMIN (Alberto 18-nov: «il carosello e l admin che lo amministra si chiudono oggi»): l evento con `textos.dj` (admin v1.3.0)
+   dà nome, Instagram, poster (la sua imagen) e le sere col set { n, d, h }. Senza, la vetrina di prima (vetrina.json) come ripiego. */
+const DJ_NOMI_G = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const giornoOpDj = () => new Date(oraSantiago().getTime() - 6 * 3600e3).getDay();
+function djDati() {
+  if (!STRUM || !Array.isArray(STRUM.strumenti)) return null;
+  const L = strumVig(STRUM.strumenti, (q) => q.id_strumento).filter((x) => x.tipo === 'evento' && x.activo !== false && x.textos && x.textos.dj && x.textos.dj.nombre);
+  if (!L.length) return null;
+  const g = L.sort((a, b) => (Number(a.orden) || 99) - (Number(b.orden) || 99))[0], dj = g.textos.dj, m = g.media || {}, set = (dj.set && typeof dj.set === 'object') ? dj.set : {};
+  const oggi = set[giornoOpDj()] || null;
+  return { nombre: String(dj.nombre), instagram: String(dj.instagram || ''), poster: String(m.poster || m.imagen || '').replace(/^https:\/\/menu\.pinsita\.cl\//, ''),
+    set, desde: oggi && oggi.d ? oggi.d : '', cartelera: [1, 2, 3, 4, 5, 6, 0].filter((k) => set[k] && set[k].d).map((k) => ({ d: DJ_NOMI_G[k], n: set[k].n || dj.nombre, h: set[k].d })) };
+}
+const djInfo = () => djDati() || (S.vet && S.vet.dj) || null;
+function giornoShow() { const da = djDati(); if (da) { const x = da.set[giornoOpDj()]; return !!(x && x.d); } const sh = S.vet && S.vet.show; if (!sh || !Array.isArray(sh.dias)) return false; const d = oraSantiago(); d.setHours(d.getHours() - 6); return sh.dias.indexOf(d.getDay()) >= 0; }
 function showAcceso() {
+  const da = djDati(); if (da) { const x = da.set[giornoOpDj()]; if (!x || !x.d) return false;   // v0.10.45: il LIVE è l ora del set della sera operativa
+    const d = oraSantiago(), h = d.getHours() + d.getMinutes() / 60, de = oraDec(x.d, 23), a = oraDec(x.h || '03:00', 4);
+    return a > de ? (h >= de && h < a) : (h >= de || h < a); }
   const sh = S.vet && S.vet.show; if (!sh || !giornoShow()) return false;
   const d = oraSantiago(), h = d.getHours() + d.getMinutes() / 60, a = oraDec(sh.hasta, 4);
   /* v0.10.45 (Alberto 18-nov: «AURORA parte sempre alle 22:00»): l ora di inizio può cambiare per giorno OPERATIVO (`show.desde_dia`, chiave = getDay) */
@@ -1648,7 +1665,7 @@ const famDj = () => { const s = ((S.vet && S.vet.palco) || []).find((x) => x.t =
    la pagina del DJ ha due pillole. «La cartelera» = il poster intero (`dj.poster` della vetrina, mai tagliato) e le sere. «LIVE» (durante il set) o
    «DJ» (fuori) = chi suona, da che ora, Instagram, i drink. Si apre su LIVE durante il set, sulla cartelera fuori. */
 function djHTML() {
-  const dj = (S.vet && S.vet.dj) || {}, vivo = showAcceso(), ig = /^[\w.]{1,30}$/.test(dj.instagram || '') ? dj.instagram : '';
+  const dj = djInfo() || {}, vivo = showAcceso(), ig = /^[\w.]{1,30}$/.test(dj.instagram || '') ? dj.instagram : '';
   const tab = S.djTab === 'cartelera' || S.djTab === 'vivo' ? S.djTab : (vivo ? 'vivo' : 'cartelera');
   const poster = /^[\w./-]+\.(webp|jpe?g|png)$/i.test(dj.poster || '') ? dj.poster : '';
   const pills = '<div class="djpills"><button class="' + (tab === 'cartelera' ? 'on' : '') + '" data-a="djTab" data-k="cartelera">📅 ' + T('La cartelera') + '</button>' +
@@ -2444,11 +2461,11 @@ function slidesStrum() {
   const r = strumR(); if (!r || !r.ok) return null;
   const vig = {}; for (const x of strumVig(STRUM.strumenti, (q) => q.id_strumento)) vig[x.id_strumento] = x;
   const w = STRUM_FN.slotAdesso(r, ['evento', 'escena'], Date.now(), Object.values(vig));
-  const vis = r.strumenti.filter((x) => x.visible && (x.tipo === 'evento' || x.tipo === 'escena')).sort((a, b) => (w && a.id === w.id ? -1 : w && b.id === w.id ? 1 : 0));
+  const vis = r.strumenti.filter((x) => x.visible && (x.tipo === 'evento' || x.tipo === 'escena')).sort((a, b) => (w && a.id === w.id ? -1 : w && b.id === w.id ? 1 : ((Number((vig[a.id] || {}).orden) || 99) - (Number((vig[b.id] || {}).orden) || 99))));   // v0.10.45: l ordine dell admin
   const rel = (u) => String(u || '').replace(/^https:\/\/menu\.pinsita\.cl\//, '');
   return vis.map((x) => {
     const g = vig[x.id] || {}, t = (g.textos && g.textos.es) || {}, m = g.media || {}, cta = g.cta || {};
-    const vid = rel(m.video), pos = rel(m.poster || m.imagen), o = { strum: x.id, tag: t.eyebrow || '', tit: t.titulo || g.nombre_visible || '', sub: t.sub || '' };
+    const vid = rel(m.video), pos = rel(m.poster || m.imagen), o = { strum: x.id, tag: t.eyebrow || '', tit: t.titulo || ''   /* v0.10.45: vuoto = niente scritta (era il nome interno dell admin) */, sub: t.sub || '' };
     if (vid && PATH_VET.test(vid) && PATH_VET.test(pos)) { o.vid = vid; o.poster = pos; }
     else o.img = PATH_VET.test(pos) ? pos : (/^https:\/\/[\w.-]+\/[^'"()\s]+$/.test(m.poster || m.imagen || '') ? (m.poster || m.imagen) : '');
     if (cta.tipo === 'producto' && cta.destino) { o.t = 'plato'; o.id = cta.destino; }
