@@ -193,7 +193,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.3.1</div>
+  <div id="ver">admin v1.3.2</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -688,17 +688,22 @@ function propCards(){
    (LIVE solo dentro d-h della sera, giorno operativo) e la pagina del DJ (il poster = l imagen dell evento, la cartelera = le sere). */
 const PROP_DJ_GD = { L:1, M:2, X:3, J:4, V:5, S:6, D:0 };
 const propDjFasce = (x) => (Array.isArray(x) ? x : (x && typeof x === 'object' ? [x] : [])).filter((q) => q && q.d);   // v1.3.1: una sera = una lista (il formato v1.3.0, un oggetto, si legge come lista di uno)
+/* admin v1.3.2 (Alberto 18-nov: «ne posso aggiungere solo 2 perché il + otro non è cliccabile… molte serate ne hanno 3»):
+   appena scrivi nell ultima riga di una sera, sotto ne nasce un altra vuota — quante ne servono, senza salvare e riaprire. */
+function propDjRiga(d, i, x, off){
+  return '<div class="row" style="align-items:center" data-djrow="' + d + '"><b style="width:44px">' + (i ? '' : esc(PROP_DIA_N[d])) + '</b>' +
+    '<input id="pf_djq_' + d + '_' + i + '" placeholder="' + (i && !x.d ? '+ otro DJ' : 'Quién toca') + '" value="' + esc(x.n || '') + '" style="flex:1 1 140px"' + (off ? ' disabled' : '') + '>' +
+    hhInput('id="pf_djd_' + d + '_' + i + '"', x.d || '', off) + hhInput('id="pf_djh_' + d + '_' + i + '"', x.h || '', off) + '</div>';
+}
 function propDjHTML(r, dis){
   const dj = (r.textos && r.textos.dj) || null, set = (dj && dj.set) || {};
   return '<div class="pbox" style="margin-top:12px"><label class="ckl"><input type="checkbox" id="pf_dj"' + (dj ? ' checked' : '') + dis(false) + '><span><b>Es el DJ del QR</b><small>Maneja el botón 🎧 DJ / ● LIVE y la página del DJ (la imagen de arriba es su cartelera).</small></span></label>' +
     '<div class="row"><div class="fld"><label>Nombre del DJ</label><input id="pf_djn" value="' + esc((dj && dj.nombre) || '') + '"' + dis(false) + '></div>' +
     '<div class="fld"><label>Instagram (sin @)</label><input id="pf_dji" value="' + esc((dj && dj.instagram) || '') + '"' + dis(false) + '></div></div>' +
-    '<div class="nota">Por noche: quién toca y la hora de su set (<b>es la hora del LIVE</b>, no la hora en que el evento se ve en el QR). Varios DJ en la misma noche = una fila por DJ; siempre queda una fila vacía para agregar otro. Fila sin hora = se borra.</div>' +
+    '<div class="nota">Por noche: quién toca y la hora de su set (<b>es la hora del LIVE</b>, no la hora en que el evento se ve en el QR). Varios DJ en la misma noche = una fila por DJ; al escribir en la última fila aparece otra vacía debajo. Fila sin hora = se borra.</div>' +
     /* admin v1.3.1 (Alberto 18-nov: «in una serata possono esserci più DJ per fascia oraria») */
     PROP_DIAS.map((d) => { const L = propDjFasce(set[PROP_DJ_GD[d]]).concat([{}]);
-      return L.map((x, i) => '<div class="row" style="align-items:center"><b style="width:44px">' + (i ? '' : esc(PROP_DIA_N[d])) + '</b>' +
-        '<input id="pf_djq_' + d + '_' + i + '" placeholder="' + (i && !x.d ? '+ otro DJ' : 'Quién toca') + '" value="' + esc(x.n || '') + '" style="flex:1 1 140px"' + dis(false) + '>' +
-        hhInput('id="pf_djd_' + d + '_' + i + '"', x.d || '', !!dis(false)) + hhInput('id="pf_djh_' + d + '_' + i + '"', x.h || '', !!dis(false)) + '</div>').join(''); }).join('') + '</div>';
+      return L.map((x, i) => propDjRiga(d, i, x, !!dis(false))).join(''); }).join('') + '</div>';
 }
 function propDettaglio(){
   const r = (P.draft && P.draft.id_strumento === P.sel) ? P.draft : propRiga(P.sel); if (!r) return '';
@@ -913,6 +918,11 @@ document.getElementById('propApp').addEventListener('click', async (ev) => {
 });
 document.getElementById('propApp').addEventListener('change', (ev) => {
   if (ev.target.id === 'ps_hora') { const h = hhNorm(ev.target.value); if (!h) return; P.sim = { dia: (P.sim && P.sim.dia) || ((P.d && P.d.adesso && P.d.adesso.ahora) || {}).dia || null, hora: h }; propCarica(); }
+});
+document.getElementById('propApp').addEventListener('input', (ev) => {   // v1.3.2: l ultima riga del DJ usata ⇒ ne nasce un altra sotto
+  const m = /^pf_dj[qdh]_(\w+)_(\d+)$/.exec((ev.target && ev.target.id) || ''); if (!m || !String(ev.target.value || '').trim()) return;
+  const d = m[1], i = Number(m[2]); if (document.getElementById('pf_djd_' + d + '_' + (i + 1))) return;
+  const row = ev.target.closest('[data-djrow]'); if (row) row.insertAdjacentHTML('afterend', propDjRiga(d, i + 1, {}, false));
 });
 document.getElementById('propApp').addEventListener('keydown', (ev) => { if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.classList && ev.target.classList.contains('cd')) { ev.preventDefault(); ev.target.click(); } });
 
