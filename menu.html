@@ -604,7 +604,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.54</div>
+<div class="ver" id="ver">menu v0.10.55</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -810,7 +810,9 @@ function visibile(p) { return (tickP().ocultos || []).indexOf(p.id) < 0 && !esau
 /* v0.10.41 (seguito di AUT-1099, elenco «IL QR LEGGE ANCORA DA GOOGLE»): il segno «En Menú del día» viene dallo strumento `menu` visibile adesso in PG
    che ha il piatto fra le sue parti (strumentiAdesso), non più dalla regla `almuerzo` del foglio. Bordo muto ⇒ nessun segno (è solo un segno). */
 const inMenuDia = (p) => { const r = typeof strumR === 'function' ? strumR() : null; if (!r || !r.ok || !p) return false;
-  return (r.strumenti || []).some((x) => x && x.tipo === 'menu' && x.visible && (x.parti || []).some((q) => q && q.id_producto === p.id && q.vende !== false)); };
+  /* v0.10.55 · AUT-1125: la lista corta della porta (PORTA-<LOCAL>, contratto «MODO DISCOTECA» §1) è uno strumento `menu` ma NON è un menú del día:
+     senza questo salto, accesa, i suoi prodotti direbbero «En Menú del día» anche ai tavoli */
+  return (r.strumenti || []).some((x) => x && x.tipo === 'menu' && x.visible && !/^PORTA-/i.test(String(x.id || x.id_strumento || '')) && (x.parti || []).some((q) => q && q.id_producto === p.id && q.vende !== false)); };
 function prezzoOra(p) {
   /* v0.10.27 (S3 e S4 di 💵 EL GIRO su 3d41f5e): sulla riga in 2x1 il prezzo è quello del catalogo del mesero con gli strumenti accesi
      (catalogo_pg.js r.360: lo strumento, poi il listino) — niente regla del tick, niente Precio_Member, niente depto sommati al regalo. */
