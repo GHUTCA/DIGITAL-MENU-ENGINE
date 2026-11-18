@@ -542,6 +542,11 @@ button{font-family:inherit}
    raggio · casetta senza scatola · nome intero · 🌐 · LIVE piccolo · e l'unico PIENO è il Pagar, che porta l'importo ═══ */
 .glb{flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:1px solid var(--linea2);background:transparent;font-size:19px;cursor:pointer;padding:0;color:var(--txt)}
 .live{flex:0 0 auto;display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,#5b2a86,#2a1240);color:#fff;border:1px solid rgba(180,106,224,.7);border-radius:99px;padding:0 13px;height:40px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer}
+.live.dj{background:var(--card);color:var(--txt);border-color:var(--linea2)}   /* v0.10.44: fuori dal set è «🎧 DJ», senza il viola acceso */
+.djpills{display:flex;gap:6px;margin:0 0 12px}
+.djpills button{flex:1 1 0;border:1.5px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:99px;padding:8px 10px;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.djpills button.on{background:#fff;color:#2a1240;border-color:#fff}
+.djposter{display:block;width:100%;max-height:62vh;object-fit:contain;border-radius:12px;margin:0 0 12px;background:rgba(0,0,0,.25)}
 .live i{width:8px;height:8px;border-radius:50%;background:#ff3b5c;animation:onair 1.6s ease-out infinite}
 @keyframes onair{0%{box-shadow:0 0 0 0 rgba(255,59,92,.7)}70%{box-shadow:0 0 0 7px rgba(255,59,92,0)}100%{box-shadow:0 0 0 0 rgba(255,59,92,0)}}
 .paga1{flex:0 0 auto;border:0;border-radius:99px;background:var(--oro);color:#1a1408;padding:7px 11px;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap}
@@ -581,7 +586,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.41</div>
+<div class="ver" id="ver">menu v0.10.45</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -984,7 +989,8 @@ function z1() {
   return casa + '<div class="chi"><b class="mrc">' + esc(brand) + '</b><span' + (CANAL ? ' class="pst"' : '') + '>' + sotto + '</span>' + ati + '</div>' +
     ((S.busca !== null && S.busca !== undefined) ? '' : '<button class="bsc" data-a="abreBusca" aria-label="' + esc(T('Buscar')) + '" title="' + esc(T('Buscar')) + '">🔍</button>') +   // v0.10.15: fuori dalla riga in basso
     '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
-    (showAcceso() ? '<button class="live" data-a="djApri"><i></i>LIVE</button>' : '') +
+    /* v0.10.44 (Alberto 18-nov: «LIVE non dovrebbe chiamarsi così, dovrebbe chiamarsi semplicemente DJ, e quando suonano andare LIVE») */
+    (S.vet && S.vet.dj ? '<button class="live' + (showAcceso() ? '' : ' dj') + '" data-a="djApri">' + (showAcceso() ? '<i></i>LIVE' : '🎧 DJ') + '</button>' : '') +
     (ccVisibile(cons) ? '<button class="paga1" data-a="cuentaApri" aria-label="' + esc(T(pagoMesaOn() ? 'Pagar' : 'Tu cuenta')) + '">🧾 <b>' + (pagoMesaOn() ? pagoPill() : ccPill(cons)) + '</b></button>' : '');   // v0.10.26 · AUT-1015: il 🧾 si stacca dal pago (contratto §④)   // v0.9.23 (Alberto): un simbolo che si capisce in ogni lingua, non una parola che allunga la pillola
 }
 // la card. `lista` = la griglia intera (con foto); senza = la riga sotto la scheda (niente foto: la foto sta sopra)
@@ -1249,7 +1255,7 @@ function palcoGira() {
     PALCO_T = setTimeout(palcoAvanti, 90000);   // paracadute: un video che non finisce mai non blocca il palco
     return;
   }
-  PALCO_T = setTimeout(palcoAvanti, S.finVid ? 8000 : (s.ss ? s.ss.length * 2500 + 1500 : 5000));
+  PALCO_T = setTimeout(palcoAvanti, S.finVid ? 5000 : (s.ss ? s.ss.length * 2500 + 1500 : 5000));   // v0.10.45 (Alberto 18-nov: «quando si ferma la card, 5 secondi statica poi la prossima»)
 }
 /* ═══ v0.7 · «OTRA VEZ» (mockup 23-ott, Alberto: «se ho chiesto un mojito frambuesa e ne voglio un altro devo rifare tutto il giro»):
    in cima alla griglia, le ultime cose già INVIATE da questo telefono, uguali (con la loro scelta), a un tocco. Al massimo 4: una scorciatoia,
@@ -1352,7 +1358,10 @@ function oraSantiago() { const d = new Date(new Date().toLocaleString('en-US', {
 function giornoShow() { const sh = S.vet && S.vet.show; if (!sh || !Array.isArray(sh.dias)) return false; const d = oraSantiago(); d.setHours(d.getHours() - 6); return sh.dias.indexOf(d.getDay()) >= 0; }
 function showAcceso() {
   const sh = S.vet && S.vet.show; if (!sh || !giornoShow()) return false;
-  const d = oraSantiago(), h = d.getHours() + d.getMinutes() / 60, de = oraDec(sh.desde, 23), a = oraDec(sh.hasta, 4);
+  const d = oraSantiago(), h = d.getHours() + d.getMinutes() / 60, a = oraDec(sh.hasta, 4);
+  /* v0.10.45 (Alberto 18-nov: «AURORA parte sempre alle 22:00»): l ora di inizio può cambiare per giorno OPERATIVO (`show.desde_dia`, chiave = getDay) */
+  const dop = new Date(d.getTime() - 6 * 3600e3).getDay(), dd = sh.desde_dia && typeof sh.desde_dia === 'object' ? sh.desde_dia[dop] : '';
+  const de = oraDec(dd || sh.desde, 23);
   return a > de ? (h >= de && h < a) : (h >= de || h < a);
 }
 /* ═══ v0.8 · IL CONTO DI QUESTO TELEFONO (mockup: «Tu cuenta» in alto dopo il primo invio, l'unico bottone pieno, con l'importo).
@@ -1635,15 +1644,24 @@ function lingueHTML() {
    solo con una rotta del bordo E uno schermo del DJ che la legga (voce 6 dell'ecosistema, senza proprietario). ═══ */
 // la famiglia dove porta lo show (la stessa della pagina di chiusura del video): niente nome di famiglia scritto nel codice
 const famDj = () => { const s = ((S.vet && S.vet.palco) || []).find((x) => x.t === 'show'); return s && gruppi().some((g) => g.k === s.fin_fam) ? s.fin_fam : ''; };
+/* v0.10.44 (Alberto 18-nov: «clicco in una pill e vedo una mini immagine del poster con tutti gli orari, clicco su un'altra ed entro a LIVE»):
+   la pagina del DJ ha due pillole. «La cartelera» = il poster intero (`dj.poster` della vetrina, mai tagliato) e le sere. «LIVE» (durante il set) o
+   «DJ» (fuori) = chi suona, da che ora, Instagram, i drink. Si apre su LIVE durante il set, sulla cartelera fuori. */
 function djHTML() {
   const dj = (S.vet && S.vet.dj) || {}, vivo = showAcceso(), ig = /^[\w.]{1,30}$/.test(dj.instagram || '') ? dj.instagram : '';
+  const tab = S.djTab === 'cartelera' || S.djTab === 'vivo' ? S.djTab : (vivo ? 'vivo' : 'cartelera');
+  const poster = /^[\w./-]+\.(webp|jpe?g|png)$/i.test(dj.poster || '') ? dj.poster : '';
+  const pills = '<div class="djpills"><button class="' + (tab === 'cartelera' ? 'on' : '') + '" data-a="djTab" data-k="cartelera">📅 ' + T('La cartelera') + '</button>' +
+    '<button class="' + (tab === 'vivo' ? 'on' : '') + '" data-a="djTab" data-k="vivo">' + (vivo ? '🔴 LIVE' : '🎧 DJ') + '</button></div>';
+  const carte = Array.isArray(dj.cartelera) && dj.cartelera.length ? '<div class="lsec">' + dj.cartelera.map((c) => '<div class="carte"><span>' + esc(T(c.d)) + '</span><b>' + esc(c.n) + '</b><i>' + esc(c.h || '') + '</i></div>').join('') + '</div>' : '';
+  const corpo = tab === 'cartelera'
+    ? (poster ? '<img class="djposter" src="' + esc(poster) + '" alt="' + esc(T('La cartelera')) + '">' : '') + carte
+    : '<div class="pal-tag">' + (vivo ? '<i class="onair"></i> ' + T('En vivo · esta noche') : (giornoShow() ? '🎧 ' + T('Esta noche') : '🎧 DJ')) + '</div>' +
+      '<div class="pal-t">' + esc(dj.nombre || 'DJ') + '</div>' + (dj.desde ? '<div class="pal-s">' + T('Desde las') + ' ' + esc(dj.desde) + '</div>' : '') +
+      (ig ? '<div class="lsec"><a class="sigue" href="https://www.instagram.com/' + ig + '" target="_blank" rel="noopener">📸 ' + T('Sigue a') + ' <b style="display:inline">@' + esc(ig) + '</b></a></div>' : '') +
+      (famDj() ? '<div class="pal-cta-row" style="margin-top:14px"><button class="pal-cta" data-a="palcoFam" data-k="' + esc(famDj()) + '">' + esc(nomeGruppo(famDj())) + ' ›</button></div>' : '');
   return '<div class="split"><div class="det"><div class="pal pal-dj"><button class="pal-close" data-a="djChiudi" aria-label="Cerrar">✕</button><div class="pal-tx">' +
-    '<div class="pal-tag">' + (vivo ? '<i class="onair"></i> ' + T('En vivo · esta noche') : (giornoShow() ? '🎧 ' + T('Esta noche') : '🎧 ' + T('La cartelera'))) + '</div>' +
-    '<div class="pal-t">' + esc(dj.nombre || 'DJ') + '</div>' + (dj.desde ? '<div class="pal-s">' + T('Desde las') + ' ' + esc(dj.desde) + '</div>' : '') +
-    (Array.isArray(dj.cartelera) && dj.cartelera.length ? '<div class="lsec"><b>📅 ' + T('La cartelera') + '</b>' + dj.cartelera.map((c) => '<div class="carte"><span>' + esc(T(c.d)) + '</span><b>' + esc(c.n) + '</b><i>' + esc(c.h) + '</i></div>').join('') + '</div>' : '') +
-    (ig ? '<div class="lsec"><a class="sigue" href="https://www.instagram.com/' + ig + '" target="_blank" rel="noopener">📸 ' + T('Sigue a') + ' <b style="display:inline">@' + esc(ig) + '</b></a></div>' : '') +
-    (famDj() ? '<div class="pal-cta-row" style="margin-top:14px"><button class="pal-cta" data-a="palcoFam" data-k="' + esc(famDj()) + '">' + esc(nomeGruppo(famDj())) + ' ›</button></div>' : '') +
-    '</div></div></div></div>';
+    pills + corpo + '</div></div></div></div>';
 }
 /* ═══ la campanella (mockup 23-ott): i motivi; la sala oggi sa dire «la cuenta» e «una duda», gli altri arrivano come «te busca» ═══ */
 const CAMPANA = [
@@ -2206,9 +2224,10 @@ document.getElementById('app').addEventListener('click', (ev) => {
   }
   if (a === 'palcoFam') { const g = gruppi().find((x) => x.k === k); if (g) { S.palco = false; S.dj = false; S.fam = g.k; S.cat = g.cats[0]; S.abierta = null; } pinta(); return; }
   // v0.8 · la riga in alto: ognuna di queste schermate chiude le altre (una sola metà grande alla volta)
-  if (a === 'lingueApri' || a === 'djApri' || a === 'cuentaApri') { if (S.inviando || S.inviaStato) return; S.lingue = a === 'lingueApri'; S.dj = a === 'djApri'; S.cuenta = a === 'cuentaApri'; S.busca = null; S.tus = false; S.pedido = false; S.campana = false; S.dono = null; pinta(); if (S.cuenta && !pagoMesaOn()) ccGiro(); return; }
+  if (a === 'lingueApri' || a === 'djApri' || a === 'cuentaApri') { if (S.inviando || S.inviaStato) return; S.lingue = a === 'lingueApri'; S.dj = a === 'djApri'; if (S.dj) S.djTab = showAcceso() ? 'vivo' : 'cartelera'; S.cuenta = a === 'cuentaApri'; S.busca = null; S.tus = false; S.pedido = false; S.campana = false; S.dono = null; pinta(); if (S.cuenta && !pagoMesaOn()) ccGiro(); return; }
   if (a === 'tusApri') { S.tus = true; S.abierta = null; S.pedido = false; S.palco = false; pinta(); return; }
   if (a === 'tusChiudi') { S.tus = false; pinta(); return; }
+  if (a === 'djTab' && (k === 'cartelera' || k === 'vivo')) { S.djTab = k; pinta(); return; }   // v0.10.44
   if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; S.pagoPaso = 'cuenta'; pinta(); return; }
   if (a === 'lingua' && LANGS.some((x) => x[0] === k)) { S.lang = k; S.lingue = false; document.documentElement.lang = k; try { localStorage.setItem('pinsita_lang', k); } catch (e) {} pinta(); return; }
   // v0.9.30 · ⑤ il pago del cliente sul foglio della mesa
