@@ -566,6 +566,7 @@ button{font-family:inherit}
 .carte b{flex:1;display:inline;font-size:13.5px;margin:0}
 .carte i{font-style:normal;color:rgba(255,255,255,.6)}
 .sigue{display:block;color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.25)}
+.pal-dj .djpills{margin-right:40px}   /* v0.10.49: la ✕ non si monta sulla pillola */
 .pal-close{position:absolute;top:10px;right:10px;z-index:30;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.45);color:#fff;font-size:15px;cursor:pointer}
 /* ═══ PINSA (30-ott) · il tema chiaro del local (config `tema`=claro) e la cassa dei canali depto/kiosco ═══ */
 :root.claro{--bg:#FFFFFF;--sup:#F6F3EE;--card:#FFFFFF;--txt:#1E1A16;--suave:rgba(30,26,22,.62);--linea:rgba(30,26,22,.12);--linea2:rgba(30,26,22,.24);
@@ -586,7 +587,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.48</div>
+<div class="ver" id="ver">menu v0.10.49</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -2332,7 +2333,8 @@ document.getElementById('app').addEventListener('click', (ev) => {
     /* v0.10.34 (Alberto 15-nov: «l'ho già chiesta, dovrei andare alla scheda che mi manda quando confermo»): pedido già partito ⇒ la X fa come «Seguir» */
     if (S.listo) { const d = dopoQuesto((S.listo.righe || []).map((r) => r.p)); S.abierta = null; S.palco = false; if (d) { S.fam = d.fam; S.cat = d.cat; } }
     S.pedido = false; S.listo = null; }
-  else if (a === 'inicio') { if (S.inviando || S.inviaStato) return; S.pedido = false; S.campana = false; S.listo = null; S.abierta = null; S.busca = null; const g = gruppi()[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; }
+  else if (a === 'inicio') { if (S.inviando || S.inviaStato) return; S.lingue = false; S.dj = false; S.cuenta = false; S.pagoPaso = 'cuenta'; S.tus = false; S.dono = null;   /* v0.10.49 (Alberto 18-nov: «dentro al dj il bottone HOME non funziona») */
+    S.pedido = false; S.campana = false; S.listo = null; S.abierta = null; S.busca = null; const g = gruppi()[0]; if (g) { S.fam = g.k; S.cat = g.cats[0]; }
     S.palco = true; S.slide = 0; S.finVid = false; }   // v0.7: la casetta riporta all'inizio, dallo show
   else if (a === 'env' && envioOn() && !S.inviando && !S.inviaStato && Object.keys(S.cart).length) {
     S.inviando = { fine: Date.now() + ATTESA_INVIO }; S.errore = '';
