@@ -193,7 +193,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.2.2</div>
+  <div id="ver">admin v1.2.3</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -700,9 +700,11 @@ function propDettaglio(){
     '<div class="dt" style="margin-top:12px"><div>' +
       '<div class="fld"><label>Nombre que ve el cliente</label><input id="pf_nombre" value="' + esc(r.nombre_visible) + '"' + dis(false) + '></div>' +
       '<div class="fld"><label>Días</label><div class="dsel" id="pf_dias">' + PROP_DIAS.map((d) => '<button class="d' + ((r.dias || []).includes(d) ? ' on' : '') + '" data-pa="dia" data-k="' + d + '"' + dis(true) + '>' + d + '</button>').join('') + '</div><span class="nota">Ninguno marcado = todos los días.</span></div>' +
-      '<div class="row"><div class="fld"><label>Desde</label>' + hhInput('id="pf_desde"', r.desde, disB(true)) + '</div><div class="fld"><label>Hasta</label>' + hhInput('id="pf_hasta"', r.hasta, disB(true)) + '</div>' +
+      /* admin v1.2.3 (Alberto 18-nov: «l ora desde è l ora di visualizzazione, uno pensa che sia l ora dell evento»): sono le ore in cui la
+   propuesta SI VEDE nel QR, non l ora dell evento. L etichetta lo dice. */
+      '<div class="row"><div class="fld"><label>Se ve en el QR desde</label>' + hhInput('id="pf_desde"', r.desde, disB(true)) + '</div><div class="fld"><label>Se ve en el QR hasta</label>' + hhInput('id="pf_hasta"', r.hasta, disB(true)) + '</div>' +
         '<div class="fld"><label>El JL puede alargar hasta</label>' + hhInput('id="pf_tope"', r.hasta_tope, disB(true)) + '</div></div>' +
-      '<div class="nota" style="margin:-4px 0 10px">Horas de 24 h: <b class="mono">03:00</b> es de madrugada, <b class="mono">15:00</b> de tarde. Un «hasta» que pasa la medianoche (22:00–03:00) es la misma noche. Sin tope, el JL solo puede acortar.</div>' +
+      '<div class="nota" style="margin:-4px 0 10px">Horas de 24 h: <b class="mono">03:00</b> es de madrugada, <b class="mono">15:00</b> de tarde. Son las horas en que esta propuesta <b>aparece en el QR</b>, no la hora del evento: un DJ que toca a las 21:30 puede verse desde las 18:00. Un «hasta» que pasa la medianoche (22:00–03:00) es la misma noche. Sin tope, el JL solo puede acortar.</div>' +
       '<div class="row"><div class="fld"><label>Fecha desde</label><input type="date" id="pf_fd" value="' + esc(r.fecha_desde || '') + '"' + dis(true) + '></div><div class="fld"><label>Fecha hasta</label><input type="date" id="pf_fh" value="' + esc(r.fecha_hasta || '') + '"' + dis(true) + '></div></div>' +
       '<div class="row"><div class="fld"><label>Prioridad (1 = más alta)</label><input type="number" min="1" id="pf_prio" value="' + esc(r.prioridad == null ? '' : r.prioridad) + '" style="width:110px"' + dis(false) + '></div>' +
         '<div class="fld" style="flex:1 1 200px"><label>Etiqueta bajo el producto</label><input id="pf_badge" value="' + esc(r.badge || '') + '" placeholder="En 2x1 ahora"' + dis(false) + '></div></div>' +
