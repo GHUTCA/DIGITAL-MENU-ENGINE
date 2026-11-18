@@ -602,7 +602,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.51</div>
+<div class="ver" id="ver">menu v0.10.52</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1266,7 +1266,7 @@ function slideHTML() {
       '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || '') + '</div><div class="pal-s">' + esc(s.sub || '') + '</div></div>' + puntiPalco() + '</div>';
   }
   // la clip: prima l'anteprima (sfondo), poi il video muto sopra; mai una schermata che aspetta
-  return '<div class="pal" style="background-image:url(\'' + esc(s.poster) + '\')" data-a="palcoTap"><video class="pal-vid" src="' + esc(s.vid) + '" poster="' + esc(s.poster) + '" autoplay muted playsinline preload="auto"></video>' +
+  return '<div class="pal" style="background-image:url(\'' + esc(s.poster) + '\')" data-a="palcoTap"><video class="pal-vid" src="' + esc(s.vid) + '" poster="' + esc(s.poster) + '" muted playsinline preload="auto"></video>' +
     '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || (p ? p.n : '')) + '</div>' +
     '<div class="pal-s">' + esc(s.sub || '') + (p ? ' · ' + clp(prezzoOra(p).v) : '') + '</div>' + (s.t === 'plato' ? '<span class="pal-cta">' + T('Ver el plato') + ' ›</span>' : '') + (s.dj ? palDjRow() : '') + '</div>' + puntiPalco() + '</div>';
 }
@@ -1284,6 +1284,9 @@ function palcoGira() {
   palcoStop(); if (!inPalco() || document.visibilityState !== 'visible') return;
   const s = SLIDES[S.slide % SLIDES.length], v = document.querySelector('#z3 .pal-vid');
   if (s.vid && v && !S.finVid) {
+    /* v0.10.52 (Alberto 18-nov, Aurora: «la foto come partenza ed arrivo, il video in mezzo»): ogni clip parte dalla sua foto ferma 3 s,
+       poi il video, poi la pagina di chiusura sulla stessa foto (5 s, v0.10.45). La foto è il poster della slide. */
+    if (!v.dataset.pt) { v.dataset.pt = '1'; PALCO_T = setTimeout(palcoGira, 3000); return; }
     if (v.paused && !v.ended) { const pr = v.play(); if (pr && pr.catch) pr.catch(() => {}); }   // tornato in mano: riprende da dov'era
     v.onended = () => { S.finVid = true; palcoRidisegna(); };
     v.onerror = () => { PALCO_T = setTimeout(palcoAvanti, 5000); };
