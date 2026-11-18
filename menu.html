@@ -596,7 +596,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.42</div>
+<div class="ver" id="ver">menu v0.10.43</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -801,8 +801,12 @@ function visibile(p) { return (tickP().ocultos || []).indexOf(p.id) < 0 && !esau
    Il menú si vende dal carosello e dalle promo, come prodotto a sé. ⇒ la regla `almuerzo` non riprezza il piatto. */
 /* v0.10.41 (seguito di AUT-1099, elenco «IL QR LEGGE ANCORA DA GOOGLE»): il segno «En Menú del día» viene dallo strumento `menu` visibile adesso in PG
    che ha il piatto fra le sue parti (strumentiAdesso), non più dalla regla `almuerzo` del foglio. Bordo muto ⇒ nessun segno (è solo un segno). */
-const inMenuDia = (p) => { const r = typeof strumR === 'function' ? strumR() : null; if (!r || !r.ok || !p) return false;
-  return (r.strumenti || []).some((x) => x && x.tipo === 'menu' && x.visible && (x.parti || []).some((q) => q && q.id_producto === p.id && q.vende !== false)); };
+/* v0.10.43 (🟡 ⓑ di 💵 sulla v0.10.41): il TESTO del segno è il `badge` dello strumento che lo dà, non la frase fissa «En Menú del día»:
+   se un giorno MENU-NOCHE ha parti, i suoi piatti dicono il SUO badge. Senza badge, la frase di sempre. */
+const menuBadge = (p) => { const r = typeof strumR === 'function' ? strumR() : null; if (!r || !r.ok || !p) return '';
+  const x = (r.strumenti || []).find((x) => x && x.tipo === 'menu' && x.visible && (x.parti || []).some((q) => q && q.id_producto === p.id && q.vende !== false));
+  return x ? String(x.badge || 'En Menú del día') : ''; };
+const inMenuDia = (p) => !!menuBadge(p);
 function prezzoOra(p) {
   /* v0.10.27 (S3 e S4 di 💵 EL GIRO su 3d41f5e): sulla riga in 2x1 il prezzo è quello del catalogo del mesero con gli strumenti accesi
      (catalogo_pg.js r.360: lo strumento, poi il listino) — niente regla del tick, niente Precio_Member, niente depto sommati al regalo. */
@@ -1121,7 +1125,7 @@ function z3() {
   if (cercando() && !L.length) return '<div class="msg busca"><b>Nada con «' + esc(S.busca.trim()) + '»</b>Prueba con otra palabra.</div>';
   return (cercando() ? '' : ripHTML()) + '<div class="sei">' + L.map((p) => card(p, true)).join('') + '</div>';
 }
-function pzHTML(p) { const z = prezzoOra(p), sx = strumP(p.id); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : promo2x1(p) ? (modo2x1() ? '<span class="emd e2">🎁 2x1 · ' + esc(T('pagas')) + ' 1 · ' + esc(T('llevas')) + ' 2</span>' : '<button class="b2x1" data-a="va2x1">' + esc((sx && sx.badge) || '🎁 ' + T('En 2x1 ahora')) + ' ›</button>') : sx && sx.badge ? '<span class="emd">' + esc(sx.badge) + '</span>' : ''); }
+function pzHTML(p) { const z = prezzoOra(p), sx = strumP(p.id); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">' + esc(menuBadge(p)) + '</span>' : promo2x1(p) ? (modo2x1() ? '<span class="emd e2">🎁 2x1 · ' + esc(T('pagas')) + ' 1 · ' + esc(T('llevas')) + ' 2</span>' : '<button class="b2x1" data-a="va2x1">' + esc((sx && sx.badge) || '🎁 ' + T('En 2x1 ahora')) + ' ›</button>') : sx && sx.badge ? '<span class="emd">' + esc(sx.badge) + '</span>' : ''); }
 /* ═══ il passo dopo (mockup 23-ott): chi ha chiesto dalla prima famiglia (il cibo) atterra sull'ultima (il dolce);
    chi ha chiesto altro atterra sulla prima. Le famiglie e il loro ordine vengono dalla config del locale. ═══ */
 function dopoQuesto(prods) {
@@ -1283,7 +1287,8 @@ function histAggiungi(keys) { keys.forEach((k) => { S.hist = [k].concat(S.hist.f
 /* v0.9.10 · LA REGOLA DI «OTRA VEZ» (Alberto 2-nov, proposta di 📖 accettata): ① solo la FAMIGLIA in cui sei (in Barra i drink già chiesti,
    in Comer i piatti) · ② al massimo 2, l'ultimo mandato per primo, con la sua scelta · ③ in fondo «Tus pedidos (N) ›» apre tutto ciò che hai
    ordinato oggi da questo telefono, come card col loro ＋ · ④ niente in questa famiglia ⇒ resta solo «Tus pedidos», se hai ordinato altro. */
-const tusIds = () => { const v = []; envOggi().forEach((e) => (e.righe || []).forEach((r) => { if (r.id && v.indexOf(r.id) < 0) v.push(r.id); })); return v; };
+/* v0.10.43 (🟡 di 💵 su 1044fc4): «Tus pedidos» come «Otra vez», solo il conto di adesso (un conto chiuso non lascia il bottone) */
+const tusIds = () => { const v = [], cid = envConto(); envOggi().filter((e) => String(e.c || '') === cid).forEach((e) => (e.righe || []).forEach((r) => { if (r.id && v.indexOf(r.id) < 0) v.push(r.id); })); return v; };
 function ripHTML() {
   if (!MESA || !envioOn()) return '';
   const g = gruppi().find((x) => x.k === S.fam), cats = g ? g.cats : [];
