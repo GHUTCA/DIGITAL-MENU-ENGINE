@@ -1667,6 +1667,7 @@ const famDj = () => { const s = ((S.vet && S.vet.palco) || []).find((x) => x.t =
 function djHTML() {
   const dj = djInfo() || {}, vivo = showAcceso(), ig = /^[\w.]{1,30}$/.test(dj.instagram || '') ? dj.instagram : '';
   const tab = S.djTab === 'cartelera' || S.djTab === 'vivo' ? S.djTab : (vivo ? 'vivo' : 'cartelera');
+  const stasera = (Array.isArray(dj.cartelera) ? dj.cartelera : []).find((c) => c && c.d === DJ_NOMI_G[giornoOpDj()]) || null;   // v0.10.45 (ⓑ di 💵): ven/sáb Aurora 22:00, non «Comandante 21:30»
   const poster = /^[\w./-]+\.(webp|jpe?g|png)$/i.test(dj.poster || '') ? dj.poster : '';
   const pills = '<div class="djpills"><button class="' + (tab === 'cartelera' ? 'on' : '') + '" data-a="djTab" data-k="cartelera">📅 ' + T('La cartelera') + '</button>' +
     '<button class="' + (tab === 'vivo' ? 'on' : '') + '" data-a="djTab" data-k="vivo">' + (vivo ? '🔴 LIVE' : '🎧 DJ') + '</button></div>';
@@ -1674,7 +1675,7 @@ function djHTML() {
   const corpo = tab === 'cartelera'
     ? (poster ? '<img class="djposter" src="' + esc(poster) + '" alt="' + esc(T('La cartelera')) + '">' : '') + carte
     : '<div class="pal-tag">' + (vivo ? '<i class="onair"></i> ' + T('En vivo · esta noche') : (giornoShow() ? '🎧 ' + T('Esta noche') : '🎧 DJ')) + '</div>' +
-      '<div class="pal-t">' + esc(dj.nombre || 'DJ') + '</div>' + (dj.desde ? '<div class="pal-s">' + T('Desde las') + ' ' + esc(dj.desde) + '</div>' : '') +
+      '<div class="pal-t">' + esc((stasera && stasera.n) || dj.nombre || 'DJ') + '</div>' + ((stasera ? stasera.h : dj.desde) ? '<div class="pal-s">' + T('Desde las') + ' ' + esc(stasera ? stasera.h : dj.desde) + '</div>' : '') +
       (ig ? '<div class="lsec"><a class="sigue" href="https://www.instagram.com/' + ig + '" target="_blank" rel="noopener">📸 ' + T('Sigue a') + ' <b style="display:inline">@' + esc(ig) + '</b></a></div>' : '') +
       (famDj() ? '<div class="pal-cta-row" style="margin-top:14px"><button class="pal-cta" data-a="palcoFam" data-k="' + esc(famDj()) + '">' + esc(nomeGruppo(famDj())) + ' ›</button></div>' : '');
   return '<div class="split"><div class="det"><div class="pal pal-dj"><button class="pal-close" data-a="djChiudi" aria-label="Cerrar">✕</button><div class="pal-tx">' +
