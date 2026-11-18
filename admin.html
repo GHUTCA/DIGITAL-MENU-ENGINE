@@ -193,7 +193,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.3.0</div>
+  <div id="ver">admin v1.3.1</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -687,15 +687,18 @@ function propCards(){
 /* admin v1.3.0 · IL DJ DELL EVENTO: `textos.dj` = { nombre, instagram, set: { <getDay>: { n, d, h } } }. Il QR ne fa il bottone «🎧 DJ» / «● LIVE»
    (LIVE solo dentro d-h della sera, giorno operativo) e la pagina del DJ (il poster = l imagen dell evento, la cartelera = le sere). */
 const PROP_DJ_GD = { L:1, M:2, X:3, J:4, V:5, S:6, D:0 };
+const propDjFasce = (x) => (Array.isArray(x) ? x : (x && typeof x === 'object' ? [x] : [])).filter((q) => q && q.d);   // v1.3.1: una sera = una lista (il formato v1.3.0, un oggetto, si legge come lista di uno)
 function propDjHTML(r, dis){
   const dj = (r.textos && r.textos.dj) || null, set = (dj && dj.set) || {};
   return '<div class="pbox" style="margin-top:12px"><label class="ckl"><input type="checkbox" id="pf_dj"' + (dj ? ' checked' : '') + dis(false) + '><span><b>Es el DJ del QR</b><small>Maneja el botón 🎧 DJ / ● LIVE y la página del DJ (la imagen de arriba es su cartelera).</small></span></label>' +
     '<div class="row"><div class="fld"><label>Nombre del DJ</label><input id="pf_djn" value="' + esc((dj && dj.nombre) || '') + '"' + dis(false) + '></div>' +
     '<div class="fld"><label>Instagram (sin @)</label><input id="pf_dji" value="' + esc((dj && dj.instagram) || '') + '"' + dis(false) + '></div></div>' +
-    '<div class="nota">Por noche: quién toca y la hora del set. <b>Esta es la hora del LIVE</b>, no la hora en que el evento se ve en el QR. Vacío = esa noche no hay DJ.</div>' +
-    PROP_DIAS.map((d) => { const x = set[PROP_DJ_GD[d]] || {}; return '<div class="row" style="align-items:center"><b style="width:44px">' + esc(PROP_DIA_N[d]) + '</b>' +
-      '<input id="pf_djq_' + d + '" placeholder="Quién toca" value="' + esc(x.n || '') + '" style="flex:1 1 140px"' + dis(false) + '>' +
-      hhInput('id="pf_djd_' + d + '"', x.d || '', !!dis(false)) + hhInput('id="pf_djh_' + d + '"', x.h || '', !!dis(false)) + '</div>'; }).join('') + '</div>';
+    '<div class="nota">Por noche: quién toca y la hora de su set (<b>es la hora del LIVE</b>, no la hora en que el evento se ve en el QR). Varios DJ en la misma noche = una fila por DJ; siempre queda una fila vacía para agregar otro. Fila sin hora = se borra.</div>' +
+    /* admin v1.3.1 (Alberto 18-nov: «in una serata possono esserci più DJ per fascia oraria») */
+    PROP_DIAS.map((d) => { const L = propDjFasce(set[PROP_DJ_GD[d]]).concat([{}]);
+      return L.map((x, i) => '<div class="row" style="align-items:center"><b style="width:44px">' + (i ? '' : esc(PROP_DIA_N[d])) + '</b>' +
+        '<input id="pf_djq_' + d + '_' + i + '" placeholder="' + (i && !x.d ? '+ otro DJ' : 'Quién toca') + '" value="' + esc(x.n || '') + '" style="flex:1 1 140px"' + dis(false) + '>' +
+        hhInput('id="pf_djd_' + d + '_' + i + '"', x.d || '', !!dis(false)) + hhInput('id="pf_djh_' + d + '_' + i + '"', x.h || '', !!dis(false)) + '</div>').join(''); }).join('') + '</div>';
 }
 function propDettaglio(){
   const r = (P.draft && P.draft.id_strumento === P.sel) ? P.draft : propRiga(P.sel); if (!r) return '';
@@ -802,8 +805,11 @@ function propLeggiForm(){
     const tx = Object.assign({}, n.textos || {});
     if (document.getElementById('pf_dj').checked) {
       const set = {};
-      for (const d of PROP_DIAS) { const q = v('pf_djq_' + d) || '', a = hhKeep(v('pf_djd_' + d), ''), b = hhKeep(v('pf_djh_' + d), '');
-        if (a.bad || b.bad) { bad.push('dj'); continue; } if (a.v) set[PROP_DJ_GD[d]] = { n: q, d: hhShow(a.v), h: b.v ? hhShow(b.v) : '' }; }
+      for (const d of PROP_DIAS) { const L = [];   // v1.3.1: tutte le righe della sera, in ordine di ora
+        for (let i = 0; document.getElementById('pf_djd_' + d + '_' + i); i++) { const q = v('pf_djq_' + d + '_' + i) || '', a = hhKeep(v('pf_djd_' + d + '_' + i), ''), b = hhKeep(v('pf_djh_' + d + '_' + i), '');
+          if (a.bad || b.bad) { bad.push('dj'); continue; } if (a.v) L.push({ n: q, d: hhShow(a.v), h: b.v ? hhShow(b.v) : '' }); }
+        const k6 = (t) => { const [h, m] = String(t).split(':').map(Number); return (h < 6 ? h + 24 : h) * 60 + (m || 0); };   // dopo mezzanotte = la stessa notte
+        if (L.length) set[PROP_DJ_GD[d]] = L.sort((x, y) => k6(x.d) - k6(y.d)); }
       tx.dj = { nombre: v('pf_djn') || '', instagram: (v('pf_dji') || '').replace(/^@/, ''), set };
     } else delete tx.dj;
     n.textos = tx;

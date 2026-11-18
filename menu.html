@@ -586,7 +586,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.46</div>
+<div class="ver" id="ver">menu v0.10.48</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1210,6 +1210,11 @@ function destacados() { const ds = destacadosStrum(); if (ds) return ds; return 
 const inPalco = () => S.palco && SLIDES.length > 0 && !S.pedido && !S.campana && !S.abierta && !S.dono && !S.lingue && !S.dj && !S.cuenta && !S.tus && (S.busca === null || S.busca === undefined);
 const palKey = () => (S.slide % SLIDES.length) + '|' + (S.finVid ? 1 : 0);
 function puntiPalco() { return '<div class="pal-dots">' + SLIDES.map((x, i) => '<i class="' + (i === S.slide % SLIDES.length ? 'on' : '') + '" data-a="palcoVai" data-k="' + i + '"></i>').join('') + '</div>'; }
+/* v0.10.48 (Alberto 18-nov: «ti mancano ancora le pill della foto del carosello del dj come quelle che hai messo in lasagna») */
+function palDjRow() {
+  return '<div class="pal-cta-row"><button class="pal-cta" data-a="palcoDj" data-k="vivo">' + (showAcceso() ? '● LIVE' : '🎧 DJ') + ' ›</button>' +
+    '<button class="pal-x" data-a="palcoDj" data-k="cartelera">📅 ' + T('La cartelera') + '</button></div>';
+}
 function slideHTML() {
   const s = SLIDES[S.slide % SLIDES.length], p = slideP(s);
   if (s.vid && S.finVid && s.t === 'plato' && p) {
@@ -1220,11 +1225,13 @@ function slideHTML() {
       (diretto ? '<button class="pal-cta" data-a="mas" data-k="' + esc(p.id) + '">' + (q ? '✓ ' + q + ' ' + T('en tu pedido') + ' · ＋' : '＋ Pedir · ' + clp(prezzoOra(p).v)) + '</button>' : '') +
       '<button class="pal-x" data-a="palcoPlato">' + T('Ver el plato') + '</button><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button></div></div>' + puntiPalco() + '</div>';
   }
+  if (s.vid && S.finVid && s.dj && !s.fin_fam) return '<div class="pal pal-fin" style="background-image:url(\'' + esc(s.poster) + '\')"><div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div>' +
+    '<div class="pal-t">' + esc(s.tit || '') + '</div><div class="pal-s">' + esc(s.sub || '') + '</div>' + palDjRow().replace('<div class="pal-cta-row">', '<div class="pal-cta-row"><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button>') + '</div>' + puntiPalco() + '</div>';
   if (s.vid && S.finVid) return '<div class="pal pal-fin" style="background-image:url(\'' + esc(s.poster) + '\')"><div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div>' +
     '<div class="pal-t">' + esc(s.fin_tit || s.tit || '') + '</div><div class="pal-s">' + esc(s.fin_sub || '') + '</div><div class="pal-cta-row">' +
     '<button class="pal-cta" data-a="palcoFam" data-k="' + esc(s.fin_fam) + '">' + esc(s.fin_cta || 'Ver') + ' ›</button><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button></div></div>' + puntiPalco() + '</div>';
   if (!s.vid && s.img !== undefined) return '<div class="pal" style="background-color:#2a1d14' + (s.img ? ';background-image:url(\'' + esc(s.img) + '\')' : '') + '"' + (s.t === 'plato' || s.t === 'show' ? ' data-a="palcoTap"' : '') + '>' +
-    '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || '') + '</div><div class="pal-s">' + esc(s.sub || '') + '</div></div>' + puntiPalco() + '</div>';   // SALA DEMO: evento con foto
+    '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || '') + '</div><div class="pal-s">' + esc(s.sub || '') + '</div>' + (s.dj ? palDjRow() : '') + '</div>' + puntiPalco() + '</div>';   // SALA DEMO: evento con foto
   if (s.ss) {
     const fr = s.ss.map((id) => S.prod.find((x) => x.id === id)).filter((x) => x && x.img);
     return '<div class="pal pal-ss-w" data-a="palcoTap">' + fr.map((x, i) => '<div class="pal-ss" style="background-image:url(\'' + esc(x.img) + '\');animation-delay:' + (i * 2.5) + 's;z-index:' + i + '"></div>').join('') +
@@ -1233,7 +1240,7 @@ function slideHTML() {
   // la clip: prima l'anteprima (sfondo), poi il video muto sopra; mai una schermata che aspetta
   return '<div class="pal" style="background-image:url(\'' + esc(s.poster) + '\')" data-a="palcoTap"><video class="pal-vid" src="' + esc(s.vid) + '" poster="' + esc(s.poster) + '" autoplay muted playsinline preload="auto"></video>' +
     '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || (p ? p.n : '')) + '</div>' +
-    '<div class="pal-s">' + esc(s.sub || '') + (p ? ' · ' + clp(prezzoOra(p).v) : '') + '</div>' + (s.t === 'plato' ? '<span class="pal-cta">' + T('Ver el plato') + ' ›</span>' : '') + '</div>' + puntiPalco() + '</div>';
+    '<div class="pal-s">' + esc(s.sub || '') + (p ? ' · ' + clp(prezzoOra(p).v) : '') + '</div>' + (s.t === 'plato' ? '<span class="pal-cta">' + T('Ver el plato') + ' ›</span>' : '') + (s.dj ? palDjRow() : '') + '</div>' + puntiPalco() + '</div>';
 }
 function destCards() { DEST_RENDER = true; try { return destCards0(); } finally { DEST_RENDER = false; } }
 function destCards0() { return destacados().map((x) => '<div class="dsw">' + (x.d.b ? '<span class="dbadge">' + esc(x.d.b) + '</span>' : '') + card(x.p, true) + '</div>').join(''); }
@@ -1359,23 +1366,29 @@ function oraSantiago() { const d = new Date(new Date().toLocaleString('en-US', {
    dà nome, Instagram, poster (la sua imagen) e le sere col set { n, d, h }. Senza, la vetrina di prima (vetrina.json) come ripiego. */
 const DJ_NOMI_G = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const giornoOpDj = () => new Date(oraSantiago().getTime() - 6 * 3600e3).getDay();
+/* i minuti di una notte: dopo mezzanotte e prima delle 06 contano +24h (la stessa notte operativa) */
+const djMin = (t) => { const [h, m] = String(t || '').split(':').map(Number); return isNaN(h) ? -1 : (h < 6 ? h + 24 : h) * 60 + (m || 0); };
+const djMinOra = () => { const d = oraSantiago(); return djMin(String(d.getHours()) + ':' + String(d.getMinutes())); };
+const djDentro = (x) => { const a = djMin(x.d), b = djMin(x.h || '03:00'), n = djMinOra(); return a >= 0 && (b > a ? n >= a && n < b : n >= a); };
 function djDati() {
   if (!STRUM || !Array.isArray(STRUM.strumenti)) return null;
   const L = strumVig(STRUM.strumenti, (q) => q.id_strumento).filter((x) => x.tipo === 'evento' && x.activo !== false && x.textos && x.textos.dj && x.textos.dj.nombre);
   if (!L.length) return null;
   const g = L.sort((a, b) => (Number(a.orden) || 99) - (Number(b.orden) || 99))[0], dj = g.textos.dj, m = g.media || {}, set = (dj.set && typeof dj.set === 'object') ? dj.set : {};
-  const oggi = set[giornoOpDj()] || null;
+  /* v0.10.47 (Alberto 18-nov: «in una serata possono esserci più DJ per fascia oraria»): una sera = una LISTA di fasce { n, d, h } (admin v1.3.1);
+     il formato di prima (un oggetto) si legge come lista di uno. */
+  const fasce = (k) => (Array.isArray(set[k]) ? set[k] : (set[k] && typeof set[k] === 'object' ? [set[k]] : [])).filter((q) => q && q.d);
+  const oggi = fasce(giornoOpDj()), ora = oggi.find((x) => djDentro(x)) || oggi.find((x) => djMin(x.d) > djMinOra()) || oggi[0] || null;
   return { nombre: String(dj.nombre), instagram: String(dj.instagram || ''), poster: String(m.poster || m.imagen || '').replace(/^https:\/\/menu\.pinsita\.cl\//, ''),
-    set, desde: oggi && oggi.d ? oggi.d : '', cartelera: [1, 2, 3, 4, 5, 6, 0].filter((k) => set[k] && set[k].d).map((k) => ({ d: DJ_NOMI_G[k], n: set[k].n || dj.nombre, h: set[k].d })) };
+    fasce, oggi, ora: ora ? { d: DJ_NOMI_G[giornoOpDj()], n: ora.n || dj.nombre, h: ora.d } : null, desde: oggi[0] ? oggi[0].d : '',
+    cartelera: [1, 2, 3, 4, 5, 6, 0].flatMap((k) => fasce(k).map((x) => ({ d: DJ_NOMI_G[k], n: x.n || dj.nombre, h: x.d }))) };
 }
 const djAdminEsiste = () => !!(STRUM && Array.isArray(STRUM.strumenti) && strumVig(STRUM.strumenti, (q) => q.id_strumento).some((x) => x.tipo === 'evento' && x.textos && x.textos.dj && x.textos.dj.nombre));
 const djInfo = () => djDati() || (djAdminEsiste() ? null : (S.vet && S.vet.dj) || null);   // spento nell admin = niente DJ sul QR (INFO di 💵)
-function giornoShow() { const da = djDati(); if (da) { const x = da.set[giornoOpDj()]; return !!(x && x.d); } if (djAdminEsiste()) return false; const sh = S.vet && S.vet.show; if (!sh || !Array.isArray(sh.dias)) return false; const d = oraSantiago(); d.setHours(d.getHours() - 6); return sh.dias.indexOf(d.getDay()) >= 0; }
+function giornoShow() { const da = djDati(); if (da) return da.oggi.length > 0; if (djAdminEsiste()) return false; const sh = S.vet && S.vet.show; if (!sh || !Array.isArray(sh.dias)) return false; const d = oraSantiago(); d.setHours(d.getHours() - 6); return sh.dias.indexOf(d.getDay()) >= 0; }
 function showAcceso() {
   if (!djDati() && djAdminEsiste()) return false;   // il DJ è spento nell admin
-  const da = djDati(); if (da) { const x = da.set[giornoOpDj()]; if (!x || !x.d) return false;   // v0.10.45: il LIVE è l ora del set della sera operativa
-    const d = oraSantiago(), h = d.getHours() + d.getMinutes() / 60, de = oraDec(x.d, 23), a = oraDec(x.h || '03:00', 4);
-    return a > de ? (h >= de && h < a) : (h >= de || h < a); }
+  const da = djDati(); if (da) return da.oggi.some((x) => djDentro(x));   // v0.10.47: LIVE se una delle fasce della sera operativa sta suonando
   const sh = S.vet && S.vet.show; if (!sh || !giornoShow()) return false;
   const d = oraSantiago(), h = d.getHours() + d.getMinutes() / 60, a = oraDec(sh.hasta, 4);
   /* v0.10.45 (Alberto 18-nov: «AURORA parte sempre alle 22:00»): l ora di inizio può cambiare per giorno OPERATIVO (`show.desde_dia`, chiave = getDay) */
@@ -1669,7 +1682,7 @@ const famDj = () => { const s = ((S.vet && S.vet.palco) || []).find((x) => x.t =
 function djHTML() {
   const dj = djInfo() || {}, vivo = showAcceso(), ig = /^[\w.]{1,30}$/.test(dj.instagram || '') ? dj.instagram : '';
   const tab = S.djTab === 'cartelera' || S.djTab === 'vivo' ? S.djTab : (vivo ? 'vivo' : 'cartelera');
-  const stasera = (Array.isArray(dj.cartelera) ? dj.cartelera : []).find((c) => c && c.d === DJ_NOMI_G[giornoOpDj()]) || null;   // v0.10.45 (ⓑ di 💵): ven/sáb Aurora 22:00, non «Comandante 21:30»
+  const stasera = dj.ora || (Array.isArray(dj.cartelera) ? dj.cartelera : []).find((c) => c && c.d === DJ_NOMI_G[giornoOpDj()]) || null;   // v0.10.47: chi suona adesso   // v0.10.45 (ⓑ di 💵): ven/sáb Aurora 22:00, non «Comandante 21:30»
   const poster = /^(?!.*\/\/)[\w./-]+\.(webp|jpe?g|png)$/i.test(dj.poster || '') ? dj.poster : '';   // E5 di 💵: mai «//host»
   const pills = '<div class="djpills"><button class="' + (tab === 'cartelera' ? 'on' : '') + '" data-a="djTab" data-k="cartelera">📅 ' + T('La cartelera') + '</button>' +
     '<button class="' + (tab === 'vivo' ? 'on' : '') + '" data-a="djTab" data-k="vivo">' + (vivo ? '🔴 LIVE' : '🎧 DJ') + '</button></div>';
@@ -2247,7 +2260,8 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'lingueApri' || a === 'djApri' || a === 'cuentaApri') { if (S.inviando || S.inviaStato) return; S.lingue = a === 'lingueApri'; S.dj = a === 'djApri'; if (S.dj) S.djTab = showAcceso() ? 'vivo' : 'cartelera'; S.cuenta = a === 'cuentaApri'; S.busca = null; S.tus = false; S.pedido = false; S.campana = false; S.dono = null; pinta(); if (S.cuenta && !pagoMesaOn()) ccGiro(); return; }
   if (a === 'tusApri') { S.tus = true; S.abierta = null; S.pedido = false; S.palco = false; pinta(); return; }
   if (a === 'tusChiudi') { S.tus = false; pinta(); return; }
-  if (a === 'djTab' && (k === 'cartelera' || k === 'vivo')) { S.djTab = k; pinta(); return; }   // v0.10.44
+  if (a === 'djTab' && (k === 'cartelera' || k === 'vivo')) { S.djTab = k; pinta(); return; }
+  if (a === 'palcoDj' && (k === 'cartelera' || k === 'vivo')) { if (S.inviando || S.inviaStato) return; S.lingue = false; S.cuenta = false; S.busca = null; S.tus = false; S.pedido = false; S.campana = false; S.dono = null; S.dj = true; S.djTab = k; pinta(); return; }   // v0.10.48   // v0.10.44
   if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; S.pagoPaso = 'cuenta'; pinta(); return; }
   if (a === 'lingua' && LANGS.some((x) => x[0] === k)) { S.lang = k; S.lingue = false; document.documentElement.lang = k; try { localStorage.setItem('pinsita_lang', k); } catch (e) {} pinta(); return; }
   // v0.9.30 · ⑤ il pago del cliente sul foglio della mesa
@@ -2474,6 +2488,7 @@ function slidesStrum() {
     if (cta.tipo === 'producto' && cta.destino) { o.t = 'plato'; o.id = cta.destino; }
     else if (cta.tipo === 'familia' && cta.destino) { o.t = 'show'; o.fin_fam = cta.destino; o.fin_tit = o.tit; o.fin_sub = o.sub; o.fin_cta = 'Ver ' + cta.destino; }
     else o.t = 'evento';
+    o.dj = !!(g.textos && g.textos.dj && g.textos.dj.nombre);   // v0.10.48: la card del DJ porta le sue pillole
     return o;
   });
 }
