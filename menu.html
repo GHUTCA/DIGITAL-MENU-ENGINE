@@ -586,7 +586,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.47</div>
+<div class="ver" id="ver">menu v0.10.48</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1210,6 +1210,11 @@ function destacados() { const ds = destacadosStrum(); if (ds) return ds; return 
 const inPalco = () => S.palco && SLIDES.length > 0 && !S.pedido && !S.campana && !S.abierta && !S.dono && !S.lingue && !S.dj && !S.cuenta && !S.tus && (S.busca === null || S.busca === undefined);
 const palKey = () => (S.slide % SLIDES.length) + '|' + (S.finVid ? 1 : 0);
 function puntiPalco() { return '<div class="pal-dots">' + SLIDES.map((x, i) => '<i class="' + (i === S.slide % SLIDES.length ? 'on' : '') + '" data-a="palcoVai" data-k="' + i + '"></i>').join('') + '</div>'; }
+/* v0.10.48 (Alberto 18-nov: «ti mancano ancora le pill della foto del carosello del dj come quelle che hai messo in lasagna») */
+function palDjRow() {
+  return '<div class="pal-cta-row"><button class="pal-cta" data-a="palcoDj" data-k="vivo">' + (showAcceso() ? '● LIVE' : '🎧 DJ') + ' ›</button>' +
+    '<button class="pal-x" data-a="palcoDj" data-k="cartelera">📅 ' + T('La cartelera') + '</button></div>';
+}
 function slideHTML() {
   const s = SLIDES[S.slide % SLIDES.length], p = slideP(s);
   if (s.vid && S.finVid && s.t === 'plato' && p) {
@@ -1220,11 +1225,13 @@ function slideHTML() {
       (diretto ? '<button class="pal-cta" data-a="mas" data-k="' + esc(p.id) + '">' + (q ? '✓ ' + q + ' ' + T('en tu pedido') + ' · ＋' : '＋ Pedir · ' + clp(prezzoOra(p).v)) + '</button>' : '') +
       '<button class="pal-x" data-a="palcoPlato">' + T('Ver el plato') + '</button><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button></div></div>' + puntiPalco() + '</div>';
   }
+  if (s.vid && S.finVid && s.dj && !s.fin_fam) return '<div class="pal pal-fin" style="background-image:url(\'' + esc(s.poster) + '\')"><div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div>' +
+    '<div class="pal-t">' + esc(s.tit || '') + '</div><div class="pal-s">' + esc(s.sub || '') + '</div>' + palDjRow().replace('<div class="pal-cta-row">', '<div class="pal-cta-row"><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button>') + '</div>' + puntiPalco() + '</div>';
   if (s.vid && S.finVid) return '<div class="pal pal-fin" style="background-image:url(\'' + esc(s.poster) + '\')"><div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div>' +
     '<div class="pal-t">' + esc(s.fin_tit || s.tit || '') + '</div><div class="pal-s">' + esc(s.fin_sub || '') + '</div><div class="pal-cta-row">' +
     '<button class="pal-cta" data-a="palcoFam" data-k="' + esc(s.fin_fam) + '">' + esc(s.fin_cta || 'Ver') + ' ›</button><button class="pal-x" data-a="palcoRe">▶ Ver de nuevo</button></div></div>' + puntiPalco() + '</div>';
   if (!s.vid && s.img !== undefined) return '<div class="pal" style="background-color:#2a1d14' + (s.img ? ';background-image:url(\'' + esc(s.img) + '\')' : '') + '"' + (s.t === 'plato' || s.t === 'show' ? ' data-a="palcoTap"' : '') + '>' +
-    '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || '') + '</div><div class="pal-s">' + esc(s.sub || '') + '</div></div>' + puntiPalco() + '</div>';   // SALA DEMO: evento con foto
+    '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || '') + '</div><div class="pal-s">' + esc(s.sub || '') + '</div>' + (s.dj ? palDjRow() : '') + '</div>' + puntiPalco() + '</div>';   // SALA DEMO: evento con foto
   if (s.ss) {
     const fr = s.ss.map((id) => S.prod.find((x) => x.id === id)).filter((x) => x && x.img);
     return '<div class="pal pal-ss-w" data-a="palcoTap">' + fr.map((x, i) => '<div class="pal-ss" style="background-image:url(\'' + esc(x.img) + '\');animation-delay:' + (i * 2.5) + 's;z-index:' + i + '"></div>').join('') +
@@ -1233,7 +1240,7 @@ function slideHTML() {
   // la clip: prima l'anteprima (sfondo), poi il video muto sopra; mai una schermata che aspetta
   return '<div class="pal" style="background-image:url(\'' + esc(s.poster) + '\')" data-a="palcoTap"><video class="pal-vid" src="' + esc(s.vid) + '" poster="' + esc(s.poster) + '" autoplay muted playsinline preload="auto"></video>' +
     '<div class="pal-tx"><div class="pal-tag">' + esc(s.tag || '') + '</div><div class="pal-t">' + esc(s.tit || (p ? p.n : '')) + '</div>' +
-    '<div class="pal-s">' + esc(s.sub || '') + (p ? ' · ' + clp(prezzoOra(p).v) : '') + '</div>' + (s.t === 'plato' ? '<span class="pal-cta">' + T('Ver el plato') + ' ›</span>' : '') + '</div>' + puntiPalco() + '</div>';
+    '<div class="pal-s">' + esc(s.sub || '') + (p ? ' · ' + clp(prezzoOra(p).v) : '') + '</div>' + (s.t === 'plato' ? '<span class="pal-cta">' + T('Ver el plato') + ' ›</span>' : '') + (s.dj ? palDjRow() : '') + '</div>' + puntiPalco() + '</div>';
 }
 function destCards() { DEST_RENDER = true; try { return destCards0(); } finally { DEST_RENDER = false; } }
 function destCards0() { return destacados().map((x) => '<div class="dsw">' + (x.d.b ? '<span class="dbadge">' + esc(x.d.b) + '</span>' : '') + card(x.p, true) + '</div>').join(''); }
@@ -2253,7 +2260,8 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'lingueApri' || a === 'djApri' || a === 'cuentaApri') { if (S.inviando || S.inviaStato) return; S.lingue = a === 'lingueApri'; S.dj = a === 'djApri'; if (S.dj) S.djTab = showAcceso() ? 'vivo' : 'cartelera'; S.cuenta = a === 'cuentaApri'; S.busca = null; S.tus = false; S.pedido = false; S.campana = false; S.dono = null; pinta(); if (S.cuenta && !pagoMesaOn()) ccGiro(); return; }
   if (a === 'tusApri') { S.tus = true; S.abierta = null; S.pedido = false; S.palco = false; pinta(); return; }
   if (a === 'tusChiudi') { S.tus = false; pinta(); return; }
-  if (a === 'djTab' && (k === 'cartelera' || k === 'vivo')) { S.djTab = k; pinta(); return; }   // v0.10.44
+  if (a === 'djTab' && (k === 'cartelera' || k === 'vivo')) { S.djTab = k; pinta(); return; }
+  if (a === 'palcoDj' && (k === 'cartelera' || k === 'vivo')) { if (S.inviando || S.inviaStato) return; S.lingue = false; S.cuenta = false; S.busca = null; S.tus = false; S.pedido = false; S.campana = false; S.dono = null; S.dj = true; S.djTab = k; pinta(); return; }   // v0.10.48   // v0.10.44
   if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; S.pagoPaso = 'cuenta'; pinta(); return; }
   if (a === 'lingua' && LANGS.some((x) => x[0] === k)) { S.lang = k; S.lingue = false; document.documentElement.lang = k; try { localStorage.setItem('pinsita_lang', k); } catch (e) {} pinta(); return; }
   // v0.9.30 · ⑤ il pago del cliente sul foglio della mesa
@@ -2480,6 +2488,7 @@ function slidesStrum() {
     if (cta.tipo === 'producto' && cta.destino) { o.t = 'plato'; o.id = cta.destino; }
     else if (cta.tipo === 'familia' && cta.destino) { o.t = 'show'; o.fin_fam = cta.destino; o.fin_tit = o.tit; o.fin_sub = o.sub; o.fin_cta = 'Ver ' + cta.destino; }
     else o.t = 'evento';
+    o.dj = !!(g.textos && g.textos.dj && g.textos.dj.nombre);   // v0.10.48: la card del DJ porta le sue pillole
     return o;
   });
 }
