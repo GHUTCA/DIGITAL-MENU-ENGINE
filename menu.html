@@ -602,7 +602,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.50</div>
+<div class="ver" id="ver">menu v0.10.51</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -915,8 +915,12 @@ const prezzoRiga = (r) => prezzoOra(r.p).v + r.d;
    `strumenti_conto_on` accesa: spenta ⇒ nessun 2x1, come ieri. Solo paga 1 · lleva 2 (gli altri multiplo NON si applicano: oggi non esistono).
    Mai un menú-contenitore, mai il canale con checkout (depto/kiosco: lì il conto lo rifà il bordo). La riga nasce come quella del mesero
    (sala.html r.7788): qty = pagate · llevar = 2×qty · promo «2x1» · nombre «… · 2x1 (llevar N)» (la cucina lo riscrive, bordo r.1415). */
-function promo2x1(p) { if (CHECKOUT || S.modo === 'barra' || S.modo === 'porta' || !p || p.c === 'menu_contenitore') return false; /* v0.10.28 · nel modo barra/porta il pedido non porta llevar/promo: niente 2x1 (AUT-1021) */ const m = (strumP(p.id) || {}).multiplo;
-  return !!(m && +m.paga === 1 && +m.lleva === 2); }
+const vige2x1 = (p) => { const m = p && p.c !== 'menu_contenitore' ? (strumP(p.id) || {}).multiplo : null; return !!(m && +m.paga === 1 && +m.lleva === 2); };
+function promo2x1(p) { if (CHECKOUT || S.modo === 'barra' || S.modo === 'porta' || !p || p.c === 'menu_contenitore') return false; /* v0.10.28 · nel modo barra/porta il pedido non porta llevar/promo: niente 2x1 (AUT-1021) */
+  return vige2x1(p); }
+/* v0.10.51 (Alberto 18-nov: «Puerta può vendere il 2x1? No, resta spento. Può vedere le promo vigenti nel momento? Sì, ed è più che necessario»):
+   alla porta il 2x1 vigente si VEDE come etichetta, mai come prezzo né come seconda unità. promo2x1 resta falso: niente cambia nel pedido. */
+const visto2x1 = (p) => !CHECKOUT && S.modo === 'porta' && vige2x1(p);
 /* v0.10.31 (Alberto 14-nov, in prova sulla 997: «il 2x1 non è obbligatorio: sono solo, voglio un daiquiri, ne ordino uno e ciao. Vedo il
    badge, ne voglio 2: clicco il badge, vado alla promo 2x1, ne chiedo 2 e pago 1. Oppure vado a Promo e faccio lo stesso»): il 2x1 è una
    SCELTA. Dalla famiglia normale il prodotto si ordina normale; in 2x1 solo dalla categoria «2x1 ahora» della famiglia Promo (o dal
@@ -1128,7 +1132,7 @@ function z3() {
   if (cercando() && !L.length) return '<div class="msg busca"><b>Nada con «' + esc(S.busca.trim()) + '»</b>Prueba con otra palabra.</div>';
   return (cercando() ? '' : ripHTML()) + '<div class="sei">' + L.map((p) => card(p, true)).join('') + '</div>';
 }
-function pzHTML(p) { const z = prezzoOra(p), sx = strumP(p.id); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : promo2x1(p) ? (modo2x1() ? '<span class="emd e2">🎁 2x1 · ' + esc(T('pagas')) + ' 1 · ' + esc(T('llevas')) + ' 2</span>' : '<button class="b2x1" data-a="va2x1">' + esc((sx && sx.badge) || '🎁 ' + T('En 2x1 ahora')) + ' ›</button>') : sx && sx.badge ? '<span class="emd">' + esc(sx.badge) + '</span>' : ''); }
+function pzHTML(p) { const z = prezzoOra(p), sx = strumP(p.id); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : promo2x1(p) ? (modo2x1() ? '<span class="emd e2">🎁 2x1 · ' + esc(T('pagas')) + ' 1 · ' + esc(T('llevas')) + ' 2</span>' : '<button class="b2x1" data-a="va2x1">' + esc((sx && sx.badge) || '🎁 ' + T('En 2x1 ahora')) + ' ›</button>') : visto2x1(p) ? '<span class="emd">🎁 ' + esc(T('2x1 en la barra')) + '</span>' : sx && sx.badge ? '<span class="emd">' + esc(sx.badge) + '</span>' : ''); }
 /* ═══ il passo dopo (mockup 23-ott): chi ha chiesto dalla prima famiglia (il cibo) atterra sull'ultima (il dolce);
    chi ha chiesto altro atterra sulla prima. Le famiglie e il loro ordine vengono dalla config del locale. ═══ */
 function dopoQuesto(prods) {
