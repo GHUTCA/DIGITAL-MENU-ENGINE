@@ -586,7 +586,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.46</div>
+<div class="ver" id="ver">menu v0.10.47</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1359,23 +1359,29 @@ function oraSantiago() { const d = new Date(new Date().toLocaleString('en-US', {
    dà nome, Instagram, poster (la sua imagen) e le sere col set { n, d, h }. Senza, la vetrina di prima (vetrina.json) come ripiego. */
 const DJ_NOMI_G = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const giornoOpDj = () => new Date(oraSantiago().getTime() - 6 * 3600e3).getDay();
+/* i minuti di una notte: dopo mezzanotte e prima delle 06 contano +24h (la stessa notte operativa) */
+const djMin = (t) => { const [h, m] = String(t || '').split(':').map(Number); return isNaN(h) ? -1 : (h < 6 ? h + 24 : h) * 60 + (m || 0); };
+const djMinOra = () => { const d = oraSantiago(); return djMin(String(d.getHours()) + ':' + String(d.getMinutes())); };
+const djDentro = (x) => { const a = djMin(x.d), b = djMin(x.h || '03:00'), n = djMinOra(); return a >= 0 && (b > a ? n >= a && n < b : n >= a); };
 function djDati() {
   if (!STRUM || !Array.isArray(STRUM.strumenti)) return null;
   const L = strumVig(STRUM.strumenti, (q) => q.id_strumento).filter((x) => x.tipo === 'evento' && x.activo !== false && x.textos && x.textos.dj && x.textos.dj.nombre);
   if (!L.length) return null;
   const g = L.sort((a, b) => (Number(a.orden) || 99) - (Number(b.orden) || 99))[0], dj = g.textos.dj, m = g.media || {}, set = (dj.set && typeof dj.set === 'object') ? dj.set : {};
-  const oggi = set[giornoOpDj()] || null;
+  /* v0.10.47 (Alberto 18-nov: «in una serata possono esserci più DJ per fascia oraria»): una sera = una LISTA di fasce { n, d, h } (admin v1.3.1);
+     il formato di prima (un oggetto) si legge come lista di uno. */
+  const fasce = (k) => (Array.isArray(set[k]) ? set[k] : (set[k] && typeof set[k] === 'object' ? [set[k]] : [])).filter((q) => q && q.d);
+  const oggi = fasce(giornoOpDj()), ora = oggi.find((x) => djDentro(x)) || oggi.find((x) => djMin(x.d) > djMinOra()) || oggi[0] || null;
   return { nombre: String(dj.nombre), instagram: String(dj.instagram || ''), poster: String(m.poster || m.imagen || '').replace(/^https:\/\/menu\.pinsita\.cl\//, ''),
-    set, desde: oggi && oggi.d ? oggi.d : '', cartelera: [1, 2, 3, 4, 5, 6, 0].filter((k) => set[k] && set[k].d).map((k) => ({ d: DJ_NOMI_G[k], n: set[k].n || dj.nombre, h: set[k].d })) };
+    fasce, oggi, ora: ora ? { d: DJ_NOMI_G[giornoOpDj()], n: ora.n || dj.nombre, h: ora.d } : null, desde: oggi[0] ? oggi[0].d : '',
+    cartelera: [1, 2, 3, 4, 5, 6, 0].flatMap((k) => fasce(k).map((x) => ({ d: DJ_NOMI_G[k], n: x.n || dj.nombre, h: x.d }))) };
 }
 const djAdminEsiste = () => !!(STRUM && Array.isArray(STRUM.strumenti) && strumVig(STRUM.strumenti, (q) => q.id_strumento).some((x) => x.tipo === 'evento' && x.textos && x.textos.dj && x.textos.dj.nombre));
 const djInfo = () => djDati() || (djAdminEsiste() ? null : (S.vet && S.vet.dj) || null);   // spento nell admin = niente DJ sul QR (INFO di 💵)
-function giornoShow() { const da = djDati(); if (da) { const x = da.set[giornoOpDj()]; return !!(x && x.d); } if (djAdminEsiste()) return false; const sh = S.vet && S.vet.show; if (!sh || !Array.isArray(sh.dias)) return false; const d = oraSantiago(); d.setHours(d.getHours() - 6); return sh.dias.indexOf(d.getDay()) >= 0; }
+function giornoShow() { const da = djDati(); if (da) return da.oggi.length > 0; if (djAdminEsiste()) return false; const sh = S.vet && S.vet.show; if (!sh || !Array.isArray(sh.dias)) return false; const d = oraSantiago(); d.setHours(d.getHours() - 6); return sh.dias.indexOf(d.getDay()) >= 0; }
 function showAcceso() {
   if (!djDati() && djAdminEsiste()) return false;   // il DJ è spento nell admin
-  const da = djDati(); if (da) { const x = da.set[giornoOpDj()]; if (!x || !x.d) return false;   // v0.10.45: il LIVE è l ora del set della sera operativa
-    const d = oraSantiago(), h = d.getHours() + d.getMinutes() / 60, de = oraDec(x.d, 23), a = oraDec(x.h || '03:00', 4);
-    return a > de ? (h >= de && h < a) : (h >= de || h < a); }
+  const da = djDati(); if (da) return da.oggi.some((x) => djDentro(x));   // v0.10.47: LIVE se una delle fasce della sera operativa sta suonando
   const sh = S.vet && S.vet.show; if (!sh || !giornoShow()) return false;
   const d = oraSantiago(), h = d.getHours() + d.getMinutes() / 60, a = oraDec(sh.hasta, 4);
   /* v0.10.45 (Alberto 18-nov: «AURORA parte sempre alle 22:00»): l ora di inizio può cambiare per giorno OPERATIVO (`show.desde_dia`, chiave = getDay) */
@@ -1669,7 +1675,7 @@ const famDj = () => { const s = ((S.vet && S.vet.palco) || []).find((x) => x.t =
 function djHTML() {
   const dj = djInfo() || {}, vivo = showAcceso(), ig = /^[\w.]{1,30}$/.test(dj.instagram || '') ? dj.instagram : '';
   const tab = S.djTab === 'cartelera' || S.djTab === 'vivo' ? S.djTab : (vivo ? 'vivo' : 'cartelera');
-  const stasera = (Array.isArray(dj.cartelera) ? dj.cartelera : []).find((c) => c && c.d === DJ_NOMI_G[giornoOpDj()]) || null;   // v0.10.45 (ⓑ di 💵): ven/sáb Aurora 22:00, non «Comandante 21:30»
+  const stasera = dj.ora || (Array.isArray(dj.cartelera) ? dj.cartelera : []).find((c) => c && c.d === DJ_NOMI_G[giornoOpDj()]) || null;   // v0.10.47: chi suona adesso   // v0.10.45 (ⓑ di 💵): ven/sáb Aurora 22:00, non «Comandante 21:30»
   const poster = /^(?!.*\/\/)[\w./-]+\.(webp|jpe?g|png)$/i.test(dj.poster || '') ? dj.poster : '';   // E5 di 💵: mai «//host»
   const pills = '<div class="djpills"><button class="' + (tab === 'cartelera' ? 'on' : '') + '" data-a="djTab" data-k="cartelera">📅 ' + T('La cartelera') + '</button>' +
     '<button class="' + (tab === 'vivo' ? 'on' : '') + '" data-a="djTab" data-k="vivo">' + (vivo ? '🔴 LIVE' : '🎧 DJ') + '</button></div>';
