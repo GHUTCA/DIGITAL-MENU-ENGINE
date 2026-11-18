@@ -193,7 +193,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.2.3</div>
+  <div id="ver">admin v1.3.0</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -684,6 +684,19 @@ function propCards(){
       (scrive ? '<span class="ord"><button data-pa="su" data-k="' + esc(r.id_strumento) + '" aria-label="Subir">↑</button><button data-pa="giu" data-k="' + esc(r.id_strumento) + '" aria-label="Bajar">↓</button></span>' : '') + '</div></div>';
   }).join('') + '</div>';
 }
+/* admin v1.3.0 · IL DJ DELL EVENTO: `textos.dj` = { nombre, instagram, set: { <getDay>: { n, d, h } } }. Il QR ne fa il bottone «🎧 DJ» / «● LIVE»
+   (LIVE solo dentro d-h della sera, giorno operativo) e la pagina del DJ (il poster = l imagen dell evento, la cartelera = le sere). */
+const PROP_DJ_GD = { L:1, M:2, X:3, J:4, V:5, S:6, D:0 };
+function propDjHTML(r, dis){
+  const dj = (r.textos && r.textos.dj) || null, set = (dj && dj.set) || {};
+  return '<div class="pbox" style="margin-top:12px"><label class="ckl"><input type="checkbox" id="pf_dj"' + (dj ? ' checked' : '') + dis(false) + '><span><b>Es el DJ del QR</b><small>Maneja el botón 🎧 DJ / ● LIVE y la página del DJ (la imagen de arriba es su cartelera).</small></span></label>' +
+    '<div class="row"><div class="fld"><label>Nombre del DJ</label><input id="pf_djn" value="' + esc((dj && dj.nombre) || '') + '"' + dis(false) + '></div>' +
+    '<div class="fld"><label>Instagram (sin @)</label><input id="pf_dji" value="' + esc((dj && dj.instagram) || '') + '"' + dis(false) + '></div></div>' +
+    '<div class="nota">Por noche: quién toca y la hora del set. <b>Esta es la hora del LIVE</b>, no la hora en que el evento se ve en el QR. Vacío = esa noche no hay DJ.</div>' +
+    PROP_DIAS.map((d) => { const x = set[PROP_DJ_GD[d]] || {}; return '<div class="row" style="align-items:center"><b style="width:44px">' + esc(PROP_DIA_N[d]) + '</b>' +
+      '<input id="pf_djq_' + d + '" placeholder="Quién toca" value="' + esc(x.n || '') + '" style="flex:1 1 140px"' + dis(false) + '>' +
+      hhInput('id="pf_djd_' + d + '"', x.d || '', !!dis(false)) + hhInput('id="pf_djh_' + d + '"', x.h || '', !!dis(false)) + '</div>'; }).join('') + '</div>';
+}
 function propDettaglio(){
   const r = (P.draft && P.draft.id_strumento === P.sel) ? P.draft : propRiga(P.sel); if (!r) return '';
   const s = propAdesso(r.id_strumento) || { parti:[] }, sp = Object.fromEntries((s.parti || []).map((p) => [p.id_producto, p]));
@@ -718,7 +731,10 @@ function propDettaglio(){
       '<div class="fld"><label>Texto · bajada</label><input id="pf_sub" value="' + esc(tx.sub || '') + '"' + dis(false) + '></div>' +
       '<div class="fld"><label>Imagen (enlace)</label><input id="pf_img" value="' + esc(md.poster || md.imagen || '') + '"' + dis(false) + '></div>' +
       (md.poster || md.imagen ? '<img src="' + esc(md.poster || md.imagen) + '" alt="" style="max-width:100%;max-height:150px;border-radius:10px;object-fit:cover">' : '') +
-    '</div></div>' +
+      /* admin v1.3.0 (Alberto 18-nov: «il carosello e l admin che lo amministra si chiudono oggi»): il video e l ordine del carrusel */
+      (['evento','escena'].includes(r.tipo) ? '<div class="fld"><label>Video (enlace, opcional · la imagen es su portada)</label><input id="pf_vid" value="' + esc(md.video || '') + '"' + dis(false) + '></div>' +
+        '<div class="fld"><label>Orden en el carrusel (1 = primero)</label><input type="number" min="1" id="pf_orden" value="' + esc(r.orden == null ? '' : r.orden) + '" style="width:110px"' + dis(false) + '></div>' : '') +
+    '</div></div>' + (r.tipo === 'evento' ? propDjHTML(r, dis) : '') +
     (['evento','escena','fondo'].includes(r.tipo) && !parti.length ? '' :
     '<h2 style="margin-top:12px">Productos · ' + parti.length + '</h2><div class="ptw"><div>' +
       '<div class="pt h"><span>Producto</span><span>' + (conRol ? 'Grupo' : conPrezzo ? 'Precio' : 'Carta') + '</span><span>Desde</span><span>Hasta</span><span>Ahora</span><span></span></div>' +
@@ -777,6 +793,21 @@ function propLeggiForm(){
   n.textos = Object.assign({}, r.textos || {}, { es: Object.assign({}, (r.textos || {}).es || {}, { eyebrow: v('pf_eyebrow') || '', titulo: v('pf_titulo') || '', sub: v('pf_sub') || '' }) });
   const img = v('pf_img'), m0 = r.media || {};
   if (img !== (m0.poster || m0.imagen || '')) n.media = img ? Object.assign({}, m0, { poster: img, imagen: img }) : (m0.video ? Object.assign({}, m0, { poster:null, imagen:null }) : null);
+  if (['evento','escena'].includes(r.tipo)) {   // admin v1.3.0
+    const vid = v('pf_vid'), mm = n.media || r.media || {};
+    if (vid !== undefined && vid !== (mm.video || '')) n.media = Object.assign({}, mm, { video: vid || null });
+    const od = v('pf_orden'); if (od !== undefined) n.orden = od ? Number(od) : r.orden;
+  }
+  if (r.tipo === 'evento' && document.getElementById('pf_dj')) {
+    const tx = Object.assign({}, n.textos || {});
+    if (document.getElementById('pf_dj').checked) {
+      const set = {};
+      for (const d of PROP_DIAS) { const q = v('pf_djq_' + d) || '', a = hhKeep(v('pf_djd_' + d), ''), b = hhKeep(v('pf_djh_' + d), '');
+        if (a.bad || b.bad) { bad.push('dj'); continue; } if (a.v) set[PROP_DJ_GD[d]] = { n: q, d: hhShow(a.v), h: b.v ? hhShow(b.v) : '' }; }
+      tx.dj = { nombre: v('pf_djn') || '', instagram: (v('pf_dji') || '').replace(/^@/, ''), set };
+    } else delete tx.dj;
+    n.textos = tx;
+  }
   if (r.tipo === 'menu') {
     n.precios = (r.precios || []).map((p, i) => { const g = (f) => (document.querySelector('[data-ppi="' + i + '"][data-ppf="' + f + '"]') || {}).value;
       return { id: g('id') || p.id, precio: Number(g('precio') || p.precio), etiqueta: g('etiqueta') || '' }; });
@@ -798,6 +829,10 @@ async function propSalva(){
   const img = (document.getElementById('pf_img') || {}).value; const m0 = r.media || {};
   if (img && img.trim() !== (m0.poster || m0.imagen || '') && !IMG_OK.test(img.trim())) e.push('La imagen tiene que estar en menu.pinsita.cl (súbela primero ahí).');
   if ((n.desde == null) !== (n.hasta == null)) e.push('«Desde» y «Hasta» van juntos, o ninguno.');
+  { const vid = ((document.getElementById('pf_vid') || {}).value || '').trim();   // admin v1.3.0
+    if (vid && !/^(https:\/\/menu\.pinsita\.cl\/|(?!.*\/\/)(\.\/)?)[\w\-/.]*\.(mp4|webm)$/i.test(vid)) e.push('El video tiene que estar en menu.pinsita.cl y ser .mp4 o .webm.');
+    if (vid && !((n.media || r.media || {}).poster || (n.media || r.media || {}).imagen)) e.push('El video necesita también una imagen: es su portada.'); }
+  if (n.textos && n.textos.dj && !n.textos.dj.nombre) e.push('El DJ necesita un nombre.');
   if (n.tipo === 'menu' && (!n.precios.length || n.precios.some((p) => !(p.precio > 0) || !p.id))) e.push('Cada precio necesita un nombre y un monto mayor que cero.');
   if (n.tipo === 'multiplo' && !(n.multiplo.paga > 0 && n.multiplo.lleva > n.multiplo.paga)) e.push('En un 2x1 «lleva» tiene que ser mayor que «paga».');
   if (n.tipo === 'recargo' && !(n.factor > 1 && n.factor <= 2)) e.push('El recargo va entre 1 y 2 (ej. 1,10).');
