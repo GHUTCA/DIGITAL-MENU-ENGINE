@@ -193,7 +193,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.3.2</div>
+  <div id="ver">admin v1.3.3</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -920,9 +920,14 @@ document.getElementById('propApp').addEventListener('change', (ev) => {
   if (ev.target.id === 'ps_hora') { const h = hhNorm(ev.target.value); if (!h) return; P.sim = { dia: (P.sim && P.sim.dia) || ((P.d && P.d.adesso && P.d.adesso.ahora) || {}).dia || null, hora: h }; propCarica(); }
 });
 document.getElementById('propApp').addEventListener('input', (ev) => {   // v1.3.2: l ultima riga del DJ usata ⇒ ne nasce un altra sotto
-  const m = /^pf_dj[qdh]_(\w+)_(\d+)$/.exec((ev.target && ev.target.id) || ''); if (!m || !String(ev.target.value || '').trim()) return;
-  const d = m[1], i = Number(m[2]); if (document.getElementById('pf_djd_' + d + '_' + (i + 1))) return;
-  const row = ev.target.closest('[data-djrow]'); if (row) row.insertAdjacentHTML('afterend', propDjRiga(d, i + 1, {}, false));
+  const m = /^pf_dj[qdh]_(\w+)_(\d+)$/.exec((ev.target && ev.target.id) || ''); if (!m) return;
+  const d = m[1], i = Number(m[2]), row = ev.target.closest('[data-djrow]');
+  if (String(ev.target.value || '').trim()) { if (!document.getElementById('pf_djd_' + d + '_' + (i + 1)) && row) row.insertAdjacentHTML('afterend', propDjRiga(d, i + 1, {}, false)); return; }
+  /* v1.3.3 (Alberto 18-nov: «scrivo, appare la terza riga, poi cancello la seconda ma la terza resta lì»): in fondo alla sera resta UNA sola riga vuota */
+  const piena = (k) => ['q', 'd', 'h'].some((c) => { const e = document.getElementById('pf_dj' + c + '_' + d + '_' + k); return e && String(e.value || '').trim(); });
+  let n = 0; while (document.getElementById('pf_djd_' + d + '_' + n)) n++;   // le righe della sera
+  let ult = -1; for (let k = 0; k < n; k++) if (piena(k)) ult = k;
+  for (let k = n - 1; k > Math.max(ult + 1, 0); k--) { const r = document.getElementById('pf_djd_' + d + '_' + k); const w = r && r.closest('[data-djrow]'); if (w) w.remove(); }
 });
 document.getElementById('propApp').addEventListener('keydown', (ev) => { if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.classList && ev.target.classList.contains('cd')) { ev.preventDefault(); ev.target.click(); } });
 
