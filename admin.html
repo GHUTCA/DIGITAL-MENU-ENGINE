@@ -193,7 +193,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.3.3</div>
+  <div id="ver">admin v1.3.4</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -892,6 +892,9 @@ document.getElementById('propApp').addEventListener('click', async (ev) => {
   if (a === 'padd' || a === 'pdel') { const dr = propLeggiForm(); delete dr._bad; P.draft = dr; const pr = (P.draft.precios || []).slice();
     if (a === 'padd') pr.push({ id: String.fromCharCode(65 + pr.length), precio: 0, etiqueta: '' }); else pr.splice(Number(k), 1);
     P.draft.precios = pr; propPinta(); return; }
+  /* admin v1.3.4 (Alberto 18-nov: «dopo aver salvato i prodotti Guardar dice ninguna versión nueva, e il nome è tornato Nueva Menú, giorni e orario cancellati»):
+     agregar / quitar un producto ridisegnava la scheda da PG e buttava ciò che era scritto e non ancora guardado. Ora lo tiene come bozza, come «+ precio». */
+  if ((a === 'ptogli' || a === 'pagg') && document.getElementById('propDet')) { const dr = propLeggiForm(); if (dr && dr.id_strumento === P.sel) { delete dr._bad; P.draft = dr; } }
   if (a === 'ptogli') { const p = propParti(P.sel).find((x) => x.id_producto === k); if (!p) return; el.disabled = true;
     const j = await propScrivi('strumento_parte', propFilaP(p, { borrado: true }), p.ts_registro); if (j.ok) { toast('ok', 'Quitado: ' + nome(k)); delete P.hist[P.sel]; await propCarica(); propStoria(P.sel); } else el.disabled = false; return; }
   if (a === 'pagg') { const id = ((document.getElementById('pf_add') || {}).value || '').trim().toUpperCase(), r = propRiga(P.sel);
