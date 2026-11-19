@@ -1720,7 +1720,7 @@ async function pxPaga() {
   if (e === 'pago_en_curso') S.px.msg = 'Alguien de tu mesa ya está pagando esta cuenta. Espera un momento.';
   else if (e === 'checkout_conto_off' || e === 'ruta_apagada') { S.pxOff = true; S.px.msg = 'El pago desde el teléfono no está disponible ahora: pide la cuenta a tu mesero.'; }
   else if (e === 'llave_ko' || e === 'conto_desconocido' || e === 'conto_vencido' || e === 'conto_cambiado') { S.pxOff = true; S.px.msg = 'Este QR ya no sirve para pagar: pide la cuenta a tu mesero.'; }
-  else if (e === 'reserva_vencida') { S.px.uid = null; S.px.msg = 'El pago tardó demasiado. Toca de nuevo para pagar.'; }   // ⚙️ A4.t (389ccf6/932ffeb): definitivo, si rifà la reserva con un uid nuovo
+  else if (e === 'reserva_vencida') { S.px.msg = 'El pago tardó demasiado. Toca de nuevo para pagar.'; }   // ⚙️ A4.t (389ccf6/932ffeb): definitivo; il tocco dopo rifà la reserva con lo STESSO uid (💵 P5 su 222d41e: ckc: senza sesion riparte)
   else if (e === 'parte_pagada') { S.pxOff = true; S.px.msg = 'Ya hay una parte pagada: tu mesero te cobra el resto.'; }
   else if (e === 'cuenta_pagada' || e === 'cuenta_cerrada' || e === 'monto_cero' || e === 'nada_que_pagar') { S.px.msg = ''; await ccLeggi(); }
   else S.px.msg = 'No pudimos abrir el pago. Intenta de nuevo o pide la cuenta a tu mesero.';   // lo stesso uid: un secondo tocco ritrova la stessa sessione
