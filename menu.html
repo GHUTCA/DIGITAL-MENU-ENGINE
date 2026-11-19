@@ -604,7 +604,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.55</div>
+<div class="ver" id="ver">menu v0.10.56</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -616,6 +616,16 @@ const BORDO = SUL_PC && /^http:\/\/(localhost|127\.0\.0\.1):\d{2,5}$/.test(qs.ge
 const TOKEN_LETTURA = '7QvreCN5fzM40GW2Me8vfvNwIwcA9RDnTceXMwgZ';
 const LOCAL = /^[A-Za-z]{2,6}$/.test(qs.get('l') || '') ? qs.get('l').toUpperCase() : '';
 const MESA = /^[0-9A-Za-z-]{1,6}$/.test(qs.get('mesa') || '') ? qs.get('mesa') : '';
+/* v0.10.56 · PAGO EXPRESS DAL QR DEL GARZÓN (contratto 4_CANTIERE_CONSOLA/CONTRATTO_B4_PAGO_EXPRESS_18NOV2026.md §⑤ · 🎛 V34 «Il rosso A4.t regge»).
+   Il QR della sala porta `?pagar=1#cid=<conto_id>&cl=<conto_llave>`. 🔴 Condizione ② di 💵 EL GIRO: la llave della SALA vive SOLO in memoria
+   (questa costante): non entra mai in `pinsita_cuenta_<L>` (la llave del telefono, l'unica che il cammino del pedido accetta) né in nessuno storage.
+   Il # si toglie dalla barra appena letto: non resta nella cronologia né in uno screenshot. Il corpo verso pay usa i nomi del Worker
+   (conto_id · conto_llave · dispositivo_id), mai cid/cl. */
+const PAGAR = qs.get('pagar') === '1';
+const LLAVE_SALA = (() => { if (!PAGAR || !MESA) return null; const h = new URLSearchParams(String(location.hash || '').replace(/^#/, ''));
+  const id = String(h.get('cid') || ''), ll = String(h.get('cl') || ''); return /^[\w.:~-]{6,120}$/.test(id) && /^[\w.:~-]{6,300}$/.test(ll) ? { id: id, llave: ll, sala: true } : null; })();
+if (PAGAR && location.hash) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* la barra resta com'è: la llave resta comunque solo in memoria */ } }
+const PAY = 'https://pinsita-pay.alberto-agostini.workers.dev';
 /* ═══ PINSA (Alberto 29-ott) · I TRE CANALI DELLO STESSO LOCAL: il canale lo dice il QR, non la config ═══
    mesa (`?mesa=`) = il flusso di BKS, intatto · depto (`?d=`, QR nel frigo) e kiosco (`?k=`, il totem) = carrello → checkout:
    un ordine = un pago, il pedido nasce già pagato. La config del local dice solo QUALI canali sono accesi (`canales_on`,
@@ -1557,13 +1567,14 @@ function fiduciaHTML() {
    mai un totale indovinato; nessun conto ⇒ le righe di questo telefono con la nota, mai un conto vuoto che sembri pagato. */
 const CC_POLL_MS = 20000;
 let CC_POLL = null, CC_VOLO = null;
+const ccChiave = () => (S.salaOn && LLAVE_SALA) || cuentaLeer();   // v0.10.56: per LEGGERE il conto (e pagarlo); i pedidos usano solo cuentaLeer(). La llave della sala vale solo con llave_sala_on del bordo: spenta ⇒ la v0.10.55
 function ccVisibile(cons) {
   if (!MESA) return false;
   if (pagoMesaOn()) return cons > 0;   // pago acceso: identico alla v0.10.24 (R3 di 💵 EL GIRO)
   /* v0.10.38: un conto chiuso non tiene acceso il 🧾 · senza llave conta solo ciò che questo telefono ha mandato nel conto di adesso
      (righeMie, v0.10.35), non tutto il giorno: prima `cons` = consumoTel() = ogni invio di oggi, anche dei conti già chiusi. */
-  if (S.cuentaMesa && S.cuentaMesa.cerrada && !cuentaLeer()) return false;
-  return !!(cuentaLeer() || sommaRighe(righeMie()) > 0) && S.ccRuta === true;
+  if (S.cuentaMesa && S.cuentaMesa.cerrada && !ccChiave()) return false;
+  return !!(ccChiave() || sommaRighe(righeMie()) > 0) && S.ccRuta === true;
 }
 function ccPill(cons) {
   const m = S.cuentaMesa;
@@ -1572,7 +1583,7 @@ function ccPill(cons) {
   const mie = sommaRighe(righeMie()); return mie > 0 ? clp(mie) : '';   // v0.10.35: la pillola dice lo stesso numero del foglio, solo il conto della llave di adesso
 }
 async function ccLeggi() {
-  const k = cuentaLeer();
+  const k = ccChiave();
   if (!MESA || !k) { S.cuentaMesa = null; S.ccNota = 'sin_llave'; return; }
   if (CC_VOLO) return CC_VOLO;
   CC_VOLO = (async () => {
@@ -1611,9 +1622,11 @@ async function ccLeggi() {
   })();
   try { await CC_VOLO; } finally { CC_VOLO = null; }
 }
-async function ccGiro() { await ccLeggi(); if (!scrivendo()) pinta(); }
+async function ccGiro() { await ccLeggi(); pxRitornoFatto(); if (!scrivendo()) pinta(); }
+/* v0.10.56: il conto si è chiuso dopo il ritorno da Fintoc ⇒ il segno del ritorno non serve più (un ricarico non ridice «confirmando») */
+function pxRitornoFatto() { if (S.px && S.px.ritorno && S.cuentaMesa && S.cuentaMesa.cerrada) { try { sessionStorage.removeItem(PX_K()); } catch (e) { /* niente */ } } }
 function ccPollSync() {
-  const on = !!S.cuenta && !pagoMesaOn() && document.visibilityState === 'visible' && !!cuentaLeer();
+  const on = !!S.cuenta && !pagoMesaOn() && document.visibilityState === 'visible' && !!ccChiave();
   if (on && !CC_POLL) CC_POLL = setInterval(ccGiro, CC_POLL_MS);
   else if (!on && CC_POLL) { clearInterval(CC_POLL); CC_POLL = null; }
 }
@@ -1641,12 +1654,80 @@ function cuentaMesaHTML() {
     const L = righeMie();
     corpo = '<div class="rcv">' + testaFoglio('PRECUENTA') +
       (L.length ? L.map(riga).join('') + '<div class="rcv-dd"></div><div class="rcv-tot"><span>' + T('Desde este teléfono') + '</span><span>' + clp(sommaRighe(L)) + '</span></div>' : '') +
-      '<div class="rcv-f">' + (S.ccAgg === 'reintenta' && cuentaLeer() ? T('actualizando…') : T('Solo lo que pediste desde este teléfono · el mesero tiene la cuenta completa')) + '</div></div>';
+      '<div class="rcv-f">' + (S.ccAgg === 'reintenta' && ccChiave() ? T('actualizando…') : T('Solo lo que pediste desde este teléfono · el mesero tiene la cuenta completa')) + '</div></div>';
   }
-  return '<div class="ped cta pgx"><div class="pedtit">' + T('Tu cuenta') + ' · ' + T('Mesa') + ' ' + esc(mesaConto()) + X + '</div>' + corpo +
+  return '<div class="ped cta pgx"><div class="pedtit">' + T('Tu cuenta') + ' · ' + T('Mesa') + ' ' + esc(mesaConto()) + X + '</div>' + corpo + pxHTML(m) +
     (m && m.cerrada ? '' : '<div class="okv">🧾 ' + T('Pide la cuenta a tu mesero') + '<span>' + T('te la trae a la mesa') + '</span></div>' +
       (envioOn() ? '<button class="segui" data-a="cuentaPos">🔔 ' + T('Pedir la cuenta') + '</button>' : '')) +
     '<button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b></button></div>';
+}
+/* ═══ v0.10.56 · IL PAGO EXPRESS VERO (B4): pay `/checkout-conto` → Fintoc. Solo il RESTO del conto intero (v1, §④ ⓐ2: con una parte già pagata
+   non si offre), propina che parte dal 10% (D 16-nov). L'importo lo decide il SERVER: il telefono manda solo `propina_pct` (sempre esplicito, C5).
+   `uid_pago` lo conia il telefono, uno per tocco (si rinnova se cambia la propina: un importo nuovo è un pago nuovo).
+   🔑 Il bottone c'è solo con la leva del bordo accesa per il locale (`/salud` → flags.fintoc_meta_conto_on, e llave_sala_on se la llave è della
+   sala): leve spente ⇒ il foglio è quello della v0.10.55, byte per byte. Pay spento (`checkout_conto_off`) ⇒ il bottone sparisce e si dice.
+   Al ritorno da Fintoc il telefono NON timbra da solo: con la sua llave rilegge il conto e dice «pagado» solo con `cerrada`; con la llave della
+   sala (persa col salto, sta solo in memoria) dice che si sta confermando, mai «pagado». */
+const levaHa = (v) => { const s = String(v == null ? '' : v).trim().toUpperCase(); if (!s || s === '0' || s === 'FALSE') return false; if (s === '1' || s === 'TRUE') return true;
+  return s.split(',').map((x) => x.trim()).filter(Boolean).indexOf(String(LOCAL || '').toUpperCase()) >= 0; };   // = levaLocali del bordo
+const PX_K = () => 'pinsita_px_' + LOCAL;
+async function pxLeve() {
+  try { const r = await fetch(BORDO + '/salud', { cache: 'no-store' }); const j = await r.json(); const f = (j && j.flags) || {};
+    S.salaOn = levaHa(f.llave_sala_on); S.pxOn = levaHa(f.fintoc_meta_conto_on) && (!LLAVE_SALA || S.salaOn); } catch (e) { S.pxOn = false; S.salaOn = false; }
+}
+const pxPct = () => (S.px && Number.isInteger(S.px.pct) ? S.px.pct : 10);
+const pxPuo = (m) => !!(S.pxOn && !S.pxOff && ccChiave() && m && !m.cerrada && !m.resta_ignota && Number(m.pagado) === 0 && Number(m.resta) > 0 && Number(m.total) > 0);
+function pxHTML(m) {
+  const px = S.px || {};
+  if (px.ritorno) {
+    const ok = m && m.cerrada && px.ritorno.mio;
+    return '<div class="okv">' + (ok ? '🎉 ' + T('¡Pagado!') + '<span>' + clp(px.ritorno.monto) + ' · Fintoc</span>'
+      : '⏳ ' + T('Confirmando el pago…') + '<span>' + T('si completaste el pago, tu mesero lo verá en su pantalla en unos segundos') + '</span>') + '</div>';
+  }
+  const msg = px.msg ? '<div class="avvs" style="text-align:center;margin:8px 0">' + esc(T(px.msg)) + '</div>' : '';
+  if (!pxPuo(m)) return msg;
+  const pct = pxPct(), base = Number(m.resta) || 0, tot = base + Math.round(base * pct / 100), vola = px.stato === 'abriendo';
+  const prop = [10, 15, 0].map((k) => '<button class="' + (pct === k ? 'on' : '') + '" data-a="pxProp" data-k="' + k + '"' + (vola ? ' disabled' : '') + '>' + (k ? k + '%' : T('sin')) + '</button>').join('');
+  return '<div class="xpr"><div class="xt">⚡ ' + T('No pierdas tiempo: usa el PAGO EXPRESS') + '</div>' +
+    '<div class="rcv-r"><span class="rprop">' + T('PROPINA') + ' ' + prop + '</span><span>' + clp(tot - base) + '</span></div>' +
+    '<button class="envG xgo" data-a="pxPaga"' + (vola ? ' disabled' : '') + '><b>⚡ PAGO EXPRESS · ' + clp(tot) + '</b><span>' + (vola ? T('Abriendo el pago…') : T('tarjeta · Apple Pay · Google Pay · transferencia')) + '</span></button>' +
+    msg + fiduciaHTML() + '</div>';
+}
+const pxErr = (j) => String((j && (j.motivo || j.error)) || '');
+async function pxPaga() {
+  const k = ccChiave(), m = S.cuentaMesa; S.px = S.px || {};
+  if (!k || !pxPuo(m) || S.px.stato === 'abriendo') return;
+  if (!S.px.uid) S.px.uid = 'pe-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  S.px.stato = 'abriendo'; S.px.msg = ''; pinta();
+  let j = null, st = 0;
+  for (let i = 0; i < 3; i++) {
+    const ctrl = new AbortController(), tid = setTimeout(() => ctrl.abort(), 15000);
+    try {
+      const r = await fetch(PAY + '/checkout-conto', { method: 'POST', cache: 'no-store', signal: ctrl.signal, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ l: LOCAL, conto_id: k.id, conto_llave: k.llave, dispositivo_id: dispositivo(), mesa: mesaConto(), propina_pct: pxPct(), uid_pago: S.px.uid }) });
+      st = r.status; j = await r.json().catch(() => null);
+    } catch (e) { j = null; st = 0; } finally { clearTimeout(tid); }
+    const ses = j && j.ok === true ? (j.ya || j) : null;
+    if (ses && typeof ses.redirect_url === 'string' && /^https:\/\//.test(ses.redirect_url)) {
+      try { sessionStorage.setItem(PX_K(), JSON.stringify({ uid: S.px.uid, conto_id: k.id, mio: !k.sala, monto: Number(ses.monto) || 0, ts: Date.now() })); } catch (e) { /* il ritorno dirà solo «confirmando» */ }
+      location.href = ses.redirect_url; return;
+    }
+    if ((j === null || st >= 500 || pxErr(j) === 'reintenta' || pxErr(j) === 'resta_ignota') && pxErr(j) !== 'pago_en_curso' && pxErr(j) !== 'checkout_conto_off' && i < 2) { await new Promise((ok) => setTimeout(ok, 3000)); continue; }
+    break;
+  }
+  const e = pxErr(j); S.px.stato = '';
+  if (e === 'pago_en_curso') S.px.msg = 'Alguien de tu mesa ya está pagando esta cuenta. Espera un momento.';
+  else if (e === 'checkout_conto_off' || e === 'ruta_apagada') { S.pxOff = true; S.px.msg = 'El pago desde el teléfono no está disponible ahora: pide la cuenta a tu mesero.'; }
+  else if (e === 'llave_ko' || e === 'conto_desconocido' || e === 'conto_vencido' || e === 'conto_cambiado') { S.pxOff = true; S.px.msg = 'Este QR ya no sirve para pagar: pide la cuenta a tu mesero.'; }
+  else if (e === 'parte_pagada') { S.pxOff = true; S.px.msg = 'Ya hay una parte pagada: tu mesero te cobra el resto.'; }
+  else if (e === 'cuenta_pagada' || e === 'cuenta_cerrada' || e === 'monto_cero') { S.px.msg = ''; await ccLeggi(); }
+  else S.px.msg = 'No pudimos abrir el pago. Intenta de nuevo o pide la cuenta a tu mesero.';   // lo stesso uid: un secondo tocco ritrova la stessa sessione
+  if (!scrivendo()) pinta();
+}
+function pxRitorno() {
+  let r = null; try { r = JSON.parse(sessionStorage.getItem(PX_K()) || 'null'); } catch (e) { r = null; }
+  if (!r || !(Date.now() - Number(r.ts) < 20 * 60000)) { try { sessionStorage.removeItem(PX_K()); } catch (e) { } return null; }
+  r.mio = !!(r.mio && (cuentaLeer() || {}).id === r.conto_id); return r;
 }
 function cuentaHTML() {
   if (!pagoMesaOn()) return cuentaMesaHTML();   // v0.10.26 · AUT-1015: a pago spento il conto si legge, non si paga
@@ -2466,6 +2547,8 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'tusChiudi') { S.tus = false; pinta(); return; }
   if (a === 'djTab' && (k === 'cartelera' || k === 'vivo')) { S.djTab = k; pinta(); return; }
   if (a === 'palcoDj' && (k === 'cartelera' || k === 'vivo')) { if (S.inviando || S.inviaStato) return; S.lingue = false; S.cuenta = false; S.busca = null; S.tus = false; S.pedido = false; S.campana = false; S.dono = null; S.dj = true; S.djTab = k; pinta(); return; }   // v0.10.48   // v0.10.44
+  if (a === 'pxPaga') { pxPaga(); return; }   // v0.10.56
+  if (a === 'pxProp' && /^(0|10|15)$/.test(k)) { if (S.px && S.px.stato === 'abriendo') return; S.px = Object.assign({}, S.px || {}, { pct: Number(k), uid: null, msg: '' }); pinta(); return; }
   if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; S.pagoPaso = 'cuenta'; pinta(); return; }
   if (a === 'lingua' && LANGS.some((x) => x[0] === k)) { S.lang = k; S.lingue = false; document.documentElement.lang = k; try { localStorage.setItem('pinsita_lang', k); } catch (e) {} pinta(); return; }
   // v0.9.30 · ⑤ il pago del cliente sul foglio della mesa
@@ -2869,7 +2952,16 @@ async function memberCarica() {
       S.palco = false; verificaPago(); return;
     }
     pinta();
-    if (MESA && cuentaLeer() && !pagoMesaOn()) ccLeggi().then(() => { if (!scrivendo()) pinta(); });   // v0.10.26 · AUT-1015: una lettura, per sapere se il 🧾 c'è
+    /* v0.10.56: il QR del garzón (?pagar=1#cid&cl) apre il foglio del conto; il ritorno da Fintoc lo riapre in «confirmando».
+       🔴 Il ritorno si legge PRIMA di ogni lettura del conto: un conto chiuso fa dimenticare la llave del telefono (v0.10.38), e dopo non si
+       saprebbe più che il pago era di questo telefono (si direbbe «confirmando» per sempre invece di «¡Pagado!»). */
+    const pxR = MESA && !pagoMesaOn() ? pxRitorno() : null;
+    if (MESA && cuentaLeer() && !pagoMesaOn() && !LLAVE_SALA && !pxR) ccLeggi().then(() => { if (!scrivendo()) pinta(); });
+    if (MESA && !pagoMesaOn() && (LLAVE_SALA || pxR)) {
+      S.px = { pct: 10, ritorno: pxR }; await pxLeve(); await ccLeggi(); pxRitornoFatto();
+      if (pxR || (S.ccRuta && S.cuentaMesa && ccChiave())) { S.cuenta = true; S.palco = false; ccPollSync(); }   // si apre solo se c'è un conto letto davvero
+      if (!scrivendo()) pinta();
+    } else if (MESA && !pagoMesaOn() && cuentaLeer()) pxLeve().then(() => { if (S.cuenta && !scrivendo()) pinta(); });   // v0.10.26 · AUT-1015: una lettura, per sapere se il 🧾 c'è
   } catch (e) {
     // nessun ripiego su Google: si dice che cosa manca
     document.getElementById('z3').innerHTML = '<div class="msg"><b>No pudimos abrir la carta</b>Revisa tu conexión y vuelve a intentar.<br><small>(' + esc(LOCAL) + ' · ' + esc(e.message) + ')</small></div>';
