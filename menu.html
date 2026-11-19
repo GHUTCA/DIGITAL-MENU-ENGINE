@@ -604,7 +604,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.56</div>
+<div class="ver" id="ver">menu v0.10.57</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1720,6 +1720,9 @@ async function pxPaga() {
   if (e === 'pago_en_curso') S.px.msg = 'Alguien de tu mesa ya está pagando esta cuenta. Espera un momento.';
   else if (e === 'checkout_conto_off' || e === 'ruta_apagada') { S.pxOff = true; S.px.msg = 'El pago desde el teléfono no está disponible ahora: pide la cuenta a tu mesero.'; }
   else if (e === 'llave_ko' || e === 'conto_desconocido' || e === 'conto_vencido' || e === 'conto_cambiado') { S.pxOff = true; S.px.msg = 'Este QR ya no sirve para pagar: pide la cuenta a tu mesero.'; }
+  /* v0.10.57 · ⚙️ ARQ «MONTO_CAMBIADO · VEN C6D3D5B»: il conto è cambiato fra la reserva e la sessione (409 definitivo). È l'UNICO caso in cui l'uid
+     cambia: una chiave nuova a Fintoc, cioè una sessione con l'importo nuovo. Si rilegge il conto, così il bottone mostra il totale vero. */
+  else if (e === 'monto_cambiado') { S.px.uid = null; S.px.msg = 'Tu cuenta cambió mientras pagabas. Revisa el total y toca de nuevo.'; await ccLeggi(); }
   else if (e === 'reserva_vencida') { S.px.msg = 'El pago tardó demasiado. Toca de nuevo para pagar.'; }   // ⚙️ A4.t (389ccf6/932ffeb): definitivo; il tocco dopo rifà la reserva con lo STESSO uid (💵 P5 su 222d41e: ckc: senza sesion riparte)
   else if (e === 'parte_pagada') { S.pxOff = true; S.px.msg = 'Ya hay una parte pagada: tu mesero te cobra el resto.'; }
   else if (e === 'cuenta_pagada' || e === 'cuenta_cerrada' || e === 'monto_cero' || e === 'nada_que_pagar') { S.px.msg = ''; await ccLeggi(); }
