@@ -1567,7 +1567,7 @@ function fiduciaHTML() {
    mai un totale indovinato; nessun conto ⇒ le righe di questo telefono con la nota, mai un conto vuoto che sembri pagato. */
 const CC_POLL_MS = 20000;
 let CC_POLL = null, CC_VOLO = null;
-const ccChiave = () => LLAVE_SALA || cuentaLeer();   // v0.10.56: per LEGGERE il conto (e pagarlo); i pedidos usano solo cuentaLeer()
+const ccChiave = () => (S.salaOn && LLAVE_SALA) || cuentaLeer();   // v0.10.56: per LEGGERE il conto (e pagarlo); i pedidos usano solo cuentaLeer(). La llave della sala vale solo con llave_sala_on del bordo: spenta ⇒ la v0.10.55
 function ccVisibile(cons) {
   if (!MESA) return false;
   if (pagoMesaOn()) return cons > 0;   // pago acceso: identico alla v0.10.24 (R3 di 💵 EL GIRO)
@@ -1673,7 +1673,7 @@ const levaHa = (v) => { const s = String(v == null ? '' : v).trim().toUpperCase(
 const PX_K = () => 'pinsita_px_' + LOCAL;
 async function pxLeve() {
   try { const r = await fetch(BORDO + '/salud', { cache: 'no-store' }); const j = await r.json(); const f = (j && j.flags) || {};
-    S.pxOn = levaHa(f.fintoc_meta_conto_on) && (!LLAVE_SALA || levaHa(f.llave_sala_on)); } catch (e) { S.pxOn = false; }
+    S.salaOn = levaHa(f.llave_sala_on); S.pxOn = levaHa(f.fintoc_meta_conto_on) && (!LLAVE_SALA || S.salaOn); } catch (e) { S.pxOn = false; S.salaOn = false; }
 }
 const pxPct = () => (S.px && Number.isInteger(S.px.pct) ? S.px.pct : 10);
 const pxPuo = (m) => !!(S.pxOn && !S.pxOff && ccChiave() && m && !m.cerrada && !m.resta_ignota && Number(m.pagado) === 0 && Number(m.resta) > 0 && Number(m.total) > 0);
@@ -2959,7 +2959,7 @@ async function memberCarica() {
     if (MESA && cuentaLeer() && !pagoMesaOn() && !LLAVE_SALA && !pxR) ccLeggi().then(() => { if (!scrivendo()) pinta(); });
     if (MESA && !pagoMesaOn() && (LLAVE_SALA || pxR)) {
       S.px = { pct: 10, ritorno: pxR }; await pxLeve(); await ccLeggi(); pxRitornoFatto();
-      if (S.ccRuta || pxR) { S.cuenta = true; S.palco = false; ccPollSync(); }
+      if (pxR || (S.ccRuta && S.cuentaMesa && ccChiave())) { S.cuenta = true; S.palco = false; ccPollSync(); }   // si apre solo se c'è un conto letto davvero
       if (!scrivendo()) pinta();
     } else if (MESA && !pagoMesaOn() && cuentaLeer()) pxLeve().then(() => { if (S.cuenta && !scrivendo()) pinta(); });   // v0.10.26 · AUT-1015: una lettura, per sapere se il 🧾 c'è
   } catch (e) {
