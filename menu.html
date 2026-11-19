@@ -1622,7 +1622,9 @@ async function ccLeggi() {
   })();
   try { await CC_VOLO; } finally { CC_VOLO = null; }
 }
-async function ccGiro() { await ccLeggi(); if (!scrivendo()) pinta(); }
+async function ccGiro() { await ccLeggi(); pxRitornoFatto(); if (!scrivendo()) pinta(); }
+/* v0.10.56: il conto si è chiuso dopo il ritorno da Fintoc ⇒ il segno del ritorno non serve più (un ricarico non ridice «confirmando») */
+function pxRitornoFatto() { if (S.px && S.px.ritorno && S.cuentaMesa && S.cuentaMesa.cerrada) { try { sessionStorage.removeItem(PX_K()); } catch (e) { /* niente */ } } }
 function ccPollSync() {
   const on = !!S.cuenta && !pagoMesaOn() && document.visibilityState === 'visible' && !!ccChiave();
   if (on && !CC_POLL) CC_POLL = setInterval(ccGiro, CC_POLL_MS);
@@ -2950,11 +2952,13 @@ async function memberCarica() {
       S.palco = false; verificaPago(); return;
     }
     pinta();
-    if (MESA && cuentaLeer() && !pagoMesaOn() && !LLAVE_SALA) ccLeggi().then(() => { if (!scrivendo()) pinta(); });
-    /* v0.10.56: il QR del garzón (?pagar=1#cid&cl) apre il foglio del conto; il ritorno da Fintoc lo riapre in «confirmando» */
+    /* v0.10.56: il QR del garzón (?pagar=1#cid&cl) apre il foglio del conto; il ritorno da Fintoc lo riapre in «confirmando».
+       🔴 Il ritorno si legge PRIMA di ogni lettura del conto: un conto chiuso fa dimenticare la llave del telefono (v0.10.38), e dopo non si
+       saprebbe più che il pago era di questo telefono (si direbbe «confirmando» per sempre invece di «¡Pagado!»). */
     const pxR = MESA && !pagoMesaOn() ? pxRitorno() : null;
+    if (MESA && cuentaLeer() && !pagoMesaOn() && !LLAVE_SALA && !pxR) ccLeggi().then(() => { if (!scrivendo()) pinta(); });
     if (MESA && !pagoMesaOn() && (LLAVE_SALA || pxR)) {
-      S.px = { pct: 10, ritorno: pxR }; await pxLeve(); await ccLeggi();
+      S.px = { pct: 10, ritorno: pxR }; await pxLeve(); await ccLeggi(); pxRitornoFatto();
       if (S.ccRuta || pxR) { S.cuenta = true; S.palco = false; ccPollSync(); }
       if (!scrivendo()) pinta();
     } else if (MESA && !pagoMesaOn() && cuentaLeer()) pxLeve().then(() => { if (S.cuenta && !scrivendo()) pinta(); });   // v0.10.26 · AUT-1015: una lettura, per sapere se il 🧾 c'è
