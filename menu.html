@@ -1679,7 +1679,8 @@ const pxPct = () => (S.px && Number.isInteger(S.px.pct) ? S.px.pct : 10);
 const pxPuo = (m) => !!(S.pxOn && !S.pxOff && ccChiave() && m && !m.cerrada && !m.resta_ignota && Number(m.pagado) === 0 && Number(m.resta) > 0 && Number(m.total) > 0);
 function pxHTML(m) {
   const px = S.px || {};
-  if (px.ritorno) {
+  if (px.ritorno && px.ritorno.cancelado) px.msg = px.msg || 'Pago cancelado. Puedes intentarlo de nuevo o pedir la cuenta a tu mesero.';   // pay: cancel_url = &pe=no
+  else if (px.ritorno) {
     const ok = m && m.cerrada && px.ritorno.mio;
     return '<div class="okv">' + (ok ? '🎉 ' + T('¡Pagado!') + '<span>' + clp(px.ritorno.monto) + ' · Fintoc</span>'
       : '⏳ ' + T('Confirmando el pago…') + '<span>' + T('si completaste el pago, tu mesero lo verá en su pantalla en unos segundos') + '</span>') + '</div>';
@@ -1721,14 +1722,16 @@ async function pxPaga() {
   else if (e === 'llave_ko' || e === 'conto_desconocido' || e === 'conto_vencido' || e === 'conto_cambiado') { S.pxOff = true; S.px.msg = 'Este QR ya no sirve para pagar: pide la cuenta a tu mesero.'; }
   else if (e === 'reserva_vencida') { S.px.uid = null; S.px.msg = 'El pago tardó demasiado. Toca de nuevo para pagar.'; }   // ⚙️ A4.t (389ccf6/932ffeb): definitivo, si rifà la reserva con un uid nuovo
   else if (e === 'parte_pagada') { S.pxOff = true; S.px.msg = 'Ya hay una parte pagada: tu mesero te cobra el resto.'; }
-  else if (e === 'cuenta_pagada' || e === 'cuenta_cerrada' || e === 'monto_cero') { S.px.msg = ''; await ccLeggi(); }
+  else if (e === 'cuenta_pagada' || e === 'cuenta_cerrada' || e === 'monto_cero' || e === 'nada_que_pagar') { S.px.msg = ''; await ccLeggi(); }
   else S.px.msg = 'No pudimos abrir el pago. Intenta de nuevo o pide la cuenta a tu mesero.';   // lo stesso uid: un secondo tocco ritrova la stessa sessione
   if (!scrivendo()) pinta();
 }
 function pxRitorno() {
   let r = null; try { r = JSON.parse(sessionStorage.getItem(PX_K()) || 'null'); } catch (e) { r = null; }
   if (!r || !(Date.now() - Number(r.ts) < 20 * 60000)) { try { sessionStorage.removeItem(PX_K()); } catch (e) { } return null; }
-  r.mio = !!(r.mio && (cuentaLeer() || {}).id === r.conto_id); return r;
+  r.mio = !!(r.mio && (cuentaLeer() || {}).id === r.conto_id);
+  if (qs.get('pe') === 'no') { r.cancelado = true; try { sessionStorage.removeItem(PX_K()); } catch (e) { } }   // 🎛 BKP: il cancel_url di pay porta &pe=no
+  return r;
 }
 function cuentaHTML() {
   if (!pagoMesaOn()) return cuentaMesaHTML();   // v0.10.26 · AUT-1015: a pago spento il conto si legge, non si paga
