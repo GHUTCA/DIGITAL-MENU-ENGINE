@@ -91,7 +91,9 @@ button{font-family:inherit}
 .pz s{font-weight:600;opacity:.6;margin-right:2px}
 .pz .emd{display:block;font-size:10px;font-weight:700;color:var(--ok-chiaro);letter-spacing:.02em;margin-top:1px}
 .pz .emd.e2{font-size:12px;font-weight:800}
-.pz .b2x1{display:inline-flex;align-items:center;margin-top:4px;padding:4px 10px;border-radius:99px;border:1.5px solid var(--ok-chiaro);background:transparent;color:var(--ok-chiaro);font-family:inherit;font-size:12px;font-weight:800;letter-spacing:.02em;cursor:pointer;white-space:nowrap}   /* v0.10.31: il 2x1 si vede ed è un tasto */
+.pz .b2x1{display:block;margin:1px 0 0;padding:0;border:0;background:transparent;color:var(--ok-chiaro);font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.02em;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:left}   /* v0.10.31: il 2x1 si vede ed è un tasto · v0.10.60 (Alberto 20-nov, proposta B del MOCKUP_CHIP_2X1): una riga verde senza bordo, come «En Menú del día» e come l'icona della sala, non più una pillola che spinge il prezzo */
+.mini .cd .pz .b2x1{margin:0 0 1px}
+.det .b2x1G{grid-column:1/-1;justify-self:start;margin:7px 0 1px;padding:7px 12px;border:0;border-radius:10px;background:rgba(127,150,70,.14);background:color-mix(in srgb,var(--ok-chiaro) 14%,transparent);color:var(--ok-chiaro);font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;text-align:left}   /* v0.10.60: nella scheda grande il 2x1 non sta accanto al prezzo (sforava a destra): è un tasto sotto la descrizione che dice cosa succede */
 .bdb{display:flex;align-items:center;justify-content:center;gap:10px;margin:2px 13px 8px;min-height:44px;border:0;border-radius:11px;background:var(--ok);color:var(--ok-txt);font-family:inherit;font-weight:800;font-size:15px;letter-spacing:.03em;cursor:pointer}
 .bdb[hidden]{display:none}
 .bdb.off{background:transparent;color:var(--suave);border:1px dashed var(--linea2);font-size:12.5px;font-weight:700;cursor:default}
@@ -608,7 +610,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.59</div>
+<div class="ver" id="ver">menu v0.10.60</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1147,7 +1149,7 @@ function z3() {
     const fo = p.img ? '<div class="fo" style="--f:url(\'' + esc(p.img) + '\')' + (p.fy != null ? ';--fy:' + p.fy + '%' : '') + '">' : '<div class="fo tg">' + esc(p.n);
     const conQ = domande(p).length > 0;   // v0.10.16 (Alberto 12-nov): con le domande la foto non si schiaccia, cede la striscia
     return '<div class="split' + (conQ ? ' conq' : '') + (p.c === 'menu_contenitore' ? ' cont' : '') + '"><div class="det">' + fo + '<button class="x" data-a="cierra">✕</button></div>' +
-      '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(descP(p)) + '</div><div class="pz">' + pzHTML(p) + '</div>' +
+      '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(descP(p)) + '</div><div class="pz">' + pzHTML(p, true) + '</div>' + g2x1HTML(p) +
       // v0.7: il regalo sta su ogni trago, dove nasce la voglia (solo coi tragos che si mettono senza domande: il regalo non chiede)
       (envioOn() && esTrago(p) && ordinabile(p) && !domande(p).length ? '<button class="dono-in" data-a="donoApri" data-k="' + esc(p.id) + '">🎁 Invítale este trago a otra mesa</button>' : '') + '</div>' +
       domandeHTML(p) + pedGrande(p) + '</div>' + pagine(daMostrare(), conQ ? 3 : PER_PAG) + '</div>';
@@ -1157,7 +1159,9 @@ function z3() {
   if (cercando() && !L.length) return '<div class="msg busca"><b>Nada con «' + esc(S.busca.trim()) + '»</b>Prueba con otra palabra.</div>';
   return (cercando() ? '' : ripHTML()) + '<div class="sei">' + L.map((p) => card(p, true)).join('') + '</div>';
 }
-function pzHTML(p) { const z = prezzoOra(p), sx = strumP(p.id); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : promo2x1(p) ? (modo2x1() ? '<span class="emd e2">🎁 2x1 · ' + esc(T('pagas')) + ' 1 · ' + esc(T('llevas')) + ' 2</span>' : '<button class="b2x1" data-a="va2x1">' + esc((sx && sx.badge) || '🎁 ' + T('En 2x1 ahora')) + ' ›</button>') : visto2x1(p) ? '<span class="emd">🎁 ' + esc(T('2x1 en la barra')) + '</span>' : sx && sx.badge ? '<span class="emd">' + esc(sx.badge) + '</span>' : ''); }
+/* v0.10.60 · `g` = la scheda grande: lì il tasto del 2x1 non sta nel prezzo, lo disegna g2x1HTML sotto la descrizione */
+const g2x1HTML = (p) => (!inMenuDia(p) && promo2x1(p) && !modo2x1() ? '<button class="b2x1G" data-a="va2x1">🎁 2x1 · ' + esc(T('pagas')) + ' 1 · ' + esc(T('llevas')) + ' 2 ›</button>' : '');
+function pzHTML(p, g) { const z = prezzoOra(p), sx = strumP(p.id); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : promo2x1(p) ? (modo2x1() ? '<span class="emd e2">🎁 2x1 · ' + esc(T('pagas')) + ' 1 · ' + esc(T('llevas')) + ' 2</span>' : g ? '' : '<button class="b2x1" data-a="va2x1">' + esc((sx && sx.badge) || '🎁 ' + T('En 2x1 ahora')) + ' ›</button>') : visto2x1(p) ? '<span class="emd">🎁 ' + esc(T('2x1 en la barra')) + '</span>' : sx && sx.badge ? '<span class="emd">' + esc(sx.badge) + '</span>' : ''); }
 /* ═══ il passo dopo (mockup 23-ott): chi ha chiesto dalla prima famiglia (il cibo) atterra sull'ultima (il dolce);
    chi ha chiesto altro atterra sulla prima. Le famiglie e il loro ordine vengono dalla config del locale. ═══ */
 function dopoQuesto(prods) {
