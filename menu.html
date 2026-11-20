@@ -114,7 +114,7 @@ button{font-family:inherit}
 .det{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow-y:auto}
 /* la foto grande prende TUTTA la larghezza (Alberto 28-ott: «sembra troncata»): riempie da bordo a bordo l'altezza che resta
    fra la testa e la striscia sotto, e non supera mai il 4:3 della foto. Dove l'altezza manca, il taglio è sopra e sotto, mai ai lati. */
-.det .fo{flex:1 1 auto;width:100%;max-height:75vw;min-height:60px;background:#000;position:relative;overflow:hidden}
+.det .fo{flex:1 1 auto;width:100%;max-height:min(75vw,420px);min-height:60px;background:#000;position:relative;overflow:hidden}
 .det .fo::before,.det .fo::after{content:'';position:absolute;inset:0;z-index:0;background-image:var(--f);background-position:center var(--fy,55%);background-repeat:no-repeat}
 /* v0.5.9 (Alberto 28-ott, Caipirisima tagliata sotto): dove l'altezza manca si taglia di più SOPRA che sotto. Il piatto e il
    bicchiere stanno nella metà bassa della foto (il tavolo), il cielo della foto è il fondo del bar. Default 60%; una foto nostra
@@ -138,7 +138,10 @@ button{font-family:inherit}
 .mini .pag{flex:0 0 100%;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:7px 6px;scroll-snap-align:start}
 .split.conq .mini .pag{grid-template-rows:minmax(0,1fr)}   /* v0.10.16: una riga sola con le domande */
 .det .incl{margin:2px 13px 8px;font-size:13px;color:var(--suave)} .det .incl b{color:var(--txt)}   /* v0.10.25 · i pezzi inclusi del menú */
-.split.conq .det .fo{min-height:42vw}   /* e la foto ha un pavimento: mai più una striscia */
+.split.conq .det .fo{min-height:min(42vw,235px)}   /* e la foto ha un pavimento: mai più una striscia */
+/* v0.10.59 (Alberto 20-nov, dal PC: «non si riesce a ordinare un prodotto che ha un elige»): 42vw e 75vw sono la FINESTRA, non la colonna
+   (.app max 560px). Su un PC largo 1852 px il pavimento della foto era 778 px, più alto della scheda: nome, domande e PEDIR finivano sotto,
+   fuori vista. Il tetto è il 42% / 75% di 560 px: sotto i 560 px di finestra (i telefoni) il calcolo è identico a prima. */
 .split.cont .det .fo{flex:0 0 auto;min-height:0;height:min(30vw,150px);max-height:none}   /* v0.10.24 (Alberto 13-nov, mesa 999: «le domande con i prodotti sono ancora nascoste»): un menú-contenitore non ha una foto che vende, ha 13+8 scelte. Il disegno resta, basso, e le domande salgono */
 .mini .cd{min-height:108px;height:auto;   /* v0.10.15: 96→108 per nome e prezzo a 14 · v0.10.19: 108 è il pavimento, non il tetto: nome di due righe + «En Menú del día» non esce dalla card, e la griglia porta tutte le card della pagina all'altezza della più alta */ padding:7px;gap:3px;position:relative}
 /* v0.6.3 (Alberto: «la seconda riga viene tagliata»): il nome non si schiaccia mai, chi cede è il riquadro «Con opciones» */
@@ -605,7 +608,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.58</div>
+<div class="ver" id="ver">menu v0.10.59</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
