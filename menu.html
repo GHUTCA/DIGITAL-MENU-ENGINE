@@ -1241,11 +1241,11 @@ function pedidoHTML() {
         : 'Esperando que el mesero confirme tu mesa') + '<span>' + T('Mesa') + ' ' + esc(MESA) + ' · ' + (L.rech === 'cancelado' ? 'no se preparó y no se cobra. Puedes armar otro cuando quieras' : L.rech ? 'tu pedido no se preparó y no se cobra. Pídele al mesero'
         : L.mot === 'conto_cerrado' ? 'tu cuenta de esta mesa ya se cerró: cuando el mesero confirme, entra en una cuenta nueva'
         : 'tu pedido ya está guardado: cuando el mesero confirme, pasa a cocina y barra') + '</span></div>' +
-      L.righe.map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') +
+      L.righe.map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(nomVis(r.nome)) + '</div>').join('') +
       (L.pc && L.uuid ? '<button class="segui" data-a="esperaCancela">' + (S.cancelando ? T('Cancelando…') : '✕ ' + T('Cancelar pedido')) + '</button>' : '') + '</div>';
     return '<div class="ped"><div class="pedtit">' + T('¡Listo!') + '<button class="pedx" data-a="chiudiPed">✕</button></div>' +
       '<div class="okv">✓ ' + T('Tu pedido va') + ' ' + T(L.dove) + '<span>' + T('Mesa') + ' ' + esc(MESA) + ' · ' + T('recién enviado') + '</span></div>' +
-      L.righe.map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') + seguirCard(L.righe.map((r) => r.p)) + '</div>';
+      L.righe.map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(nomVis(r.nome)) + '</div>').join('') + seguirCard(L.righe.map((r) => r.p)) + '</div>';
   }
   // ogni riga col suo ＋/− sulla SUA chiave: il ＋ della riga «Filete · A punto» aggiunge un altro a punto, non un filete qualsiasi
   const lineeH = righe().map((r) => '<div class="lin">' + (r.p.img ? '<img src="' + esc(r.p.img) + '" alt="">' : '<div class="lth"></div>') +
@@ -1566,7 +1566,7 @@ const testaFoglio = (t) => '<div class="rcv-b">' + esc((S.cfg && S.cfg.brand_nam
 function foglioHTML(c) {
   const chiPaga = (k) => { const p = (S.pagati || []).find((x) => (x.chiavi || []).indexOf(k) >= 0); return p ? p.chi : ''; };
   const righe = c.L.map((r, i) => {
-    const k = rKey(r), nm = '<span class="rq">' + r.q + '</span><span class="rn">' + esc(r.nome) + (r.chi ? ' · ' + esc(T(r.chi)) : '') + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span>';
+    const k = rKey(r), nm = '<span class="rq">' + r.q + '</span><span class="rn">' + esc(nomVis(r.nome)) + (r.chi ? ' · ' + esc(T(r.chi)) : '') + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span>';
     if (c.pag.has(k)) { const chi = chiPaga(k); return '<div class="rcv-l rpg"><span class="rck">✓</span>' + nm + '<em>' + T('pagado') + (chi && chi !== 'tú' ? ' · ' + esc(chi) : chi === 'tú' ? ' · ' + T('por ti') : '') + '</em></div>'; }
     const on = c.modo === 'righe' && c.sel.has(k);
     return '<button class="rcv-l rsel' + (on ? ' on' : '') + '" data-a="pagoRiga" data-k="' + i + '"' + (c.modo === 'partes' ? ' disabled' : '') + ' aria-pressed="' + on + '"><span class="rck">' + (on ? '✓' : '') + '</span>' + nm + '</button>';
@@ -1688,7 +1688,7 @@ const ccEta = (ts) => { const s = Math.max(0, Math.round((Date.now() - (Number(t
 const propSug10 = (c) => Math.round((Number(c) || 0) * 0.1);   // v0.10.38: la stessa regola della sala nueva (propSug) e della carta
 function cuentaMesaHTML() {
   const m = S.cuentaMesa, X = '<button class="pedx" data-a="cuentaChiudi">✕</button>';
-  const riga = (r) => '<div class="rcv-l"><span class="rq">' + r.q + '</span><span class="rn">' + esc(r.nome) + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>';
+  const riga = (r) => '<div class="rcv-l"><span class="rq">' + r.q + '</span><span class="rn">' + esc(nomVis(r.nome)) + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>';
   const agg = S.ccAgg === 'reintenta' ? '<div class="rcv-f">' + T('actualizando…') + '</div>' : '';
   let corpo;
   if (m && m.cerrada) corpo = '<div class="rcv">' + testaFoglio('PRECUENTA') + '<div class="rcv-f">' + T('Esta cuenta ya se cerró') + '</div></div>';
@@ -1806,7 +1806,7 @@ function cuentaHTML() {
     const resta = pos ? c.resta : Math.max(0, c.mesa - pagatoGia());
     return '<div class="ped cta pgx"><div class="pedtit">' + T(pos ? 'Viene la máquina' : '¡Pagado!') + X + '</div>' + sim() +
       '<div class="rcv">' + testaFoglio(pos ? 'POR PAGAR CON LA MÁQUINA' : 'COMPROBANTE') +
-        (u.righe || []).map((r) => '<div class="rcv-l"><span class="rq">' + r.q + '</span><span class="rn">' + esc(r.nome) + (r.chi ? ' · ' + esc(T(r.chi)) : '') + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>').join('') +
+        (u.righe || []).map((r) => '<div class="rcv-l"><span class="rq">' + r.q + '</span><span class="rn">' + esc(nomVis(r.nome)) + (r.chi ? ' · ' + esc(T(r.chi)) : '') + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>').join('') +
         '<div class="rcv-dd"></div><div class="rcv-r"><span>' + T('Consumo') + '</span><span>' + clp(u.base) + '</span></div><div class="rcv-r"><span>' + T('Propina') + '</span><span>' + clp(u.propina) + '</span></div>' +
         '<div class="rcv-tot"><span>TOTAL</span><span>' + clp(u.base + u.propina) + '</span></div>' +
         '<div style="text-align:center;margin-top:14px"><span class="stamp' + (pos ? ' ink' : '') + '">' + (pos ? T('EN CAMINO') : T('PAGADO')) + '</span></div>' +
@@ -2003,7 +2003,11 @@ function bebideMenu(rr) {
   return Object.values(out);
 }
 
-const SUF_2UN = ' · segunda unidad 2x1';   // v0.10.62: era « · regalo 2x1»
+/* v0.10.62 · Alberto 22-nov: «elimina regalo, metti solo segunda unidad 2x1». La parola si cambia A VISTA, non nel dato (🍳 COCINA 22-nov,
+   «LA PAROLA SI CAMBIA A VISTA, NON NEL NOME DEL DATO»): la precuenta del bordo accoppia la pagata e la 2ª leggendo il suffisso del nome
+   (PC_REG2X1 = ' · regalo 2x1', index.js r.1417), e così fanno la sala vecchia e il GAS. Il payload resta « · regalo 2x1»; nomVis traduce
+   solo dove una persona legge (il conto, i pedidos inviati, la boleta). Le chiavi (righeMie, rKey) restano sul nome grezzo. */
+function nomVis(s) { return String(s == null ? '' : s).replace(/\s*·\s*regalo 2x1\s*$/i, ' · segunda unidad 2x1'); }   // function: si chiama anche da render che girano prima di questa riga
 function payloadPedido(confirmado) {
   carrelloRivedi();   // v0.10.10 · E1/E2: niente parte con una riga sparita o un menú con le scelte rotte
   // contratto del vivo (_enviarPedidoDigitalInner): `nombre` composto per gli umani (piatto · modo · término), i CAMPI per le
@@ -2020,14 +2024,11 @@ function payloadPedido(confirmado) {
   items.push(...bebideMenu(righe()));
   // v0.10.61 · B = il REGALO della coppia distinta: $0 + i SUOI extra, la sua scelta, `regalo2x1:1`, esce INSIEME (niente `espera`). In CODA agli
   // items, come i B della leva qr_2x1_espera: PL[i] resta allineato a righe()[i].
-  // v0.10.62 · Alberto 22-nov: «elimina regalo, metti solo segunda unidad 2x1». Cambia solo il NOME visibile: `regalo2x1` e `dupla` restano
-  // (le guardie e i banchi leggono quelli). ⚠️ Il bordo accoppia la precuenta stampata per suffisso del nome (PC_REG2X1, index.js r.1417):
-  // questo file parte DOPO il bordo che riconosce anche « · segunda unidad 2x1», mai prima.
   righe().forEach((r) => { if (!coppiaDi(r) || contMods(r).mods) return;
-    items.push({ id: r.p.id, nombre: r.p.n + (r.m2 ? ' · ' + r.m2 : '') + (r.t ? ' · ' + r.t : '') + SUF_2UN, precio: r.d2 || 0, qty: r.q, llevar: r.q,
+    items.push({ id: r.p.id, nombre: r.p.n + (r.m2 ? ' · ' + r.m2 : '') + (r.t ? ' · ' + r.t : '') + ' · regalo 2x1', precio: r.d2 || 0, qty: r.q, llevar: r.q,
       op: r.m2 || '', termino: r.t || '', es_menu: false, promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, regalo2x1: 1, precio_base: 0 }); });
   if (coppia2x1()) righe().forEach((r) => { if (!in2x1(r) || contMods(r).mods || coppiaDi(r)) return;
-    items.push({ id: r.p.id, nombre: nomeRiga(r) + SUF_2UN, precio: r.d || 0, qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '', es_menu: false,
+    items.push({ id: r.p.id, nombre: nomeRiga(r) + ' · regalo 2x1', precio: r.d || 0, qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '', es_menu: false,
       promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, regalo2x1: 1, espera: 1, precio_base: 0 }); });
   const itemsJson = JSON.stringify(items);
   if (S.uuidFirma !== itemsJson) { S.uuid = _uuid(); S.uuidFirma = itemsJson; }
@@ -2220,7 +2221,7 @@ async function inviaOra(confirmado) {
       const L = S.listo, d = dopoQuesto(L.righe.map((x) => x.p));
       S.pedido = false; S.listo = null; S.abierta = null; S.busca = null; S.palco = false;
       if (d) { S.fam = d.fam; S.cat = d.cat; }
-      nota('✓ ' + T('Tu pedido va') + ' ' + T(L.dove) + ' · ' + L.righe.map((x) => x.q + '× ' + x.nome).join(' · '));
+      nota('✓ ' + T('Tu pedido va') + ' ' + T(L.dove) + ' · ' + L.righe.map((x) => x.q + '× ' + nomVis(x.nome)).join(' · '));
     }
   } else if (r && r.need === 'llave_muerta') { cuentaOlvidar(); pcSegna(); S.errore = 'Tu cuenta de esta mesa se cerró. Para pedir de nuevo, el mesero tiene que confirmar: toca enviar.';   // v0.9.24 · D-444
   } else if (r && r.need === 'telefono_bloqueado') { bloqInizia(r.alcance);   // v0.10.36 · AUT-1067: niente REINTENTAR verde, il menù aspetta lo sblocco   // v0.9.24 · D-445 ①
@@ -2381,7 +2382,7 @@ function barQR(txt) {
 }
 function barCardHTML(b) {
   const n = '<div class="bnum"><small>' + (b.estado === 'listo' || b.estado === 'en_barra' ? 'RETIRO' : 'TU NÚMERO') + '</small>' + esc(b.numero) + (b.brazalete ? '<em>pulsera ' + esc(b.brazalete) + '</em>' : '') + '</div>';
-  const righe = (b.righe || []).map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') + '<div class="tot btot"><span>' + T('Total') + '</span><span>' + clp(b.total) + '</span></div>';
+  const righe = (b.righe || []).map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(nomVis(r.nome)) + '</div>').join('') + '<div class="tot btot"><span>' + T('Total') + '</span><span>' + clp(b.total) + '</span></div>';
   const qr = '<div class="bqr">' + barQR('PBK1.' + b.uuid) + '</div>';
   const quien = b.da === 'porta' ? 'a la anfitriona' : 'a un garzón de la barra';
   let cuerpo;
@@ -2464,7 +2465,7 @@ function esitoHTML() {
   if (e.ok) return '<div class="ped"><div class="pedtit">¡Pagado!' + (CANAL === 'kiosco' ? '' : '<button class="pedx" data-a="ckNuovo">✕</button>') + '</div>' +
     '<div class="okv">✓ Tu pedido va a cocina' + (e.numero ? ' · N° ' + esc(e.numero) : '') + '<span>' + esc(POSTO()) + ' · ' +
       (CANAL === 'depto' ? 'te lo llevamos a la recepción' : 'te llamamos para retirar') + '</span></div>' +
-    (e.righe || []).map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(r.nome) + '</div>').join('') +
+    (e.righe || []).map((r) => '<div class="okr"><b>' + r.q + '×</b> ' + esc(nomVis(r.nome)) + '</div>').join('') +
     (CANAL === 'kiosco' ? '<div class="avvs">Esta pantalla vuelve al inicio en unos segundos.</div>' : '<button class="segui" data-a="ckNuovo">Hacer otro pedido</button>') + '</div>';
   // il pago non è confermato: il carrello resta, e si dice cosa NON fare (pagare due volte)
   return '<div class="ped"><div class="pedtit">' + T('Tu pedido') + '<button class="pedx" data-a="ckChiudiEsito">✕</button></div>' +
