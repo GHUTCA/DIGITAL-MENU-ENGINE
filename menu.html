@@ -612,7 +612,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.61</div>
+<div class="ver" id="ver">menu v0.10.62</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -2003,6 +2003,7 @@ function bebideMenu(rr) {
   return Object.values(out);
 }
 
+const SUF_2UN = ' · segunda unidad 2x1';   // v0.10.62: era « · regalo 2x1»
 function payloadPedido(confirmado) {
   carrelloRivedi();   // v0.10.10 · E1/E2: niente parte con una riga sparita o un menú con le scelte rotte
   // contratto del vivo (_enviarPedidoDigitalInner): `nombre` composto per gli umani (piatto · modo · término), i CAMPI per le
@@ -2019,11 +2020,14 @@ function payloadPedido(confirmado) {
   items.push(...bebideMenu(righe()));
   // v0.10.61 · B = il REGALO della coppia distinta: $0 + i SUOI extra, la sua scelta, `regalo2x1:1`, esce INSIEME (niente `espera`). In CODA agli
   // items, come i B della leva qr_2x1_espera: PL[i] resta allineato a righe()[i].
+  // v0.10.62 · Alberto 22-nov: «elimina regalo, metti solo segunda unidad 2x1». Cambia solo il NOME visibile: `regalo2x1` e `dupla` restano
+  // (le guardie e i banchi leggono quelli). ⚠️ Il bordo accoppia la precuenta stampata per suffisso del nome (PC_REG2X1, index.js r.1417):
+  // questo file parte DOPO il bordo che riconosce anche « · segunda unidad 2x1», mai prima.
   righe().forEach((r) => { if (!coppiaDi(r) || contMods(r).mods) return;
-    items.push({ id: r.p.id, nombre: r.p.n + (r.m2 ? ' · ' + r.m2 : '') + (r.t ? ' · ' + r.t : '') + ' · regalo 2x1', precio: r.d2 || 0, qty: r.q, llevar: r.q,
+    items.push({ id: r.p.id, nombre: r.p.n + (r.m2 ? ' · ' + r.m2 : '') + (r.t ? ' · ' + r.t : '') + SUF_2UN, precio: r.d2 || 0, qty: r.q, llevar: r.q,
       op: r.m2 || '', termino: r.t || '', es_menu: false, promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, regalo2x1: 1, precio_base: 0 }); });
   if (coppia2x1()) righe().forEach((r) => { if (!in2x1(r) || contMods(r).mods || coppiaDi(r)) return;
-    items.push({ id: r.p.id, nombre: nomeRiga(r) + ' · regalo 2x1', precio: r.d || 0, qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '', es_menu: false,
+    items.push({ id: r.p.id, nombre: nomeRiga(r) + SUF_2UN, precio: r.d || 0, qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '', es_menu: false,
       promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, regalo2x1: 1, espera: 1, precio_base: 0 }); });
   const itemsJson = JSON.stringify(items);
   if (S.uuidFirma !== itemsJson) { S.uuid = _uuid(); S.uuidFirma = itemsJson; }
