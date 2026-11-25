@@ -612,7 +612,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.63</div>
+<div class="ver" id="ver">menu v0.10.64</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1565,6 +1565,8 @@ const oraFoglio = () => { const d = oraSantiago(); return String(d.getDate()).pa
    noi non conta nulla, è solo un posto dove risiede in questo momento il conto». Il bordo la manda già (`/cuentaConto` → `mesa`, la mesa del conto
    FINALE); il menù la buttava e stampava la MESA dell'URL. Senza il campo (bordo vecchio, conto chiuso, solo telefono) ⇒ la mesa del QR, come ieri. */
 const mesaConto = () => (S.cuentaMesa && S.cuentaMesa.mesa) || MESA;
+/* v0.10.64 · la stessa mesa, scritta come la scrive il bordo o il link (spazi e maiuscole non contano) */
+const mesaUguale = (a, b) => String(a == null ? '' : a).trim().toUpperCase() === String(b == null ? '' : b).trim().toUpperCase();
 const testaFoglio = (t) => '<div class="rcv-b">' + esc((S.cfg && S.cfg.brand_name) || LOCAL) + '</div><div class="rcv-t">' + esc(t) + '</div><div class="rcv-m">' + T('Mesa') + ' ' + esc(mesaConto()) + ' · ' + oraFoglio() + '</div><div class="rcv-s"></div>';
 /* il foglio della mesa: ogni riga si tocca; le pagate portano il timbro di chi le ha pagate */
 function foglioHTML(c) {
@@ -1672,6 +1674,17 @@ async function ccLeggi() {
         mesa: /^[A-Za-z0-9 _-]{1,12}$/.test(String(r.mesa == null ? '' : r.mesa).trim()) ? String(r.mesa).trim() : '',   // v0.10.32: la mesa del conto, dal bordo
         total: Number(r.total) || 0, pagado: Number(r.pagado) || 0, resta: r.resta === null || r.resta === undefined ? null : Number(r.resta),
         resta_ignota: !!r.resta_ignota || r.resta === null || r.resta === undefined, ts: Date.now() };
+      /* 🔴 v0.10.64 · 🎟 LA LISTA V35 · bacheca «IL QR DELLA 999 MOSTRA IL CONTO DELLA 998» (25-nov, prova di Alberto): la llave è PER LOCALE
+         (v0.10.33, voluto: il cliente spostato dal mesero ritrova il suo conto, perché il bordo manda la mesa NUOVA). Ma nessuno confrontava la mesa
+         del conto con la mesa del link: alla 999 il telefono mostrava il conto della 998 e offriva il Pago Express. Regola: se il BORDO dice che il
+         conto sta in un'altra mesa, quel conto non è di questo tavolo ⇒ non si mostra, non si paga, e il telefono dimentica la llave (così anche il
+         prossimo pedido della 999 non entra nel conto della 998). Lo spostamento del mesero resta vivo: il bordo dice la mesa nuova, e combacia. */
+      if (S.cuentaMesa.mesa && !mesaUguale(S.cuentaMesa.mesa, MESA)) {
+        S.ccOtra = S.cuentaMesa.mesa; S.cuentaMesa = null; S.ccNota = 'otra_mesa';
+        if (!k.sala && (cuentaLeer() || {}).id === k.id) cuentaOlvidar();
+        return;
+      }
+      S.ccOtra = '';
       if (S.cuentaMesa.mesa) cuentaMesaNota(S.cuentaMesa.mesa);
       S.ccNota = ''; return;
     }
@@ -1711,6 +1724,7 @@ function cuentaMesaHTML() {
     const L = righeMie();
     corpo = '<div class="rcv">' + testaFoglio('PRECUENTA') +
       (L.length ? L.map(riga).join('') + '<div class="rcv-dd"></div><div class="rcv-tot"><span>' + T('Desde este teléfono') + '</span><span>' + clp(sommaRighe(L)) + '</span></div>' : '') +
+      (S.ccNota === 'otra_mesa' ? '<div class="avvs" style="text-align:center;margin:6px 0">' + T('Tu cuenta anterior era de otra mesa. Aquí empieza una cuenta nueva: el mesero la confirma.') + '</div>' : '') +
       '<div class="rcv-f">' + (S.ccAgg === 'reintenta' && ccChiave() ? T('actualizando…') : T('Solo lo que pediste desde este teléfono · el mesero tiene la cuenta completa')) + '</div></div>';
   }
   return '<div class="ped cta pgx"><div class="pedtit">' + T('Tu cuenta') + ' · ' + T('Mesa') + ' ' + esc(mesaConto()) + X + '</div>' + corpo + pxHTML(m) +
@@ -1733,7 +1747,10 @@ async function pxLeve() {
     S.salaOn = levaHa(f.llave_sala_on); S.pxOn = levaHa(f.fintoc_meta_conto_on) && (!LLAVE_SALA || S.salaOn); } catch (e) { S.pxOn = false; S.salaOn = false; }
 }
 const pxPct = () => (S.px && Number.isInteger(S.px.pct) ? S.px.pct : 10);
-const pxPuo = (m) => !!(S.pxOn && !S.pxOff && ccChiave() && m && !m.cerrada && !m.resta_ignota && Number(m.pagado) === 0 && Number(m.resta) > 0 && Number(m.total) > 0);
+/* v0.10.64: il Pago Express solo se il BORDO ha detto la mesa del conto ed è la mesa del link. Mesa ignota ⇒ niente pago (meglio un cliente che chiede
+   la cuenta al mesero di uno che paga il conto di un altro tavolo). */
+const pxPuo = (m) => !!(S.pxOn && !S.pxOff && ccChiave() && m && !m.cerrada && !m.resta_ignota && Number(m.pagado) === 0 && Number(m.resta) > 0 && Number(m.total) > 0
+  && m.mesa && mesaUguale(m.mesa, MESA));
 function pxHTML(m) {
   const px = S.px || {};
   if (px.ritorno && px.ritorno.cancelado) px.msg = px.msg || 'Pago cancelado. Puedes intentarlo de nuevo o pedir la cuenta a tu mesero.';   // pay: cancel_url = &pe=no
