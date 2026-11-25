@@ -880,7 +880,7 @@ function prezzoOra(p) {
    del bordo, src/strumenti.js r.258), la riga porta `promo` = l'id_strumento (es. 'MARTES-2000'): il bordo (`dtoMonto`, descuento_aut.js
    r.31) esclude già ogni `promo` non vuoto. Il recargo da solo NON è una promo (`strum` ''), il 2x1 resta '2x1', il menú resta es_menu.
    Lettori di `promo` non vuoto verificati il 25-nov: bordo r.11293 (riga nuova speciale ⇒ PIN) · GAS ③ (non riprezza) · sala `_fueraEscala`
-   · kds (etichetta «🎁 id»). Leva del bordo `qr_marca_promo_on` (/salud): spenta ⇒ `promo` '' come la v0.10.68, byte per byte. */
+   · kds (etichetta «🎁 id»). Leva del bordo `promo_marca_on` (/salud, la stessa del mesero di 🛎 SALA): spenta ⇒ `promo` '' come la v0.10.68, byte per byte. */
 const marcaPromo = (p) => (S.marcaOn && p ? String(prezzoOra(p).strum || '') : '');
 const R10 = (x) => Math.round(x / 10) * 10;
 function prezzoDepto(p) {
@@ -1763,7 +1763,7 @@ async function pxLeve() {
   S.leveChieste = true;   // v0.10.70: l'avvio la chiama una volta se nessun ramo l'ha già chiamata (serve alla marca anche senza conto)
   try { const r = await fetch(BORDO + '/salud', { cache: 'no-store' }); const j = await r.json(); const f = (j && j.flags) || {}; S.flags = f;   // v0.10.69: le leve del bordo restano (mdd_postre_espera_on)
     S.salaOn = levaHa(f.llave_sala_on); S.pxOn = levaHa(f.fintoc_meta_conto_on) && (!LLAVE_SALA || S.salaOn);
-    S.marcaOn = levaHa(f.qr_marca_promo_on); } catch (e) { S.pxOn = false; S.salaOn = false; S.marcaOn = false; }
+    S.marcaOn = levaHa(f.promo_marca_on); } catch (e) { S.pxOn = false; S.salaOn = false; S.marcaOn = false; }
 }
 const pxPct = () => (S.px && Number.isInteger(S.px.pct) ? S.px.pct : 10);
 /* v0.10.64 (🎛 «IL QR DELLA 999 MOSTRA IL CONTO DELLA 998», 25-nov): il Pago Express si offre SOLO su un conto letto adesso. Con «actualizando…»
