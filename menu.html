@@ -1092,7 +1092,7 @@ function card(p, lista) {
   return '<div class="cd' + (q ? ' dentro' : '') + '" data-a="abre" data-k="' + esc(p.id) + '"' + dx + '>' + foto + '<div class="nm">' + esc(p.n) + '</div><div class="pz">' + pzHTML(p) + '</div>' +
     (!pide() ? '' : chiedeScelta(p) ? '<div class="opc">' + T('Con opciones · pronto') + '</div>'
       // chi chiede una scelta non mette dalla griglia: apre la scheda, dove si sceglie (il ＋ promette che aggiunge)
-      : conDom ? '<button class="addb chiede" data-a="abre" data-k="' + esc(p.id) + '"' + dx + '>' + (q ? q + ' ' + T('en tu pedido') + ' · ＋' : '＋ ' + T('PEDIR')) + '</button>'
+      : conDom ? '<button class="addb chiede" data-a="abre" data-k="' + esc(p.id) + '"' + dx + '>' + (q ? q + ' ' + T('en tu pedido') + ' · ＋' : '＋ ' + T('PEDIR') + (modo2x1() && promo2x1(p) ? ' 2x1' : '')) + '</button>'
       : q2 ? '<div class="qn"><i data-a="meno" data-k="' + esc(k2) + '">−</i>' + q2 + '<i data-a="mas" data-k="' + esc(p.id) + '"' + dx + '>+</i></div>'
       : '<button class="addb" data-a="mas" data-k="' + esc(p.id) + '"' + dx + '>＋ ' + T('PEDIR') + (modo2x1() && promo2x1(p) ? ' 2x1' : '') + '</button>') + '</div>';
 }
