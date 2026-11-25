@@ -1753,6 +1753,8 @@ function pxHTML(m) {
   const prop = [10, 15, 0].map((k) => '<button class="' + (pct === k ? 'on' : '') + '" data-a="pxProp" data-k="' + k + '"' + (vola ? ' disabled' : '') + '>' + (k ? k + '%' : T('sin')) + '</button>').join('');
   return '<div class="xpr"><div class="xt">⚡ ' + T('No pierdas tiempo: usa el PAGO EXPRESS') + '</div>' +
     '<div class="rcv-r"><span class="rprop">' + T('PROPINA') + ' ' + prop + '</span><span>' + clp(tot - base) + '</span></div>' +
+    // v0.10.66 (🎛 su «LA 🟡 O1 È CURATA»): il totale è cambiato durante la rilettura ⇒ una riga SOPRA il bottone, con l'importo nuovo
+    (px.cambio ? '<div class="avvs" style="text-align:center;margin:8px 0">' + esc('El total cambió a ' + clp(tot) + '. Toca de nuevo para pagar.') + '</div>' : '') +
     '<button class="envG xgo" data-a="pxPaga"' + (vola ? ' disabled' : '') + '><b>⚡ PAGO EXPRESS · ' + clp(tot) + '</b><span>' + (leg ? T('actualizando…') : vola ? T('Abriendo el pago…') : T('Transferencia bancaria') + ' · ' + T('Pronto: tarjetas')) + '</span></button>' +
     msg + fiduciaHTML() + '</div>';
 }
@@ -1760,6 +1762,7 @@ const pxErr = (j) => String((j && (j.motivo || j.error)) || '');
 async function pxPaga() {
   S.px = S.px || {};
   if (S.px.stato === 'abriendo' || S.px.stato === 'leyendo') return;
+  S.px.cambio = false;   // il tocco che segue l'avviso è la conferma del totale nuovo
   /* v0.10.66 (🎛 «PAGO EXPRESS DALLA SALA», 25-nov: «un primo tocco che si ferma in silenzio è un difetto»): su una lettura vecchia il tocco
      RILEGGE e, se il conto è ancora pagabile e letto adesso, PROSEGUE da solo. Mentre rilegge il bottone dice «actualizando…». Se dopo la
      rilettura non è pagabile (chiuso, cambiato, lettura fallita), il foglio si ridisegna e lo dice: mai un pago su un conto vecchio (v0.10.64). */
@@ -1768,7 +1771,7 @@ async function pxPaga() {
     S.px.stato = 'leyendo'; pinta();
     try { await ccLeggi(); } finally { S.px.stato = ''; }
     // 🟡 O1 di 💵 su 67784d7: se il conto è cambiato mentre rileggeva, non si paga un importo che il cliente non ha visto: si ridisegna e si ritocca
-    if (pxPuo(S.cuentaMesa) && Number(S.cuentaMesa.resta) !== visto) { S.px.uid = null; S.px.msg = 'Tu cuenta cambió mientras pagabas. Revisa el total y toca de nuevo.'; }   // 🍳 su 67784d7: la frase di monto_cambiado
+    if (pxPuo(S.cuentaMesa) && Number(S.cuentaMesa.resta) !== visto) { S.px.uid = null; S.px.cambio = true; }   // 🍳/🎛 su 67784d7: si dice, sopra il bottone, col totale nuovo
     if (!pxPuo(S.cuentaMesa) || Number(S.cuentaMesa.resta) !== visto) { if (!scrivendo()) pinta(); return; }
   }
   const k = ccChiave(), m = S.cuentaMesa;
