@@ -612,7 +612,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.64</div>
+<div class="ver" id="ver">menu v0.10.65</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -991,7 +991,8 @@ const risposta = (p, q) => (fisso(p, q) ? q.ops[0].o : selDi(p)[q.k]);
    mai stato provato (sala.html v3.16.0, AUT-0037). Una coppia distinta uguale alla prima torna la riga di oggi. */
 const pareja2x1 = (p) => !!(p && p.mods && p.c !== 'menu_contenitore' && modo2x1() && promo2x1(p) && domande(p).length > 0);
 const sel2Di = (p) => (S.sel[p.id + '#2'] = S.sel[p.id + '#2'] || {});
-const distinta2 = (p) => pareja2x1(p) && sel2Di(p).modo === 'distinta';
+const distinta2 = (p) => pareja2x1(p);   // v0.10.65 · D-574: in «2x1 ahora» la 2ª unità ha sempre le sue domande (niente bivio Igual/Distinto)
+const pedir2x1 = (p) => (modo2x1() && promo2x1(p) ? ' 2x1 · ' + T('llevas') + ' 2' : '');   // v0.10.65 · D-574: il bottone dice che è il 2x1
 const mSel2 = (p) => domande(p).map((q) => sel2Di(p)[q.k] || '').join('¦');
 const sceltaCompleta = (p) => domande(p).every((q) => risposta(p, q)) && (!distinta2(p) || domande(p).every((q) => sel2Di(p)[q.k]));
 const mSel = (p) => (p.mods ? domande(p).map((q) => risposta(p, q) || '').join('¦') : selDi(p).m);
@@ -1093,7 +1094,7 @@ function card(p, lista) {
       // chi chiede una scelta non mette dalla griglia: apre la scheda, dove si sceglie (il ＋ promette che aggiunge)
       : conDom ? '<button class="addb chiede" data-a="abre" data-k="' + esc(p.id) + '"' + dx + '>' + (q ? q + ' ' + T('en tu pedido') + ' · ＋' : '＋ ' + T('PEDIR')) + '</button>'
       : q2 ? '<div class="qn"><i data-a="meno" data-k="' + esc(k2) + '">−</i>' + q2 + '<i data-a="mas" data-k="' + esc(p.id) + '"' + dx + '>+</i></div>'
-      : '<button class="addb" data-a="mas" data-k="' + esc(p.id) + '"' + dx + '>＋ ' + T('PEDIR') + '</button>') + '</div>';
+      : '<button class="addb" data-a="mas" data-k="' + esc(p.id) + '"' + dx + '>＋ ' + T('PEDIR') + (modo2x1() && promo2x1(p) ? ' 2x1' : '') + '</button>') + '</div>';
 }
 const ordinabile = (p) => !!(p && pide() && !chiedeScelta(p) && !esaurito(p) && !chiusa(p) && inOrario(p));
 // la card VER: il tasto stesso. Sopra c'è già tutto (foto, nome, prezzo, le domande): sotto il dito dice cosa succede se tocchi
@@ -1106,7 +1107,7 @@ function verCard(p) {
   // la card conta la SCELTA fatta sopra, non il piatto: «1 A punto» e poi «Jugoso» sono due righe
   const ks = chiaveSel(p), q = S.cart[ks] || 0, r = rigaSel(p);   // v0.10.61: rigaSel porta anche la 2ª del 2x1
   const vsc = dq.length ? '<div class="vsc">' + esc(([r.m, r.t].filter(Boolean).join(' · ') || 'Como viene') + (r.m2 !== undefined ? ' + ' + (r.m2 || 'Como viene') : '')) + '</div>' : '';
-  if (!q) return '<div class="cd ora ver" data-a="mas" data-k="' + k + '">' + vnm + vsc + '<div class="vpd">＋ ' + T('PEDIR') + '</div><div class="vpz">' + clp(prezzoRiga(r)) + '</div></div>';
+  if (!q) return '<div class="cd ora ver" data-a="mas" data-k="' + k + '">' + vnm + vsc + '<div class="vpd">＋ ' + T('PEDIR') + pedir2x1(p) + '</div><div class="vpz">' + clp(prezzoRiga(r)) + '</div></div>';
   return '<div class="cd ora ver dentro">' + vnm + vsc + '<div class="vst"><i data-a="meno" data-k="' + esc(ks) + '">−</i><u>' + q + '</u><i data-a="mas" data-k="' + k + '">＋</i></div></div>';
 }
 /* v0.9.11 (Alberto in prova: «ho cliccato lo shot, poi mi sposto e la card con lo shot non mi segue: per fare PEDIR devo tornare indietro»):
@@ -1118,7 +1119,7 @@ function pedGrande(p) {
   const dq = domande(p);
   if (dq.length && !sceltaCompleta(p)) return '<div class="bdb off" hidden>' + T('Elige arriba') + ' ↑</div>';
   const ks = chiaveSel(p), q = S.cart[ks] || 0, r = rigaSel(p), k = esc(p.id);
-  if (!q) return '<button class="bdb" hidden data-a="mas" data-k="' + k + '">＋ ' + T('PEDIR') + ' · ' + clp(prezzoRiga(r)) + '</button>';
+  if (!q) return '<button class="bdb" hidden data-a="mas" data-k="' + k + '">＋ ' + T('PEDIR') + pedir2x1(p) + ' · ' + clp(prezzoRiga(r)) + '</button>';
   return '<div class="bdb st" hidden><i data-a="meno" data-k="' + esc(ks) + '">−</i><u>' + q + ' ' + T('en tu pedido') + '</u><i data-a="mas" data-k="' + k + '">＋</i></div>';
 }
 // le domande nella scheda grande: chip, una risposta per domanda; il sovrapprezzo SUL chip
@@ -1126,17 +1127,16 @@ function domandeHTML(p) {
   if (!pide() || !ordinabile(p)) return '';
   const inc = domande(p).filter((q) => fisso(p, q)).map((q) => q.ops[0].o);   // v0.10.25: i pezzi inclusi, in una riga sola
   // v0.10.61: la stessa domanda serve due volte (1ª e 2ª unità del 2x1): cambia solo dove si scrive la risposta e il tasto
-  const prep = (q, sel, az, pre) => '<div class="prep' + (pre ? ' p2' : '') + '"><div class="q">' + (pre ? '🎁 2º · ' : '') + esc(T(q.tit)) + (sel[q.k] ? '' : ' <span class="mreq">' + esc(T('elige uno')) + '</span>') + '</div><div class="op">' +
+  const prep = (q, sel, az, pre) => '<div class="prep' + (pre ? ' p2' : '') + '"><div class="q">' + (pre ? '🎁 2º · ' : pareja2x1(p) ? '1º · ' : '') + esc(T(q.tit)) + (sel[q.k] ? '' : ' <span class="mreq">' + esc(T('elige uno')) + '</span>') + '</div><div class="op">' +
     q.ops.map((o) => '<button class="' + (sel[q.k] === o.o ? 'on' : '') + '" data-a="' + az + '" data-k="' + esc(p.id + '|' + q.k + '|' + o.o) + '">' + esc(o.o) +
       (o.d ? ' <b>+' + clp(o.d) + '</b>' : '') + '</button>').join('') + '</div></div>';
-  const libere = domande(p).filter((q) => !fisso(p, q)), dist = distinta2(p);
+  const libere = domande(p).filter((q) => !fisso(p, q));
   return (inc.length ? '<div class="incl"><b>' + esc(T('Incluye')) + ':</b> ' + inc.map(esc).join(' · ') + '</div>' : '') +
     libere.map((q) => prep(q, selDi(p), 'sceglie')).join('') +
-    // v0.10.61 · la 2ª del 2x1, come la sala: «¿la 2ª igual o distinta?» (sala.html mods2Pareja)
-    (pareja2x1(p) ? '<div class="prep p2"><div class="q">🎁 ' + esc(T('¿Y el segundo?')) + '</div><div class="op">' +
-      '<button class="' + (dist ? '' : 'on') + '" data-a="dos2" data-k="' + esc(p.id + '|igual') + '">' + esc(T('Igual')) + '</button>' +
-      '<button class="' + (dist ? 'on' : '') + '" data-a="dos2" data-k="' + esc(p.id + '|distinta') + '">' + esc(T('Distinto')) + '</button></div></div>' +
-      (dist ? libere.map((q) => prep(q, sel2Di(p), 'sceglie2', true)).join('') : '') : '');
+    /* v0.10.65 · D-574 (Alberto 25-nov, QR della 999: «perché se sono nella pill del 2x1 mi appare anche l'unità singola?»): dalla pill
+       «2x1 ahora» il 2x1 è già scelto e si chiedono SUBITO le domande delle due unità (1º e 2º), senza il bivio «Igual / Distinto».
+       Due risposte uguali tornano la riga unica «llevar 2» (coppiaSel), come prima. */
+    (pareja2x1(p) ? libere.map((q) => prep(q, sel2Di(p), 'sceglie2', true)).join('') : '');
 }
 /* BUSCAR (mockup 21-ott, Alberto: «il buscar non toglierlo, lo uso moltissimo»): la lente sta in fondo alla riga delle
    categorie e si apre LÌ DENTRO come campo. Cerca su tutta la carta visibile (nome, descrizione, categoria), senza accenti
