@@ -612,7 +612,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.67</div>
+<div class="ver" id="ver">menu v0.10.68</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -632,6 +632,10 @@ const MESA = /^[0-9A-Za-z-]{1,6}$/.test(qs.get('mesa') || '') ? qs.get('mesa') :
 const PAGAR = qs.get('pagar') === '1';
 const LLAVE_SALA = (() => { if (!PAGAR || !MESA) return null; const h = new URLSearchParams(String(location.hash || '').replace(/^#/, ''));
   const id = String(h.get('cid') || ''), ll = String(h.get('cl') || ''); return /^[\w.:~-]{6,120}$/.test(id) && /^[\w.:~-]{6,300}$/.test(ll) ? { id: id, llave: ll, sala: true } : null; })();
+/* v0.10.68 · D-576 (sì di Alberto 25-nov al mockup di 🎨, `4_CANTIERE_MENU/MOCKUP_PAGO_QR_MESERO_25NOV2026`): dal QR del garzón (`?pagar=1` con
+   la mesa) la pagina è SOLO il foglio «Tu cuenta», a tutta pagina: niente carta dietro, niente ✕, niente «Volver al menú» né «Pedir la cuenta»
+   (il garzón è lì). Stesso foglio e stesse regole del QR del tavolo: si verifica un pezzo di codice solo. */
+const SOLO_PAGO = PAGAR && !!MESA;
 if (PAGAR && location.hash) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* la barra resta com'è: la llave resta comunque solo in memoria */ } }
 const PAY = 'https://pinsita-pay.alberto-agostini.workers.dev';
 /* ═══ PINSA (Alberto 29-ott) · I TRE CANALI DELLO STESSO LOCAL: il canale lo dice il QR, non la config ═══
@@ -1067,16 +1071,16 @@ function z1() {
   const brand = (S.cfg && S.cfg.brand_name) || LOCAL;
   const sotto = CANAL ? esc(POSTO()) : 'Para pedir, escanea el QR de tu mesa';
   // la casetta compare FUORI dall'inizio (mockup 21-ott: «come ritorno all'inizio?»); all'inizio non serve
-  const casa = inPalco() ? '' : '<button class="casa" data-a="inicio" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>';
+  const casa = inPalco() || SOLO_PAGO ? '' : '<button class="casa" data-a="inicio" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>';
   // v0.8 · la riga intera del mockup v1.1: 🌐 sempre · LIVE solo a show acceso · Pagar (l'unico pieno) dopo il primo invio, con l'importo
   const cons = consumoTel();
   /* v0.10.16 (Alberto: «header troppo grande»): il saluto e l'uscita del member sono UNA pillola sulla riga della mesa, non due righe in più */
   const ati = (S.member ? '<span class="msal mhola">' + (S.member.nombre ? T('Hola') + ' <strong>' + esc(String(S.member.nombre).split(' ')[0]) + '</strong>' : 'Member') + '</span>' : '')   /* v0.10.16 (Alberto 12-nov: «il telefono di un member si ricorda sempre; disattivarsi sì, ma dentro al menu del member, non lì»): un saluto, non un'uscita. L'uscita/riattivazione vivrà in «Tu espacio Member» (passo dopo); memberSalir() resta, senza bottone */ + (CANAL === '' || !MESA || !S.atiende ? '' : '<em class="ati">' + T('te atiende') + ' <b>' + esc(S.atiende) + '</b></em>');
   return casa + '<div class="chi"><b class="mrc">' + esc(brand) + '</b><span' + (CANAL ? ' class="pst"' : '') + '>' + sotto + '</span>' + ati + '</div>' +
-    ((S.busca !== null && S.busca !== undefined) ? '' : '<button class="bsc" data-a="abreBusca" aria-label="' + esc(T('Buscar')) + '" title="' + esc(T('Buscar')) + '">🔍</button>') +   // v0.10.15: fuori dalla riga in basso
+    ((S.busca !== null && S.busca !== undefined) || SOLO_PAGO ? '' : '<button class="bsc" data-a="abreBusca" aria-label="' + esc(T('Buscar')) + '" title="' + esc(T('Buscar')) + '">🔍</button>') +   // v0.10.15: fuori dalla riga in basso
     '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
     /* v0.10.44 (Alberto 18-nov: «LIVE non dovrebbe chiamarsi così, dovrebbe chiamarsi semplicemente DJ, e quando suonano andare LIVE») */
-    (djInfo() ? '<button class="live' + (showAcceso() ? '' : ' dj') + '" data-a="djApri">' + (showAcceso() ? '<i></i>LIVE' : '🎧 DJ') + '</button>' : '') +
+    (djInfo() && !SOLO_PAGO ? '<button class="live' + (showAcceso() ? '' : ' dj') + '" data-a="djApri">' + (showAcceso() ? '<i></i>LIVE' : '🎧 DJ') + '</button>' : '') +
     (ccVisibile(cons) ? '<button class="paga1" data-a="cuentaApri" aria-label="' + esc(T(pagoMesaOn() ? 'Pagar' : 'Tu cuenta')) + '">🧾 <b>' + (pagoMesaOn() ? pagoPill() : ccPill(cons)) + '</b></button>' : '');   // v0.10.26 · AUT-1015: il 🧾 si stacca dal pago (contratto §④)   // v0.9.23 (Alberto): un simbolo che si capisce in ogni lingua, non una parola che allunga la pillola
 }
 // la card. `lista` = la griglia intera (con foto); senza = la riga sotto la scheda (niente foto: la foto sta sopra)
@@ -1691,16 +1695,20 @@ const ccEta = (ts) => { const s = Math.max(0, Math.round((Date.now() - (Number(t
 /* il foglio a pago spento: la precuenta della mesa, solo da leggere (niente scelta delle righe, niente PAGO EXPRESS) */
 const propSug10 = (c) => Math.round((Number(c) || 0) * 0.1);   // v0.10.38: la stessa regola della sala nueva (propSug) e della carta
 function cuentaMesaHTML() {
-  const m = S.cuentaMesa, X = '<button class="pedx" data-a="cuentaChiudi">✕</button>';
+  const m = S.cuentaMesa, X = SOLO_PAGO ? '' : '<button class="pedx" data-a="cuentaChiudi">✕</button>';
+  const gz = esc(S.atiende || 'tu garzón');   // v0.10.68: «díselo a Wilbert», se il bordo ha detto chi serve la mesa
+  const box = (tit, txt, rosso) => '<div class="msg"' + (rosso ? ' style="color:var(--rosso,#c0392b)"' : '') + '><b>' + tit + '</b>' + txt + '</div>';
   /* v0.10.67 (🎛 «OGGI OGNI CASO IN CUI IL CONTO NON SI LEGGE», 25-nov): il QR di pago del garzón (`&pagar=1`) che non riesce a leggere un
-     conto da pagare non cade più sulla carta in silenzio: lo dice, e offre la carta. Nessun importo, nessun bottone di pago. */
+     conto da pagare non cade più sulla carta in silenzio: lo dice. Nessun importo, nessun bottone di pago. v0.10.68: le frasi del mockup ③. */
   if (S.pagarNo) {
     const chiusa = S.pagarNo === 'cerrada';
     return '<div class="ped cta pgx"><div class="pedtit">' + T('Tu cuenta') + ' · ' + T('Mesa') + ' ' + esc(MESA) + X + '</div>' +
-      '<div class="msg"><b>' + (chiusa ? 'Esta cuenta ya está cerrada' : 'No pudimos abrir tu cuenta') + '</b>' +
-      (chiusa ? 'Si todavía tienes algo por pagar, pide un nuevo código al garzón.' : 'Pide un nuevo código al garzón.') + '</div>' +
-      '<button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b></button></div>';
+      (chiusa ? box('Esta cuenta ya está pagada', 'No hay nada que pagar. Si crees que es un error, díselo a ' + gz + '.')
+        : box('Este QR ya no vale', 'Pídele a ' + gz + ' que te lo muestre de nuevo.', true)) +
+      (SOLO_PAGO ? '' : '<button class="envG" data-a="cuentaChiudi"><b>' + T('Volver al menú') + '</b></button>') + '</div>';
   }
+  if (SOLO_PAGO && !m) return '<div class="ped cta pgx"><div class="pedtit">' + T('Tu cuenta') + ' · ' + T('Mesa') + ' ' + esc(MESA) + '</div>' +
+    box('Leyendo tu cuenta…', 'Si tarda, revisa tu conexión. Nunca te cobramos sin mostrarte la cuenta antes.') + '</div>';
   const riga = (r) => '<div class="rcv-l"><span class="rq">' + r.q + '</span><span class="rn">' + esc(nomVis(r.nome)) + '</span><i></i><span class="rp">' + clp(r.pr * r.q) + '</span></div>';
   const agg = S.ccAgg === 'reintenta' ? '<div class="rcv-f">' + T('actualizando…') + '</div>' : '';
   let corpo;
@@ -1721,6 +1729,13 @@ function cuentaMesaHTML() {
     corpo = '<div class="rcv">' + testaFoglio('PRECUENTA') +
       (L.length ? L.map(riga).join('') + '<div class="rcv-dd"></div><div class="rcv-tot"><span>' + T('Desde este teléfono') + '</span><span>' + clp(sommaRighe(L)) + '</span></div>' : '') +
       '<div class="rcv-f">' + (S.ccAgg === 'reintenta' && ccChiave() ? T('actualizando…') : T('Solo lo que pediste desde este teléfono · el mesero tiene la cuenta completa')) + '</div></div>';
+  }
+  if (SOLO_PAGO) {   // v0.10.68 · D-576: i casi in cui da qui non si paga si dicono (mockup ③), e in fondo una riga sola per chi vuole la máquina
+    const ritorno = S.px && S.px.ritorno;
+    const nota = ritorno || !m || m.cerrada ? '' : m.pagado > 0 ? box('Parte de la cuenta ya se pagó', 'Desde aquí se paga la cuenta entera. Para lo que falta, pídele a ' + gz + ' la máquina.')
+      : !S.pxOn || S.pxOff ? box('El pago desde el teléfono no está disponible ahora', gz.charAt(0).toUpperCase() + gz.slice(1) + ' te cobra con la máquina, en tu mesa.') : '';
+    return '<div class="ped cta pgx"><div class="pedtit">' + T('Tu cuenta') + ' · ' + T('Mesa') + ' ' + esc(mesaConto()) + '</div>' + corpo + nota + pxHTML(m) +
+      (m && m.cerrada ? '' : '<div class="okv">' + '¿Prefieres la máquina? <b>Díselo a ' + gz + '</b><span>la trae a tu mesa</span></div>') + '</div>';
   }
   return '<div class="ped cta pgx"><div class="pedtit">' + T('Tu cuenta') + ' · ' + T('Mesa') + ' ' + esc(mesaConto()) + X + '</div>' + corpo + pxHTML(m) +
     (m && m.cerrada ? '' : '<div class="okv">🧾 ' + T('Pide la cuenta a tu mesero') + '<span>' + T('te la trae a la mesa') + '</span></div>' +
@@ -1760,7 +1775,7 @@ function pxHTML(m) {
   const leg = px.stato === 'leyendo';
   const pct = pxPct(), base = Number(m.resta) || 0, tot = base + Math.round(base * pct / 100), vola = px.stato === 'abriendo' || leg;
   const prop = [10, 15, 0].map((k) => '<button class="' + (pct === k ? 'on' : '') + '" data-a="pxProp" data-k="' + k + '"' + (vola ? ' disabled' : '') + '>' + (k ? k + '%' : T('sin')) + '</button>').join('');
-  return '<div class="xpr"><div class="xt">⚡ ' + T('No pierdas tiempo: usa el PAGO EXPRESS') + '</div>' +
+  return '<div class="xpr"><div class="xt">⚡ ' + (SOLO_PAGO ? 'Paga aquí, sin esperar la máquina' : T('No pierdas tiempo: usa el PAGO EXPRESS')) + '</div>' +
     '<div class="rcv-r"><span class="rprop">' + T('PROPINA') + ' ' + prop + '</span><span>' + clp(tot - base) + '</span></div>' +
     // v0.10.66 (🎛 su «LA 🟡 O1 È CURATA»): il totale è cambiato durante la rilettura ⇒ una riga SOPRA il bottone, con l'importo nuovo
     (px.cambio ? '<div class="avvs" style="text-align:center;margin:8px 0">' + esc('El total cambió a ' + clp(tot) + '. Toca de nuevo para pagar.') + '</div>' : '') +
@@ -3062,6 +3077,7 @@ async function memberCarica() {
         ['nombre', 'tel', 'email'].forEach((n) => { S.ck[n] = String(mem[n] || ''); }); S.ck.promos = !!mem.promos; }
       S.palco = false; verificaPago(); return;
     }
+    if (SOLO_PAGO && !pagoMesaOn()) { S.cuenta = true; S.palco = false; }   // v0.10.68 · D-576: dal QR del garzón la pagina è solo il foglio, da subito («Leyendo tu cuenta…»)
     pinta();
     /* v0.10.56: il QR del garzón (?pagar=1#cid&cl) apre il foglio del conto; il ritorno da Fintoc lo riapre in «confirmando».
        🔴 Il ritorno si legge PRIMA di ogni lettura del conto: un conto chiuso fa dimenticare la llave del telefono (v0.10.38), e dopo non si
@@ -3074,7 +3090,7 @@ async function memberCarica() {
       if (!scrivendo()) pinta();
     } else if (MESA && !pagoMesaOn() && cuentaLeer()) pxLeve().then(() => { if (S.cuenta && !scrivendo()) pinta(); });   // v0.10.26 · AUT-1015: una lettura, per sapere se il 🧾 c'è
     // v0.10.67: il QR di pago del garzón senza un conto da pagare lo dice (llave persa nel link · llave non valida · conto chiuso · lettura fallita)
-    if (PAGAR && MESA && !pagoMesaOn() && !pxR && !S.cuenta) {
+    if (PAGAR && MESA && !pagoMesaOn() && !pxR && !(S.ccRuta && S.cuentaMesa && !S.cuentaMesa.cerrada && ccChiave())) {
       S.pagarNo = S.cuentaMesa && S.cuentaMesa.cerrada ? 'cerrada' : 'no_leida'; S.cuenta = true; S.palco = false; if (!scrivendo()) pinta();
     }
   } catch (e) {
