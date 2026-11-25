@@ -612,7 +612,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.68</div>
+<div class="ver" id="ver">menu v0.10.69</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1753,7 +1753,7 @@ const levaHa = (v) => { const s = String(v == null ? '' : v).trim().toUpperCase(
   return s.split(',').map((x) => x.trim()).filter(Boolean).indexOf(String(LOCAL || '').toUpperCase()) >= 0; };   // = levaLocali del bordo
 const PX_K = () => 'pinsita_px_' + LOCAL;
 async function pxLeve() {
-  try { const r = await fetch(BORDO + '/salud', { cache: 'no-store' }); const j = await r.json(); const f = (j && j.flags) || {};
+  try { const r = await fetch(BORDO + '/salud', { cache: 'no-store' }); const j = await r.json(); const f = (j && j.flags) || {}; S.flags = f;   // v0.10.69: le leve del bordo restano (mdd_postre_espera_on)
     S.salaOn = levaHa(f.llave_sala_on); S.pxOn = levaHa(f.fintoc_meta_conto_on) && (!LLAVE_SALA || S.salaOn); } catch (e) { S.pxOn = false; S.salaOn = false; }
 }
 const pxPct = () => (S.px && Number.isInteger(S.px.pct) ? S.px.pct : 10);
@@ -2037,7 +2037,13 @@ function contScelte(r) {
    col suo nome e basta, op vuoto, e la cucina legge il piatto dai mods (se il nome portasse anche le scelte il cuoco le leggerebbe due volte).
    mods: g · gn · oid · o · d · cl dove PG li porta (g/oid/cl li aggiunge 🎛 BKP all'allaccio), più ref; precio_base = il contenitore. */
 // v0.10.8 (🛎 SALA, «UNA CORREZIONE ALLA FORMA»): ref e menu_beb_de NON viaggiano — la sala li usa solo sul telefono. Il libro riconosce la bebida da es_menu + precio 0.
-const contMods = (r) => { const m = contScelte(r).map(({ ref, mc, ...x }) => x); return m.length ? { mods: m, nombre: r.p.n, op: '', precio_base: prezzoOra(r.p).v, pri: 0 } : {}; };
+/* v0.10.69 (🎛 «IL MENÚ DEL DÍA ORDINATO DAL QR STAMPA TUTTO INSIEME», 25-nov · D-565/D-508): con `mdd_postre_espera_on` acceso per il locale il
+   postre del menú NON viaggia come mod del contenitore: esce come riga sua «Postre · <nome>», $0, `es_menu`, `espera:1`, `menu_categoria:'postre'`,
+   la STESSA forma della sala (letta in PG il 25-nov, pm-mwwa1fas-r5kitg), e parte quando il garzón lo manda dalla sala. Leva spenta, o /salud
+   non letta: come prima (il postre resta nei mods). Solo i postres con il loro prodotto (`ref`): «Sin postre» resta un mod. */
+const postreEspera = () => levaHa(S.flags && S.flags.mdd_postre_espera_on);
+const postreFuori = (m) => !!(postreEspera() && m && m.mc === 'postre' && m.ref);
+const contMods = (r) => { const m = contScelte(r).filter((x) => !postreFuori(x)).map(({ ref, mc, ...x }) => x); return m.length ? { mods: m, nombre: r.p.n, op: '', precio_base: prezzoOra(r.p).v, pri: 0 } : {}; };
 function bebideMenu(rr) {
   const bc = barraCats(), out = {};
   rr.forEach((r) => contScelte(r).forEach((m) => {
@@ -2048,6 +2054,16 @@ function bebideMenu(rr) {
     const key = m.ref + '|' + r.p.id;
     if (out[key]) { out[key].qty += r.q; out[key].llevar += r.q; }
     else out[key] = { id: m.ref, nombre: r.p.n + ' · ' + pb.n, precio: 0, qty: r.q, llevar: r.q, op: '', termino: '', es_menu: true, promo: '', pri: 0, cat: cat };
+  }));
+  return Object.values(out);
+}
+function postresMenu(rr) {   // v0.10.69: le righe del postre in attesa, come la sala (una per postre e per contenitore, sommate)
+  const out = {};
+  rr.forEach((r) => contScelte(r).forEach((m) => {
+    if (!postreFuori(m)) return; const pb = refProd(m.ref); if (!pb) return;
+    const key = m.ref + '|' + r.p.id;
+    if (out[key]) { out[key].qty += r.q; out[key].llevar += r.q; }
+    else out[key] = { id: m.ref, nombre: 'Postre · ' + pb.n, precio: 0, qty: r.q, llevar: r.q, op: '', termino: '', es_menu: true, espera: 1, menu_categoria: 'postre', promo: '', pri: 0, cat: '' };
   }));
   return Object.values(out);
 }
@@ -2071,6 +2087,7 @@ function payloadPedido(confirmado) {
     return Object.assign({ id: r.p.id, nombre: nomeRiga(r) + (es2 ? ' · 2x1 (llevar ' + (r.q * 2) + ')' : ''), precio: prezzoRiga(r), qty: r.q, llevar: es2 ? r.q * 2 : r.q,
       op: r.m || '', termino: r.t || '', es_menu: false, promo: es2 ? '2x1' : '', cat: r.p.c, precio_base: r.d ? prezzoOra(r.p).v : undefined }, cm); });
   items.push(...bebideMenu(righe()));
+  items.push(...postresMenu(righe()));   // v0.10.69: il postre del menú in attesa (leva mdd_postre_espera_on)
   // v0.10.61 · B = il REGALO della coppia distinta: $0 + i SUOI extra, la sua scelta, `regalo2x1:1`, esce INSIEME (niente `espera`). In CODA agli
   // items, come i B della leva qr_2x1_espera: PL[i] resta allineato a righe()[i].
   righe().forEach((r) => { if (!coppiaDi(r) || contMods(r).mods) return;
@@ -3077,6 +3094,7 @@ async function memberCarica() {
         ['nombre', 'tel', 'email'].forEach((n) => { S.ck[n] = String(mem[n] || ''); }); S.ck.promos = !!mem.promos; }
       S.palco = false; verificaPago(); return;
     }
+    if (MESA && !LLAVE_SALA) pxLeve();   // v0.10.69: una lettura di /salud all'apertura, per sapere se il postre del menú va in attesa (fire and forget)
     if (SOLO_PAGO && !pagoMesaOn()) { S.cuenta = true; S.palco = false; }   // v0.10.68 · D-576: dal QR del garzón la pagina è solo il foglio, da subito («Leyendo tu cuenta…»)
     pinta();
     /* v0.10.56: il QR del garzón (?pagar=1#cid&cl) apre il foglio del conto; il ritorno da Fintoc lo riapre in «confirmando».
