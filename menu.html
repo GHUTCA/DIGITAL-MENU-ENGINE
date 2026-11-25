@@ -612,7 +612,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.65</div>
+<div class="ver" id="ver">menu v0.10.66</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1747,18 +1747,28 @@ function pxHTML(m) {
       : '⏳ ' + T('Confirmando el pago…') + '<span>' + T('si completaste el pago, tu mesero lo verá en su pantalla en unos segundos') + '</span>') + '</div>';
   }
   const msg = px.msg ? '<div class="avvs" style="text-align:center;margin:8px 0">' + esc(T(px.msg)) + '</div>' : '';
-  if (!pxPuo(m)) return msg;
-  const pct = pxPct(), base = Number(m.resta) || 0, tot = base + Math.round(base * pct / 100), vola = px.stato === 'abriendo';
+  if (!m || (!pxPuo(m) && px.stato !== 'leyendo')) return msg;   // v0.10.66: mentre il tocco rilegge il bottone resta, muto, con «actualizando…»
+  const leg = px.stato === 'leyendo';
+  const pct = pxPct(), base = Number(m.resta) || 0, tot = base + Math.round(base * pct / 100), vola = px.stato === 'abriendo' || leg;
   const prop = [10, 15, 0].map((k) => '<button class="' + (pct === k ? 'on' : '') + '" data-a="pxProp" data-k="' + k + '"' + (vola ? ' disabled' : '') + '>' + (k ? k + '%' : T('sin')) + '</button>').join('');
   return '<div class="xpr"><div class="xt">⚡ ' + T('No pierdas tiempo: usa el PAGO EXPRESS') + '</div>' +
     '<div class="rcv-r"><span class="rprop">' + T('PROPINA') + ' ' + prop + '</span><span>' + clp(tot - base) + '</span></div>' +
-    '<button class="envG xgo" data-a="pxPaga"' + (vola ? ' disabled' : '') + '><b>⚡ PAGO EXPRESS · ' + clp(tot) + '</b><span>' + (vola ? T('Abriendo el pago…') : T('Transferencia bancaria') + ' · ' + T('Pronto: tarjetas')) + '</span></button>' +
+    '<button class="envG xgo" data-a="pxPaga"' + (vola ? ' disabled' : '') + '><b>⚡ PAGO EXPRESS · ' + clp(tot) + '</b><span>' + (leg ? T('actualizando…') : vola ? T('Abriendo el pago…') : T('Transferencia bancaria') + ' · ' + T('Pronto: tarjetas')) + '</span></button>' +
     msg + fiduciaHTML() + '</div>';
 }
 const pxErr = (j) => String((j && (j.motivo || j.error)) || '');
 async function pxPaga() {
-  const k = ccChiave(), m = S.cuentaMesa; S.px = S.px || {};
-  if (k && m && !pxFresco(m) && S.px.stato !== 'abriendo') { ccLeggi().then(() => { if (!scrivendo()) pinta(); }); return; }   // v0.10.64: vecchio ⇒ si rilegge, non si paga
+  S.px = S.px || {};
+  if (S.px.stato === 'abriendo' || S.px.stato === 'leyendo') return;
+  /* v0.10.66 (🎛 «PAGO EXPRESS DALLA SALA», 25-nov: «un primo tocco che si ferma in silenzio è un difetto»): su una lettura vecchia il tocco
+     RILEGGE e, se il conto è ancora pagabile e letto adesso, PROSEGUE da solo. Mentre rilegge il bottone dice «actualizando…». Se dopo la
+     rilettura non è pagabile (chiuso, cambiato, lettura fallita), il foglio si ridisegna e lo dice: mai un pago su un conto vecchio (v0.10.64). */
+  if (ccChiave() && S.cuentaMesa && !pxFresco(S.cuentaMesa)) {
+    S.px.stato = 'leyendo'; pinta();
+    try { await ccLeggi(); } finally { S.px.stato = ''; }
+    if (!pxPuo(S.cuentaMesa)) { if (!scrivendo()) pinta(); return; }
+  }
+  const k = ccChiave(), m = S.cuentaMesa;
   if (!k || !pxPuo(m) || S.px.stato === 'abriendo') return;
   if (!S.px.uid) S.px.uid = 'pe-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
   S.px.stato = 'abriendo'; S.px.msg = ''; pinta();
