@@ -2671,7 +2671,7 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'palcoDj' && (k === 'cartelera' || k === 'vivo')) { if (S.inviando || S.inviaStato) return; S.lingue = false; S.cuenta = false; S.busca = null; S.tus = false; S.pedido = false; S.campana = false; S.dono = null; S.dj = true; S.djTab = k; pinta(); return; }   // v0.10.48   // v0.10.44
   if (a === 'pxPaga') { pxPaga(); return; }   // v0.10.56
   if (a === 'pxProp' && /^(0|10|15)$/.test(k)) { if (S.px && S.px.stato === 'abriendo') return; S.px = Object.assign({}, S.px || {}, { pct: Number(k), uid: null, msg: '' }); pinta(); return; }
-  if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = false; S.pagarNo = null; S.pagoPaso = 'cuenta'; pinta(); return; }
+  if (a === 'lingueChiudi' || a === 'djChiudi' || a === 'cuentaChiudi') { S.lingue = false; S.dj = false; S.cuenta = SOLO_PAGO; if (!SOLO_PAGO) S.pagarNo = null;   // v0.10.68 · 🍳 su 6663a55: dal «solo pago» chiudere 🌐 torna al foglio, mai alla carta S.pagoPaso = 'cuenta'; pinta(); return; }
   if (a === 'lingua' && LANGS.some((x) => x[0] === k)) { S.lang = k; S.lingue = false; document.documentElement.lang = k; try { localStorage.setItem('pinsita_lang', k); } catch (e) {} pinta(); return; }
   // v0.9.30 · ⑤ il pago del cliente sul foglio della mesa
   if (a === 'pagoRiga') { const c = pagoConti(), r = c.L[Number(k)]; if (r && !c.pag.has(rKey(r))) { const kk = rKey(r); if (c.sel.has(kk)) c.sel.delete(kk); else c.sel.add(kk); S.pagoModo = 'righe'; } pinta(); return; }
