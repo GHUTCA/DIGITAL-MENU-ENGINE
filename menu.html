@@ -1768,6 +1768,7 @@ async function pxPaga() {
     S.px.stato = 'leyendo'; pinta();
     try { await ccLeggi(); } finally { S.px.stato = ''; }
     // 🟡 O1 di 💵 su 67784d7: se il conto è cambiato mentre rileggeva, non si paga un importo che il cliente non ha visto: si ridisegna e si ritocca
+    if (pxPuo(S.cuentaMesa) && Number(S.cuentaMesa.resta) !== visto) { S.px.uid = null; S.px.msg = 'Tu cuenta cambió mientras pagabas. Revisa el total y toca de nuevo.'; }   // 🍳 su 67784d7: la frase di monto_cambiado
     if (!pxPuo(S.cuentaMesa) || Number(S.cuentaMesa.resta) !== visto) { if (!scrivendo()) pinta(); return; }
   }
   const k = ccChiave(), m = S.cuentaMesa;
