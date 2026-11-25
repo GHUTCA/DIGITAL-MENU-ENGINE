@@ -701,6 +701,10 @@ unisci(K4, {
   ja: ['ライブ · 今夜', '今夜', 'ラインナップ', 'フォロー', '月', '火', '水', '木', '金', '土', '日'] }, 'K4');
 const CANC = { en: 'Cancel', pt: 'Cancelar', it: 'Annulla', zh: '取消', ko: '취소', de: 'Abbrechen', fr: 'Annuler', ja: 'キャンセル' };
 Object.keys(CANC).forEach((l) => { TR[l].Cancelar = CANC[l]; });
+/* v0.10.63 · D-570 (Alberto 25-nov): oggi il Pago Express è solo il modulo delle transferencias, le carte mancano ⇒ si dice al cliente, nelle 8 lingue */
+[['Transferencia bancaria', { en: 'Bank transfer', pt: 'Transferência bancária', it: 'Bonifico bancario', zh: '银行转账', ko: '계좌이체', de: 'Banküberweisung', fr: 'Virement bancaire', ja: '銀行振込' }],
+  ['Pronto: tarjetas', { en: 'Cards: coming soon', pt: 'Em breve: cartões', it: 'Presto: carte', zh: '即将支持：银行卡', ko: '카드 결제: 곧 지원', de: 'Bald: Karten', fr: 'Bientôt : cartes', ja: 'カード：近日対応' }]]
+  .forEach(([k, v]) => Object.keys(v).forEach((l) => { if (TR[l]) TR[l][k] = v[l]; }));
 function langIniziale() { let l = ''; try { l = localStorage.getItem('pinsita_lang') || ''; } catch (e) {} if (!LANGS.some((x) => x[0] === l)) l = LANG; return LANGS.some((x) => x[0] === l) ? l : 'es'; }
 const T = (w) => { const d = TR[S.lang]; return (d && d[w]) || w; };
 /* v0.9.22 (Alberto: «gli avvisi della campanella non sono tradotti»): la campanella, le sue note e le parole nuove del 2-nov, nelle 8 lingue */
@@ -1744,7 +1748,7 @@ function pxHTML(m) {
   const prop = [10, 15, 0].map((k) => '<button class="' + (pct === k ? 'on' : '') + '" data-a="pxProp" data-k="' + k + '"' + (vola ? ' disabled' : '') + '>' + (k ? k + '%' : T('sin')) + '</button>').join('');
   return '<div class="xpr"><div class="xt">⚡ ' + T('No pierdas tiempo: usa el PAGO EXPRESS') + '</div>' +
     '<div class="rcv-r"><span class="rprop">' + T('PROPINA') + ' ' + prop + '</span><span>' + clp(tot - base) + '</span></div>' +
-    '<button class="envG xgo" data-a="pxPaga"' + (vola ? ' disabled' : '') + '><b>⚡ PAGO EXPRESS · ' + clp(tot) + '</b><span>' + (vola ? T('Abriendo el pago…') : T('tarjeta · Apple Pay · Google Pay · transferencia')) + '</span></button>' +
+    '<button class="envG xgo" data-a="pxPaga"' + (vola ? ' disabled' : '') + '><b>⚡ PAGO EXPRESS · ' + clp(tot) + '</b><span>' + (vola ? T('Abriendo el pago…') : T('Transferencia bancaria') + ' · ' + T('Pronto: tarjetas')) + '</span></button>' +
     msg + fiduciaHTML() + '</div>';
 }
 const pxErr = (j) => String((j && (j.motivo || j.error)) || '');
@@ -1837,7 +1841,7 @@ function cuentaHTML() {
     '<div class="xpr"><div class="xt">⚡ ' + T('No pierdas tiempo: usa el PAGO EXPRESS') + '</div>' +
       '<div class="xb"><span>✓ ' + T('rápido') + '</span><span>✓ ' + T('seguro') + '</span><span>✓ ' + T('boleta a tu WhatsApp') + '</span></div>' +
       '<button class="envG xgo" data-xgo="1" data-a="' + (c.base <= 0 ? 'nada' : waPronto ? 'pagoExpress' : 'waFalta') + '"><b>⚡ PAGO EXPRESS · <em id="pgTotS">' + clp(c.totale) + '</em></b><span>' +
-        (c.chiude ? '🎉 ' + T('con esto cierras la mesa') : T('tarjeta · Apple Pay · Google Pay · transferencia')) + '</span></button>' +
+        (c.chiude ? '🎉 ' + T('con esto cierras la mesa') : T('Transferencia bancaria') + ' · ' + T('Pronto: tarjetas')) + '</span></button>' +
       fiduciaHTML() + '</div>' +
     '<button class="segui" data-xpos="1" data-a="' + (c.base <= 0 ? 'nada' : waPronto ? 'pagoPos' : 'waFalta') + '"' + (c.base > 0 ? '' : ' disabled') + '>' + T('Prefiero esperar la máquina (POS)') + '</button></div>';
 }
