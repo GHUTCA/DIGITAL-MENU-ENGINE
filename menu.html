@@ -1764,9 +1764,11 @@ async function pxPaga() {
      RILEGGE e, se il conto è ancora pagabile e letto adesso, PROSEGUE da solo. Mentre rilegge il bottone dice «actualizando…». Se dopo la
      rilettura non è pagabile (chiuso, cambiato, lettura fallita), il foglio si ridisegna e lo dice: mai un pago su un conto vecchio (v0.10.64). */
   if (ccChiave() && S.cuentaMesa && !pxFresco(S.cuentaMesa)) {
+    const visto = Number(S.cuentaMesa.resta);   // l'importo che il cliente aveva davanti quando ha toccato
     S.px.stato = 'leyendo'; pinta();
     try { await ccLeggi(); } finally { S.px.stato = ''; }
-    if (!pxPuo(S.cuentaMesa)) { if (!scrivendo()) pinta(); return; }
+    // 🟡 O1 di 💵 su 67784d7: se il conto è cambiato mentre rileggeva, non si paga un importo che il cliente non ha visto: si ridisegna e si ritocca
+    if (!pxPuo(S.cuentaMesa) || Number(S.cuentaMesa.resta) !== visto) { if (!scrivendo()) pinta(); return; }
   }
   const k = ccChiave(), m = S.cuentaMesa;
   if (!k || !pxPuo(m) || S.px.stato === 'abriendo') return;
