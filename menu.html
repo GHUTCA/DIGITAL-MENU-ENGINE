@@ -612,7 +612,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.69b</div>
+<div class="ver" id="ver">menu v0.10.70</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -868,13 +868,20 @@ function prezzoOra(p) {
      Il tick resta per ciò che non è prezzo: i nascosti, gli agotados, l epoch, e il segno «En Menú del día» (inMenuDia). */
   // PINSA: lo sconto del canale depto si confronta col prezzo di adesso e vince solo se è più basso (mai due sconti sommati)
   const sx = strumP(p.id);   // il prezzo dello strumento (precio fijo, botellas, recargo): dalla v0.10.40 è l unica fascia
-  if (sx && (sx.strumento || sx.recargo) && sx.precio > 0 && sx.precio !== z.v) z = { v: sx.precio, orig: sx.precio < p.p ? p.p : 0 };
+  if (sx && (sx.strumento || sx.recargo) && sx.precio > 0 && sx.precio !== z.v) z = { v: sx.precio, orig: sx.precio < p.p ? p.p : 0, strum: sx.strumento || '' };
   const dz = prezzoDepto(p);
   return dz && dz < z.v ? { v: dz, orig: p.p } : z;
 }
 /* PINSA (Alberto 29-ott) · LO SCONTO È DEL CANALE DEPTO, e solo suo: `descuento_depto_pct` nella config del local (vuota/0 = niente).
    Sul prezzo di carta del prodotto, arrotondato a $10; mai sui sovrapprezzi delle scelte, mai su chi porta Sin_Descuento.
    ⚠️ Qui si MOSTRA: il conto vero lo rifà il bordo al checkout (il telefono non decide quanto si paga). */
+/* v0.10.70 · «LA MARCA È UN CONTRATTO» (🎛 V35, sì del 25-nov a 📖 MENU; regola di Alberto: ogni promo, presente e futura, non prende né il
+   Falabella né il 40%). Quando il prezzo della riga viene da uno strumento con prezzo per parte (`precio_fijo` · `botellas`: `sx.strumento`
+   del bordo, src/strumenti.js r.258), la riga porta `promo` = l'id_strumento (es. 'MARTES-2000'): il bordo (`dtoMonto`, descuento_aut.js
+   r.31) esclude già ogni `promo` non vuoto. Il recargo da solo NON è una promo (`strum` ''), il 2x1 resta '2x1', il menú resta es_menu.
+   Lettori di `promo` non vuoto verificati il 25-nov: bordo r.11293 (riga nuova speciale ⇒ PIN) · GAS ③ (non riprezza) · sala `_fueraEscala`
+   · kds (etichetta «🎁 id»). Leva del bordo `qr_marca_promo_on` (/salud): spenta ⇒ `promo` '' come la v0.10.68, byte per byte. */
+const marcaPromo = (p) => (S.marcaOn && p ? String(prezzoOra(p).strum || '') : '');
 const R10 = (x) => Math.round(x / 10) * 10;
 function prezzoDepto(p) {
   const pct = Number((S.cfg && S.cfg.descuento_depto_pct) || 0);
@@ -1448,7 +1455,7 @@ async function inviaDono() {
   const pl = { action: 'enviarPedido', local: LOCAL, uuid: d.uuid, mesa: MESA, total: pr,
     idioma: ((navigator.language || '') + '').slice(0, 8), idioma_menu: S.lang, plataforma: ((navigator.userAgent || '') + '').slice(0, 300),
     precios_epoch: (S.tick && S.tick.precios_epoch) || '', ritmo_activo: '', member: (S.member && S.member.ok ? String(S.member.id) : ''),
-    items_json: JSON.stringify([{ id: p.id, nombre: '🎁 ' + p.n, precio: pr, qty: 1, llevar: 1, op: '', termino: '', es_menu: false, promo: '', cat: p.c }]),
+    items_json: JSON.stringify([{ id: p.id, nombre: '🎁 ' + p.n, precio: pr, qty: 1, llevar: 1, op: '', termino: '', es_menu: false, promo: marcaPromo(p), cat: p.c }]),   // v0.10.70: la marca
     regalo_para: d.mesa, regalo_nota: d.msg, regalo_firma: d.firma === 'anon' ? '' : 'de la mesa ' + MESA,
     confirmado: true, mesa_origen: 'qr', dispositivo_id: dispositivo(), ts: Date.now() };   // gesto deliberato: niente prompt fantasma (come il vivo)
   let r = null;
@@ -1753,8 +1760,10 @@ const levaHa = (v) => { const s = String(v == null ? '' : v).trim().toUpperCase(
   return s.split(',').map((x) => x.trim()).filter(Boolean).indexOf(String(LOCAL || '').toUpperCase()) >= 0; };   // = levaLocali del bordo
 const PX_K = () => 'pinsita_px_' + LOCAL;
 async function pxLeve() {
+  S.leveChieste = true;   // v0.10.70: l'avvio la chiama una volta se nessun ramo l'ha già chiamata (serve alla marca anche senza conto)
   try { const r = await fetch(BORDO + '/salud', { cache: 'no-store' }); const j = await r.json(); const f = (j && j.flags) || {}; S.flags = f;   // v0.10.69: le leve del bordo restano (mdd_postre_espera_on)
-    S.salaOn = levaHa(f.llave_sala_on); S.pxOn = levaHa(f.fintoc_meta_conto_on) && (!LLAVE_SALA || S.salaOn); } catch (e) { S.pxOn = false; S.salaOn = false; }
+    S.salaOn = levaHa(f.llave_sala_on); S.pxOn = levaHa(f.fintoc_meta_conto_on) && (!LLAVE_SALA || S.salaOn);
+    S.marcaOn = levaHa(f.qr_marca_promo_on); } catch (e) { S.pxOn = false; S.salaOn = false; S.marcaOn = false; }
 }
 const pxPct = () => (S.px && Number.isInteger(S.px.pct) ? S.px.pct : 10);
 /* v0.10.64 (🎛 «IL QR DELLA 999 MOSTRA IL CONTO DELLA 998», 25-nov): il Pago Express si offre SOLO su un conto letto adesso. Con «actualizando…»
@@ -2089,7 +2098,7 @@ function payloadPedido(confirmado) {
     if (es2 && coppia2x1()) return Object.assign({ id: r.p.id, nombre: nomeRiga(r), precio: prezzoRiga(r), qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '',
       es_menu: false, promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, precio_base: prezzoOra(r.p).v }, cm);
     return Object.assign({ id: r.p.id, nombre: nomeRiga(r) + (es2 ? ' · 2x1 (llevar ' + (r.q * 2) + ')' : ''), precio: prezzoRiga(r), qty: r.q, llevar: es2 ? r.q * 2 : r.q,
-      op: r.m || '', termino: r.t || '', es_menu: false, promo: es2 ? '2x1' : '', cat: r.p.c, precio_base: r.d ? prezzoOra(r.p).v : undefined }, cm); });
+      op: r.m || '', termino: r.t || '', es_menu: false, promo: es2 ? '2x1' : marcaPromo(r.p), cat: r.p.c, precio_base: r.d ? prezzoOra(r.p).v : undefined }, cm); });   // v0.10.70: la marca
   items.push(...bebideMenu(righe()));
   items.push(...postresMenu(righe()));   // v0.10.69: il postre del menú in attesa (leva mdd_postre_espera_on)
   // v0.10.61 · B = il REGALO della coppia distinta: $0 + i SUOI extra, la sua scelta, `regalo2x1:1`, esce INSIEME (niente `espera`). In CODA agli
@@ -3111,6 +3120,7 @@ async function memberCarica() {
       if (pxR || (S.ccRuta && S.cuentaMesa && ccChiave())) { S.cuenta = true; S.palco = false; ccPollSync(); }   // si apre solo se c'è un conto letto davvero
       if (!scrivendo()) pinta();
     } else if (MESA && !pagoMesaOn() && cuentaLeer()) pxLeve().then(() => { if (S.cuenta && !scrivendo()) pinta(); });   // v0.10.26 · AUT-1015: una lettura, per sapere se il 🧾 c'è
+    if (!S.leveChieste) pxLeve();   // v0.10.70: la leva della marca anche a un QR senza conto (una lettura all'avvio, nessun poll)
     // v0.10.67: il QR di pago del garzón senza un conto da pagare lo dice (llave persa nel link · llave non valida · conto chiuso · lettura fallita)
     if (PAGAR && MESA && !pagoMesaOn() && !pxR && !(S.ccRuta && S.cuentaMesa && !S.cuentaMesa.cerrada && ccChiave())) {
       S.pagarNo = S.cuentaMesa && S.cuentaMesa.cerrada ? 'cerrada' : 'no_leida'; S.cuenta = true; S.palco = false; if (!scrivendo()) pinta();
