@@ -992,7 +992,7 @@ function prezzoOra(p) {
   // priorità del vivo: regla-fascia > base; il barrato solo se la regola ABBASSA
   let z = { v: p.p, orig: 0 };
   // v0.10.2 (🟡ⓐ di EL GIRO): col member riconosciuto vince Precio_Member, come nel vecchio menu_digital (r.10461). Fuori dal menú del día.
-  if (S.member && S.member.ok && p.pm > 0 && !inMenuDia(p)) return { v: p.pm, orig: p.pm < p.p ? p.p : 0 };
+  if (S.member && S.member.ok && p.pm > 0 && !inMenuDia(p)) return { v: p.pm, orig: p.pm < p.p ? p.p : 0, lista: p.pm < p.p };   // v0.10.65 · 🎟: `lista` = è il prezzo La Lista (lo leggono pzHTML e la riga del pedido)
   /* v0.10.40 · AUT-1099 (Alberto 17-nov: «Martes a $2.000» spento dall admin e il QR ancora a $2.000): il prezzo di fascia NON viene più dalla
      regla del tick (`getPreciosRegla` del GAS sul foglio PRECIOS_REGLA, tampone del 30-ott): viene solo dallo STRUMENTO in PG (`strumP`, qui
      sotto), come il catalogo del mesero (`escalon_fuente strumenti`). Un TRUE rimasto sul foglio non cambia più il prezzo del QR.
@@ -1388,7 +1388,11 @@ function z3() {
 }
 /* v0.10.60 · `g` = la scheda grande: lì il tasto del 2x1 non sta nel prezzo, lo disegna g2x1HTML sotto la descrizione */
 const g2x1HTML = (p) => (!inMenuDia(p) && promo2x1(p) && !modo2x1() ? '<button class="b2x1G" data-a="va2x1">🎁 2x1 · ' + esc(T('pagas')) + ' 1 · ' + esc(T('llevas')) + ' 2 ›</button>' : '');
-function pzHTML(p, g) { const z = prezzoOra(p), sx = strumP(p.id); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : promo2x1(p) ? (modo2x1() ? '<span class="emd e2">🎁 2x1 · ' + esc(T('pagas')) + ' 1 · ' + esc(T('llevas')) + ' 2</span>' : g ? '' : '<button class="b2x1" data-a="va2x1">' + esc((sx && sx.badge) || '🎁 ' + T('En 2x1 ahora')) + ' ›</button>') : visto2x1(p) ? '<span class="emd">🎁 ' + esc(T('2x1 en la barra')) + '</span>' : sx && sx.badge ? '<span class="emd">' + esc(sx.badge) + '</span>' : ''); }
+/* v0.10.65 · 🎟 D-567 (Alberto: «il prezzo normale barrato e lo sconto che ne esce a fianco»): accanto al prezzo La Lista «−N% · ahorras $X».
+   N intero arrotondato, X al peso. Solo quando il prezzo è quello La Lista: gli altri barrati (fascia, depto) restano come sono. */
+function pzLista(z) { if (!z || !z.lista || !(z.orig > z.v)) return ''; const ah = z.orig - z.v, pct = Math.round(ah * 100 / z.orig);
+  return '<span class="emd elista">★ ' + esc(T('La Lista')) + ' · −' + pct + '% · ' + esc(T('ahorras')) + ' ' + clp(ah) + '</span>'; }
+function pzHTML(p, g) { const z = prezzoOra(p), sx = strumP(p.id); return (z.orig ? '<s>' + clp(z.orig) + '</s> ' : '') + clp(z.v) + pzLista(z) + (inMenuDia(p) ? '<span class="emd">En Menú del día</span>' : promo2x1(p) ? (modo2x1() ? '<span class="emd e2">🎁 2x1 · ' + esc(T('pagas')) + ' 1 · ' + esc(T('llevas')) + ' 2</span>' : g ? '' : '<button class="b2x1" data-a="va2x1">' + esc((sx && sx.badge) || '🎁 ' + T('En 2x1 ahora')) + ' ›</button>') : visto2x1(p) ? '<span class="emd">🎁 ' + esc(T('2x1 en la barra')) + '</span>' : sx && sx.badge ? '<span class="emd">' + esc(sx.badge) + '</span>' : ''); }
 /* ═══ il passo dopo (mockup 23-ott): chi ha chiesto dalla prima famiglia (il cibo) atterra sull'ultima (il dolce);
    chi ha chiesto altro atterra sulla prima. Le famiglie e il loro ordine vengono dalla config del locale. ═══ */
 function dopoQuesto(prods) {
@@ -2327,6 +2331,9 @@ function bebideMenu(rr) {
    (PC_REG2X1 = ' · regalo 2x1', index.js r.1417), e così fanno la sala vecchia e il GAS. Il payload resta « · regalo 2x1»; nomVis traduce
    solo dove una persona legge (il conto, i pedidos inviati, la boleta). Le chiavi (righeMie, rKey) restano sul nome grezzo. */
 function nomVis(s) { return String(s == null ? '' : s).replace(/\s*·\s*regalo 2x1\s*$/i, ' · segunda unidad 2x1'); }   // function: si chiama anche da render che girano prima di questa riga
+/* v0.10.65 · 🎟 D-567 · ⚙️ «RITIRO `precio_base`» + 📄: la riga col prezzo La Lista porta `pm: 1` e `dto_pm` = lo sconto in pesos interi PER UNITÀ
+   (prezzo normale − prezzo La Lista). 📄 misura lo sconto come dto_pm × qty, senza leggere la carta di quel giorno. Il bordo passa items_json com'è. */
+function pmRiga(p) { const z = prezzoOra(p); return z && z.lista && z.orig > z.v ? { pm: 1, dto_pm: Math.round(z.orig - z.v) } : {}; }
 function payloadPedido(confirmado) {
   carrelloRivedi();   // v0.10.10 · E1/E2: niente parte con una riga sparita o un menú con le scelte rotte
   // contratto del vivo (_enviarPedidoDigitalInner): `nombre` composto per gli umani (piatto · modo · término), i CAMPI per le
@@ -2339,7 +2346,7 @@ function payloadPedido(confirmado) {
     if (es2 && coppia2x1()) return Object.assign({ id: r.p.id, nombre: nomeRiga(r), precio: prezzoOra(r.p).v + r.d, qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '',   // v0.10.82: A = la pagata coi SUOI extra; quelli della 2ª li porta B
       es_menu: false, promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, precio_base: prezzoOra(r.p).v }, cm);
     return Object.assign({ id: r.p.id, nombre: nomeRiga(r) + (es2 ? ' · 2x1 (llevar ' + (r.q * 2) + ')' : ''), precio: prezzoRiga(r), qty: r.q, llevar: es2 ? r.q * 2 : r.q,
-      op: r.m || '', termino: r.t || '', es_menu: false, promo: es2 ? '2x1' : marcaPromo(r.p), cat: r.p.c, precio_base: r.d ? prezzoOra(r.p).v : undefined }, cm); });   // v0.10.70: la marca
+      op: r.m || '', termino: r.t || '', es_menu: false, promo: es2 ? '2x1' : marcaPromo(r.p), cat: r.p.c, precio_base: r.d ? prezzoOra(r.p).v : undefined }, cm, es2 ? {} : pmRiga(r.p)); });   // v0.10.70: la marca
   items.push(...bebideMenu(righe()));
   // v0.10.61 · B = il REGALO della coppia distinta: $0 + i SUOI extra, la sua scelta, `regalo2x1:1`, esce INSIEME (niente `espera`). In CODA agli
   // items, come i B della leva qr_2x1_espera: PL[i] resta allineato a righe()[i].
@@ -3309,12 +3316,27 @@ function memberSalir() {
   if (S.prod) { const sm = new Set(PROD_SM.map((p) => p.id)); S.prod = S.prod.filter((p) => !sm.has(p.id)); if (S.abierta && sm.has(S.abierta)) S.abierta = null; carrelloRivedi(); }
   pinta();
 }
+/* il member dal bordo: un esito ({ok:true,…} o {ok:false,error:'no_encontrado'}) oppure null = «chiedi a Google» (rotta spenta, bordo muto, 5xx, rate) */
+async function memberDalBordo() {
+  const ctrl = new AbortController(); const tid = setTimeout(() => ctrl.abort(), 3500);
+  try {
+    const r = await fetch(BORDO + '/member/' + encodeURIComponent(LOCAL) + '?id=' + encodeURIComponent(MEMBER_ID), { cache: 'no-store', signal: ctrl.signal, headers: { 'X-Borde-Token': TOKEN_LETTURA } });
+    const j = await r.json().catch(() => null);
+    if (j && j.ok === true && j.id) return j;
+    if (j && j.ok === false && j.error === 'no_encontrado') return j;   // un esito vero: il bordo ha letto PG e il member non c'è
+    return null;
+  } catch (e) { return null; } finally { clearTimeout(tid); }
+}
 async function memberCarica() {
   if (!MEMBER_ID) return;
   const ck = 'pinsita_member_' + MEMBER_ID; let ottimista = false;
   try { const c = JSON.parse(localStorage.getItem(ck) || 'null'); if (c && c.ok && String(c.id) === MEMBER_ID) { memberPinta(c); ottimista = true; } } catch (e) { /* niente */ }
   try {
-    const d = await (await fetch(GAS_MEMBER + '?action=getMember&id=' + encodeURIComponent(MEMBER_ID) + '&local=' + encodeURIComponent(LOCAL))).json();
+    /* v0.10.65 · 🎟 D-567: PRIMA il bordo (`GET /member/<LOCAL>?id=`, header X-Borde-Token, leva MEMBER_PG_ON), che legge `miembros` in PG e dà la
+       stessa forma di getMember. Solo se la rotta è spenta (404 `ruta_apagada`) o il bordo non risponde si chiede a Google, come fino alla v0.10.64.
+       Quando MEMBER_PG_ON è accesa da una settimana senza ricadute, GAS_MEMBER e questo ripiego si tolgono (la data la scrive 🎟 in bacheca). */
+    let d = await memberDalBordo();
+    if (d === null) d = await (await fetch(GAS_MEMBER + '?action=getMember&id=' + encodeURIComponent(MEMBER_ID) + '&local=' + encodeURIComponent(LOCAL))).json();
     if (MEMBER_FUORI) return;   // v0.10.13 · N1 di 💵 EL GIRO: dopo «Salir» la risposta in volo non riscrive il member nel telefono
     if (d && d.ok) { try { localStorage.setItem(ck, JSON.stringify(d)); } catch (e) { /* solo memoria */ } memberPinta(d); }
     else if (d && d.ok === false && ottimista) { try { localStorage.removeItem(ck); } catch (e) { /* niente */ } S.member = null; if (S.prod) pinta(); }
