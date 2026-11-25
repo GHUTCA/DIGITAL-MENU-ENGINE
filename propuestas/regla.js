@@ -22,7 +22,7 @@
        ts_registro più recente. Il RECARGO si applica sopra, a parte, arrotondato al peso.
      · una parte incoerente (precio su un tipo che non lo vuole, rol fuori dal menú, ora fuori dalla finestra) non rompe niente: il suo
        campo si ignora o la parte esce, e il motivo è nella risposta (il pannello la mostra in rosso). */
-/* DEMO del pannello «Propuestas» (📖 MENU BKS, 4-nov): COPIA ESATTA di pinsita-borde src/strumenti.js (blob 96f090fe, vivo 9a8c1bd),
+/* DEMO del pannello «Propuestas» (📖 MENU BKS, 4-nov): COPIA ESATTA di pinsita-borde src/strumenti.js (blob 96f090fe, vivo 9a8c1bd; + la riga `enciende` di arq-promos-jl 7a9eb66, 26-nov),
    con i due aiuti dell'orologio di src/menu51.js scritti qui al posto dell'import. Nel vero il pannello chiede l'anteprima AL BORDO: questa copia vive solo in demo/. */
 const _fmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Santiago', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
 export const GIORNO_DA_JS = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
@@ -191,6 +191,12 @@ export function strumentiAdesso(a) {
     o._restano = restano(minOra, d, hEff);
     // i cancelli dello strumento
     if (s.activo !== true) { o.perche = 'spento'; continue; }
+    /* [26-nov · ⚙️ ARQ V35 · contratto 📖 `CONTRATTO_PROMOS_JL_24NOV2026.md` §4] l'ultimo `enciende` del JL di OGGI (giorno operativo): `on:false` ⇒ non si vede
+       (QR, mesero, guardia), `perche:'apagado_jl'`; `on:true` dopo un `on:false` lo riaccende. Sta DOPO `spento`: il JL non accende ciò che l'admin ha spento.
+       Domani si riparte dall'admin (il gesto è del giorno). */
+    const en = valore(ultimoGesto(A.gesti, go.fecha, id, null, 'enciende'));
+    if (en) o.enciende = { on: en.on === true };
+    if (en && en.on === false) { o.perche = 'apagado_jl'; continue; }
     if (tx(s.grupo) && !gruppoAcceso(tx(s.grupo).toUpperCase())) { o.perche = 'grupo_spento'; continue; }
     const dias = arr(s.dias) || [];
     if (dias.length && dias.map(tx).indexOf(go.dia) < 0) { o.perche = 'non_oggi'; continue; }

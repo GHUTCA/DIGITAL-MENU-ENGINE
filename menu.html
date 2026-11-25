@@ -629,7 +629,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.77</div>
+<div class="ver" id="ver">menu v0.10.78</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1124,6 +1124,9 @@ function adove(prods) {
 }
 /* la finestra oraria del prodotto, anche oltre la mezzanotte (la stessa regola del menù vivo, productInFaja) */
 function inOrario(p) {
+  /* v0.10.67 · contratto Promos §5 (Alberto 23-nov: «l'ho attivato fino alle 18:30 e non lo vedo»): un menú-contenitore segue la finestra del SUO
+     strumento (con il push del JL), non l'orario del prodotto in carta. Bordo muto o nessuno strumento per lui ⇒ l'orario della carta, come prima. */
+  if (p.c === 'menu_contenitore') { const sc = strumDelCont(p.id); if (sc) return !!sc.visible; }
   if (p.hf === p.hi) return true;
   const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Santiago' })); const h = d.getHours() + d.getMinutes() / 60;
   return p.hf > p.hi ? (h >= p.hi && h < p.hf) : (h >= p.hi || h < p.hf);
@@ -3005,11 +3008,14 @@ function strumR() {
   if (!STRUM || !STRUM_FN || !S.prod) return null;
   const k = Math.floor(Date.now() / 60000); if (S._sr && S._srk === k) return S._sr;
   const carta = {}; for (const id in (STRUM.carta || {})) carta[id] = STRUM.carta[id];   // i contenitori che la carta ancora non ha (Menú del día)
-  for (const p of S.prod) carta[p.id] = { precio: p.p, nombre: p.n, vende: visibile(p) && inOrario(p) && !chiusa(p) };
+  for (const p of S.prod) carta[p.id] = { precio: p.p, nombre: p.n, vende: visibile(p) && (p.c === 'menu_contenitore' || inOrario(p)) && !chiusa(p) };   // v0.10.67: il contenitore non porta l'orario della carta dentro la regola (lo decide lo strumento)
   S._sr = STRUM_FN.strumentiAdesso({ strumenti: strumVig(STRUM.strumenti, (r) => r.id_strumento), parti: strumVig(STRUM.parti, (r) => r.id_strumento + '|' + r.id_producto),
     gesti: STRUM.gesti || [], carta: carta, ago86: [], local: LOCAL, now: Date.now() });
   S._srk = k; return S._sr;
 }
+/* v0.10.67: lo strumento `menu` che ha questo contenitore (il primo VISIBILE, se no il primo); null se il bordo tace o non ce n'è nessuno */
+function strumDelCont(id) { const r = strumR(); if (!r || !r.ok) return null; const t = (r.strumenti || []).filter((x) => x && x.tipo === 'menu' && x.id_contenitore === id && !/^PORTA-/i.test(String(x.id || '')));
+  return t.find((x) => x.visible) || t[0] || null; }
 const strumP = (id) => { const r = strumR(); return r && r.ok ? (r.prodotti || {})[id] || null : null; };
 const strumC = (id) => { const r = strumR(); return r && r.ok ? (r.contenitori || {})[id] || null : null; };   // v0.10.29 · AUT-1048: il prezzo del contenitore dal suo strumento
 /* il palco dagli strumenti: eventi e scene visibili adesso, chi vince il posto per primo (finestra più stretta, prioridad, più recente) */
