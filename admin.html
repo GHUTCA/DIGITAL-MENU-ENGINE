@@ -193,7 +193,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.3.5</div>
+  <div id="ver">admin v1.3.6</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -309,7 +309,7 @@ const C = { list:null, all:null, off:false, at:0, stato:'', q:'', cat:'todas', s
 const CARTA_ERR = { version_cambiata:'Otro cambió este producto · recargué', firmante_no_autorizado:'Tu PIN no puede cambiar la carta', pin_jl_invalido:'PIN incorrecto · vuelve a entrar',
   pin_jl_bloqueado:'PIN bloqueado · espera', producto_desconocido:'El producto no está en la carta', pg_no_responde:'La carta no responde · reintenta', precio_invalido:'Precio inválido', hora_invalida:'Hora inválida',
   ruta_apagada:'La carta aún no está activa', nombre_invalido:'El nombre va de 2 a 60 letras, sin espacios al inicio ni al final', categoria_desconocida:'Esa categoría no está en la carta',
-  descripcion_invalida:'La descripción va hasta 300 letras', id_producto_invalido:'El código no es válido (ej. BKS-MOJ-012)', id_en_uso:'Ese código ya existe', valor_invalido:'Revisa los datos', gesto_id_ajeno:'Error del panel · recarga la página', token_invalido:'Sin acceso al servidor' };
+  descripcion_invalida:'La descripción va hasta 300 letras', id_producto_invalido:'El código no es válido (ej. BKS-MOJ-012)', id_en_uso:'Ese código ya existe', valor_invalido:'Revisa los datos', descuento_invalido:'El descuento va de 1 a 90 %', gesto_id_ajeno:'Error del panel · recarga la página', token_invalido:'Sin acceso al servidor' };
 const PRODUCTS = () => (C.list || []);
 /* v1.2 · cosa dice la riga sotto il nome. I contenitori (Menú del día…) li accende e spegne il JL dalla sua app, nella fascia del menú. */
 /* v1.2.2 · l'orario del prodotto adesso, a Santiago, anche oltre la mezzanotte (la stessa regola di inOrario del QR). Senza orario ⇒ dentro. */
@@ -495,12 +495,40 @@ function cartaDettaglio(){
     '</div>' +
     '<div class="nota">Horas de 24 h: <b class="mono">03:00</b> es de madrugada, <b class="mono">15:00</b> de tarde. Puedes escribir solo los números (<b class="mono">330</b> → 03:30). Vacío en «Desde» = desde que abre; vacío en «Hasta» = cierra con su estación.</div>' +
     (p.sin_precio ? '<div class="nota" style="margin-top:6px">Este producto está «sin precio» por decisión: no se cambia desde aquí.</div>' : '') +
+    listaCampi(p, dis) +
     (p.categoria === 'menu_contenitore' ? '' : '<label class="ckl"><input type="checkbox" id="cf_sm"' + (p.menu_visible === false ? ' checked' : '') + (dis ? ' disabled' : '') + '><span><b>Oculto en la carta</b><small>El cliente no lo ve en la carta del QR. Si además va dentro de un menú (Menú del día…), ahí sigue saliendo, al precio del menú. Se guarda con «Guardar».</small></span></label>') +
     (dis ? '' : (C.conf === p.id_producto
       ? '<div class="capa"><span>¿Desactivar <b>' + esc(p.nombre) + '</b>? No se verá ni se venderá: ni en la carta, ni en los menús, ni en el mesero.</span>' +
         '<button class="pbt dan pie" data-ca="apagaSi">Sí, desactivar</button><button class="pbt" data-ca="apagaNo">No</button></div>'
       : '<div class="capa"><button class="pbt dan" data-ca="apaga">Desactivar producto</button><span class="nota">Lo puedes volver a activar desde «Ver desactivados».</span></div>')) +
   '</div>';
+}
+/* v1.3.6 · IL PREZZO LA LISTA (🎟 D-567 · ⚙️ gesto `precio_member` di POST /cartaAdmin, `arq-carta-precio-member` @3ef1fec, 26-nov):
+   un prezzo per il socio, scritto (CLP) OPPURE come sconto sul listino (1-90 %), mai tutti e due; tutti e due vuoti = si toglie.
+   Si mostra SOLO se la lista del bordo porta il campo (`precio_member` in GET /cartaAdmin): senza, non si saprebbe cosa c'è oggi, e un campo
+   vuoto direbbe il falso. Il prezzo che vede il cliente lo calcola la vista (anche dalla %, arrotondato a $10). Leva spenta ⇒ `ruta_apagada`. */
+const listaHa = (p) => !!p && Object.prototype.hasOwnProperty.call(p, 'precio_member') && p.categoria !== 'menu_contenitore' && !p.sin_precio;
+const listaOra = (p) => { const pct = Number(p.descuento_pct) || 0; return pct > 0 ? { pr:'', pct:String(pct) } : { pr: Number(p.precio_member) > 0 ? String(Number(p.precio_member)) : '', pct:'' }; };
+function listaCampi(p, dis){
+  if (!listaHa(p)) return '';
+  const o = listaOra(p), vede = Number(p.precio_member) > 0 ? clp(p.precio_member) : '';
+  return '<div class="row" style="margin-top:12px">' +
+    '<div class="fld"><label>★ Precio La Lista (CLP)</label><input type="number" inputmode="numeric" min="1" step="1" id="cf_lpr" value="' + esc(o.pr) + '" style="width:130px"' + (dis ? ' disabled' : '') + '></div>' +
+    '<div class="fld"><label>o descuento (%)</label><input type="number" inputmode="numeric" min="1" max="90" step="1" id="cf_lpct" value="' + esc(o.pct) + '" style="width:90px"' + (dis ? ' disabled' : '') + '></div></div>' +
+    '<div class="nota">Lo que paga un socio de La Lista. Escribe el precio <b>o</b> el descuento, no los dos. Vacíos los dos = sin precio La Lista.' + (vede ? ' Hoy el socio ve <b>' + esc(vede) + '</b>.' : '') + '</div>';
+}
+/* → [] (niente da fare) · [['precio_member', valor]] · o {err} */
+function listaGesto(p){
+  if (!listaHa(p) || !document.getElementById('cf_lpr')) return [];
+  const a = String(document.getElementById('cf_lpr').value || '').trim(), b = String((document.getElementById('cf_lpct') || {}).value || '').trim();
+  const o = listaOra(p);
+  if (a === o.pr && b === o.pct) return [];
+  if (a && b) return { err:'Precio La Lista: escribe el precio o el descuento, no los dos.' };
+  if (a) { const n = Number(a); if (!Number.isInteger(n) || n <= 0) return { err:'El precio La Lista es un número entero mayor que cero.' };
+    const base = Number((document.getElementById('cf_precio') || {}).value) || Number(p.precio);   // il precio nuovo, se cambia nello stesso «Guardar»
+    if (n >= base) return { err:'El precio La Lista tiene que ser menor que el precio de la carta.' }; return [['precio_member', { precio_member:n }]]; }
+  if (b) { const n = Number(b); if (!Number.isInteger(n) || n < 1 || n > 90) return { err:'El descuento va de 1 a 90 %.' }; return [['precio_member', { descuento_pct:n }]]; }
+  return [['precio_member', null]];
 }
 async function cartaSalva(){
   const p = C.list.find((x) => x.id_producto === C.sel); if (!p) return;
@@ -515,6 +543,7 @@ async function cartaSalva(){
   }
   const sm = document.getElementById('cf_sm');   // v1.2 · «Solo en menú» = menu_visible false
   if (sm && sm.checked !== (p.menu_visible === false)) gesti.push(['menu_visible', !sm.checked]);
+  const lg = listaGesto(p); if (lg.err) e.push(lg.err); else gesti.push(...lg);   // v1.3.6 · il prezzo La Lista, ultimo (non porta base_ts)
   if (e.length) { C.err = e.join(' '); cartaPinta(); return; }
   if (!gesti.length) { C.err = 'No hay cambios que guardar.'; cartaPinta(); return; }
   C.err = '';
