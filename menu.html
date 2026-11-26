@@ -729,8 +729,8 @@ Object.keys(CANC).forEach((l) => { TR[l].Cancelar = CANC[l]; });
 /* v0.10.75 · «LE LINGUE DEL QR» (🎛 V35 26-nov; Alberto sul QR della 998 in inglese: «pago express in inglese non si capisce e pagado è in
    spagnolo»): TUTTO il flusso del pago nelle 8 lingue. Le frasi con un pezzo variabile sono UNA frase con segnaposto (`Tf`): {g} chi serve la
    mesa (il nome dal bordo, o «tu garzón» tradotto), {m} la mesa, {t} il totale. Così ogni lingua mette il pezzo dove le serve.
-   «PAGO EXPRESS» resta la marca (come sul cartello del tavolo); la riga sopra il bottone lo spiega nella lingua del cliente (proposta di 📖,
-   finché Alberto non decide). Il banco BANCO_LINGUE_PAGO_26NOV2026.mjs fallisce se una frase del pago non ha la traduzione in tutte le lingue. */
+   Il nome «PAGO EXPRESS» si traduce corto (D-587, Alberto 26-nov: en «Express Pay»), e il Pago Express si mostra a tutte le lingue.
+   Il banco BANCO_LINGUE_PAGO_26NOV2026.mjs fallisce se una frase del pago non ha la traduzione in tutte le lingue. */
 [['tu garzón', { en: 'your waiter', pt: 'seu garçom', it: 'chi ti serve', zh: '服务员', ko: '직원', de: 'das Servicepersonal', fr: 'ton serveur', ja: 'スタッフ' }],
   ['Esta cuenta ya está pagada', { en: 'This bill is already paid', pt: 'Esta conta já está paga', it: 'Questo conto è già pagato', zh: '这张账单已付清', ko: '이 계산서는 이미 결제되었어요', de: 'Diese Rechnung ist bereits bezahlt', fr: 'Cette addition est déjà réglée', ja: 'このお会計はお支払い済みです' }],
   ['No hay nada que pagar. Si crees que es un error, díselo a {g}.', { en: 'There is nothing to pay. If you think this is a mistake, tell {g}.', pt: 'Não há nada a pagar. Se achar que é um erro, avise {g}.', it: 'Non c\'è niente da pagare. Se pensi che sia un errore, dillo a {g}.', zh: '没有需要支付的金额。如果你认为有误，请告诉{g}。', ko: '결제할 금액이 없어요. 오류라고 생각되면 {g}에게 알려 주세요.', de: 'Es gibt nichts zu bezahlen. Wenn du denkst, dass das ein Fehler ist, wende dich an {g}.', fr: 'Il n\'y a rien à payer. Si tu penses que c\'est une erreur, dis-le à {g}.', ja: 'お支払いはありません。間違いだと思う場合は{g}にお伝えください。' }],
@@ -754,7 +754,10 @@ Object.keys(CANC).forEach((l) => { TR[l].Cancelar = CANC[l]; });
   ['Confirmando el pago…', { en: 'Confirming payment…', pt: 'Confirmando o pagamento…', it: 'Conferma del pagamento…', zh: '正在确认付款…', ko: '결제 확인 중…', de: 'Zahlung wird bestätigt…', fr: 'Confirmation du paiement…', ja: 'お支払いを確認中…' }],
   ['si completaste el pago, tu mesero lo verá en su pantalla en unos segundos', { en: 'if you completed the payment, your waiter will see it on their screen in a few seconds', pt: 'se você concluiu o pagamento, seu garçom verá na tela em alguns segundos', it: 'se hai completato il pagamento, chi ti serve lo vedrà sul suo schermo tra pochi secondi', zh: '如果你已完成付款，服务员几秒钟后就会在屏幕上看到', ko: '결제를 완료했다면 몇 초 후 직원 화면에 표시돼요', de: 'wenn du die Zahlung abgeschlossen hast, sieht das Servicepersonal sie in wenigen Sekunden auf dem Bildschirm', fr: 'si tu as terminé le paiement, ton serveur le verra sur son écran dans quelques secondes', ja: 'お支払いが完了していれば、数秒でスタッフの画面に表示されます' }],
   ['sin', { en: 'none', pt: 'sem', it: 'no', zh: '不要', ko: '없음', de: 'ohne', fr: 'sans', ja: 'なし' }],
-  ['No pierdas tiempo: usa el PAGO EXPRESS', { en: 'Skip the wait: pay from your phone with PAGO EXPRESS', pt: 'Não perca tempo: pague pelo celular com o PAGO EXPRESS', it: 'Non perdere tempo: paga dal telefono con il PAGO EXPRESS', zh: '不用等待：用手机通过 PAGO EXPRESS 付款', ko: '기다리지 마세요: PAGO EXPRESS로 휴대폰에서 결제', de: 'Keine Wartezeit: mit PAGO EXPRESS am Handy bezahlen', fr: 'Ne perds pas de temps : paie depuis ton téléphone avec PAGO EXPRESS', ja: '待たずに：PAGO EXPRESSでスマホからお支払い' }],
+  /* D-587 (Alberto 26-nov ~11:40: «EXPRESS PAY funzionerà… lo teniamo e mostriamo a tutti»): il nome si TRADUCE, corto; lo spagnolo resta
+     «PAGO EXPRESS». Niente riga lunga di spiegazione. */
+  ['PAGO EXPRESS', { en: 'Express Pay', pt: 'Pagamento Express', it: 'Paga Express', zh: '快捷支付', ko: '익스프레스 결제', de: 'Express-Zahlung', fr: 'Paiement Express', ja: 'エクスプレス払い' }],
+  ['No pierdas tiempo: usa el PAGO EXPRESS', { en: 'Skip the wait: Express Pay', pt: 'Não perca tempo: Pagamento Express', it: 'Non perdere tempo: Paga Express', zh: '不用等待：快捷支付', ko: '기다리지 마세요: 익스프레스 결제', de: 'Keine Wartezeit: Express-Zahlung', fr: 'Ne perds pas de temps : Paiement Express', ja: '待たずに：エクスプレス払い' }],
   ['PROPINA', { en: 'TIP', pt: 'GORJETA', it: 'MANCIA', zh: '小费', ko: '팁', de: 'TRINKGELD', fr: 'POURBOIRE', ja: 'チップ' }],
   ['Abriendo el pago…', { en: 'Opening payment…', pt: 'Abrindo o pagamento…', it: 'Apertura del pagamento…', zh: '正在打开付款…', ko: '결제 화면을 여는 중…', de: 'Zahlung wird geöffnet…', fr: 'Ouverture du paiement…', ja: 'お支払い画面を開いています…' }],
   ['Alguien de tu mesa ya está pagando esta cuenta. Espera un momento.', { en: 'Someone at your table is already paying this bill. Please wait a moment.', pt: 'Alguém da sua mesa já está pagando esta conta. Aguarde um momento.', it: 'Qualcuno del tuo tavolo sta già pagando questo conto. Attendi un momento.', zh: '你这桌已经有人在支付这张账单。请稍等。', ko: '같은 테이블의 누군가가 이미 결제 중이에요. 잠시 기다려 주세요.', de: 'Jemand an deinem Tisch bezahlt diese Rechnung bereits. Bitte warte einen Moment.', fr: 'Quelqu\'un de ta table est déjà en train de régler cette addition. Patiente un instant.', ja: '同じテーブルの方がすでにお支払い中です。少々お待ちください。' }],
@@ -1886,7 +1889,7 @@ function pxHTML(m) {
     '<div class="rcv-r"><span class="rprop">' + T('PROPINA') + ' ' + prop + '</span><span>' + clp(tot - base) + '</span></div>' +
     // v0.10.66 (🎛 su «LA 🟡 O1 È CURATA»): il totale è cambiato durante la rilettura ⇒ una riga SOPRA il bottone, con l'importo nuovo
     (px.cambio ? '<div class="avvs" style="text-align:center;margin:8px 0">' + esc(Tf('El total cambió a {t}. Toca de nuevo para pagar.', { t: clp(tot) })) + '</div>' : '') +
-    '<button class="envG xgo" data-a="pxPaga"' + (vola ? ' disabled' : '') + '><b>⚡ PAGO EXPRESS · ' + clp(tot) + '</b><span>' + (leg ? T('actualizando…') : vola ? T('Abriendo el pago…') : T('Transferencia bancaria') + ' · ' + T('Pronto: tarjetas')) + '</span></button>' +
+    '<button class="envG xgo" data-a="pxPaga"' + (vola ? ' disabled' : '') + '><b>⚡ ' + T('PAGO EXPRESS') + ' · ' + clp(tot) + '</b><span>' + (leg ? T('actualizando…') : vola ? T('Abriendo el pago…') : T('Transferencia bancaria') + ' · ' + T('Pronto: tarjetas')) + '</span></button>' +
     msg + fiduciaHTML() + '</div>';
 }
 const pxErr = (j) => String((j && (j.motivo || j.error)) || '');
@@ -1992,7 +1995,7 @@ function cuentaHTML() {
           '<button class="segui xno" data-a="waNo">' + T('no quiero boleta por WhatsApp') + '</button>') + '</div>' +
     '<div class="xpr"><div class="xt">⚡ ' + T('No pierdas tiempo: usa el PAGO EXPRESS') + '</div>' +
       '<div class="xb"><span>✓ ' + T('rápido') + '</span><span>✓ ' + T('seguro') + '</span><span>✓ ' + T('boleta a tu WhatsApp') + '</span></div>' +
-      '<button class="envG xgo" data-xgo="1" data-a="' + (c.base <= 0 ? 'nada' : waPronto ? 'pagoExpress' : 'waFalta') + '"><b>⚡ PAGO EXPRESS · <em id="pgTotS">' + clp(c.totale) + '</em></b><span>' +
+      '<button class="envG xgo" data-xgo="1" data-a="' + (c.base <= 0 ? 'nada' : waPronto ? 'pagoExpress' : 'waFalta') + '"><b>⚡ ' + T('PAGO EXPRESS') + ' · <em id="pgTotS">' + clp(c.totale) + '</em></b><span>' +
         (c.chiude ? '🎉 ' + T('con esto cierras la mesa') : T('Transferencia bancaria') + ' · ' + T('Pronto: tarjetas')) + '</span></button>' +
       fiduciaHTML() + '</div>' +
     '<button class="segui" data-xpos="1" data-a="' + (c.base <= 0 ? 'nada' : waPronto ? 'pagoPos' : 'waFalta') + '"' + (c.base > 0 ? '' : ' disabled') + '>' + T('Prefiero esperar la máquina (POS)') + '</button></div>';
