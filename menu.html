@@ -612,7 +612,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.70</div>
+<div class="ver" id="ver">menu v0.10.73</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1770,7 +1770,14 @@ const pxPct = () => (S.px && Number.isInteger(S.px.pct) ? S.px.pct : 10);
    (`ccAgg` reintenta) il foglio mostra l'ultimo conto visto, che può essere già morto e pagato: lì non si paga. Fresco = esito del bordo < 30 s. */
 const PX_FRESCO_MS = 30000;
 const pxFresco = (m) => !!(m && S.ccAgg !== 'reintenta' && Number(m.ts) > 0 && Date.now() - Number(m.ts) < PX_FRESCO_MS);
-const pxPuo = (m) => !!(S.pxOn && !S.pxOff && ccChiave() && m && pxFresco(m) && !m.cerrada && !m.resta_ignota && Number(m.pagado) === 0 && Number(m.resta) > 0 && Number(m.total) > 0);
+/* v0.10.73 · FRENO (🎛 V35 26-nov «IL QR DELLA 998 MOSTRA IL CONTO DELLA 997», 🔴 di denaro): la llave è una per LOCALE (AUT-1056), quindi un telefono
+   che ha ordinato alla 997 e apre il QR della 998 legge e PAGHEREBBE il conto della 997. Finché Alberto non decide la regola, il Pago Express si
+   offre SOLO se la mesa del conto (dal bordo: la mesa del conto FINALE, index.js _cuentaConto `ris.mesa`) è la mesa di QUESTO QR. Il conto
+   spostato col mover del garzón ha già la mesa nuova e paga come prima. Mesa del conto assente ⇒ niente Pago Express (si chiude, non si apre).
+   Il foglio resta come oggi, con la riga che dice di chi è il conto. Prezzo dichiarato: una mesa in junta letta dal QR di una mesa secondaria
+   ha la mesa della principal ⇒ lì niente Pago Express (paga col garzón). */
+const pxMesaOk = (m) => { const a = String((m && m.mesa) == null ? '' : m.mesa).trim(); return !!a && a === String(MESA == null ? '' : MESA).trim(); };
+const pxPuo = (m) => !!(S.pxOn && !S.pxOff && ccChiave() && m && pxMesaOk(m) && pxFresco(m) && !m.cerrada && !m.resta_ignota && Number(m.pagado) === 0 && Number(m.resta) > 0 && Number(m.total) > 0);
 function pxHTML(m) {
   const px = S.px || {};
   if (px.ritorno && px.ritorno.cancelado) px.msg = px.msg || 'Pago cancelado. Puedes intentarlo de nuevo o pedir la cuenta a tu mesero.';   // pay: cancel_url = &pe=no
@@ -1780,6 +1787,9 @@ function pxHTML(m) {
       : '⏳ ' + T('Confirmando el pago…') + '<span>' + T('si completaste el pago, tu mesero lo verá en su pantalla en unos segundos') + '</span>') + '</div>';
   }
   const msg = px.msg ? '<div class="avvs" style="text-align:center;margin:8px 0">' + esc(T(px.msg)) + '</div>' : '';
+  /* v0.10.73 · il freno: il conto di un'altra mesa si mostra, non si paga qui (solo se il Pago Express ci sarebbe stato) */
+  if (m && S.pxOn && !S.pxOff && !m.cerrada && Number(m.resta) > 0 && !pxMesaOk(m)) return msg + '<div class="avvs" style="text-align:center;margin:8px 0">' +
+    esc(m.mesa ? 'Esta cuenta es de la mesa ' + m.mesa + '. Para pagarla, pídele la cuenta a tu garzón.' : 'Para pagar esta cuenta, pídele la cuenta a tu garzón.') + '</div>';
   if (!m || (!pxPuo(m) && px.stato !== 'leyendo')) return msg;   // v0.10.66: mentre il tocco rilegge il bottone resta, muto, con «actualizando…»
   const leg = px.stato === 'leyendo';
   const pct = pxPct(), base = Number(m.resta) || 0, tot = base + Math.round(base * pct / 100), vola = px.stato === 'abriendo' || leg;
