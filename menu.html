@@ -629,7 +629,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.75</div>
+<div class="ver" id="ver">menu v0.10.77</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -665,6 +665,11 @@ const PUNTO_RE = /^[A-Z0-9]{1,8}$/;   // v0.10.0 · contratto §②: punto e por
 const PUNTO = !MESA && !DEPTO && !KIOSCO && PUNTO_RE.test(String(qs.get('punto') || '').toUpperCase()) ? String(qs.get('punto')).toUpperCase() : '';
 const PORTA = !MESA && !DEPTO && !KIOSCO && !PUNTO && PUNTO_RE.test(String(qs.get('porta') || '').toUpperCase()) ? String(qs.get('porta')).toUpperCase() : '';
 const CANAL = MESA ? 'mesa' : DEPTO ? 'depto' : KIOSCO ? 'kiosco' : PUNTO ? 'punto' : PORTA ? 'porta' : '';
+/* v0.10.77 (Alberto 26-nov: «un link del menu per Instagram, senza ordini, solo consultazione · togli il bottone DJ ma metti il video Aurora»):
+   `?l=<L>&ig=1`, senza canale, è la VETRINA: nessun canale ⇒ nessun ＋ (pide() falso, come oggi), niente bottone DJ né pillole del DJ, e nel palco
+   entrano gli eventi e le scene ATTIVI col loro video anche fuori dalla loro finestra (Aurora è scaduta il 22-nov: qui si vede lo stesso).
+   Un QR con mesa, depto, kiosco, punto o porta non è mai la vetrina. Senza `ig=1` il menù è quello di ieri, byte per byte nel comportamento. */
+const IG = !CANAL && qs.get('ig') === '1';
 const CHECKOUT = CANAL === 'depto' || CANAL === 'kiosco';
 const RITORNO_CK = /^[\w-]{8,64}$/.test(qs.get('ck') || '') ? qs.get('ck') : '';   // il ritorno dal pago (vedi checkout)
 // la lingua del TELEFONO (grezza, viaggia nel pedido come `idioma`); quella del MENÙ è S.lang, che il 🌐 cambia (v0.8)
@@ -1158,7 +1163,7 @@ function z1() {
     ((S.busca !== null && S.busca !== undefined) || SOLO_PAGO ? '' : '<button class="bsc" data-a="abreBusca" aria-label="' + esc(T('Buscar')) + '" title="' + esc(T('Buscar')) + '">🔍</button>') +   // v0.10.15: fuori dalla riga in basso
     '<button class="glb" data-a="lingueApri" aria-label="Idioma">🌐</button>' +
     /* v0.10.44 (Alberto 18-nov: «LIVE non dovrebbe chiamarsi così, dovrebbe chiamarsi semplicemente DJ, e quando suonano andare LIVE») */
-    (djInfo() && !SOLO_PAGO ? '<button class="live' + (showAcceso() ? '' : ' dj') + '" data-a="djApri">' + (showAcceso() ? '<i></i>LIVE' : '🎧 DJ') + '</button>' : '') +
+    (djInfo() && !SOLO_PAGO && !IG ? '<button class="live' + (showAcceso() ? '' : ' dj') + '" data-a="djApri">' + (showAcceso() ? '<i></i>LIVE' : '🎧 DJ') + '</button>' : '') +
     (ccVisibile(cons) ? '<button class="paga1" data-a="cuentaApri" aria-label="' + esc(T(pagoMesaOn() ? 'Pagar' : 'Tu cuenta')) + '">🧾 <b>' + (pagoMesaOn() ? pagoPill() : ccPill(cons)) + '</b></button>' : '');   // v0.10.26 · AUT-1015: il 🧾 si stacca dal pago (contratto §④)   // v0.9.23 (Alberto): un simbolo che si capisce in ogni lingua, non una parola che allunga la pillola
 }
 // la card. `lista` = la griglia intera (con foto); senza = la riga sotto la scheda (niente foto: la foto sta sopra)
@@ -3012,7 +3017,11 @@ function slidesStrum() {
   const r = strumR(); if (!r || !r.ok) return null;
   const vig = {}; for (const x of strumVig(STRUM.strumenti, (q) => q.id_strumento)) vig[x.id_strumento] = x;
   const w = STRUM_FN.slotAdesso(r, ['evento', 'escena'], Date.now(), Object.values(vig));
-  const vis = r.strumenti.filter((x) => x.visible && (x.tipo === 'evento' || x.tipo === 'escena')).sort((a, b) => (w && a.id === w.id ? -1 : w && b.id === w.id ? 1 : ((Number((vig[a.id] || {}).orden) || 99) - (Number((vig[b.id] || {}).orden) || 99))));   // v0.10.45: l ordine dell admin
+  const igVale = (g) => !!(IG && g && g.activo !== false && !g.borrado && g.media && g.media.video);   // v0.10.77: la vetrina mostra i video attivi anche fuori orario
+  const ord = (x) => Number((vig[x.id] || {}).orden) || 99;
+  const vis = r.strumenti.filter((x) => (x.visible || igVale(vig[x.id])) && (x.tipo === 'evento' || x.tipo === 'escena')).sort((a, b) => (IG
+    ? ((a.tipo === 'evento' ? 0 : 1) - (b.tipo === 'evento' ? 0 : 1)) || (ord(a) - ord(b))   // v0.10.77: nella vetrina la serata (gli eventi) apre, poi le scene, nell ordine dell admin
+    : (w && a.id === w.id ? -1 : w && b.id === w.id ? 1 : (ord(a) - ord(b)))));   // v0.10.45: l ordine dell admin
   const rel = (u) => String(u || '').replace(/^https:\/\/menu\.pinsita\.cl\//, '');
   return vis.map((x) => {
     const g = vig[x.id] || {}, t = (g.textos && g.textos.es) || {}, m = g.media || {}, cta = g.cta || {};
@@ -3022,7 +3031,7 @@ function slidesStrum() {
     if (cta.tipo === 'producto' && cta.destino) { o.t = 'plato'; o.id = cta.destino; }
     else if (cta.tipo === 'familia' && cta.destino) { o.t = 'show'; o.fin_fam = cta.destino; o.fin_tit = o.tit; o.fin_sub = o.sub; o.fin_cta = 'Ver ' + cta.destino; }
     else o.t = 'evento';
-    o.dj = !!(g.textos && g.textos.dj && g.textos.dj.nombre);   // v0.10.48: la card del DJ porta le sue pillole
+    o.dj = !IG && !!(g.textos && g.textos.dj && g.textos.dj.nombre);   // v0.10.77: nella vetrina niente pillole del DJ   // v0.10.48: la card del DJ porta le sue pillole
     return o;
   });
 }
