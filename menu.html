@@ -291,6 +291,23 @@ button{font-family:inherit}
 .prep .op button b{color:var(--oro);font-weight:800}
 .prep .op button.on{background:var(--ok);border-color:var(--ok);color:var(--ok-txt)}
 .prep .op button.on b{color:var(--ok-txt)}
+/* v0.10.74 · AUT-1225 · LE CARD DEL MENÚ (mockup v2 approvato da Alberto il 18-nov, 4_CANTIERE_MENU/MOCKUP_MDD_CARD_16NOV2026.html), a leva `mdd_card_on`.
+   Prefisso mc-: .tg/.fx/.oc esistono già nella carta con un altro disegno. Solo pelle: il tocco resta `sceglie` con la stessa data-k. */
+.prep .q .mok{font-size:11px;font-weight:800;color:var(--ok);margin-left:4px}
+.mc-strip{display:flex;gap:7px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 0 4px 4px;margin:0 -4px;-webkit-overflow-scrolling:touch}
+.mc-oc{position:relative;flex:0 0 104px;scroll-snap-align:start;display:flex;flex-direction:column;gap:4px;background:var(--card);border:1.5px solid var(--linea2);border-radius:12px;padding:5px;text-align:left;font:inherit;color:var(--txt);cursor:pointer}
+.mc-oc img,.mc-oc .mc-tg{width:100%;aspect-ratio:4/3;object-fit:cover;object-position:center 60%;border-radius:8px;background:var(--sup)}
+.mc-tg{display:grid;place-items:center;text-align:center;padding:6px;color:var(--txt);font:400 12.5px/1.15 Fraunces,Georgia,serif}
+.mc-onm{font-size:12.5px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px}
+.mc-onm b{color:var(--oro);font-weight:800}
+.mc-oc.on{border-color:var(--ok);box-shadow:0 0 0 1.5px var(--ok) inset}
+.mc-oc i{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--ok);color:var(--ok-txt);font-style:normal;font-weight:800;font-size:13px;display:grid;place-items:center}
+.mc-cue{font-size:11px;color:var(--suave);margin-top:4px}
+.mc-fx{margin:0 13px 10px;display:flex;gap:10px;align-items:center;padding:7px;border:1px solid var(--linea2);border-radius:12px;background:var(--card)}
+.mc-fx img,.mc-fx .mc-tg{flex:0 0 76px;width:76px;aspect-ratio:4/3;object-fit:cover;border-radius:8px;background:var(--sup)}
+.mc-fx .mc-tg{font-size:10.5px}
+.mc-fxt{min-width:0}.mc-fxq{font-size:11px;font-weight:800;color:var(--suave);text-transform:uppercase;letter-spacing:.06em}.mc-fxn{font-size:14px;font-weight:600}
+.mc-fxi{display:inline-block;margin-top:3px;font-size:11px;font-weight:800;color:var(--ok);background:rgba(95,122,31,.12);border-radius:99px;padding:2px 8px}
 .ver .vsc{font-size:11px;font-weight:800;color:var(--ok-chiaro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .addb.chiede{border-style:dashed}
 .lin .lsc{display:block;font-size:11px;font-weight:600;color:var(--ok-chiaro)}
@@ -612,7 +629,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.73</div>
+<div class="ver" id="ver">menu v0.10.74</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1134,8 +1151,27 @@ function pedGrande(p) {
   return '<div class="bdb st" hidden><i data-a="meno" data-k="' + esc(ks) + '">−</i><u>' + q + ' ' + T('en tu pedido') + '</u><i data-a="mas" data-k="' + k + '">＋</i></div>';
 }
 // le domande nella scheda grande: chip, una risposta per domanda; il sovrapprezzo SUL chip
+/* v0.10.74 · AUT-1225 · LE CARD DEL MENÚ (mockup v2 approvato da Alberto il 18-nov). Alberto 26-nov sul QR della 997: «quell'includes non si vede
+   troppo bene… l'avevamo cambiata per una con i piatti con le foto». Solo i menú-contenitore, solo a leva `mdd_card_on` (/salud, elenco di locali).
+   Le domande nell'ordine di sempre: un pezzo fisso è una card «Incluido» con la foto, una domanda è una striscia di card con la foto del suo
+   prodotto (`ref`), o il riquadro col nome. Il tocco è lo STESSO di oggi (`sceglie` · stessa data-k) ⇒ stessa scelta, stessa chiave, stesso pedido. */
+const mddCard = (p) => !!(p && p.c === 'menu_contenitore' && p.mods && S.mddCardOn);
+function mcFoto(o, cls) { const pb = o && o.ref ? refProd(o.ref) : null; return pb && pb.img ? '<img loading="lazy" src="' + esc(pb.img) + '" alt="">' : '<div class="mc-tg' + (cls || '') + '">' + esc(o ? o.o : '') + '</div>'; }
+function domandeCardHTML(p) {
+  const sel = selDi(p);
+  return domande(p).map((q) => {
+    if (fisso(p, q)) { const o = q.ops[0];
+      return '<div class="mc-fx">' + mcFoto(o) + '<div class="mc-fxt"><div class="mc-fxq">' + esc(T(q.tit)) + '</div><div class="mc-fxn">' + esc(o.o) + '</div><div class="mc-fxi">' + esc(T('Incluido')) + '</div></div></div>'; }
+    const v = q.ops.some((o) => o.o === sel[q.k]) ? sel[q.k] : '';
+    return '<div class="prep"><div class="q">' + esc(T(q.tit)) + (v ? ' <span class="mok">✓ ' + esc(v) + '</span>' : ' <span class="mreq">' + esc(T('elige uno')) + '</span>') + '</div><div class="mc-strip">' +
+      q.ops.map((o) => '<button class="mc-oc' + (v === o.o ? ' on' : '') + '" data-a="sceglie" data-k="' + esc(p.id + '|' + q.k + '|' + o.o) + '">' + mcFoto(o) +
+        '<div class="mc-onm">' + esc(o.o) + (o.d ? ' <b>+' + clp(o.d) + '</b>' : '') + '</div>' + (v === o.o ? '<i>✓</i>' : '') + '</button>').join('') +
+      '</div><div class="mc-cue">' + q.ops.length + ' ' + esc(T('opciones')) + (q.ops.length > 2 ? ' · ' + esc(T('desliza →')) : '') + '</div></div>';
+  }).join('');
+}
 function domandeHTML(p) {
   if (!pide() || !ordinabile(p)) return '';
+  if (mddCard(p)) return domandeCardHTML(p);   // v0.10.74 · AUT-1225
   const inc = domande(p).filter((q) => fisso(p, q)).map((q) => q.ops[0].o);   // v0.10.25: i pezzi inclusi, in una riga sola
   // v0.10.61: la stessa domanda serve due volte (1ª e 2ª unità del 2x1): cambia solo dove si scrive la risposta e il tasto
   const prep = (q, sel, az, pre) => '<div class="prep' + (pre ? ' p2' : '') + '"><div class="q">' + (pre ? '🎁 2º · ' : pareja2x1(p) ? '1º · ' : '') + esc(T(q.tit)) + (sel[q.k] ? '' : ' <span class="mreq">' + esc(T('elige uno')) + '</span>') + '</div><div class="op">' +
@@ -1763,7 +1799,8 @@ async function pxLeve() {
   S.leveChieste = true;   // v0.10.70: l'avvio la chiama una volta se nessun ramo l'ha già chiamata (serve alla marca anche senza conto)
   try { const r = await fetch(BORDO + '/salud', { cache: 'no-store' }); const j = await r.json(); const f = (j && j.flags) || {};
     S.salaOn = levaHa(f.llave_sala_on); S.pxOn = levaHa(f.fintoc_meta_conto_on) && (!LLAVE_SALA || S.salaOn);
-    S.marcaOn = levaHa(f.promo_marca_on); } catch (e) { S.pxOn = false; S.salaOn = false; S.marcaOn = false; }
+    S.marcaOn = levaHa(f.promo_marca_on);
+    S.mddCardOn = levaHa(f.mdd_card_on); } catch (e) { S.pxOn = false; S.salaOn = false; S.marcaOn = false; S.mddCardOn = false; }   // v0.10.74 · AUT-1225: le card del menú
 }
 const pxPct = () => (S.px && Number.isInteger(S.px.pct) ? S.px.pct : 10);
 /* v0.10.64 (🎛 «IL QR DELLA 999 MOSTRA IL CONTO DELLA 998», 25-nov): il Pago Express si offre SOLO su un conto letto adesso. Con «actualizando…»
@@ -3108,7 +3145,7 @@ async function memberCarica() {
       if (pxR || (S.ccRuta && S.cuentaMesa && ccChiave())) { S.cuenta = true; S.palco = false; ccPollSync(); }   // si apre solo se c'è un conto letto davvero
       if (!scrivendo()) pinta();
     } else if (MESA && !pagoMesaOn() && cuentaLeer()) pxLeve().then(() => { if (S.cuenta && !scrivendo()) pinta(); });   // v0.10.26 · AUT-1015: una lettura, per sapere se il 🧾 c'è
-    if (!S.leveChieste) pxLeve();   // v0.10.70: la leva della marca anche a un QR senza conto (una lettura all'avvio, nessun poll)
+    if (!S.leveChieste) pxLeve().then(() => { if (S.mddCardOn && S.abierta && !scrivendo()) pinta(); });   // v0.10.70: la leva della marca anche a un QR senza conto (una lettura all'avvio, nessun poll) · v0.10.74: un menú già aperto si ridisegna a card
     // v0.10.67: il QR di pago del garzón senza un conto da pagare lo dice (llave persa nel link · llave non valida · conto chiuso · lettura fallita)
     if (PAGAR && MESA && !pagoMesaOn() && !pxR && !(S.ccRuta && S.cuentaMesa && !S.cuentaMesa.cerrada && ccChiave())) {
       S.pagarNo = S.cuentaMesa && S.cuentaMesa.cerrada ? 'cerrada' : 'no_leida'; S.cuenta = true; S.palco = false; if (!scrivendo()) pinta();
