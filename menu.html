@@ -612,7 +612,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.69</div>
+<div class="ver" id="ver">menu v0.10.69b</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -2042,7 +2042,11 @@ function contScelte(r) {
    la STESSA forma della sala (letta in PG il 25-nov, pm-mwwa1fas-r5kitg), e parte quando il garzón lo manda dalla sala. Leva spenta, o /salud
    non letta: come prima (il postre resta nei mods). Solo i postres con il loro prodotto (`ref`): «Sin postre» resta un mod. */
 const postreEspera = () => levaHa(S.flags && S.flags.mdd_postre_espera_on);
-const postreFuori = (m) => !!(postreEspera() && m && m.mc === 'postre' && m.ref);
+/* v0.10.69b (i due gialli di 💵 EL GIRO su 8682e65, 25-nov): esce dal menù SOLO un postre che non porta denaro e che il telefono riconosce.
+   ① con un sovrapprezzo (`d > 0`) resta nei mods: chi rilegge il contenitore come base + Σ mods.d non deve perderlo (oggi in PG tutti i
+   postres dei menù hanno precio_delta 0) · ② senza il suo prodotto in carta (`refProd` null) resta nei mods: la riga a parte non saprebbe
+   il nome, e il postre sparirebbe dal pedido. In entrambi i casi esce INSIEME al menù, come prima della v0.10.69. */
+const postreFuori = (m) => !!(postreEspera() && m && m.mc === 'postre' && m.ref && !(Number(m.d) > 0) && refProd(m.ref));
 const contMods = (r) => { const m = contScelte(r).filter((x) => !postreFuori(x)).map(({ ref, mc, ...x }) => x); return m.length ? { mods: m, nombre: r.p.n, op: '', precio_base: prezzoOra(r.p).v, pri: 0 } : {}; };
 function bebideMenu(rr) {
   const bc = barraCats(), out = {};
