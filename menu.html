@@ -612,7 +612,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.66</div>
+<div class="ver" id="ver">menu v0.10.67</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -2974,9 +2974,9 @@ function opinionApri(dove, uuid) {
    Cosa fa, come il vecchio menu_digital (r.14971-15060): ?member=ID (ricordato nel telefono, stessa chiave del vecchio) → getMember sul GAS
    (tab MIEMBROS) ⇒ saluto «Hola <nombre>», i piatti Solo_Member della sua famiglia entrano in carta, l'ID va nel pedido.
    Ottimista: l'ultimo riconoscimento vive nel telefono e si pinta subito; il GAS corregge solo se smentisce.
-   🔴 È L'UNICA LETTURA DA GOOGLE DI QUESTO MENÙ. La uccide: `miembros` in PG (🚚 MIGRA) + GET /member/<LOCAL> del bordo (🎛 BKP),
-   data ven 13 (bacheca «IL MEMBER BLOCCA: ORE, DA DOVE LEGGE, ORA NUOVA»). Quel giorno questo fetch passa al bordo e GAS_MEMBER sparisce. */
-const GAS_MEMBER = 'https://script.google.com/macros/s/AKfycbzZkS3bBaYc34uJ6wXP9FG13i58-NT0FJp964vqkUYbRObUxryeRb9l_Fz24kb42f5t/exec';
+   ✅ v0.10.67 · 🎟 D-567: GAS_MEMBER È TOLTO. Il member si legge SOLO dal bordo (GET /member/<LOCAL> su PG `miembros`): il 15-dic i fogli
+   Google si cancellano (🎛 V35 «MAR 15 DICEMBRE SI CANCELLANO TUTTI I FOGLI») e un ripiego verso Google sarebbe un fetch nel vuoto.
+   ⚠️ Si spedisce SOLO con MEMBER_PG_ON accesa e il seme di MIEMBROS già in PG: senza, il socio resta solo l'ottimista del telefono. */
 const MEMBER_ID = (() => { const okId = (x) => /^[A-Za-z0-9_-]{2,30}$/.test(x || '');
   const q = qs.get('member'); const k = 'menu_member_' + (LOCAL || 'X');
   try { if (okId(q)) { localStorage.setItem(k, q); return q; } const m = localStorage.getItem(k); return okId(m) ? m : ''; } catch (e) { return okId(q) ? q : ''; } })();
@@ -3006,7 +3006,7 @@ async function listaLeve() {
   try { const r = await fetch(BORDO + '/salud', { cache: 'no-store' }); const j = await r.json(); S.registroOn = levaHa(((j && j.flags) || {}).miembro_registro_on); }
   catch (e) { S.registroOn = false; }   // il bordo non risponde: il bottone non c'è, come oggi
 }
-/* il member dal bordo: un esito ({ok:true,…} o {ok:false,error:'no_encontrado'}) oppure null = «chiedi a Google» (rotta spenta, bordo muto, 5xx, rate) */
+/* il member dal bordo: un esito ({ok:true,…} o {ok:false,error:'no_encontrado'}) oppure null = «non so» (rotta spenta, bordo muto, 5xx, rate): resta l'ottimista */
 async function memberDalBordo() {
   const ctrl = new AbortController(); const tid = setTimeout(() => ctrl.abort(), 3500);
   try {
@@ -3023,14 +3023,13 @@ async function memberCarica() {
   try { const c = JSON.parse(localStorage.getItem(ck) || 'null'); if (c && c.ok && String(c.id) === MEMBER_ID) { memberPinta(c); ottimista = true; } } catch (e) { /* niente */ }
   try {
     /* v0.10.65 · 🎟 D-567: PRIMA il bordo (`GET /member/<LOCAL>?id=`, header X-Borde-Token, leva MEMBER_PG_ON), che legge `miembros` in PG e dà la
-       stessa forma di getMember. Solo se la rotta è spenta (404 `ruta_apagada`) o il bordo non risponde si chiede a Google, come fino alla v0.10.64.
-       Quando MEMBER_PG_ON è accesa da una settimana senza ricadute, GAS_MEMBER e questo ripiego si tolgono (la data la scrive 🎟 in bacheca). */
-    let d = await memberDalBordo();
-    if (d === null) d = await (await fetch(GAS_MEMBER + '?action=getMember&id=' + encodeURIComponent(MEMBER_ID) + '&local=' + encodeURIComponent(LOCAL))).json();
+       stessa forma di getMember. v0.10.67: niente più ripiego su Google — se il bordo non sa (null), resta l'ottimista e non si tocca niente. */
+    const d = await memberDalBordo();
+    if (d === null) return;
     if (MEMBER_FUORI) return;   // v0.10.13 · N1 di 💵 EL GIRO: dopo «Salir» la risposta in volo non riscrive il member nel telefono
     if (d && d.ok) { try { localStorage.setItem(ck, JSON.stringify(d)); } catch (e) { /* solo memoria */ } memberPinta(d); }
     else if (d && d.ok === false && ottimista) { try { localStorage.removeItem(ck); } catch (e) { /* niente */ } S.member = null; if (S.prod) pinta(); }
-  } catch (e) { /* Google lento o giù: resta l'ottimista, la carta non aspetta */ }
+  } catch (e) { /* bordo lento o giù: resta l'ottimista, la carta non aspetta */ }
 }
 (async function avvio() {
   S.lang = langIniziale(); document.documentElement.lang = S.lang;   // v0.8: la lingua del telefono, o quella scelta col 🌐 l'ultima volta
