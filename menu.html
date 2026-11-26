@@ -612,7 +612,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.70</div>
+<div class="ver" id="ver">menu v0.10.71</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -928,8 +928,19 @@ function modsJSON(s) {
       .filter((o) => o.o && !/[¦§|]/.test(o.o)) })).filter((g) => g.ops.length >= 1);
   return out.length ? out : null;
 }
+/* v0.10.71 (🎛 V35 26-nov, il limite di 🍳: «un postre esaurito (86) respinge il menù intero dal QR»): il bordo guarda l'86 sulle RIGHE del pedido
+   (index.js r.7947), e dalla v0.10.69 il postre è una riga sua ⇒ un Tiramisu in 86 faceva tornare indietro il menù intero. Ora il QR NON offre
+   un postre in 86: nel gruppo del postre (mc 'postre') restano gli altri postres e «Sin postre». Se non resta niente, il gruppo diventa un
+   pezzo «Sin postre» già scelto (`virt`) che non viaggia (né mod né riga), e il menù parte sempre. I gruppi restano TUTTI e nello stesso
+   ordine: la chiave del carrito allinea le risposte per posizione (`pz[i]`). */
+const postreAgot = (o) => !!(o && o.ref && (() => { const pb = refProd(o.ref); return pb && esaurito(pb); })());
 function domande(p) {
-  if (p.mods) return p.mods;
+  if (p.mods) {
+    if (p.c !== 'menu_contenitore' || !p.mods.some((g) => g.mc === 'postre' && g.ops.some(postreAgot))) return p.mods;
+    return p.mods.map((g) => { if (g.mc !== 'postre') return g; const ops = g.ops.filter((o) => !postreAgot(o));
+      if (ops.length === g.ops.length) return g;
+      return Object.assign({}, g, { agot: true, ops: ops.length ? ops : [{ o: 'Sin postre', d: 0, ref: '', oid: '', cl: '', virt: true }] }); });
+  }
   if (!SCELTE_ON) return [];
   const out = [], TO = String((S.cfg && S.cfg.termino_opciones) || '').split(',').map((s) => s.trim()).filter(Boolean);
   if (p.carne && TO.length) out.push({ k: 't', tit: 'El término de tu carne', ops: TO.map((o) => ({ o, d: 0 })) });
@@ -949,7 +960,7 @@ function sceltaDi(p, m) {
   const dq = p ? domande(p) : [];
   if (p && p.mods) { const pz = String(m || '').split('¦'); let d = 0;
     dq.forEach((q, i) => { d += ((q.ops.find((x) => x.o === pz[i]) || {}).d) || 0; });
-    return { m: pz.filter((x) => x && x !== 'Como viene').join(' · '), d }; }
+    return { m: pz.filter((x, i) => x && x !== 'Como viene' && (!dq[i] || dq[i].ops.some((o) => o.o === x))).join(' · '), d }; }   // v0.10.71: un postre andato in 86 non si mostra più come scelto
   const g = dq.find((x) => x.k === 'm');
   return { m: m === 'Como viene' ? '' : m, d: (g && (g.ops.find((x) => x.o === m) || {}).d) || 0 };
 }
@@ -992,8 +1003,9 @@ const selDi = (p) => (S.sel[p.id] = S.sel[p.id] || {});
 /* v0.10.25 (Alberto 13-nov: il Menú del día è «entrada fissa + plato + bebida + postre»): in un menú-contenitore un gruppo con UNA sola opzione
    col suo ref non è una domanda, è un pezzo INCLUSO. È già scelto, non si tocca, viaggia nei mods come le altre scelte (la cucina lo legge) e
    nella scheda si dice «Incluye». Il giorno che quel gruppo ha due opzioni, torna una domanda da sola. Fuori dai contenitori niente cambia. */
-const fisso = (p, q) => !!(p && p.c === 'menu_contenitore' && q.ops.length === 1 && q.ops[0].ref);
-const risposta = (p, q) => (fisso(p, q) ? q.ops[0].o : selDi(p)[q.k]);
+const fisso = (p, q) => !!(p && p.c === 'menu_contenitore' && q.ops.length === 1 && (q.ops[0].ref || q.agot));   // v0.10.71: anche il postre rimasto solo dopo l'86
+// v0.10.71: una risposta vale solo se è ancora fra le opzioni (un postre scelto e poi andato in 86 non conta più: si sceglie di nuovo)
+const risposta = (p, q) => { if (fisso(p, q)) return q.ops[0].o; const v = selDi(p)[q.k]; return q.ops.some((o) => o.o === v) ? v : undefined; };
 /* v0.10.61 · LA 2ª DEL 2x1 (Alberto 20-nov, Daiquiri sabores: «e se il secondo lo voglio di mango? vedi come lo facciamo in SALA»). Come la sala
    (sala.html mods2Pareja + _cmPonerPareja r.7015-7075 · sala_nueva v0.15.25 haPareja/dosConOpz): solo i prodotti con le domande di Postgres
    (p.mods), presi IN 2x1 (dalla categoria «2x1 ahora»). «Igual», di partenza, è la riga di oggi: «llevar 2» con la stessa scelta, niente cambia.
@@ -1138,7 +1150,7 @@ function domandeHTML(p) {
   if (!pide() || !ordinabile(p)) return '';
   const inc = domande(p).filter((q) => fisso(p, q)).map((q) => q.ops[0].o);   // v0.10.25: i pezzi inclusi, in una riga sola
   // v0.10.61: la stessa domanda serve due volte (1ª e 2ª unità del 2x1): cambia solo dove si scrive la risposta e il tasto
-  const prep = (q, sel, az, pre) => '<div class="prep' + (pre ? ' p2' : '') + '"><div class="q">' + (pre ? '🎁 2º · ' : pareja2x1(p) ? '1º · ' : '') + esc(T(q.tit)) + (sel[q.k] ? '' : ' <span class="mreq">' + esc(T('elige uno')) + '</span>') + '</div><div class="op">' +
+  const prep = (q, sel, az, pre) => '<div class="prep' + (pre ? ' p2' : '') + '"><div class="q">' + (pre ? '🎁 2º · ' : pareja2x1(p) ? '1º · ' : '') + esc(T(q.tit)) + (q.ops.some((o) => o.o === sel[q.k]) ? '' : ' <span class="mreq">' + esc(T('elige uno')) + '</span>') + '</div><div class="op">' +
     q.ops.map((o) => '<button class="' + (sel[q.k] === o.o ? 'on' : '') + '" data-a="' + az + '" data-k="' + esc(p.id + '|' + q.k + '|' + o.o) + '">' + esc(o.o) +
       (o.d ? ' <b>+' + clp(o.d) + '</b>' : '') + '</button>').join('') + '</div></div>';
   const libere = domande(p).filter((q) => !fisso(p, q));
@@ -2040,7 +2052,7 @@ const _uuid = () => { try { if (crypto && crypto.randomUUID) return crypto.rando
 function contScelte(r) {
   if (!r.p || r.p.c !== 'menu_contenitore' || !r.p.mods) return [];
   const k = r.k.split('§')[2] || '', pz = k.split('¦');
-  return domande(r.p).map((q, i) => { const op = q.ops.find((x) => x.o === pz[i]); return op ? { g: q.g || '', gn: q.tit, oid: op.oid || '', o: op.o, d: op.d, cl: op.cl || '', ref: op.ref || '', mc: q.mc || '' } : null; }).filter(Boolean);
+  return domande(r.p).map((q, i) => { const op = q.ops.find((x) => x.o === pz[i] && !x.virt); /* v0.10.71: il «Sin postre» dell'86 non viaggia */ return op ? { g: q.g || '', gn: q.tit, oid: op.oid || '', o: op.o, d: op.d, cl: op.cl || '', ref: op.ref || '', mc: q.mc || '' } : null; }).filter(Boolean);
 }
 /* v0.10.7 · la STESSA forma della sala viva (🛎 SALA, «LA FORMA DELLA RIGA DI MENÚ», sala.html aea5c1c r.7499-7597): il contenitore si chiama
    col suo nome e basta, op vuoto, e la cucina legge il piatto dai mods (se il nome portasse anche le scelte il cuoco le leggerebbe due volte).
@@ -2308,7 +2320,10 @@ async function inviaOra(confirmado) {
   } else if (r && r.need === 'mesa_confirmar') { S.need = ''; S.errore = 'No pudimos enviar tu pedido. Tu pedido sigue aquí: reintenta o avísale a tu mesero.'; }
   else if (r && r.need === 'items_agotados') {
     const fuera = Array.isArray(r.agotados) ? r.agotados : [];
-    fuera.forEach((x) => { const p = x && S.prod.find((y) => y.id === x.id); if (p) { S.agotLoc.push(p.id); Object.keys(S.cart).forEach((k) => { if (k.split('§')[0] === p.id) delete S.cart[k]; }); } });
+    fuera.forEach((x) => { const p = x && S.prod.find((y) => y.id === x.id); if (p) { S.agotLoc.push(p.id); Object.keys(S.cart).forEach((k) => { if (k.split('§')[0] === p.id) delete S.cart[k]; }); }
+      /* v0.10.71: il postre di un menú non è una riga del carrito (è una scelta del contenitore) e spesso non sta in S.prod («Solo en menú»):
+         si segna esaurito sul telefono lo stesso, così `domande` non lo offre più e il menù riparte al prossimo invio, senza quel postre. */
+      else if (x && x.id && refProd(x.id) && S.agotLoc.indexOf(x.id) < 0) S.agotLoc.push(x.id); });
     nota('😕 Se acabó justo ahora: ' + fuera.map((x) => (x && x.nombre) || '').filter(Boolean).join(' · ') + ' — lo sacamos de tu pedido');
   } else if (r && r.need === 'carta_vieja') {
     if (S.tick && r.precios) { S.tick.precios = r.precios; S.tick.precios_epoch = r.precios_epoch || S.tick.precios_epoch; }
@@ -2858,7 +2873,25 @@ function sceltaRotta(p, k) {
   const kk = k.split('§');
   return rotta(kk[2]) || (kk[4] !== undefined && rotta(kk[4]));   // v0.10.61: anche la scelta della 2ª del 2x1
 }
+/* v0.10.71: un postre del carrito andato in 86. Se nel suo gruppo resta UNA opzione obbligata (l'altro postre, o «Sin postre»), la chiave si
+   corregge da sola e il menù resta nel carrito: il cliente non rifà plato e bebida per un postre che non c'è. Se restano più postres decide lui:
+   lì vale la guardia E2 qui sotto («Elige de nuevo»). Solo i gruppi del postre ridotti dall'86 (`agot`), mai le altre domande. */
+function postreRipara() {
+  const tolti = [];
+  for (const k of Object.keys(S.cart || {})) {
+    const kk = k.split('§'), p = S.prod.find((x) => x.id === kk[0]);
+    if (!p || p.c !== 'menu_contenitore' || !p.mods || kk[4] !== undefined) continue;
+    const dq = domande(p), pz = String(kk[2] || '').split('¦'); let cambia = false;
+    dq.forEach((q, i) => { if (q.agot && fisso(p, q) && pz[i] !== q.ops[0].o && !q.ops.some((o) => o.o === pz[i])) { if (pz[i]) tolti.push(pz[i]); pz[i] = q.ops[0].o; cambia = true; } });
+    if (!cambia) continue;
+    kk[2] = pz.join('¦'); const nk = kk.join('§');
+    S.cart[nk] = (S.cart[nk] || 0) + S.cart[k]; delete S.cart[k];
+  }
+  if (tolti.length) nota('😕 ' + T('Se acabó') + ': ' + [...new Set(tolti)].join(', ') + ' — ' + T('tu menú sigue, sin ese postre'));
+  return tolti.length > 0;
+}
 function carrelloRivedi() {
+  postreRipara();
   const via = [];
   for (const k of Object.keys(S.cart || {})) {
     const id = k.split('§')[0], p = S.prod.find((x) => x.id === id);
