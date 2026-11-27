@@ -193,7 +193,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.3.7</div>
+  <div id="ver">admin v1.3.8</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -338,7 +338,7 @@ function statoRiga(p){
     if (st.some((r) => r.activo && (ad.find((s) => s.id === r.id_strumento) || {}).visible)) return 'Activado por el JL · se vende ahora';
     return 'Encendido por el JL · fuera de su horario';
   }
-  if (p.menu_visible === false) return 'Oculto en la carta · no sale en el QR';   // la parola sta nella riga piccola: accanto al nome l'ellissi la tagliava
+  if (p.menu_visible === false) return 'Oculto · no sale en el QR ni en la sala';   // v1.3.8 · AUT-1278: toglie il prodotto anche dalla carta del mesero (catalogo_pg.js), non solo dal QR   // la parola sta nella riga piccola: accanto al nome l'ellissi la tagliava
   return p.vendible ? 'Se vende ahora' : 'No se vende ahora';
 }
 const nome = (id) => { const p = PRODUCTS().find((x) => x.id_producto === id); return p ? p.nombre : id; };
@@ -495,7 +495,7 @@ function cartaDettaglio(){
     '</div>' +
     '<div class="nota">Horas de 24 h: <b class="mono">03:00</b> es de madrugada, <b class="mono">15:00</b> de tarde. Puedes escribir solo los números (<b class="mono">330</b> → 03:30). Vacío en «Desde» = desde que abre; vacío en «Hasta» = cierra con su estación.</div>' +
     (p.sin_precio ? '<div class="nota" style="margin-top:6px">Este producto está «sin precio» por decisión: no se cambia desde aquí.</div>' : '') +
-    (p.categoria === 'menu_contenitore' ? '' : '<label class="ckl"><input type="checkbox" id="cf_sm"' + (p.menu_visible === false ? ' checked' : '') + (dis ? ' disabled' : '') + '><span><b>Oculto en la carta</b><small>El cliente no lo ve en la carta del QR. Si además va dentro de un menú (Menú del día…), ahí sigue saliendo, al precio del menú. Se guarda con «Guardar».</small></span></label>') +
+    (p.categoria === 'menu_contenitore' ? '' : '<label class="ckl"><input type="checkbox" id="cf_sm"' + (p.menu_visible === false ? ' checked' : '') + (dis ? ' disabled' : '') + '><span><b>Oculto en la carta</b><small>No sale en el QR <b>ni en la carta del garzón</b>: nadie lo puede pedir solo. Si además va dentro de un menú (Menú del día…), ahí sigue saliendo, al precio del menú. Se guarda con «Guardar».</small></span></label>') +
     (dis ? '' : (C.conf === p.id_producto
       ? '<div class="capa"><span>¿Desactivar <b>' + esc(p.nombre) + '</b>? No se verá ni se venderá: ni en la carta, ni en los menús, ni en el mesero.</span>' +
         '<button class="pbt dan pie" data-ca="apagaSi">Sí, desactivar</button><button class="pbt" data-ca="apagaNo">No</button></div>'
