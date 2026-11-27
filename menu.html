@@ -1702,9 +1702,12 @@ function cartelHTML(c) {
 function cartelMostra() { const c = cartelDati(); if (!c) return; let el = document.getElementById('cartel');
   if (!el) { el = document.createElement('div'); el.id = 'cartel'; el.className = 'ct-vel'; (document.getElementById('app') || document.body).appendChild(el); }   // dentro #app: lì vive il gestore dei tocchi
   el.innerHTML = cartelHTML(c); el.hidden = false; }
-function cartelChiudi() { const el = document.getElementById('cartel'); if (el) el.hidden = true; S.cartelVisto = true; try { sessionStorage.setItem(CARTEL_K(), '1'); } catch (e) { /* solo memoria */ } }
+/* 🍳 27-nov (🟡 su 94e3775): il «già visto» in localStorage, non in sessionStorage — lo scanner del QR apre una scheda nuova a ogni scansione,
+   e con sessionStorage il cartello riappariva ogni volta. La chiave porta il giorno operativo: domani è un'altra chiave. Si toglie quella di ieri. */
+function cartelChiudi() { const el = document.getElementById('cartel'); if (el) el.hidden = true; S.cartelVisto = true;
+  try { const k = CARTEL_K(); for (let i = localStorage.length - 1; i >= 0; i--) { const x = localStorage.key(i); if (x && x !== k && x.indexOf('pinsita_cartel_' + LOCAL + '_') === 0) localStorage.removeItem(x); } localStorage.setItem(k, '1'); } catch (e) { /* solo memoria */ } }
 /* all'avvio, dopo le leve: una volta per giorno operativo e per telefono; dopo, resta la riga «Ahora: …» sotto il nome del locale */
-function cartelForse() { if (!cartelDati()) return; let visto = false; try { visto = sessionStorage.getItem(CARTEL_K()) === '1'; } catch (e) { visto = false; }
+function cartelForse() { if (!cartelDati()) return; let visto = false; try { visto = localStorage.getItem(CARTEL_K()) === '1'; } catch (e) { visto = false; }
   if (visto) S.cartelVisto = true; else cartelMostra(); }
 function cartelStriscia() { if (!S.cartelVisto) return ''; const c = cartelDati(); if (!c) return ''; const q = c.ahora[0] || c.dopo[0]; if (!q) return '';
   return '<button class="ct-str" data-a="cartelApri">' + esc(c.ahora[0] ? T('Ahora') + ': ' + q.t + ' · ' + q.s : (c.abre ? T('Abrimos a las') + ' ' + c.abre : c.sez + ': ' + q.t)) + ' ›</button>'; }
