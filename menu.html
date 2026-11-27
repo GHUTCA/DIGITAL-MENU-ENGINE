@@ -615,6 +615,26 @@ button{font-family:inherit}
   --acc:#E8590C;--oro:#B45309;--ok:#5F7A1F;--ok-txt:#FFFFFF;--ok-chiaro:#4D6418;--male:#C62828}
 :root.claro .z1{background:#FFFFFF}
 :root.claro .mini{background:#F6F3EE}
+/* v0.10.80 · il cartello d'ingresso (QR senza tavolo, leva cartel_entrada_on) */
+.ct-vel{position:fixed;inset:0;z-index:80;background:rgba(20,14,10,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center}
+.ct-vel[hidden]{display:none}
+.ct-card{width:100%;max-width:520px;max-height:88vh;overflow:auto;border-radius:24px 24px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom));background:var(--card);color:var(--txt)}
+.ct-hola{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.ct-hola b{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:22px}
+.ct-x{width:32px;height:32px;border-radius:50%;border:0;background:var(--linea);color:var(--txt);font-size:14px;flex:0 0 auto}
+.ct-hora{font-size:12px;color:var(--suave);margin:2px 0 12px}
+.ct-abre{font-family:Fraunces,Georgia,serif;font-size:19px;margin-bottom:2px}
+.ct-sec{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin:12px 0 6px;color:var(--oro)}
+.ct-it{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--linea);margin-bottom:6px}
+.ct-it.luego{background:transparent;border:1px dashed var(--linea2)}
+.ct-e{font-size:20px;width:26px;text-align:center;flex:0 0 auto}
+.ct-t{flex:1;min-width:0}
+.ct-t b{display:block;font-size:14px}
+.ct-t span{font-size:12px;color:var(--suave)}
+.ct-p{font-weight:700;font-size:13px;white-space:nowrap}
+.ct-btn{margin-top:14px;width:100%;padding:13px;border:0;border-radius:14px;font:inherit;font-weight:700;font-size:14px;background:var(--oro);color:var(--card)}
+.ct-nota{font-size:11px;color:var(--suave);text-align:center;margin-top:8px}
+.ct-str{border:0;background:none;padding:0;font:inherit;font-size:inherit;color:var(--oro);font-weight:600;text-align:left;cursor:pointer}
 .ckf{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .ckf label{font-size:12px;font-weight:800;color:var(--suave)}
 .ckf input[type=text],.ckf input[type=tel],.ckf input[type=email]{width:100%;box-sizing:border-box;background:var(--card);color:var(--txt);border:1.5px solid var(--linea2);border-radius:10px;padding:11px 10px;font:inherit;font-size:15px}
@@ -629,7 +649,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.79</div>
+<div class="ver" id="ver">menu v0.10.80</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -832,6 +852,17 @@ const maiusc = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   ['de', { '¿Y el segundo?': 'Und das zweite?', 'Igual': 'Gleich', 'Distinto': 'Anders' }],
   ['fr', { '¿Y el segundo?': 'Et le deuxième ?', 'Igual': 'Pareil', 'Distinto': 'Différent' }],
   ['ja', { '¿Y el segundo?': '2つ目は？', 'Igual': '同じ', 'Distinto': '別のもの' }]
+].forEach(([l, d]) => { TR[l] = Object.assign(TR[l] || {}, d); });
+/* v0.10.80 · il cartello d'ingresso, nelle 8 lingue («Esta noche» c'era già) */
+[
+  ['en', { 'Bienvenido a': 'Welcome to', 'Ahora': 'Now', 'Más tarde': 'Later', 'Hoy': 'Today', 'Abrimos a las': 'We open at', 'hasta las': 'until', 'desde las': 'from', 'de': 'from', 'a': 'to', 'y': '&', 'DJ en vivo': 'Live DJ', 'Ver la carta': 'See the menu', 'Para pedir, escanea el QR de tu mesa': 'To order, scan the QR on your table' }],
+  ['pt', { 'Bienvenido a': 'Bem-vindo ao', 'Ahora': 'Agora', 'Más tarde': 'Mais tarde', 'Hoy': 'Hoje', 'Abrimos a las': 'Abrimos às', 'hasta las': 'até às', 'desde las': 'a partir das', 'de': 'das', 'a': 'às', 'y': 'e', 'DJ en vivo': 'DJ ao vivo', 'Ver la carta': 'Ver o cardápio', 'Para pedir, escanea el QR de tu mesa': 'Para pedir, escaneie o QR da sua mesa' }],
+  ['it', { 'Bienvenido a': 'Benvenuti da', 'Ahora': 'Adesso', 'Más tarde': 'Più tardi', 'Hoy': 'Oggi', 'Abrimos a las': 'Apriamo alle', 'hasta las': 'fino alle', 'desde las': 'dalle', 'de': 'dalle', 'a': 'alle', 'y': 'e', 'DJ en vivo': 'DJ dal vivo', 'Ver la carta': 'Vedi il menù', 'Para pedir, escanea el QR de tu mesa': 'Per ordinare, scansiona il QR del tuo tavolo' }],
+  ['zh', { 'Bienvenido a': '欢迎光临', 'Ahora': '现在', 'Más tarde': '稍后', 'Hoy': '今天', 'Abrimos a las': '开门时间', 'hasta las': '至', 'desde las': '自', 'de': '', 'a': '至', 'y': '和', 'DJ en vivo': '现场DJ', 'Ver la carta': '查看菜单', 'Para pedir, escanea el QR de tu mesa': '点餐请扫描您桌上的二维码' }],
+  ['ko', { 'Bienvenido a': '환영합니다', 'Ahora': '지금', 'Más tarde': '이따가', 'Hoy': '오늘', 'Abrimos a las': '오픈 시간', 'hasta las': '~', 'desde las': '시작', 'de': '', 'a': '~', 'y': '·', 'DJ en vivo': '라이브 DJ', 'Ver la carta': '메뉴 보기', 'Para pedir, escanea el QR de tu mesa': '주문하려면 테이블의 QR을 스캔하세요' }],
+  ['de', { 'Bienvenido a': 'Willkommen im', 'Ahora': 'Jetzt', 'Más tarde': 'Später', 'Hoy': 'Heute', 'Abrimos a las': 'Wir öffnen um', 'hasta las': 'bis', 'desde las': 'ab', 'de': 'von', 'a': 'bis', 'y': 'und', 'DJ en vivo': 'Live-DJ', 'Ver la carta': 'Zur Karte', 'Para pedir, escanea el QR de tu mesa': 'Zum Bestellen den QR-Code am Tisch scannen' }],
+  ['fr', { 'Bienvenido a': 'Bienvenue au', 'Ahora': 'Maintenant', 'Más tarde': 'Plus tard', 'Hoy': "Aujourd'hui", 'Abrimos a las': 'Nous ouvrons à', 'hasta las': "jusqu'à", 'desde las': 'à partir de', 'de': 'de', 'a': 'à', 'y': 'et', 'DJ en vivo': 'DJ en live', 'Ver la carta': 'Voir la carte', 'Para pedir, escanea el QR de tu mesa': 'Pour commander, scanne le QR de ta table' }],
+  ['ja', { 'Bienvenido a': 'ようこそ', 'Ahora': '今', 'Más tarde': 'このあと', 'Hoy': '今日', 'Abrimos a las': '開店', 'hasta las': '〜', 'desde las': '開始', 'de': '', 'a': '〜', 'y': '・', 'DJ en vivo': 'ライブDJ', 'Ver la carta': 'メニューを見る', 'Para pedir, escanea el QR de tu mesa': 'ご注文はテーブルのQRをスキャンしてください' }]
 ].forEach(([l, d]) => { TR[l] = Object.assign(TR[l] || {}, d); });
 const S = { cfg: null, prod: [], tick: null, fam: null, cat: null, abierta: null, cart: {}, pedido: false,
   inviando: null, inviaStato: '', uuid: '', uuidFirma: '', listo: null, need: '', errore: '', agotLoc: [], campana: false, sel: {},
@@ -1155,7 +1186,7 @@ function gruppi() {
 /* ═══ il disegno ═══ */
 function z1() {
   const brand = (S.cfg && S.cfg.brand_name) || LOCAL;
-  const sotto = CANAL ? esc(POSTO()) : 'Para pedir, escanea el QR de tu mesa';
+  const sotto = CANAL ? esc(POSTO()) : (cartelStriscia() || 'Para pedir, escanea el QR de tu mesa');   // v0.10.80: dopo il cartello, la sua riga «Ahora: …»
   // la casetta compare FUORI dall'inizio (mockup 21-ott: «come ritorno all'inizio?»); all'inizio non serve
   const casa = inPalco() || SOLO_PAGO ? '' : '<button class="casa" data-a="inicio" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>';
   // v0.8 · la riga intera del mockup v1.1: 🌐 sempre · LIVE solo a show acceso · Pagar (l'unico pieno) dopo il primo invio, con l'importo
@@ -1598,7 +1629,7 @@ function djDati() {
      il formato di prima (un oggetto) si legge come lista di uno. */
   const fasce = (k) => (Array.isArray(set[k]) ? set[k] : (set[k] && typeof set[k] === 'object' ? [set[k]] : [])).filter((q) => q && q.d);
   const oggi = fasce(giornoOpDj()), ora = oggi.find((x) => djDentro(x)) || oggi.find((x) => djMin(x.d) > djMinOra()) || oggi[0] || null;
-  return { nombre: String(dj.nombre), instagram: String(dj.instagram || ''), poster: String(m.poster || m.imagen || '').replace(/^https:\/\/menu\.pinsita\.cl\//, ''),
+  return { nombre: String(dj.nombre), instagram: String(dj.instagram || ''), genero: String(dj.genero || '').trim().slice(0, 40), poster: String(m.poster || m.imagen || '').replace(/^https:\/\/menu\.pinsita\.cl\//, ''),
     fasce, oggi, ora: ora ? { d: DJ_NOMI_G[giornoOpDj()], n: ora.n || dj.nombre, h: ora.d } : null, desde: oggi[0] ? oggi[0].d : '',
     cartelera: [1, 2, 3, 4, 5, 6, 0].flatMap((k) => fasce(k).map((x) => ({ d: DJ_NOMI_G[k], n: x.n || dj.nombre, h: x.d }))) };
 }
@@ -1615,6 +1646,68 @@ function showAcceso() {
   const de = oraDec(dd || sh.desde, 23);
   return a > de ? (h >= de && h < a) : (h >= de || h < a);
 }
+/* ═══ v0.10.80 · IL CARTELLO D'INGRESSO (Alberto 27-nov, mockup `4_CANTIERE_MENU/MOCKUP_CARTELLO_INGRESSO_27NOV2026.html`, «la bienvenida va
+   bene, ma AURORA non si capisce: specifica DJ en vivo House Music»). Al QR SENZA tavolo (l'ingresso `?local=bks`, Instagram) una volta al
+   giorno: «Ahora» (le promo visibili adesso, col push del JL) · «Más tarde / Esta noche / Hoy» (quelle che aprono dopo, oggi) · il DJ della
+   sera. Si compone dalla STESSA regola del QR (`strumR`) e da `djDati`: niente foglio (la bienvenida di Google è morta l'11-nov e non si porta).
+   Leva `cartel_entrada_on` (/salud, elenco di locali), `?cartel=1` / `?cartel=0` su un telefono. Spenta ⇒ niente, il QR di prima. ═══ */
+const CARTEL_K = () => 'pinsita_cartel_' + LOCAL + '_' + giornoOp(Date.now());
+function cartelLeva() { const q = qs.get('cartel'); if (q === '0') return false; if (q === '1') return true; return !!S.cartelOn; }
+const hm5 = (t) => String(t || '').slice(0, 5);
+function cartelDati() {
+  if (CANAL || SOLO_PAGO || !cartelLeva()) return null;
+  const r = strumR(); if (!r || !r.ok) return null;
+  const ahora = [], dopo = [], ora = djMinOra(); let primo = Infinity;
+  for (const x of (r.strumenti || [])) {
+    if (!x || ['menu', 'multiplo', 'precio_fijo'].indexOf(x.tipo) < 0 || /^PORTA-/i.test(String(x.id || '')) || !x.finestra || !x.finestra.desde) continue;
+    if (!x.visible && x.perche !== 'fuori_orario') continue;   // spento · non oggi · apagado dal JL · fuori date: non si annuncia
+    const de = hm5(x.finestra.desde), fi = hm5(x.finestra.hasta_oggi || x.finestra.hasta), dm = djMin(de);
+    if (dm >= 0 && dm < primo) primo = dm;
+    const sc = x.id_contenitore ? strumC(x.id_contenitore) : null, n = String(x.nombre || '');
+    const p = x.tipo === 'multiplo' ? '2x1' : sc && sc.precio > 0 ? clp(sc.precio) : x.precio > 0 ? clp(x.precio) : '';
+    const e = x.tipo === 'menu' ? '🍽️' : /schop|cerve/i.test(n) ? '🍺' : /c[oó]ctel/i.test(n) ? '🍸' : '🎁';
+    if (x.visible) ahora.push({ e, t: n, s: T('hasta las') + ' ' + fi, p, k: dm });
+    else if (dm > ora) dopo.push({ e, t: n, s: T('de') + ' ' + de + ' ' + T('a') + ' ' + fi, p: x.tipo === 'multiplo' ? '' : p, k: dm, de, fi, m: x.tipo === 'multiplo' });
+  }
+  /* i 2x1 che aprono insieme si dicono in una riga sola («2x1 Schop y Cócteles», come il mockup) */
+  const uniti = [];
+  for (const d of dopo.sort((a, b) => a.k - b.k)) { const u = d.m && uniti.find((q) => q.m && q.de === d.de && q.fi === d.fi);
+    if (u) u.t += ' ' + T('y') + ' ' + d.t.replace(/^2x1\s+/i, ''); else uniti.push(Object.assign({}, d)); }
+  /* il DJ della sera (l'evento «Es el DJ del QR»): «DJ en vivo · <estilo>», sotto il nome e l'ora (Alberto: «AURORA non si capisce») */
+  const dj = djDati();
+  if (dj && dj.oggi.length) {
+    const tit = T('DJ en vivo') + (dj.genero ? ' · ' + dj.genero : '');
+    const f = dj.oggi.find((q) => djDentro(q)), g = f ? null : dj.oggi.find((q) => djMin(q.d) > ora);
+    if (f) ahora.push({ e: '🎧', t: tit, s: (f.n || dj.nombre) + ' · ' + T('hasta las') + ' ' + hm5(f.h), p: '', k: djMin(f.d) });
+    else if (g) uniti.push({ e: '🎧', t: tit, s: (g.n || dj.nombre) + ' · ' + T('desde las') + ' ' + hm5(g.d), p: '', k: djMin(g.d) });
+  }
+  uniti.sort((a, b) => a.k - b.k);
+  if (!ahora.length && !uniti.length) return null;
+  const abre = !ahora.length && primo !== Infinity && ora < primo ? uniti.find((q) => q.k === primo) : null;
+  const sez = abre ? T('Hoy') : ora >= 18 * 60 ? T('Esta noche') : T('Más tarde');
+  return { ahora, dopo: uniti, sez, abre: abre ? (abre.de || '') : '' };
+}
+function cartelRiga(q, luego) { return '<div class="ct-it' + (luego ? ' luego' : '') + '"><span class="ct-e">' + q.e + '</span><span class="ct-t"><b>' + esc(q.t) + '</b><span>' + esc(q.s) + '</span></span>' + (q.p ? '<span class="ct-p">' + esc(q.p) + '</span>' : '') + '</div>'; }
+function cartelHTML(c) {
+  const d = oraSantiago(), oraTxt = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  const brand = (S.cfg && S.cfg.brand_name) || LOCAL;
+  return '<div class="ct-card" role="dialog" aria-label="' + esc(T('Bienvenido')) + '"><div class="ct-hola"><b>' + esc(T('Bienvenido a')) + ' ' + esc(brand) + '</b><button class="ct-x" data-a="cartelChiudi" aria-label="Cerrar">✕</button></div>' +
+    '<div class="ct-hora">' + esc(DJ_NOMI_G[giornoOpDj()] || '') + ' · ' + oraTxt + '</div>' +
+    (c.abre ? '<div class="ct-abre">' + esc(T('Abrimos a las')) + ' ' + esc(c.abre) + '</div>' : '') +
+    (c.ahora.length ? '<div class="ct-sec">' + esc(T('Ahora')) + '</div>' + c.ahora.map((q) => cartelRiga(q, false)).join('') : '') +
+    (c.dopo.length ? '<div class="ct-sec">' + esc(c.sez) + '</div>' + c.dopo.map((q) => cartelRiga(q, true)).join('') : '') +
+    '<button class="ct-btn" data-a="cartelChiudi">' + esc(T('Ver la carta')) + '</button>' +
+    (pide() ? '' : '<div class="ct-nota">' + esc(T('Para pedir, escanea el QR de tu mesa')) + '</div>') + '</div>';
+}
+function cartelMostra() { const c = cartelDati(); if (!c) return; let el = document.getElementById('cartel');
+  if (!el) { el = document.createElement('div'); el.id = 'cartel'; el.className = 'ct-vel'; (document.getElementById('app') || document.body).appendChild(el); }   // dentro #app: lì vive il gestore dei tocchi
+  el.innerHTML = cartelHTML(c); el.hidden = false; }
+function cartelChiudi() { const el = document.getElementById('cartel'); if (el) el.hidden = true; S.cartelVisto = true; try { sessionStorage.setItem(CARTEL_K(), '1'); } catch (e) { /* solo memoria */ } }
+/* all'avvio, dopo le leve: una volta per giorno operativo e per telefono; dopo, resta la riga «Ahora: …» sotto il nome del locale */
+function cartelForse() { if (!cartelDati()) return; let visto = false; try { visto = sessionStorage.getItem(CARTEL_K()) === '1'; } catch (e) { visto = false; }
+  if (visto) S.cartelVisto = true; else cartelMostra(); }
+function cartelStriscia() { if (!S.cartelVisto) return ''; const c = cartelDati(); if (!c) return ''; const q = c.ahora[0] || c.dopo[0]; if (!q) return '';
+  return '<button class="ct-str" data-a="cartelApri">' + esc(c.ahora[0] ? T('Ahora') + ': ' + q.t + ' · ' + q.s : (c.abre ? T('Abrimos a las') + ' ' + c.abre : c.sez + ': ' + q.t)) + ' ›</button>'; }
 /* ═══ v0.8 · IL CONTO DI QUESTO TELEFONO (mockup: «Tu cuenta» in alto dopo il primo invio, l'unico bottone pieno, con l'importo).
    Il menù sa ciò che è PARTITO da questo telefono (i pedidos confermati dal bordo): l'importo è quello, e la schermata lo dice.
    Il conto intero della mesa e il pago dal telefono (Fintoc) sono il pezzo di domani (Alberto 29-ott); oggi da qui si chiede la máquina. ═══ */
@@ -1870,7 +1963,8 @@ async function pxLeve() {
   try { const r = await fetch(BORDO + '/salud', { cache: 'no-store' }); const j = await r.json(); const f = (j && j.flags) || {};
     S.salaOn = levaHa(f.llave_sala_on); S.pxOn = levaHa(f.fintoc_meta_conto_on) && (!LLAVE_SALA || S.salaOn);
     S.marcaOn = levaHa(f.promo_marca_on);
-    S.mddCardOn = levaHa(f.mdd_card_on); } catch (e) { S.pxOn = false; S.salaOn = false; S.marcaOn = false; S.mddCardOn = false; }   // v0.10.74 · AUT-1225: le card del menú
+    S.mddCardOn = levaHa(f.mdd_card_on);
+    S.cartelOn = levaHa(f.cartel_entrada_on); } catch (e) { S.pxOn = false; S.salaOn = false; S.marcaOn = false; S.mddCardOn = false; S.cartelOn = false; }   // v0.10.74 · AUT-1225: le card del menú · v0.10.80: il cartello d'ingresso
 }
 const pxPct = () => (S.px && Number.isInteger(S.px.pct) ? S.px.pct : 10);
 /* v0.10.64 (🎛 «IL QR DELLA 999 MOSTRA IL CONTO DELLA 998», 25-nov): il Pago Express si offre SOLO su un conto letto adesso. Con «actualizando…»
@@ -2791,6 +2885,8 @@ document.getElementById('app').addEventListener('click', (ev) => {
   if (a === 'palcoFam') { const g = gruppi().find((x) => x.k === k); if (g) { S.palco = false; S.dj = false; S.fam = g.k; S.cat = g.cats[0]; S.abierta = null; } pinta(); return; }
   // v0.8 · la riga in alto: ognuna di queste schermate chiude le altre (una sola metà grande alla volta)
   if (a === 'lingueApri' || a === 'djApri' || a === 'cuentaApri') { if (S.inviando || S.inviaStato) return; S.lingue = a === 'lingueApri'; S.dj = a === 'djApri'; if (S.dj) S.djTab = showAcceso() ? 'vivo' : 'cartelera'; S.cuenta = a === 'cuentaApri'; S.busca = null; S.tus = false; S.pedido = false; S.campana = false; S.dono = null; pinta(); if (S.cuenta && !pagoMesaOn()) { ccGiro(); pxLeve().then(() => { if (S.cuenta && !scrivendo()) pinta(); }); } return; }   // v0.10.63 (prova 998, 25-nov): la leva del Pago Express si rilegge a ogni apertura di «Tu cuenta», non solo all'avvio con la llave già nel telefono: il primo cliente del tavolo non vedeva il bottone
+  if (a === 'cartelChiudi') { cartelChiudi(); pinta(); return; }   // v0.10.80
+  if (a === 'cartelApri') { cartelMostra(); return; }
   if (a === 'tusApri') { S.tus = true; S.abierta = null; S.pedido = false; S.palco = false; pinta(); return; }
   if (a === 'tusChiudi') { S.tus = false; pinta(); return; }
   if (a === 'djTab' && (k === 'cartelera' || k === 'vivo')) { S.djTab = k; pinta(); return; }
@@ -3222,7 +3318,7 @@ async function memberCarica() {
       if (pxR || (S.ccRuta && S.cuentaMesa && ccChiave())) { S.cuenta = true; S.palco = false; ccPollSync(); }   // si apre solo se c'è un conto letto davvero
       if (!scrivendo()) pinta();
     } else if (MESA && !pagoMesaOn() && cuentaLeer()) pxLeve().then(() => { if (S.cuenta && !scrivendo()) pinta(); });   // v0.10.26 · AUT-1015: una lettura, per sapere se il 🧾 c'è
-    if (!S.leveChieste) pxLeve().then(() => { if (S.mddCardOn && S.abierta && !scrivendo()) pinta(); });   // v0.10.70: la leva della marca anche a un QR senza conto (una lettura all'avvio, nessun poll) · v0.10.74: un menú già aperto si ridisegna a card
+    if (!S.leveChieste) pxLeve().then(() => { if (S.mddCardOn && S.abierta && !scrivendo()) pinta(); cartelForse(); if (S.cartelVisto && !scrivendo()) pinta(); });   // v0.10.70: la leva della marca anche a un QR senza conto (una lettura all'avvio, nessun poll) · v0.10.74: un menú già aperto si ridisegna a card
     // v0.10.67: il QR di pago del garzón senza un conto da pagare lo dice (llave persa nel link · llave non valida · conto chiuso · lettura fallita)
     if (PAGAR && MESA && !pagoMesaOn() && !pxR && !(S.ccRuta && S.cuentaMesa && !S.cuentaMesa.cerrada && ccChiave())) {
       S.pagarNo = S.cuentaMesa && S.cuentaMesa.cerrada ? 'cerrada' : 'no_leida'; S.cuenta = true; S.palco = false; if (!scrivendo()) pinta();

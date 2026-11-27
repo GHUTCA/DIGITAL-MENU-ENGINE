@@ -193,7 +193,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.3.5</div>
+  <div id="ver">admin v1.3.7</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -700,6 +700,9 @@ function propDjHTML(r, dis){
   return '<div class="pbox" style="margin-top:12px"><label class="ckl"><input type="checkbox" id="pf_dj"' + (dj ? ' checked' : '') + dis(false) + '><span><b>Es el DJ del QR</b><small>Maneja el botón 🎧 DJ / ● LIVE y la página del DJ (la imagen de arriba es su cartelera).</small></span></label>' +
     '<div class="row"><div class="fld"><label>Nombre del DJ</label><input id="pf_djn" value="' + esc((dj && dj.nombre) || '') + '"' + dis(false) + '></div>' +
     '<div class="fld"><label>Instagram (sin @)</label><input id="pf_dji" value="' + esc((dj && dj.instagram) || '') + '"' + dis(false) + '></div></div>' +
+    /* admin v1.3.7 (Alberto 27-nov sul cartello d'ingresso: «AURORA non si capisce, specifica DJ en vivo House Music»): lo stile della musica,
+       letto dal QR come «DJ en vivo · <estilo>». Vuoto = solo «DJ en vivo». Sta in `textos.dj.genero`, nessuna colonna nuova. */
+    '<div class="row"><div class="fld"><label>Estilo de música (opcional)</label><input id="pf_djg" maxlength="40" placeholder="House Music" value="' + esc((dj && dj.genero) || '') + '"' + dis(false) + '></div></div>' +
     '<div class="nota">Por noche: quién toca y la hora de su set (<b>es la hora del LIVE</b>, no la hora en que el evento se ve en el QR). Varios DJ en la misma noche = una fila por DJ; al escribir en la última fila aparece otra vacía debajo. Fila sin hora = se borra.</div>' +
     /* admin v1.3.1 (Alberto 18-nov: «in una serata possono esserci più DJ per fascia oraria») */
     PROP_DIAS.map((d) => { const L = propDjFasce(set[PROP_DJ_GD[d]]).concat([{}]);
@@ -816,6 +819,7 @@ function propLeggiForm(){
         const k6 = (t) => { const [h, m] = String(t).split(':').map(Number); return (h < 6 ? h + 24 : h) * 60 + (m || 0); };   // dopo mezzanotte = la stessa notte
         if (L.length) set[PROP_DJ_GD[d]] = L.sort((x, y) => k6(x.d) - k6(y.d)); }
       tx.dj = { nombre: v('pf_djn') || '', instagram: (v('pf_dji') || '').replace(/^@/, ''), set };
+      const gen = (v('pf_djg') || '').trim().slice(0, 40); if (gen) tx.dj.genero = gen;   // v1.3.7: vuoto = la chiave non c'è (il QR dice solo «DJ en vivo»)
     } else delete tx.dj;
     n.textos = tx;
   }
