@@ -629,7 +629,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.78</div>
+<div class="ver" id="ver">menu v0.10.79</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1219,19 +1219,27 @@ function pedGrande(p) {
    prodotto (`ref`), o il riquadro col nome. Il tocco è lo STESSO di oggi (`sceglie` · stessa data-k) ⇒ stessa scelta, stessa chiave, stesso pedido. */
 const mddCard = (p) => !!(p && p.c === 'menu_contenitore' && p.mods && S.mddCardOn);
 function mcFoto(o, cls) { const pb = o && o.ref ? refProd(o.ref) : null; return pb && pb.img ? '<img loading="lazy" src="' + esc(pb.img) + '" alt="">' : '<div class="mc-tg' + (cls || '') + '">' + esc(o ? o.o : '') + '</div>'; }
-function domandeCardHTML(p) {
-  const sel = selDi(p);
+function domandeCardHTML(p, lettura) {
+  const sel = lettura ? {} : selDi(p);
   return domande(p).map((q) => {
     if (fisso(p, q)) { const o = q.ops[0];
       return '<div class="mc-fx">' + mcFoto(o) + '<div class="mc-fxt"><div class="mc-fxq">' + esc(T(q.tit)) + '</div><div class="mc-fxn">' + esc(o.o) + '</div><div class="mc-fxi">' + esc(T('Incluido')) + '</div></div></div>'; }
     const v = q.ops.some((o) => o.o === sel[q.k]) ? sel[q.k] : '';
-    return '<div class="prep"><div class="q">' + esc(T(q.tit)) + (v ? ' <span class="mok">✓ ' + esc(v) + '</span>' : ' <span class="mreq">' + esc(T('elige uno')) + '</span>') + '</div><div class="mc-strip">' +
-      q.ops.map((o) => '<button class="mc-oc' + (v === o.o ? ' on' : '') + '" data-a="sceglie" data-k="' + esc(p.id + '|' + q.k + '|' + o.o) + '">' + mcFoto(o) +
-        '<div class="mc-onm">' + esc(o.o) + (o.d ? ' <b>+' + clp(o.d) + '</b>' : '') + '</div>' + (v === o.o ? '<i>✓</i>' : '') + '</button>').join('') +
+    /* v0.10.79 · in sola lettura (QR senza tavolo): la stessa card, ma un <div> senza data-a, niente «elige uno» né ✓ (non si sceglie niente) */
+    return '<div class="prep"><div class="q">' + esc(T(q.tit)) + (lettura ? '' : v ? ' <span class="mok">✓ ' + esc(v) + '</span>' : ' <span class="mreq">' + esc(T('elige uno')) + '</span>') + '</div><div class="mc-strip">' +
+      q.ops.map((o) => (lettura ? '<div class="mc-oc">' : '<button class="mc-oc' + (v === o.o ? ' on' : '') + '" data-a="sceglie" data-k="' + esc(p.id + '|' + q.k + '|' + o.o) + '">') + mcFoto(o) +
+        '<div class="mc-onm">' + esc(o.o) + (o.d ? ' <b>+' + clp(o.d) + '</b>' : '') + '</div>' + (v === o.o ? '<i>✓</i>' : '') + (lettura ? '</div>' : '</button>')).join('') +
       '</div><div class="mc-cue">' + q.ops.length + ' ' + esc(T('opciones')) + (q.ops.length > 2 ? ' · ' + esc(T('desliza →')) : '') + '</div></div>';
   }).join('');
 }
 function domandeHTML(p) {
+  /* v0.10.79 · Alberto 27-nov («Sì, mostrale»): al QR SENZA tavolo (consultazione, il link di Instagram) un menú-contenitore aperto mostrava
+     «Elige tu plato y tu bebida» e sotto niente. Ora mostra cosa c'è dentro, in sola lettura: a card con la foto se la leva delle card è
+     accesa, se no una riga per domanda. Nessun tasto, nessuna scelta, nessun pedido: pide() resta falso e il PEDIR non c'è. */
+  if (!pide() && p && p.c === 'menu_contenitore' && p.mods && inOrario(p) && !chiusa(p)) {
+    if (mddCard(p)) return domandeCardHTML(p, true);
+    return domande(p).map((q) => '<div class="incl"><b>' + esc(T(q.tit)) + (fisso(p, q) ? ' · ' + esc(T('Incluido')) : '') + ':</b> ' + q.ops.map((o) => esc(o.o)).join(' · ') + '</div>').join('');
+  }
   if (!pide() || !ordinabile(p)) return '';
   if (mddCard(p)) return domandeCardHTML(p);   // v0.10.74 · AUT-1225
   const inc = domande(p).filter((q) => fisso(p, q)).map((q) => q.ops[0].o);   // v0.10.25: i pezzi inclusi, in una riga sola
