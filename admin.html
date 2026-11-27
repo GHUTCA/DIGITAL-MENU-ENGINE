@@ -193,7 +193,7 @@
   </div></header>
   <main class="main" id="propApp"></main>
   <main class="main" id="cartaApp" hidden></main>
-  <div id="ver">admin v1.3.8</div>
+  <div id="ver">admin v1.3.9</div>
 </section>
 
 <div class="toast" id="toast"></div>
@@ -338,6 +338,7 @@ function statoRiga(p){
     if (st.some((r) => r.activo && (ad.find((s) => s.id === r.id_strumento) || {}).visible)) return 'Activado por el JL · se vende ahora';
     return 'Encendido por el JL · fuera de su horario';
   }
+  if (p.menu_visible === false && p.visible_sala === true) return 'Oculto en el QR · se vende en la sala';   // v1.3.9 · AUT-1275
   if (p.menu_visible === false) return 'Oculto · no sale en el QR ni en la sala';   // v1.3.8 · AUT-1278: toglie il prodotto anche dalla carta del mesero (catalogo_pg.js), non solo dal QR   // la parola sta nella riga piccola: accanto al nome l'ellissi la tagliava
   return p.vendible ? 'Se vende ahora' : 'No se vende ahora';
 }
@@ -351,9 +352,10 @@ async function cartaCarica(){
   if (TAB === 'carta') { cartaPinta(); if (C.list && !P.d && !P.busy && P.stato !== 'ruta') propCarica(); }   // v1.2.2: lo stato del Menú del día vuole lo strumento del JL · 🔴 ① di EL GIRO: solo a carta arrivata, sennò propCarica→cartaCarica è un anello
   else if (P.d) propPinta();   // i nomi dei prodotti nelle propuestas
 }
+const vsHa = (p) => !!p && Object.prototype.hasOwnProperty.call(p, 'visible_sala');   // v1.3.8: il bordo porta il campo? (prima di AUT-1275 no: niente casella)
 async function cartaGesto(p, gesto, valor){
   const body = { pin: SES.pin, gesto, id_producto: p.id_producto, gesto_id: uuid(), valor };
-  if (['menu_visible','precio','hora_inicio','activo'].includes(gesto)) body.base_ts = p.ts;
+  if (['menu_visible','visible_sala','precio','hora_inicio','activo'].includes(gesto)) body.base_ts = p.ts;
   let r = await post('/cartaAdmin/' + encodeURIComponent(LOCAL), body, 8000);
   if (r.status === 0) r = await post('/cartaAdmin/' + encodeURIComponent(LOCAL), body, 8000);   // stesso corpo, stessa chiave
   if (r.status === 0) { toast('err', 'La carta no respondió · reintenta'); return false; }
@@ -495,7 +497,11 @@ function cartaDettaglio(){
     '</div>' +
     '<div class="nota">Horas de 24 h: <b class="mono">03:00</b> es de madrugada, <b class="mono">15:00</b> de tarde. Puedes escribir solo los números (<b class="mono">330</b> → 03:30). Vacío en «Desde» = desde que abre; vacío en «Hasta» = cierra con su estación.</div>' +
     (p.sin_precio ? '<div class="nota" style="margin-top:6px">Este producto está «sin precio» por decisión: no se cambia desde aquí.</div>' : '') +
-    (p.categoria === 'menu_contenitore' ? '' : '<label class="ckl"><input type="checkbox" id="cf_sm"' + (p.menu_visible === false ? ' checked' : '') + (dis ? ' disabled' : '') + '><span><b>Oculto en la carta</b><small>No sale en el QR <b>ni en la carta del garzón</b>: nadie lo puede pedir solo. Si además va dentro de un menú (Menú del día…), ahí sigue saliendo, al precio del menú. Se guarda con «Guardar».</small></span></label>') +
+    (p.categoria === 'menu_contenitore' ? '' : '<label class="ckl"><input type="checkbox" id="cf_sm"' + (p.menu_visible === false ? ' checked' : '') + (dis ? ' disabled' : '') + '><span><b>Oculto en la carta</b><small>No sale en el QR <b>ni en la carta del garzón</b>: nadie lo puede pedir solo' + (vsHa(p) ? ' (salvo «Sí se vende en la sala», aquí abajo)' : '') + '. Si además va dentro de un menú (Menú del día…), ahí sigue saliendo, al precio del menú. Se guarda con «Guardar».</small></span></label>') +
+    /* admin v1.3.9 · AUT-1275 (Alberto 27-nov, la Chelada: nascosta nel QR perché la si sceglie dentro la birra, ma il garzón la deve poter
+       vendere da sola). `visible_sala` true = nella carta del mesero anche se nascosto nel QR; vuoto = segue «Oculto en la carta», come oggi.
+       Si mostra solo se il bordo porta il campo (`visible_sala` nella lettura di /cartaAdmin) e solo per un prodotto nascosto nel QR. */
+    (vsHa(p) && p.menu_visible === false ? '<label class="ckl"><input type="checkbox" id="cf_vs"' + (p.visible_sala === true ? ' checked' : '') + (dis ? ' disabled' : '') + '><span><b>Sí se vende en la sala</b><small>Oculto en el QR, pero el garzón lo puede pedir solo (como la Chelada). Sin marcar: tampoco sale en la sala. Se guarda con «Guardar».</small></span></label>' : '') +
     (dis ? '' : (C.conf === p.id_producto
       ? '<div class="capa"><span>¿Desactivar <b>' + esc(p.nombre) + '</b>? No se verá ni se venderá: ni en la carta, ni en los menús, ni en el mesero.</span>' +
         '<button class="pbt dan pie" data-ca="apagaSi">Sí, desactivar</button><button class="pbt" data-ca="apagaNo">No</button></div>'
@@ -515,6 +521,8 @@ async function cartaSalva(){
   }
   const sm = document.getElementById('cf_sm');   // v1.2 · «Solo en menú» = menu_visible false
   if (sm && sm.checked !== (p.menu_visible === false)) gesti.push(['menu_visible', !sm.checked]);
+  const vs = document.getElementById('cf_vs');   // v1.3.8 · AUT-1275
+  if (vs && vs.checked !== (p.visible_sala === true)) gesti.push(['visible_sala', vs.checked]);
   if (e.length) { C.err = e.join(' '); cartaPinta(); return; }
   if (!gesti.length) { C.err = 'No hay cambios que guardar.'; cartaPinta(); return; }
   C.err = '';
