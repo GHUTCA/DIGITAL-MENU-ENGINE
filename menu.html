@@ -649,7 +649,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.81</div>
+<div class="ver" id="ver">menu v0.10.82</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -852,6 +852,13 @@ const maiusc = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   ['de', { '¿Y el segundo?': 'Und das zweite?', 'Igual': 'Gleich', 'Distinto': 'Anders' }],
   ['fr', { '¿Y el segundo?': 'Et le deuxième ?', 'Igual': 'Pareil', 'Distinto': 'Différent' }],
   ['ja', { '¿Y el segundo?': '2つ目は？', 'Igual': '同じ', 'Distinto': '別のもの' }]
+].forEach(([l, d]) => { TR[l] = Object.assign(TR[l] || {}, d); });
+/* v0.10.82 · D-593: la 2ª del 2x1 in attesa, nelle 8 lingue */
+[
+  ['en', { 'la 2ª cuando la pidas al garzón': 'the 2nd when you ask the waiter' }], ['pt', { 'la 2ª cuando la pidas al garzón': 'a 2ª quando pedir ao garçom' }],
+  ['it', { 'la 2ª cuando la pidas al garzón': 'la 2ª quando la chiedi al cameriere' }], ['zh', { 'la 2ª cuando la pidas al garzón': '第二杯请向服务员要' }],
+  ['ko', { 'la 2ª cuando la pidas al garzón': '두 번째는 직원에게 요청하세요' }], ['de', { 'la 2ª cuando la pidas al garzón': 'das 2., wenn du es beim Kellner bestellst' }],
+  ['fr', { 'la 2ª cuando la pidas al garzón': 'le 2e quand tu le demandes au serveur' }], ['ja', { 'la 2ª cuando la pidas al garzón': '2杯目はスタッフに頼んでください' }]
 ].forEach(([l, d]) => { TR[l] = Object.assign(TR[l] || {}, d); });
 /* v0.10.80 · il cartello d'ingresso, nelle 8 lingue («Esta noche» c'era già) */
 [
@@ -1070,7 +1077,7 @@ const qtyDi = (p) => righe().filter((r) => r.p.id === p.id).reduce((s, r) => s +
    è $0 + i SUOI extra, come la sala («SEGUNDA UNIDAD 2X1 ($0 + SUS EXTRAS)»). Con la 2ª DIVERSA lo faceva già (d2, la riga regalo); con la 2ª
    UGUALE (riga unica «llevar 2») il sovrapprezzo contava una volta sola: due schop con Chelada = $7.000 invece di $8.500. Ora la riga «llevar 2»
    porta l'extra due volte. Non con la leva qr_2x1_espera: lì il regalo esce in una riga sua che porta già il suo extra. */
-const prezzoRiga = (r) => prezzoOra(r.p).v + r.d + (in2x1(r) ? (r.m2 !== undefined ? r.d2 : coppia2x1() ? 0 : r.d) : 0);
+const prezzoRiga = (r) => prezzoOra(r.p).v + r.d + (in2x1(r) ? (extrasAlSoltar() ? 0 : extra2(r)) : 0);   // v0.10.82: con la 2ª in attesa e gli extra al soltar, il totale di adesso non li comprende (entrano quando parte)
 const coppiaDi = (r) => !!(r && r.m2 !== undefined && in2x1(r));
 /* v0.10.27 · IL 2x1 DEL QR (🎛 CONTROLLER V34 ven 13-nov 22:45 «IL QR NON APPLICA IL 2x1»: 52 carte QR, zero 2x1 — il cliente pagava ogni unità).
    La fonte è lo strumento `multiplo` della regola del bordo (strumP, la stessa da cui il catalogo del mesero fa `promo`), solo a leva
@@ -1095,8 +1102,18 @@ const in2x1 = (r) => !!(r && r.x && promo2x1(r.p));
    il 2x1 parte come la COPPIA del mesero (sala.html _cmPonerPareja r.7016-7037): A = l'unità pagata, subito · B = «· regalo 2x1», $0 di base
    + il suo extra, `regalo2x1:1`, `espera:1` (il bordo non la stampa, r.1158; parte col soltar del mesero o col timer). Leva vuota = la
    riga unica «llevar 2» (provata sulla 997 il 14-nov 15:14). I B vanno IN CODA agli items: PL[i] resta allineato a righe()[i]. */
-const coppia2x1 = () => String((S.cfg && S.cfg.qr_2x1_espera) || '').trim() === '1';
-const lleva2x1 = (r, es2) => ((es2 === undefined ? in2x1(r) : es2) ? (r.m2 !== undefined ? ' · 2x1 · 2º: ' + (r.m2 || 'Como viene') : coppia2x1() ? ' · 2x1 · ' + T('el segundo después') : ' · 2x1 · ' + T('llevas') + ' ' + (r.q * 2)) : '');
+/* v0.10.82 · D-593 (Alberto 27-nov: «Sì, aspetta» — anche dal QR la 2ª unità del 2x1 nasce «en espera», come in sala, D-559/D-573) e D-592
+   (i suoi extra si pagano quando parte). La leva non sta più in menu_config (PARAMETROS di Google, muore il 15-dic): è del bordo,
+   `qr_2x1_espera_on` su /salud. Gli extra della 2ª: con `s2x1_extras_soltar_on` (la stessa leva della sala, contratto ⚙️/🛎 «extras_espera»)
+   la riga B nasce a $0 con `extras_espera` = la somma dei suoi extra, e il bordo li scrive al `soltar2x1`; spenta, B nasce col prezzo degli extra. */
+const coppia2x1 = () => !!S.qr2x1EsperaOn;
+const extrasAlSoltar = () => coppia2x1() && !!S.extrasSoltarOn;
+const extra2 = (r) => (r.m2 !== undefined ? r.d2 : r.d) || 0;   // gli extra della 2ª unità: la sua scelta se distinta, se no la stessa della 1ª
+const rigaB = (d) => (extrasAlSoltar() ? { precio: 0, extras_espera: d || 0 } : { precio: d || 0 });
+/* v0.10.82 · D-593: con la 2ª in attesa la riga lo dice («la 2ª cuando la pidas al garzón»), e con gli extra al soltar dice anche quanto si
+   aggiungerà allora (+$1.500), perché il totale di adesso non lo comprende. */
+const dopo2x1 = (r) => (coppia2x1() ? ' · ' + T('la 2ª cuando la pidas al garzón') + (extrasAlSoltar() && extra2(r) > 0 ? ' (+' + clp(extra2(r)) + ')' : '') : '');
+const lleva2x1 = (r, es2) => ((es2 === undefined ? in2x1(r) : es2) ? (r.m2 !== undefined ? ' · 2x1 · 2º: ' + (r.m2 || 'Como viene') + dopo2x1(r) : coppia2x1() ? ' · 2x1' + dopo2x1(r) : ' · 2x1 · ' + T('llevas') + ' ' + (r.q * 2)) : '');
 const nomeRiga = (r) => r.p.n + (r.m ? ' · ' + r.m : '') + (r.t ? ' · ' + r.t : '');
 // la scelta in corso del piatto aperto: completa quando ogni domanda ha una risposta
 const selDi = (p) => (S.sel[p.id] = S.sel[p.id] || {});
@@ -1971,7 +1988,9 @@ async function pxLeve() {
     S.salaOn = levaHa(f.llave_sala_on); S.pxOn = levaHa(f.fintoc_meta_conto_on) && (!LLAVE_SALA || S.salaOn);
     S.marcaOn = levaHa(f.promo_marca_on);
     S.mddCardOn = levaHa(f.mdd_card_on);
-    S.cartelOn = levaHa(f.cartel_entrada_on); } catch (e) { S.pxOn = false; S.salaOn = false; S.marcaOn = false; S.mddCardOn = false; S.cartelOn = false; }   // v0.10.74 · AUT-1225: le card del menú · v0.10.80: il cartello d'ingresso
+    S.cartelOn = levaHa(f.cartel_entrada_on);
+    S.qr2x1EsperaOn = levaHa(f.qr_2x1_espera_on); S.extrasSoltarOn = levaHa(f.s2x1_extras_soltar_on);   // v0.10.82 · D-593 / D-592
+  } catch (e) { S.pxOn = false; S.salaOn = false; S.marcaOn = false; S.mddCardOn = false; S.cartelOn = false; S.qr2x1EsperaOn = false; S.extrasSoltarOn = false; }   // v0.10.74 · AUT-1225: le card del menú · v0.10.80: il cartello d'ingresso
 }
 const pxPct = () => (S.px && Number.isInteger(S.px.pct) ? S.px.pct : 10);
 /* v0.10.64 (🎛 «IL QR DELLA 999 MOSTRA IL CONTO DELLA 998», 25-nov): il Pago Express si offre SOLO su un conto letto adesso. Con «actualizando…»
@@ -2293,19 +2312,21 @@ function payloadPedido(confirmado) {
     // v0.10.61 · la coppia distinta: A = la PAGATA (prezzo + i SUOI extra, senza quelli del regalo), legata al regalo da `dupla` (sala _cmPonerPareja)
     if (es2 && coppiaDi(r)) return { id: r.p.id, nombre: nomeRiga(r), precio: prezzoOra(r.p).v + r.d, qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '',
       es_menu: false, promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, precio_base: prezzoOra(r.p).v };
-    if (es2 && coppia2x1()) return Object.assign({ id: r.p.id, nombre: nomeRiga(r), precio: prezzoRiga(r), qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '',
+    if (es2 && coppia2x1()) return Object.assign({ id: r.p.id, nombre: nomeRiga(r), precio: prezzoOra(r.p).v + r.d, qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '',   // v0.10.82: A = la pagata coi SUOI extra; quelli della 2ª li porta B
       es_menu: false, promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, precio_base: prezzoOra(r.p).v }, cm);
     return Object.assign({ id: r.p.id, nombre: nomeRiga(r) + (es2 ? ' · 2x1 (llevar ' + (r.q * 2) + ')' : ''), precio: prezzoRiga(r), qty: r.q, llevar: es2 ? r.q * 2 : r.q,
       op: r.m || '', termino: r.t || '', es_menu: false, promo: es2 ? '2x1' : marcaPromo(r.p), cat: r.p.c, precio_base: r.d ? prezzoOra(r.p).v : undefined }, cm); });   // v0.10.70: la marca
   items.push(...bebideMenu(righe()));
   // v0.10.61 · B = il REGALO della coppia distinta: $0 + i SUOI extra, la sua scelta, `regalo2x1:1`, esce INSIEME (niente `espera`). In CODA agli
   // items, come i B della leva qr_2x1_espera: PL[i] resta allineato a righe()[i].
+  // v0.10.82 · D-593: con la 2ª in attesa (`qr_2x1_espera_on`) anche il regalo della coppia distinta nasce `espera:1`; il prezzo dei suoi extra
+  // segue rigaB (a $0 con extras_espera se gli extra si pagano al soltar, se no il loro prezzo come prima).
   righe().forEach((r) => { if (!coppiaDi(r) || contMods(r).mods) return;
-    items.push({ id: r.p.id, nombre: r.p.n + (r.m2 ? ' · ' + r.m2 : '') + (r.t ? ' · ' + r.t : '') + ' · regalo 2x1', precio: r.d2 || 0, qty: r.q, llevar: r.q,
-      op: r.m2 || '', termino: r.t || '', es_menu: false, promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, regalo2x1: 1, precio_base: 0 }); });
+    items.push(Object.assign({ id: r.p.id, nombre: r.p.n + (r.m2 ? ' · ' + r.m2 : '') + (r.t ? ' · ' + r.t : '') + ' · regalo 2x1', qty: r.q, llevar: r.q,
+      op: r.m2 || '', termino: r.t || '', es_menu: false, promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, regalo2x1: 1, precio_base: 0 }, rigaB(r.d2), coppia2x1() ? { espera: 1 } : {})); });
   if (coppia2x1()) righe().forEach((r) => { if (!in2x1(r) || contMods(r).mods || coppiaDi(r)) return;
-    items.push({ id: r.p.id, nombre: nomeRiga(r) + ' · regalo 2x1', precio: r.d || 0, qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '', es_menu: false,
-      promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, regalo2x1: 1, espera: 1, precio_base: 0 }); });
+    items.push(Object.assign({ id: r.p.id, nombre: nomeRiga(r) + ' · regalo 2x1', qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '', es_menu: false,
+      promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, regalo2x1: 1, espera: 1, precio_base: 0 }, rigaB(r.d))); });
   const itemsJson = JSON.stringify(items);
   if (S.uuidFirma !== itemsJson) { S.uuid = _uuid(); S.uuidFirma = itemsJson; }
   return { action: 'enviarPedido', local: LOCAL, uuid: S.uuid, mesa: MESA, total: totale().s,
