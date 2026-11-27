@@ -2321,9 +2321,9 @@ function payloadPedido(confirmado) {
   // items, come i B della leva qr_2x1_espera: PL[i] resta allineato a righe()[i].
   // v0.10.82 · D-593: con la 2ª in attesa (`qr_2x1_espera_on`) anche il regalo della coppia distinta nasce `espera:1`; il prezzo dei suoi extra
   // segue rigaB (a $0 con extras_espera se gli extra si pagano al soltar, se no il loro prezzo come prima).
-  righe().forEach((r) => { if (!coppiaDi(r) || contMods(r).mods) return;
-    items.push(Object.assign({ id: r.p.id, nombre: r.p.n + (r.m2 ? ' · ' + r.m2 : '') + (r.t ? ' · ' + r.t : '') + ' · regalo 2x1', qty: r.q, llevar: r.q,
-      op: r.m2 || '', termino: r.t || '', es_menu: false, promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, regalo2x1: 1, precio_base: 0 }, rigaB(r.d2), coppia2x1() ? { espera: 1 } : {})); });
+  righe().forEach((r) => { if (!coppiaDi(r) || contMods(r).mods) return; const rb = rigaB(r.d2);   // 🍳: `precio` al suo posto, così a leve spente l'items_json è quello del vivo byte per byte
+    items.push(Object.assign({ id: r.p.id, nombre: r.p.n + (r.m2 ? ' · ' + r.m2 : '') + (r.t ? ' · ' + r.t : '') + ' · regalo 2x1', precio: rb.precio, qty: r.q, llevar: r.q,
+      op: r.m2 || '', termino: r.t || '', es_menu: false, promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, regalo2x1: 1, precio_base: 0 }, rb, coppia2x1() ? { espera: 1 } : {})); });
   if (coppia2x1()) righe().forEach((r) => { if (!in2x1(r) || contMods(r).mods || coppiaDi(r)) return;
     items.push(Object.assign({ id: r.p.id, nombre: nomeRiga(r) + ' · regalo 2x1', qty: r.q, llevar: r.q, op: r.m || '', termino: r.t || '', es_menu: false,
       promo: '2x1', cat: r.p.c, dupla: 'q' + r.k, regalo2x1: 1, espera: 1, precio_base: 0 }, rigaB(r.d))); });
