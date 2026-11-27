@@ -649,7 +649,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.80</div>
+<div class="ver" id="ver">menu v0.10.81</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1066,7 +1066,11 @@ function righe() { return Object.keys(S.cart).map((k) => { const [id, t, m, x, m
 const qtyDi = (p) => righe().filter((r) => r.p.id === p.id).reduce((s, r) => s + r.q, 0);
 // v0.10.61: la riga di una coppia 2x1 «distinta» costa la pagata + gli extra del regalo (come la sala: prezzoRiga di sala_nueva). Se la fascia
 // del 2x1 è finita la coppia non parte (payloadPedido manda la riga normale), quindi gli extra del regalo non si contano più.
-const prezzoRiga = (r) => prezzoOra(r.p).v + r.d + (r.m2 !== undefined && in2x1(r) ? r.d2 : 0);
+/* v0.10.81 (Alberto 27-nov, «la Chelada nella birra si aggiunge ma non rimane nel conto», mesa 997: «Sì, si paga»): nel 2x1 la 2ª unità
+   è $0 + i SUOI extra, come la sala («SEGUNDA UNIDAD 2X1 ($0 + SUS EXTRAS)»). Con la 2ª DIVERSA lo faceva già (d2, la riga regalo); con la 2ª
+   UGUALE (riga unica «llevar 2») il sovrapprezzo contava una volta sola: due schop con Chelada = $7.000 invece di $8.500. Ora la riga «llevar 2»
+   porta l'extra due volte. Non con la leva qr_2x1_espera: lì il regalo esce in una riga sua che porta già il suo extra. */
+const prezzoRiga = (r) => prezzoOra(r.p).v + r.d + (in2x1(r) ? (r.m2 !== undefined ? r.d2 : coppia2x1() ? 0 : r.d) : 0);
 const coppiaDi = (r) => !!(r && r.m2 !== undefined && in2x1(r));
 /* v0.10.27 · IL 2x1 DEL QR (🎛 CONTROLLER V34 ven 13-nov 22:45 «IL QR NON APPLICA IL 2x1»: 52 carte QR, zero 2x1 — il cliente pagava ogni unità).
    La fonte è lo strumento `multiplo` della regola del bordo (strumP, la stessa da cui il catalogo del mesero fa `promo`), solo a leva
