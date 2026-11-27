@@ -634,6 +634,10 @@ button{font-family:inherit}
 .ct-p{font-weight:700;font-size:13px;white-space:nowrap}
 .ct-btn{margin-top:14px;width:100%;padding:13px;border:0;border-radius:14px;font:inherit;font-weight:700;font-size:14px;background:var(--oro);color:var(--card)}
 .ct-nota{font-size:11px;color:var(--suave);text-align:center;margin-top:8px}
+/* v0.10.83 · AUT-1289: la riga degli sconti bancari, fissa dove si vedono le promo (palco, cartello, scheda del piatto in promo) */
+.ndesc{font-size:11px;line-height:1.35;color:var(--suave);padding:5px 10px 7px;background:var(--velo);flex:0 0 auto}
+.det .bd .ndesc{grid-column:1/-1;background:none;padding:6px 0 0}
+.ct-card .ndesc{background:none;padding:8px 2px 0;text-align:center}
 .ct-str{border:0;background:none;padding:0;font:inherit;font-size:inherit;color:var(--oro);font-weight:600;text-align:left;cursor:pointer}
 .ckf{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .ckf label{font-size:12px;font-weight:800;color:var(--suave)}
@@ -649,7 +653,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.82</div>
+<div class="ver" id="ver">menu v0.10.83</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -871,6 +875,19 @@ const maiusc = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   ['fr', { 'Bienvenido a': 'Bienvenue au', 'Ahora': 'Maintenant', 'Más tarde': 'Plus tard', 'Hoy': "Aujourd'hui", 'Abrimos a las': 'Nous ouvrons à', 'hasta las': "jusqu'à", 'desde las': 'à partir de', 'de': 'de', 'a': 'à', 'y': 'et', 'DJ en vivo': 'DJ en live', 'Ver la carta': 'Voir la carte', 'Para pedir, escanea el QR de tu mesa': 'Pour commander, scanne le QR de ta table' }],
   ['ja', { 'Bienvenido a': 'ようこそ', 'Ahora': '今', 'Más tarde': 'このあと', 'Hoy': '今日', 'Abrimos a las': '開店', 'hasta las': '〜', 'desde las': '開始', 'de': '', 'a': '〜', 'y': '・', 'DJ en vivo': 'ライブDJ', 'Ver la carta': 'メニューを見る', 'Para pedir, escanea el QR de tu mesa': 'ご注文はテーブルのQRをスキャンしてください' }]
 ].forEach(([l, d]) => { TR[l] = Object.assign(TR[l] || {}, d); });
+/* v0.10.83 · AUT-1289 (reclamo di un cliente, 27-nov: alla porta gli hanno promesso Falabella sul menú, alla cassa no): la riga fissa, nelle 8 lingue */
+const NDESC = 'Los descuentos bancarios y de convenios (Falabella u otros) no se suman a promociones, menú del día ni 2x1.';
+[
+  ['en', { [NDESC]: 'Bank and partner discounts (Falabella or others) cannot be combined with promotions, the menu of the day or 2x1.' }],
+  ['pt', { [NDESC]: 'Descontos bancários e de convênios (Falabella ou outros) não se somam a promoções, menu do dia nem 2x1.' }],
+  ['it', { [NDESC]: 'Gli sconti bancari e delle convenzioni (Falabella o altri) non si sommano a promozioni, menù del giorno né 2x1.' }],
+  ['zh', { [NDESC]: '银行及合作折扣（Falabella等）不可与促销、每日套餐或买一送一同时使用。' }],
+  ['ko', { [NDESC]: '은행 및 제휴 할인(Falabella 등)은 프로모션, 오늘의 메뉴, 2x1과 중복 적용되지 않습니다.' }],
+  ['de', { [NDESC]: 'Bank- und Partnerrabatte (Falabella u. a.) gelten nicht zusätzlich zu Aktionen, Tagesmenü oder 2x1.' }],
+  ['fr', { [NDESC]: 'Les réductions bancaires et partenaires (Falabella ou autres) ne se cumulent pas avec les promotions, le menu du jour ni le 2x1.' }],
+  ['ja', { [NDESC]: '銀行・提携割引（Falabellaなど）は、プロモーション、日替わりメニュー、2x1とは併用できません。' }]
+].forEach(([l, d]) => { TR[l] = Object.assign(TR[l] || {}, d); });
+const ndescHTML = () => '<div class="ndesc">' + esc(T(NDESC)) + '</div>';
 const S = { cfg: null, prod: [], tick: null, fam: null, cat: null, abierta: null, cart: {}, pedido: false,
   inviando: null, inviaStato: '', uuid: '', uuidFirma: '', listo: null, need: '', errore: '', agotLoc: [], campana: false, sel: {},
   // v0.7: l'inizio (palco + destacados) · la vetrina del locale · «Otra vez» · il regalo a otra mesa
@@ -1359,7 +1376,7 @@ function z3() {
     const fo = p.img ? '<div class="fo" style="--f:url(\'' + esc(p.img) + '\')' + (p.fy != null ? ';--fy:' + p.fy + '%' : '') + '">' : '<div class="fo tg">' + esc(p.n);
     const conQ = domande(p).length > 0;   // v0.10.16 (Alberto 12-nov): con le domande la foto non si schiaccia, cede la striscia
     return '<div class="split' + (conQ ? ' conq' : '') + (p.c === 'menu_contenitore' ? ' cont' : '') + '"><div class="det">' + fo + '<button class="x" data-a="cierra">✕</button></div>' +
-      '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(descP(p)) + '</div><div class="pz">' + pzHTML(p, true) + '</div>' + g2x1HTML(p) +
+      '<div class="bd">' + (p.img ? '<h2>' + esc(p.n) + '</h2>' : '') + '<div class="ds">' + esc(descP(p)) + '</div><div class="pz">' + pzHTML(p, true) + '</div>' + g2x1HTML(p) + (inPromo(p) ? ndescHTML() : '') +
       // v0.7: il regalo sta su ogni trago, dove nasce la voglia (solo coi tragos che si mettono senza domande: il regalo non chiede)
       (envioOn() && esTrago(p) && ordinabile(p) && !domande(p).length ? '<button class="dono-in" data-a="donoApri" data-k="' + esc(p.id) + '">🎁 Invítale este trago a otra mesa</button>' : '') + '</div>' +
       domandeHTML(p) + pedGrande(p) + '</div>' + pagine(daMostrare(), conQ ? 3 : PER_PAG) + '</div>';
@@ -1515,8 +1532,14 @@ function destCards0() { return destacados().map((x) => '<div class="dsw">' + (x.
 function palcoHTML() {
   const dc = destCards();
   return '<div class="split pal-split"><div class="det">' + slideHTML() + '</div>' +
-    (dc ? '<div class="destit">' + T('Destacados') + ' <span>' + T('desliza ›') + '</span></div><div class="destrip">' + dc + '</div>' : '') + '</div>';
+    (dc ? '<div class="destit">' + T('Destacados') + ' <span>' + T('desliza ›') + '</span></div><div class="destrip">' + dc + '</div>' : '') +
+    (dc || promoOggi() ? ndescHTML() : '') + '</div>';
 }
+/* v0.10.83 · AUT-1289: c'è una promo oggi (menú, 2x1, precio fijo/HH) visibile adesso o più tardi? La stessa regola del cartello */
+function promoOggi() { const r = strumR(); if (!r || !r.ok) return false;
+  return (r.strumenti || []).some((x) => x && ['menu', 'multiplo', 'precio_fijo'].indexOf(x.tipo) >= 0 && !/^PORTA-/i.test(String(x.id || '')) && (x.visible || x.perche === 'fuori_orario')); }
+/* …e questo piatto è in promo adesso? (contenitore di un menú, piatto del menú del día, 2x1 vigente, prezzo di fascia più basso) */
+const inPromo = (p) => !!p && (p.c === 'menu_contenitore' || inMenuDia(p) || vige2x1(p) || prezzoOra(p).orig > 0);
 function palcoStop() { if (PALCO_T) { clearTimeout(PALCO_T); PALCO_T = null; } }
 function palcoAvanti() { S.finVid = false; S.slide = (S.slide + 1) % SLIDES.length; palcoRidisegna(); }
 function palcoRidisegna() { const z = document.getElementById('z3'), d = z.querySelector('.pal-split > .det'); if (!d || !inPalco()) return; d.innerHTML = slideHTML(); z.dataset.pk = palKey(); palcoGira(); }
@@ -1717,6 +1740,7 @@ function cartelHTML(c) {
     (c.abre ? '<div class="ct-abre">' + esc(T('Abrimos a las')) + ' ' + esc(c.abre) + '</div>' : '') +
     (c.ahora.length ? '<div class="ct-sec">' + esc(T('Ahora')) + '</div>' + c.ahora.map((q) => cartelRiga(q, false)).join('') : '') +
     (c.dopo.length ? '<div class="ct-sec">' + esc(c.sez) + '</div>' + c.dopo.map((q) => cartelRiga(q, true)).join('') : '') +
+    (c.ahora.some((q) => q.e !== '🎧') || c.dopo.some((q) => q.e !== '🎧') ? ndescHTML() : '') +   // v0.10.83 · AUT-1289
     '<button class="ct-btn" data-a="cartelChiudi">' + esc(T('Ver la carta')) + '</button>' +
     (pide() ? '' : '<div class="ct-nota">' + esc(T('Para pedir, escanea el QR de tu mesa')) + '</div>') + '</div>';
 }
