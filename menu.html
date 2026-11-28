@@ -653,7 +653,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.86</div>
+<div class="ver" id="ver">menu v0.10.87</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -1010,9 +1010,10 @@ function prezzoOra(p) {
   /* v0.10.86 · 📖 (🎛 V35 28-nov «UNA CURA SOLA: QUELLA DI 📖, SOPRA 1c51885»; regola 5 di Alberto): con uno strumento col prezzo acceso
      (precio_fijo, botellas: `sx.strumento`) il prezzo member NON si applica, il socio paga lo strumento — prendere `pm` sotto una promo è sommare.
      Si guarda `sx` e non `z.strum`, perché il depto sopra riscrive `z` e perderebbe il segno. Il recargo da solo non è una promo.
-     Il barrato è la carta (`orig`); lo sconto della Lista (`ora` − `pm`: «ahorras» e `dto_pm`) è contro il prezzo che paga ADESSO chi non è socio. */
+     Il barrato, «ahorras» e `dto_pm` sono TUTTI contro `ora` = il prezzo che paga ADESSO chi non è socio (senza depto né recargo = la carta).
+     v0.10.87 (🟡 di 🍳 su a8bd7e1): col barrato alla carta e «ahorras» contro `ora`, recargo 13.000 diceva «12.000 → 9.000 · ahorras $4.000». */
   const conStrum = !!(sx && sx.strumento && sx.precio > 0);
-  if (S.member && S.member.ok && p.pm > 0 && p.pm < p.p && p.pm < z.v && !conStrum && !inMenuDia(p)) return { v: p.pm, orig: p.p, ora: z.v, lista: true };   // v0.10.65 · 🎟: `lista` = è il prezzo La Lista (lo leggono pzHTML e la riga del pedido)
+  if (S.member && S.member.ok && p.pm > 0 && p.pm < p.p && p.pm < z.v && !conStrum && !inMenuDia(p)) return { v: p.pm, orig: z.v, ora: z.v, lista: true };   // v0.10.65 · 🎟: `lista` = è il prezzo La Lista (lo leggono pzHTML e la riga del pedido)
   return z;
 }
 /* PINSA (Alberto 29-ott) · LO SCONTO È DEL CANALE DEPTO, e solo suo: `descuento_depto_pct` nella config del local (vuota/0 = niente).
