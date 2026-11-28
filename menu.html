@@ -653,7 +653,7 @@ button{font-family:inherit}
   <div class="z3" id="z3"><div class="msg">Cargando la carta…</div></div>
   <div class="z2" id="z2" hidden></div>
 </div>
-<div class="ver" id="ver">menu v0.10.90</div>
+<div class="ver" id="ver">menu v0.10.91</div>
 <script>
 'use strict';
 /* ═══ la sorgente: SOLO il bordo. Il token è quello pubblico di lettura che il menù vivo usa già (sola lettura). ═══ */
@@ -923,6 +923,10 @@ const NOMI_CAT_DEFAULT = { promo_2x1: '2x1 ahora', entradas: 'Para compartir', f
 /* v0.10.88 · per BKS dopo l'INCOLLA delle 15: fondos/vinos/destilados/bebidas cambiano NOME (non chiave), perché ora contengono anche le fuse.
    Solo per i locali scritti qui: Riesco/Candelaria/PINSA non hanno l'albero nuovo e tengono i nomi di prima. */
 const NOMI_CAT_LOCALE = { BKS: { fondos: 'Platos de fondo', vinos: 'Vinos y sangrías', destilados: 'Destilados y shots', bebidas: 'Bebidas y jugos' } };
+const GRUPPI_LOCALE = { BKS: {   // v0.10.91 · nuove e vecchie insieme (vedi gruppi()); le nascoste (componentes_menu, platos_fam, agregados_cerveza) non ci sono
+  Comida: { emoji: '🍽️', cats: ['para_compartir', 'entradas', 'pizzas', 'pastas', 'sushi', 'fondos', 'pizzas_burger', 'nino', 'acompanamientos'] },
+  Barra: { emoji: '🍸', cats: ['cervezas', 'vinos', 'jarras', 'sours', 'sour', 'spritz', 'cocteles', 'bar', 'mojitos', 'destilados', 'botellas', 'bebidas', 'jugos'] },
+  Dolci: { emoji: '🍰', cats: ['postres', 'cafes'] } } };
 const NOMI_GRUPPO_DEFAULT = { Promo: 'Promo', Comida: 'Comer', Barra: 'Barra', Dolci: 'Postres' };
 function nomeCat(k) { const m = (S.cfg && S.cfg.nombres_categorias) || {}, ml = NOMI_CAT_LOCALE[String(LOCAL || '').toUpperCase()] || {}; return T(m[k] || ml[k] || NOMI_CAT_DEFAULT[k] ||(k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '))); }
 function nomeGruppo(k) { const m = (S.cfg && S.cfg.nombres_grupos) || {}; return T(m[k] || NOMI_GRUPPO_DEFAULT[k] || k); }
@@ -1235,6 +1239,11 @@ const hhmm = (x) => String(Math.floor(x)).padStart(2, '0') + ':' + String(Math.r
 /* ═══ i gruppi (famiglie) dalla config del locale ═══ */
 function gruppi() {
   let g = {}; try { g = JSON.parse((S.cfg && S.cfg.category_groups) || '{}'); } catch (e) { g = {}; }
+  /* v0.10.91 · l'albero a 15 di BKS: le famiglie stanno QUI per BKS, non nella copia di Google di menu_config. Se la config non conosce
+     ancora le chiavi nuove (`para_compartir`), il QR usa le sue. Le liste portano le chiavi NUOVE e le VECCHIE, nell'ordine di carta: prima o
+     dopo l'INCOLLA di 🚚, ogni prodotto cade in una famiglia (le categorie vuote spariscono da sole, `conProd` qui sotto). Altri locali: come prima. */
+  const gl = GRUPPI_LOCALE[String(LOCAL || '').toUpperCase()];
+  if (gl && !Object.keys(g).some((k) => (g[k].cats || []).indexOf('para_compartir') >= 0)) g = gl;
   /* v0.10.21 (🟡 di EL GIRO): un menú-contenitore fuori dal suo orario non tiene acceso il chip: a cena il QR non si apre su «Promo»
      col Menú del día grigio. Il chip c'è solo quando almeno un menú si può ordinare adesso (alle 15:00 sparisce da solo, ri-disegno del minuto). */
   const conProd = new Set(S.prod.filter((p) => visibile(p) && (p.c !== 'menu_contenitore' || inOrario(p))).map((p) => p.c));
